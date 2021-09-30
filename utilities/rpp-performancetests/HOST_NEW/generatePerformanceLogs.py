@@ -22,7 +22,7 @@ if caseEnd < "0" or caseEnd > "79":
     print("Ending case# must be in the 0-79 range. Aborting!")
     exit(0)
 
-subprocess.call(["./rawLogsGenScript.sh", caseStart, caseEnd])
+subprocess.call(["./rawLogsGenScript.sh", "0", "0"])
 
 log_file_list = [
     "../OUTPUT_PERFORMANCE_LOGS_HOST_NEW/BatchPD_host_pkd3_host_raw_performance_log.txt",
