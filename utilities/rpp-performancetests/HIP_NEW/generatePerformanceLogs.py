@@ -26,7 +26,7 @@ if caseEnd < "0" or caseEnd > "79":
 
 if profilingOption == "NO":
 
-    subprocess.call(["./rawLogsGenScript.sh", "0", caseStart, caseEnd])
+    subprocess.call(["./rawLogsGenScript.sh", "0", "2", "3"])
 
     log_file_list = [
         "../OUTPUT_PERFORMANCE_LOGS_HIP_NEW/BatchPD_hip_pkd3_hip_raw_performance_log.txt",
