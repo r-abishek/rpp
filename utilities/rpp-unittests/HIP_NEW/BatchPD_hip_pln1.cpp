@@ -61,6 +61,11 @@ int main(int argc, char **argv)
         printf("\nPLN1 cases don't have outputFormatToggle! Please input outputFormatToggle = 0\n");
         return -1;
     }
+    if ((atoi(argv[6]) == 21 || atoi(argv[6]) == 22) && argc < MIN_ARG_COUNT + 1)
+    {
+        printf("\nUsage: ./BatchPD_hip_pln1 <src1 folder> <src2 folder (place same as src1 folder for single image functionalities)> <dst folder> <u8 = 0 / f16 = 1 / f32 = 2 / u8->f16 = 3 / u8->f32 = 4 / i8 = 5 / u8->i8 = 6> <outputFormatToggle (pkd->pkd = 0 / pkd->pln = 1)> <case number = 0:81> <interp_type = 0:2> <verbosity = 0/1>\n");
+        return -1;
+    }
 
 
     char *src = argv[1];
@@ -69,8 +74,8 @@ int main(int argc, char **argv)
     int ip_bitDepth = atoi(argv[4]);
     unsigned int outputFormatToggle = atoi(argv[5]);
     int test_case = atoi(argv[6]);
-    unsigned int verbosity = (test_case == 21) ? atoi(argv[8]) : atoi(argv[7]);
-    int interpolation_type = (test_case == 21) ? atoi(argv[7]) : 1;
+    unsigned int verbosity = (test_case == 21 || test_case == 22) ? atoi(argv[8]) : atoi(argv[7]);
+    int interpolation_type = (test_case == 21 || test_case == 22) ? atoi(argv[7]) : 1;
 
     if (verbosity)
     {
@@ -81,7 +86,7 @@ int main(int argc, char **argv)
         printf("\nu8 / f16 / f32 / u8->f16 / u8->f32 / i8 / u8->i8 (0/1/2/3/4/5/6) = %s", argv[4]);
         printf("\noutputFormatToggle (pkd->pkd = 0 / pkd->pln = 1) = %s", argv[5]);
         printf("\ncase number (1:81) = %s", argv[6]);
-        if(test_case == 21)
+        if(test_case == 21 || test_case == 22)
             printf("\ninterpolation type (0:2) = %s", get_interpolation_type(interpolation_type).c_str());
     }
 
@@ -434,7 +439,7 @@ int main(int argc, char **argv)
     char func[1000];
     strcpy(func, funcName);
     strcat(func, funcType);
-    if(test_case == 21)
+    if(test_case == 21 || test_case == 22)
     {
         strcat(func, "_");
         strcat(func, get_interpolation_type(interpolation_type).c_str());
@@ -1468,17 +1473,17 @@ int main(int argc, char **argv)
         start = clock();
 
         if (ip_bitDepth == 0)
-            rppi_resize_crop_u8_pln1_batchPD_gpu(d_input, srcSize, maxSize, d_output, dstSize, maxDstSize, x1, x2, y1, y2, outputFormatToggle, noOfImages, handle);
+            rppi_resize_crop_u8_pln1_batchPD_gpu(d_input, srcSize, maxSize, d_output, dstSize, maxDstSize, x1, x2, y1, y2, interpolation_type, outputFormatToggle, noOfImages, handle);
         else if (ip_bitDepth == 1)
             missingFuncFlag = 1; // rppi_resize_crop_f16_pln1_batchPD_gpu(d_inputf16, srcSize, maxSize, d_outputf16, dstSize, maxDstSize, x1, x2, y1, y2, outputFormatToggle, noOfImages, handle);
         else if (ip_bitDepth == 2)
-            rppi_resize_crop_f32_pln1_batchPD_gpu(d_inputf32, srcSize, maxSize, d_outputf32, dstSize, maxDstSize, x1, x2, y1, y2, outputFormatToggle, noOfImages, handle);
+            rppi_resize_crop_f32_pln1_batchPD_gpu(d_inputf32, srcSize, maxSize, d_outputf32, dstSize, maxDstSize, x1, x2, y1, y2, interpolation_type, outputFormatToggle, noOfImages, handle);
         else if (ip_bitDepth == 3)
             missingFuncFlag = 1;
         else if (ip_bitDepth == 4)
             missingFuncFlag = 1;
         else if (ip_bitDepth == 5)
-            rppi_resize_crop_i8_pln1_batchPD_gpu(d_inputi8, srcSize, maxSize, d_outputi8, dstSize, maxDstSize, x1, x2, y1, y2, outputFormatToggle, noOfImages, handle);
+            rppi_resize_crop_i8_pln1_batchPD_gpu(d_inputi8, srcSize, maxSize, d_outputi8, dstSize, maxDstSize, x1, x2, y1, y2, interpolation_type, outputFormatToggle, noOfImages, handle);
         else if (ip_bitDepth == 6)
             missingFuncFlag = 1;
         else
@@ -3256,7 +3261,7 @@ int main(int argc, char **argv)
 
     mkdir(dst, 0700);
     strcat(dst, "/");
-    if(test_case == 21)
+    if(test_case == 21 || test_case == 22)
     {
         strcat(dst, get_interpolation_type(interpolation_type).c_str());
         mkdir(dst, 0700);

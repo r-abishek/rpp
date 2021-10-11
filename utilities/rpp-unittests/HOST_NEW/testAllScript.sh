@@ -193,7 +193,7 @@ do
                 SRC_FOLDER_1_TEMP="$SRC_FOLDER_1"
                 SRC_FOLDER_2_TEMP="$SRC_FOLDER_2"
             fi
-            if [[ "$case" -eq 21 ]]
+            if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
             then
                 for ((interp_type=0;interp_type<2;interp_type++))
                 do
@@ -259,7 +259,7 @@ do
                 SRC_FOLDER_1_TEMP="$SRC_FOLDER_1"
                 SRC_FOLDER_2_TEMP="$SRC_FOLDER_2"
             fi
-            if [[ "$case" -eq 21 ]]
+            if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
             then
                 for ((interp_type=0;interp_type<2;interp_type++))
                 do
@@ -325,7 +325,7 @@ do
                 SRC_FOLDER_1_TEMP="$SRC_FOLDER_1"
                 SRC_FOLDER_2_TEMP="$SRC_FOLDER_2"
             fi
-            if [[ "$case" -eq 21 ]]
+            if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
             then
                 for ((interp_type=0;interp_type<2;interp_type++))
                 do
