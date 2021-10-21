@@ -29,6 +29,8 @@ std::string get_interpolation_type(int val)
     {
     case 0:
         return "nearest_neighbor";
+    case 2:
+        return "cubic";
     default:
         return "linear";
     }

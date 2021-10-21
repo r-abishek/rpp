@@ -179,7 +179,8 @@ typedef enum
 typedef enum 
 {
     NEAREST_NEIGHBOR,
-    LINEAR
+    LINEAR,
+    CUBIC
 } RppiResizeInterpType;
 
 
