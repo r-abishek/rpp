@@ -195,7 +195,7 @@ do
             fi
             if [[ "$case" -eq 21 ]]
             then
-                for ((interp_type=0;interp_type<2;interp_type++))
+                for ((interp_type=0;interp_type<3;interp_type++))
                 do
                     printf "\n./BatchPD_hip_pkd3 $SRC_FOLDER_1_TEMP $SRC_FOLDER_2_TEMP $DST_FOLDER_TEMP $bitDepth $outputFormatToggle $case $interp_type 0"
                     ./BatchPD_hip_pkd3 "$SRC_FOLDER_1_TEMP" "$SRC_FOLDER_2_TEMP" "$DST_FOLDER_TEMP" "$bitDepth" "$outputFormatToggle" "$case" "$interp_type" "0"
@@ -261,7 +261,7 @@ do
             fi
             if [[ "$case" -eq 21 ]]
             then
-                for ((interp_type=0;interp_type<2;interp_type++))
+                for ((interp_type=0;interp_type<3;interp_type++))
                 do
                     printf "\n./BatchPD_hip_pln1 $SRC_FOLDER_1_TEMP $SRC_FOLDER_2_TEMP $DST_FOLDER_TEMP $bitDepth $outputFormatToggle $case $interp_type 0"
                     ./BatchPD_hip_pln1 "$SRC_FOLDER_1_TEMP" "$SRC_FOLDER_2_TEMP" "$DST_FOLDER_TEMP" "$bitDepth" "$outputFormatToggle" "$case" "$interp_type" "0"
@@ -327,7 +327,7 @@ do
             fi
             if [[ "$case" -eq 21 ]]
             then
-                for ((interp_type=0;interp_type<2;interp_type++))
+                for ((interp_type=0;interp_type<3;interp_type++))
                 do
                     printf "\n./BatchPD_hip_pln3 $SRC_FOLDER_1_TEMP $SRC_FOLDER_2_TEMP $DST_FOLDER_TEMP $bitDepth $outputFormatToggle $case $interp_type 0"
                     ./BatchPD_hip_pln3 "$SRC_FOLDER_1_TEMP" "$SRC_FOLDER_2_TEMP" "$DST_FOLDER_TEMP" "$bitDepth" "$outputFormatToggle" "$case" "$interp_type" "0"
