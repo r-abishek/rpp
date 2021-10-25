@@ -5,15 +5,15 @@
 using half_float::half;
 
 #define saturate_8u(value) ((value) > 255 ? 255 : ((value) < 0 ? 0 : (value)))
+#define RANGE_CHECK(value, lower, upper) ((value > upper) ? upper : (value < lower) ? lower : value)
 
-template <typename T>
-__device__ __forceinline__ void CubicCoefficients(T* coeffs, float x)
+__device__ __forceinline__ void CalculateCubicCoefficients(float* coeffs, float x)
 {
     float A = -0.5f;
-    coeffs[0] = (T)(((A * (x + 1) - 5 * A) * (x + 1) + 8 * A) * (x + 1) - 4 * A);
-    coeffs[1] = (T)(((A + 2) * x - (A + 3)) * x * x + 1);
-    coeffs[2] = (T)(((A + 2) * (1 - x) - (A + 3)) * (1 - x) * (1 - x) + 1);
-    coeffs[3] = (T)(1.0f - coeffs[0] - coeffs[1] - coeffs[2]);
+    coeffs[0] = ((A * (x + 1) - 5 * A) * (x + 1) + 8 * A) * (x + 1) - 4 * A;
+    coeffs[1] = ((A + 2) * x - (A + 3)) * x * x + 1;
+    coeffs[2] = ((A + 2) * (1 - x) - (A + 3)) * (1 - x) * (1 - x) + 1;
+    coeffs[3] = 1.0f - coeffs[0] - coeffs[1] - coeffs[2];
 }
 
 extern "C" __global__ void resize_pln(unsigned char *srcPtr,
@@ -423,7 +423,6 @@ extern "C" __global__ void resize_cubic_crop_batch(unsigned char *srcPtr,
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
     int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
-
     if (id_x >= dest_width[id_z] || id_y >= dest_height[id_z])
     {
         return;
@@ -440,39 +439,26 @@ extern "C" __global__ void resize_cubic_crop_batch(unsigned char *srcPtr,
     x = xroi_begin[id_z] + x;
     y = yroi_begin[id_z] + y;
     unsigned long dst_pixIdx = 0;
-    int A, B, C, D;
-    int coeffs_x[4], coeffs_y[4];
-    if ((x + 1) < source_width[id_z] && (y + 1) < source_height[id_z])
+    float A, B, C, D, coeffs_x[4], coeffs_y[4];
+    int width_limit = source_width[id_z] - 1;
+    int height_limit = source_height[id_z] - 1;
+    if (x < source_width[id_z] && y < source_height[id_z])
     {
-        CubicCoefficients(coeffs_x, x_diff);
-        CubicCoefficients(coeffs_y, y_diff);
+        CalculateCubicCoefficients(coeffs_x, x_diff);
+        CalculateCubicCoefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         for (int indextmp = 0; indextmp < channel; indextmp++)
         {
+            A = B = C = D = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                A = srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y - 1) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[0] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y - 1) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[1] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y - 1) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[2] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y - 1) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[3];
-                B = srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + (y * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[0] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + (y * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[1] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + (y * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[2] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + (y * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[3];
-                C = srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y + 1) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[0] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y + 1) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[1] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y + 1) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[2] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y + 1) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[3];
-                D = srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y + 2) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[0] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y + 2) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[1] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y + 2) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[2] +
-                    srcPtr[source_batch_index[id_z] + ((x + 1 + k - (kernel_size / 2)) + ((y + 2) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[3];
-            }
-            int pixVal = (int)(A * coeffs_y[0] +
-                               B * coeffs_y[1] +
-                               C * coeffs_y[2] +
-                               D * coeffs_y[3]);
-            dstPtr[dst_pixIdx] = saturate_8u(pixVal);
+                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
+                A += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+                B += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK(y, 0, height_limit)  * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+                C += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+                D += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+            }            
+            dstPtr[dst_pixIdx] = saturate_8u(A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3]);
             dst_pixIdx += dest_inc[id_z];
         }
     }
