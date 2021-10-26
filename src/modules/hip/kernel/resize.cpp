@@ -4,8 +4,10 @@
 
 using half_float::half;
 
-#define SATURATE_U8(value) ((value) > 255 ? 255 : ((value) < 0 ? 0 : value))
-#define SATURATE_I8(value) ((value) > 127 ? 127 : ((value) < -128 ? -128 : value))
+#define SATURATE_U8(value) ((value > 255) ? 255 : (value < 0) ? 0 : value)
+#define SATURATE_I8(value) ((value > 127) ? 127 : (value < -128) ? -128 : value)
+#define SATURATE_F32(value) ((value > 1) ? 1 : (value < 0) ? 0 : value)
+#define SATURATE_F16(value) ((value > 1) ? 1 : (value < 0) ? 0 : value)
 #define RANGE_CHECK(value, lower, upper) ((value > upper) ? upper : (value < lower) ? lower : value)
 
 __device__ __forceinline__ void CalculateCubicCoefficients(float* coeffs, float x)
@@ -933,7 +935,7 @@ extern "C" __global__ void resize_cubic_crop_batch_fp32(float *srcPtr,
                 C += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
                 D += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
             }
-            dstPtr[dst_pixIdx] = A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3];
+            dstPtr[dst_pixIdx] = SATURATE_F32(A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3]);
             dst_pixIdx += dest_inc[id_z];
         }
     }
@@ -1135,7 +1137,7 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_fp32(unsigned char *srcPtr
                 C += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
                 D += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
             }
-            dstPtr[dst_pixIdx] = (A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3]) * 0.00392157f;
+            dstPtr[dst_pixIdx] = SATURATE_F32((A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3]) * 0.00392157f);
             dst_pixIdx += dest_inc[id_z];
         }
     }
