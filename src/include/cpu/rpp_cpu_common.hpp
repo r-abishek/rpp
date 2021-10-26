@@ -27,6 +27,7 @@ typedef halfhpp Rpp16f;
 #define RPPISEVEN(a)                    ((a % 2 == 0) ? 1 : 0)
 #define RPPPIXELCHECK(pixel)            (pixel < (Rpp32f) 0) ? ((Rpp32f) 0) : ((pixel < (Rpp32f) 255) ? pixel : ((Rpp32f) 255))
 #define RPPPIXELCHECKF32(pixel)         (pixel < (Rpp32f) 0) ? ((Rpp32f) 0) : ((pixel < (Rpp32f) 1) ? pixel : ((Rpp32f) 1))
+#define RPPPIXELCHECKF16(pixel)         (pixel < (Rpp16f) 0) ? ((Rpp16f) 0) : ((pixel < (Rpp16f) 1) ? pixel : ((Rpp16f) 1))
 #define RPPPIXELCHECKI8(pixel)          (pixel < (Rpp32f) -128) ? ((Rpp32f) -128) : ((pixel < (Rpp32f) 127) ? pixel : ((Rpp32f) 127))
 #define RPPISGREATER(pixel, value)      ((pixel > value) ? 1 : 0)
 #define RPPISLESSER(pixel, value)       ((pixel < value) ? 1 : 0)
@@ -80,6 +81,22 @@ inline int power_function(int a, int b)
     for(int i = 0; i < b; i++)
         product *= product * a;
     return product;
+}
+
+inline void saturate_pixel(Rpp32f pixel, Rpp8u* dst) {
+    *dst = RPPPIXELCHECK(pixel);
+}
+
+inline void saturate_pixel(Rpp32f pixel, Rpp8s* dst) {
+    *dst = RPPPIXELCHECKI8(pixel);
+}
+
+inline void saturate_pixel(Rpp32f pixel, Rpp32f* dst) {
+    *dst = (Rpp32f)pixel;
+}
+
+inline void saturate_pixel(Rpp32f pixel, Rpp16f* dst) {
+    *dst = (Rpp16f)pixel;
 }
 
 template <typename T>
@@ -1120,7 +1137,6 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
             }
             else
             {
-                std::cerr << "CUBIC INTERPOLATION\n";
                 for (int c = 0; c < channel; c++)
                 {
                     for (int i = 0; i < dstSize.height; i++)
@@ -1161,7 +1177,7 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
         else if (chnFormat == RPPI_CHN_PACKED)
         {
             Rpp32s elementsInRow = srcSize.width * channel;
-            Rpp32u widthLimitChanneled = widthLimit * channel;
+            Rpp32u widthLimitChanneled = (widthLimit + 1) * channel;
             for (int i = 0; i < dstSize.height; i++)
             {
                 srcLocationRow = ((Rpp32f) i + 0.5f) * hRatio - 0.5f;
@@ -1211,7 +1227,8 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                                 pixels[3] += ((*(srcPtrRow3 + RPPPRANGECHECK(srcLocCF[pos] + idx + c, 0, widthLimitChanneled))) * coeffs_x[k]);
                             }
                             pixel = (pixels[0] * coeffs_y[0]) + (pixels[1] * coeffs_y[1]) + (pixels[2] * coeffs_y[2]) + (pixels[3] * coeffs_y[3]);
-                            *dstPtrTemp++ = (U)pixel;
+                            saturate_pixel(pixel, dstPtrTemp);
+                            dstPtrTemp++;
                         }
                     }
                 }
@@ -1235,7 +1252,8 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                             pixels[3] += ((*(srcPtrRow3 + RPPPRANGECHECK(srcLocColFloorChanneled + idx + c, 0, widthLimitChanneled))) * coeffs_x[k]);
                         }
                         pixel = (pixels[0] * coeffs_y[0]) + (pixels[1] * coeffs_y[1]) + (pixels[2] * coeffs_y[2]) + (pixels[3] * coeffs_y[3]);
-                        *dstPtrTemp++ = (U)pixel;
+                        saturate_pixel(pixel, dstPtrTemp);
+                        dstPtrTemp++;
                     }
                 }
             }
