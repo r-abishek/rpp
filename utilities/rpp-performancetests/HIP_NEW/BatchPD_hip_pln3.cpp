@@ -40,6 +40,8 @@ std::string get_interpolation_type(int val)
     {
     case 0:
         return "nearest_neighbor";
+    case 2:
+        return "cubic";
     default:
         return "linear";
     }
@@ -57,7 +59,7 @@ int main(int argc, char **argv)
     }
     if (atoi(argv[5]) == 21 && argc < MIN_ARG_COUNT + 1)
     {
-        printf("\nUsage: ./BatchPD_hip_pln3 <src1 folder> <src2 folder (place same as src1 folder for single image functionalities)> <u8 = 0 / f16 = 1 / f32 = 2 / u8->f16 = 3 / u8->f32 = 4 / i8 = 5 / u8->i8 = 6> <outputFormatToggle (pkd->pkd = 0 / pkd->pln = 1)> <case number = 0:81> <interp_type = 0:2> <verbosity = 0/1>\n");
+        printf("\nUsage: ./BatchPD_hip_pln3 <src1 folder> <src2 folder (place same as src1 folder for single image functionalities)> <u8 = 0 / f16 = 1 / f32 = 2 / u8->f16 = 3 / u8->f32 = 4 / i8 = 5 / u8->i8 = 6> <outputFormatToggle (pkd->pkd = 0 / pkd->pln = 1)> <case number = 0:81> <interp_type = 0:3> <verbosity = 0/1>\n");
         return -1;
     }
 
