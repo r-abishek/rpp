@@ -3361,7 +3361,7 @@ template <typename T>
 RppStatus resize_crop_host_batch(T* srcPtr, RppiSize *batch_srcSize, RppiSize *batch_srcSizeMax, T* dstPtr, RppiSize *batch_dstSize, RppiSize *batch_dstSizeMax, 
                                  Rpp32u *batch_x1, Rpp32u *batch_x2, Rpp32u *batch_y1, Rpp32u *batch_y2,
                                  Rpp32u outputFormatToggle, Rpp32u nbatchSize,
-                                 RppiChnFormat chnFormat, Rpp32u channel)
+                                 RppiChnFormat chnFormat, Rpp32u channel, RppiResizeInterpType interpType)
 {
     if(chnFormat == RPPI_CHN_PLANAR)
     {
@@ -3408,7 +3408,7 @@ RppStatus resize_crop_host_batch(T* srcPtr, RppiSize *batch_srcSize, RppiSize *b
                 }
             }
 
-            resize_kernel_host(srcPtrROI, srcSizeROI, dstPtrROI, dstSize, chnFormat, channel);
+            resize_kernel_host(srcPtrROI, srcSizeROI, dstPtrROI, dstSize, chnFormat, channel, interpType);
 
             if (outputFormatToggle == 1)
             {
@@ -3470,7 +3470,7 @@ RppStatus resize_crop_host_batch(T* srcPtr, RppiSize *batch_srcSize, RppiSize *b
                 srcPtrROITemp += elementsInRowROI;
             }
 
-            resize_kernel_host(srcPtrROI, srcSizeROI, dstPtrROI, dstSize, chnFormat, channel);
+            resize_kernel_host(srcPtrROI, srcSizeROI, dstPtrROI, dstSize, chnFormat, channel, interpType);
 
             if (outputFormatToggle == 1)
             {

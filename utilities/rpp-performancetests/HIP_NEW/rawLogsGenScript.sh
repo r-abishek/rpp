@@ -172,7 +172,7 @@ do
 
             if [[ "$PROFILING_OPTION" -eq 0 ]]
             then
-                if [[ "$case" -eq 21 ]]
+                if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
                 then
                     for ((interp_type=0;interp_type<3;interp_type++))
                     do
@@ -185,7 +185,7 @@ do
                 fi
             elif [[ "$PROFILING_OPTION" -eq 1 ]]
             then
-                if [[ "$case" -eq 21 ]]
+                if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
                 then
                     for ((interp_type=0;interp_type<3;interp_type++))
                     do
@@ -247,7 +247,7 @@ do
 
             if [[ "$PROFILING_OPTION" -eq 0 ]]
             then
-                if [[ "$case" -eq 21 ]]
+                if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
                 then
                     for ((interp_type=0;interp_type<3;interp_type++))
                     do
@@ -260,7 +260,7 @@ do
                 fi
             elif [[ "$PROFILING_OPTION" -eq 1 ]]
             then
-                if [[ "$case" -eq 21 ]]
+                if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
                 then
                     for ((interp_type=0;interp_type<3;interp_type++))
                     do
@@ -322,7 +322,7 @@ do
 
                         if [[ "$PROFILING_OPTION" -eq 0 ]]
             then
-                if [[ "$case" -eq 21 ]]
+                if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
                 then
                     for ((interp_type=0;interp_type<3;interp_type++))
                     do
@@ -335,7 +335,7 @@ do
                 fi
             elif [[ "$PROFILING_OPTION" -eq 1 ]]
             then
-                if [[ "$case" -eq 21 ]]
+                if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
                 then
                     for ((interp_type=0;interp_type<3;interp_type++))
                     do
