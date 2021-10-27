@@ -176,11 +176,14 @@ typedef enum
     HSV
 } RppiFormat;
 
-typedef enum 
+typedef enum
 {
     NEAREST_NEIGHBOR,
     LINEAR,
-    CUBIC
+    CUBIC,
+    LANCZOS,
+    TRIANGULAR,
+    GAUSSIAN
 } RppiResizeInterpType;
 
 
