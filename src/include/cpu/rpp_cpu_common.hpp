@@ -21,7 +21,7 @@ typedef halfhpp Rpp16f;
 #define RPPMAX2(a,b)                    ((a > b) ? a : b)
 #define RPPMAX3(a,b,c)                  ((a > b) && (a > c) ?  a : ((b > c) ? b : c))
 #define RPPINRANGE(a, x, y)             ((a >= x) && (a <= y) ? 1 : 0)
-#define RPPPRANGECHECK(value, a, b)     ((value < a) ? a : (value < b) ? value :  b)
+#define RPPPRANGECHECK(value, a, b)     ((value < a) ? a : ((value < b) ? value : b))
 #define RPPFLOOR(a)                     ((int) a)
 #define RPPCEIL(a)                      ((int) (a + 1.0))
 #define RPPISEVEN(a)                    ((a % 2 == 0) ? 1 : 0)
@@ -124,6 +124,15 @@ inline void CalculateLanczosCoefficients(float* coeffs, float x, int a)
     sum = 1.f/sum;
     for(int i = 0; i < k; i++ )
         coeffs[i] *= sum;
+}
+
+inline void CalculateCubicCoefficients(Rpp32f* coeffs, Rpp32f x)
+{
+    Rpp32f A = -0.5f;
+    coeffs[0] = ((A * (x + 1) - 5 * A) * (x + 1) + 8 * A) * (x + 1) - 4 * A;
+    coeffs[1] = ((A + 2) * x - (A + 3)) * x * x + 1;
+    coeffs[2] = ((A + 2) * (1 - x) - (A + 3)) * (1 - x) * (1 - x) + 1;
+    coeffs[3] = 1.0f - coeffs[0] - coeffs[1] - coeffs[2];
 }
 
 template <typename T>
@@ -1090,6 +1099,193 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                     {
                         pixel = *(srcRowPtrTemp + srcLocColFloorChanneled + c);
                         *dstPtrTemp++ = (U)pixel;
+                    }
+                }
+            }
+        }
+    }
+    else if (interpType == RppiResizeInterpType::CUBIC)
+    {
+        if (dstSize.height <= 0 || dstSize.width <= 0)
+        {
+            return RPP_ERROR;
+        }
+        Rpp32f hRatio = (((Rpp32f) (srcSize.height)) / ((Rpp32f) (dstSize.height)));
+        Rpp32f wRatio = (((Rpp32f) (srcSize.width)) / ((Rpp32f) (dstSize.width)));
+        Rpp32u heightLimit = srcSize.height - 1;
+        Rpp32u widthLimit = srcSize.width - 1;
+        Rpp32f srcLocationRow, srcLocationColumn, pixel;
+        Rpp32s srcLocationRowFloor, srcLocationColumnFloor;
+        Rpp32s kernelSize = 4;
+        Rpp32s kernelSize2 = kernelSize/2;
+        T *srcPtrTemp, *srcPtrRow0, *srcPtrRow1, *srcPtrRow2, *srcPtrRow3;
+        Rpp32f coeffs_x[kernelSize], coeffs_y[kernelSize], pixels[kernelSize];
+        U *dstPtrTemp;
+        srcPtrTemp = srcPtr;
+        dstPtrTemp = dstPtr;
+        if (chnFormat == RPPI_CHN_PLANAR)
+        {
+            if ((typeid(Rpp16f) == typeid(T)) || (typeid(Rpp16f) == typeid(U)))
+            {
+                for (int c = 0; c < channel; c++)
+                {
+                    for (int i = 0; i < dstSize.height; i++)
+                    {
+                        srcLocationRow = ((Rpp32f) i + 0.5f) * hRatio - 0.5f;
+                        srcLocationRowFloor = (Rpp32s) RPPFLOOR(srcLocationRow);
+                        Rpp32f weightedHeight = srcLocationRow - srcLocationRowFloor;
+                        srcLocationRowFloor = (srcLocationRowFloor > heightLimit) ? heightLimit : srcLocationRowFloor;
+                        srcPtrRow0 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor - 1, 0, heightLimit) * srcSize.width;
+                        srcPtrRow1 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor, 0, heightLimit) * srcSize.width;
+                        srcPtrRow2 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor + 1, 0, heightLimit) * srcSize.width;
+                        srcPtrRow3 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor + 2, 0, heightLimit) * srcSize.width;
+                        CalculateCubicCoefficients(coeffs_y, weightedHeight);
+                        for (int j = 0; j < dstSize.width; j++)
+                        {
+                            srcLocationColumn = ((Rpp32f) j + 0.5f) * wRatio - 0.5f;
+                            srcLocationColumnFloor = (Rpp32s) RPPFLOOR(srcLocationColumn);
+                            Rpp32f weightedWidth = srcLocationColumn - srcLocationColumnFloor;
+                            srcLocationColumnFloor = (srcLocationColumnFloor > widthLimit) ? widthLimit : srcLocationColumnFloor;
+                            CalculateCubicCoefficients(coeffs_x, weightedWidth);
+                            pixels[0] = pixels[1] = pixels[2] = pixels[3] = 0;
+                            for(int k=0; k < kernelSize; k++)
+                            {
+                                int colIdx = RPPPRANGECHECK(srcLocationColumnFloor + (1 + k - kernelSize2), 0, widthLimit);
+                                pixels[0] += ((*(srcPtrRow0 + colIdx)) * coeffs_x[k]);
+                                pixels[1] += ((*(srcPtrRow1 + colIdx)) * coeffs_x[k]);
+                                pixels[2] += ((*(srcPtrRow2 + colIdx)) * coeffs_x[k]);
+                                pixels[3] += ((*(srcPtrRow3 + colIdx)) * coeffs_x[k]);
+                            }
+                            pixel = (pixels[0] * coeffs_y[0]) + (pixels[1] * coeffs_y[1]) + (pixels[2] * coeffs_y[2]) + (pixels[3] * coeffs_y[3]);
+                            saturate_pixel(pixel, dstPtrTemp);
+                            dstPtrTemp++;
+                        }
+                    }
+                    srcPtrTemp += srcSize.height * srcSize.width;
+                }
+            }
+            else
+            {
+                for (int c = 0; c < channel; c++)
+                {
+                    for (int i = 0; i < dstSize.height; i++)
+                    {
+                        srcLocationRow = ((Rpp32f) i + 0.5f) * hRatio - 0.5f;
+                        srcLocationRowFloor = (Rpp32s) RPPFLOOR(srcLocationRow);
+                        Rpp32f weightedHeight = srcLocationRow - srcLocationRowFloor;
+                        srcLocationRowFloor = (srcLocationRowFloor > heightLimit) ? heightLimit : srcLocationRowFloor;
+                        srcPtrRow0 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor - 1, 0, heightLimit) * srcSize.width;
+                        srcPtrRow1 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor, 0, heightLimit) * srcSize.width;
+                        srcPtrRow2 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor + 1, 0, heightLimit) * srcSize.width;
+                        srcPtrRow3 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor + 2, 0, heightLimit) * srcSize.width;
+                        CalculateCubicCoefficients(coeffs_y, weightedHeight);
+                        for (int j = 0; j < dstSize.width; j++)
+                        {
+                            srcLocationColumn = ((Rpp32f) j + 0.5f) * wRatio - 0.5f;
+                            srcLocationColumnFloor = (Rpp32s) RPPFLOOR(srcLocationColumn);
+                            Rpp32f weightedWidth = srcLocationColumn - srcLocationColumnFloor;
+                            srcLocationColumnFloor = (srcLocationColumnFloor > widthLimit) ? widthLimit : srcLocationColumnFloor;
+                            CalculateCubicCoefficients(coeffs_x, weightedWidth);
+                            pixels[0] = pixels[1] = pixels[2] = pixels[3] = 0;
+                            for(int k=0; k < kernelSize; k++)
+                            {
+                                int colIdx = RPPPRANGECHECK(srcLocationColumnFloor + (1 + k - kernelSize2), 0, widthLimit);
+                                pixels[0] += ((*(srcPtrRow0 + colIdx)) * coeffs_x[k]);
+                                pixels[1] += ((*(srcPtrRow1 + colIdx)) * coeffs_x[k]);
+                                pixels[2] += ((*(srcPtrRow2 + colIdx)) * coeffs_x[k]);
+                                pixels[3] += ((*(srcPtrRow3 + colIdx)) * coeffs_x[k]);
+                            }
+                            pixel = (pixels[0] * coeffs_y[0]) + (pixels[1] * coeffs_y[1]) + (pixels[2] * coeffs_y[2]) + (pixels[3] * coeffs_y[3]);
+                            saturate_pixel(pixel, dstPtrTemp);
+                            dstPtrTemp++;
+                        }
+                    }
+                    srcPtrTemp += srcSize.height * srcSize.width;
+                }
+            }
+        }
+        else if (chnFormat == RPPI_CHN_PACKED)
+        {
+            Rpp32s elementsInRow = srcSize.width * channel;
+            Rpp32u widthLimitChanneled = widthLimit * channel;
+            for (int i = 0; i < dstSize.height; i++)
+            {
+                srcLocationRow = ((Rpp32f) i + 0.5f) * hRatio - 0.5f;
+                srcLocationRowFloor = (Rpp32s) RPPFLOOR(srcLocationRow);
+                Rpp32f weightedHeight = srcLocationRow - srcLocationRowFloor;
+                srcLocationRowFloor = (srcLocationRowFloor > heightLimit) ? heightLimit : srcLocationRowFloor;
+                srcPtrRow0 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor - 1, 0, heightLimit) * elementsInRow;
+                srcPtrRow1 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor, 0, heightLimit) * elementsInRow;
+                srcPtrRow2 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor + 1, 0, heightLimit) * elementsInRow;
+                srcPtrRow3 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor + 2, 0, heightLimit) * elementsInRow;
+                Rpp32u bufferLength = dstSize.width;
+                Rpp32u alignedLength = (bufferLength / 4) * 4;
+                Rpp32u srcLocCF[4] = {0};
+                Rpp32f weightedWidth[4] = {0};
+                __m128 pWRatio = _mm_set1_ps(wRatio);
+                __m128 pixel_center = _mm_set1_ps(0.5f);
+                __m128 pZero = _mm_set_ps1(0);
+                __m128 p0, pColFloor, pTemp;
+                __m128i pxColFloor;
+                Rpp64u vectorLoopCount = 0;
+                CalculateCubicCoefficients(coeffs_y, weightedHeight);
+                for (; vectorLoopCount < alignedLength; vectorLoopCount+=4)
+                {
+                    p0 = _mm_setr_ps(vectorLoopCount, vectorLoopCount + 1, vectorLoopCount + 2, vectorLoopCount + 3);
+                    p0 = _mm_add_ps(p0, pixel_center);
+                    p0 = _mm_mul_ps(p0, pWRatio);
+                    p0 = _mm_sub_ps(p0, pixel_center);
+                    pColFloor = _mm_floor_ps(p0);
+                    pTemp = _mm_and_ps(pColFloor, _mm_cmpge_ps(pColFloor, pZero));
+                    pxColFloor = _mm_cvtps_epi32(pTemp);
+                    p0 = _mm_sub_ps(p0, pColFloor);
+                    _mm_storeu_si128((__m128i*)srcLocCF, pxColFloor);
+                    _mm_storeu_ps(weightedWidth, p0);
+
+                    for (int pos = 0; pos < 4; pos++)
+                    {
+                        srcLocCF[pos] = (srcLocCF[pos] > widthLimit) ? widthLimit : srcLocCF[pos];
+                        srcLocCF[pos] *= channel;
+                        CalculateCubicCoefficients(coeffs_x, weightedWidth[pos]);
+                        for (int c = 0; c < channel; c++)
+                        {
+                            pixels[0] = pixels[1] = pixels[2] = pixels[3] = 0;
+                            for(int k=0; k < kernelSize; k++)
+                            {
+                                int colIdx = RPPPRANGECHECK(srcLocCF[pos] + ((1 + k - kernelSize2) * channel), 0, widthLimitChanneled);
+                                pixels[0] += ((*(srcPtrRow0 + colIdx + c)) * coeffs_x[k]);
+                                pixels[1] += ((*(srcPtrRow1 + colIdx + c)) * coeffs_x[k]);
+                                pixels[2] += ((*(srcPtrRow2 + colIdx + c)) * coeffs_x[k]);
+                                pixels[3] += ((*(srcPtrRow3 + colIdx + c)) * coeffs_x[k]);
+                            }
+                            pixel = (pixels[0] * coeffs_y[0]) + (pixels[1] * coeffs_y[1]) + (pixels[2] * coeffs_y[2]) + (pixels[3] * coeffs_y[3]);
+                            saturate_pixel(pixel, dstPtrTemp);
+                            dstPtrTemp++;
+                        }
+                    }
+                }
+                for (; vectorLoopCount < bufferLength; vectorLoopCount++)
+                {
+                    srcLocationColumn = (((Rpp32f) vectorLoopCount + 0.5f) * wRatio) - 0.5f;
+                    srcLocationColumnFloor = (Rpp32s) RPPFLOOR(srcLocationColumn);
+                    Rpp32f weightedWidth = srcLocationColumn - srcLocationColumnFloor;
+                    srcLocationColumnFloor = (srcLocationColumnFloor > widthLimit) ? widthLimit : srcLocationColumnFloor;
+                    Rpp32s srcLocColFloorChanneled = channel * srcLocationColumnFloor;
+                    CalculateCubicCoefficients(coeffs_x, weightedWidth);
+                    for (int c = 0; c < channel; c++)
+                    {
+                        pixels[0] = pixels[1] = pixels[2] = pixels[3] = 0;
+                        for(int k=0; k < kernelSize; k++)
+                        {
+                            int colIdx = RPPPRANGECHECK(srcLocColFloorChanneled + ((1 + k - kernelSize2) * channel), 0, widthLimitChanneled);
+                            pixels[0] += ((*(srcPtrRow0 + colIdx + c)) * coeffs_x[k]);
+                            pixels[1] += ((*(srcPtrRow1 + colIdx + c)) * coeffs_x[k]);
+                            pixels[2] += ((*(srcPtrRow2 + colIdx + c)) * coeffs_x[k]);
+                            pixels[3] += ((*(srcPtrRow3 + colIdx + c)) * coeffs_x[k]);
+                        }
+                        pixel = (pixels[0] * coeffs_y[0]) + (pixels[1] * coeffs_y[1]) + (pixels[2] * coeffs_y[2]) + (pixels[3] * coeffs_y[3]);
+                        saturate_pixel(pixel, dstPtrTemp);
+                        dstPtrTemp++;
                     }
                 }
             }

@@ -154,7 +154,7 @@ do
             SRC_FOLDER_2_TEMP="$SRC_FOLDER_2"
             if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
             then
-                for ((interp_type=0;interp_type<2;interp_type++))
+                for ((interp_type=0;interp_type<4;interp_type++))
                 do
                     printf "\n./BatchPD_host_pkd3 $SRC_FOLDER_1_TEMP $SRC_FOLDER_2_TEMP $bitDepth $outputFormatToggle $case $interp_type 0"
                     ./BatchPD_host_pkd3 "$SRC_FOLDER_1_TEMP" "$SRC_FOLDER_2_TEMP" "$bitDepth" "$outputFormatToggle" "$case" "$interp_type" "0" | tee -a "$DST_FOLDER/BatchPD_host_pkd3_host_raw_performance_log.txt"
@@ -202,7 +202,7 @@ do
 
             if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
             then
-                for ((interp_type=0;interp_type<2;interp_type++))
+                for ((interp_type=0;interp_type<4;interp_type++))
                 do
                     printf "\n./BatchPD_host_pln1 $SRC_FOLDER_1_TEMP $SRC_FOLDER_2_TEMP $bitDepth $outputFormatToggle $case $interp_type 0"
                     ./BatchPD_host_pln1 "$SRC_FOLDER_1_TEMP" "$SRC_FOLDER_2_TEMP" "$bitDepth" "$outputFormatToggle" "$case" "$interp_type" "0" | tee -a "$DST_FOLDER/BatchPD_host_pln1_host_raw_performance_log.txt"
@@ -251,7 +251,7 @@ do
 
             if [ "$case" -eq 21 ] || [ "$case" -eq 22 ]
             then
-                for ((interp_type=0;interp_type<2;interp_type++))
+                for ((interp_type=0;interp_type<4;interp_type++))
                 do
                     printf "\n./BatchPD_host_pln3 $SRC_FOLDER_1_TEMP $SRC_FOLDER_2_TEMP $bitDepth $outputFormatToggle $case $interp_type 0"
                     ./BatchPD_host_pln3 "$SRC_FOLDER_1_TEMP" "$SRC_FOLDER_2_TEMP" "$bitDepth" "$outputFormatToggle" "$case" "$interp_type" "0" | tee -a "$DST_FOLDER/BatchPD_host_pln3_host_raw_performance_log.txt"
