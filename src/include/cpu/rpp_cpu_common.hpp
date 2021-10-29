@@ -1109,6 +1109,7 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
         Rpp32s srcLocationRowFloor, srcLocationColumnFloor;
         Rpp32s a = 3; // Order of the filter
         Rpp32s kernelSize =  2 * a;
+        Rpp32s kernelSize2 = a;
         T *srcPtrTemp, *srcPtrRow0, *srcPtrRow1, *srcPtrRow2, *srcPtrRow3, *srcPtrRow4, *srcPtrRow5;
         Rpp32f coeffs_x[kernelSize], coeffs_y[kernelSize], pixels[kernelSize];
         U *dstPtrTemp;
@@ -1144,13 +1145,13 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                             pixels[0] = pixels[1] = pixels[2] = pixels[3] = pixels[4] = pixels[5] = 0;
                             for(int k=0; k < kernelSize; k++)
                             {
-                                int idx = 1 + k - (kernelSize/2);
-                                pixels[0] += ((*(srcPtrRow0 + RPPPRANGECHECK((srcLocationColumnFloor + idx), 0, widthLimit))) * coeffs_x[k]);
-                                pixels[1] += ((*(srcPtrRow1 + RPPPRANGECHECK((srcLocationColumnFloor + idx), 0, widthLimit))) * coeffs_x[k]);
-                                pixels[2] += ((*(srcPtrRow2 + RPPPRANGECHECK((srcLocationColumnFloor + idx), 0, widthLimit))) * coeffs_x[k]);
-                                pixels[3] += ((*(srcPtrRow3 + RPPPRANGECHECK((srcLocationColumnFloor + idx), 0, widthLimit))) * coeffs_x[k]);
-                                pixels[4] += ((*(srcPtrRow4 + RPPPRANGECHECK((srcLocationColumnFloor + idx), 0, widthLimit))) * coeffs_x[k]);
-                                pixels[5] += ((*(srcPtrRow5 + RPPPRANGECHECK((srcLocationColumnFloor + idx), 0, widthLimit))) * coeffs_x[k]);
+                                int colIdx = RPPPRANGECHECK((srcLocationColumnFloor + (1 + k - kernelSize2) ), 0, widthLimit);
+                                pixels[0] += ((*(srcPtrRow0 + colIdx)) * coeffs_x[k]);
+                                pixels[1] += ((*(srcPtrRow1 + colIdx)) * coeffs_x[k]);
+                                pixels[2] += ((*(srcPtrRow2 + colIdx)) * coeffs_x[k]);
+                                pixels[3] += ((*(srcPtrRow3 + colIdx)) * coeffs_x[k]);
+                                pixels[4] += ((*(srcPtrRow4 + colIdx)) * coeffs_x[k]);
+                                pixels[5] += ((*(srcPtrRow5 + colIdx)) * coeffs_x[k]);
                             }
                             pixel = pixels[0] * coeffs_y[0] + pixels[1] * coeffs_y[1] + pixels[2] * coeffs_y[2] + pixels[3] * coeffs_y[3] + pixels[4] * coeffs_y[4] + pixels[5] * coeffs_y[5];
                             saturate_pixel(pixel, dstPtrTemp);
@@ -1187,13 +1188,13 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                             pixels[0] = pixels[1] = pixels[2] = pixels[3] = pixels[4] = pixels[5] = 0;
                             for(int k=0; k < kernelSize; k++)
                             {
-                                int idx = 1 + k - (kernelSize/2);
-                                pixels[0] += ((*(srcPtrRow0 + RPPPRANGECHECK(srcLocationColumnFloor + idx, 0, widthLimit))) * coeffs_x[k]);
-                                pixels[1] += ((*(srcPtrRow1 + RPPPRANGECHECK(srcLocationColumnFloor + idx, 0, widthLimit))) * coeffs_x[k]);
-                                pixels[2] += ((*(srcPtrRow2 + RPPPRANGECHECK(srcLocationColumnFloor + idx, 0, widthLimit))) * coeffs_x[k]);
-                                pixels[3] += ((*(srcPtrRow3 + RPPPRANGECHECK(srcLocationColumnFloor + idx, 0, widthLimit))) * coeffs_x[k]);
-                                pixels[4] += ((*(srcPtrRow4 + RPPPRANGECHECK(srcLocationColumnFloor + idx, 0, widthLimit))) * coeffs_x[k]);
-                                pixels[5] += ((*(srcPtrRow5 + RPPPRANGECHECK(srcLocationColumnFloor + idx, 0, widthLimit))) * coeffs_x[k]);
+                                int colIdx = RPPPRANGECHECK((srcLocationColumnFloor + (1 + k - kernelSize2)), 0, widthLimit);
+                                pixels[0] += ((*(srcPtrRow0 + colIdx)) * coeffs_x[k]);
+                                pixels[1] += ((*(srcPtrRow1 + colIdx)) * coeffs_x[k]);
+                                pixels[2] += ((*(srcPtrRow2 + colIdx)) * coeffs_x[k]);
+                                pixels[3] += ((*(srcPtrRow3 + colIdx)) * coeffs_x[k]);
+                                pixels[4] += ((*(srcPtrRow4 + colIdx)) * coeffs_x[k]);
+                                pixels[5] += ((*(srcPtrRow5 + colIdx)) * coeffs_x[k]);
                             }
                             pixel = pixels[0] * coeffs_y[0] + pixels[1] * coeffs_y[1] + pixels[2] * coeffs_y[2] + pixels[3] * coeffs_y[3] + pixels[4] * coeffs_y[4] + pixels[5] * coeffs_y[5];
                             saturate_pixel(pixel, dstPtrTemp);
@@ -1207,7 +1208,7 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
         else if (chnFormat == RPPI_CHN_PACKED)
         {
             Rpp32s elementsInRow = srcSize.width * channel;
-            Rpp32s widthLimitChanneled = (widthLimit - 1) * channel;
+            Rpp32s widthLimitChanneled = widthLimit * channel;
             for (int i = 0; i < dstSize.height; i++)
             {
                 srcLocationRow = ((Rpp32f) i + 0.5f) * hRatio - 0.5f;
@@ -1237,9 +1238,8 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                     p0 = _mm_mul_ps(p0, pWRatio);
                     p0 = _mm_sub_ps(p0, pixel_center);
                     pColFloor = _mm_floor_ps(p0);
-                    pTemp = _mm_cmpge_ps(pColFloor, pZero);
-                    pColFloor = _mm_and_ps(pColFloor, pTemp);
-                    pxColFloor = _mm_cvtps_epi32(pColFloor);
+                    pTemp = _mm_and_ps(pColFloor, _mm_cmpge_ps(pColFloor, pZero));
+                    pxColFloor = _mm_cvtps_epi32(pTemp);
                     p0 = _mm_sub_ps(p0, pColFloor);
                     _mm_storeu_si128((__m128i*)srcLocCF, pxColFloor);
                     _mm_storeu_ps(weightedWidth, p0);
@@ -1254,13 +1254,13 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                             pixels[0] = pixels[1] = pixels[2] = pixels[3] = pixels[4] = pixels[5] = 0;
                             for(int k=0; k < kernelSize; k++)
                             {
-                                int idx = (1 + k - (kernelSize/2)) * channel;
-                                pixels[0] += ((*(srcPtrRow0 + RPPPRANGECHECK(srcLocCF[pos] + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                                pixels[1] += ((*(srcPtrRow1 + RPPPRANGECHECK(srcLocCF[pos] + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                                pixels[2] += ((*(srcPtrRow2 + RPPPRANGECHECK(srcLocCF[pos] + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                                pixels[3] += ((*(srcPtrRow3 + RPPPRANGECHECK(srcLocCF[pos] + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                                pixels[4] += ((*(srcPtrRow4 + RPPPRANGECHECK(srcLocCF[pos] + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                                pixels[5] += ((*(srcPtrRow5 + RPPPRANGECHECK(srcLocCF[pos] + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
+                                int colIdx = RPPPRANGECHECK((srcLocCF[pos] + ((1 + k - kernelSize2) * channel)), 0, widthLimitChanneled);
+                                pixels[0] += ((*(srcPtrRow0 + colIdx + c)) * coeffs_x[k]);
+                                pixels[1] += ((*(srcPtrRow1 + colIdx + c)) * coeffs_x[k]);
+                                pixels[2] += ((*(srcPtrRow2 + colIdx + c)) * coeffs_x[k]);
+                                pixels[3] += ((*(srcPtrRow3 + colIdx + c)) * coeffs_x[k]);
+                                pixels[4] += ((*(srcPtrRow4 + colIdx + c)) * coeffs_x[k]);
+                                pixels[5] += ((*(srcPtrRow5 + colIdx + c)) * coeffs_x[k]);
                             }
                             pixel = (pixels[0] * coeffs_y[0]) + (pixels[1] * coeffs_y[1]) + (pixels[2] * coeffs_y[2]) + (pixels[3] * coeffs_y[3]) + (pixels[4] * coeffs_y[4]) + (pixels[5] * coeffs_y[5]);
                             saturate_pixel(pixel, dstPtrTemp);
@@ -1281,13 +1281,13 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                         pixels[0] = pixels[1] = pixels[2] = pixels[3] = pixels[4] = pixels[5] = 0;
                         for(int k=0; k < kernelSize; k++)
                         {
-                            int idx = (1 + k - (kernelSize/2)) * channel;
-                            pixels[0] += ((*(srcPtrRow0 + RPPPRANGECHECK(srcLocColFloorChanneled + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                            pixels[1] += ((*(srcPtrRow1 + RPPPRANGECHECK(srcLocColFloorChanneled + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                            pixels[2] += ((*(srcPtrRow2 + RPPPRANGECHECK(srcLocColFloorChanneled + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                            pixels[3] += ((*(srcPtrRow3 + RPPPRANGECHECK(srcLocColFloorChanneled + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                            pixels[4] += ((*(srcPtrRow4 + RPPPRANGECHECK(srcLocColFloorChanneled + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
-                            pixels[5] += ((*(srcPtrRow5 + RPPPRANGECHECK(srcLocColFloorChanneled + idx, 0, widthLimitChanneled) + c)) * coeffs_x[k]);
+                            int colIdx = RPPPRANGECHECK((srcLocColFloorChanneled + ((1 + k - kernelSize2) * channel)), 0, widthLimitChanneled);
+                            pixels[0] += ((*(srcPtrRow0 + colIdx + c)) * coeffs_x[k]);
+                            pixels[1] += ((*(srcPtrRow1 + colIdx + c)) * coeffs_x[k]);
+                            pixels[2] += ((*(srcPtrRow2 + colIdx + c)) * coeffs_x[k]);
+                            pixels[3] += ((*(srcPtrRow3 + colIdx + c)) * coeffs_x[k]);
+                            pixels[4] += ((*(srcPtrRow4 + colIdx + c)) * coeffs_x[k]);
+                            pixels[5] += ((*(srcPtrRow5 + colIdx + c)) * coeffs_x[k]);
                         }
                         pixel = (pixels[0] * coeffs_y[0]) + (pixels[1] * coeffs_y[1]) + (pixels[2] * coeffs_y[2]) + (pixels[3] * coeffs_y[3]) + (pixels[4] * coeffs_y[4]) + (pixels[5] * coeffs_y[5]);
                         saturate_pixel(pixel, dstPtrTemp);
