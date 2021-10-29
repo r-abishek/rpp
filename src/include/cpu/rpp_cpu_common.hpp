@@ -1207,7 +1207,7 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
         else if (chnFormat == RPPI_CHN_PACKED)
         {
             Rpp32s elementsInRow = srcSize.width * channel;
-            Rpp32u widthLimitChanneled = widthLimit * channel;
+            Rpp32s widthLimitChanneled = widthLimit * channel;
             for (int i = 0; i < dstSize.height; i++)
             {
                 srcLocationRow = ((Rpp32f) i + 0.5f) * hRatio - 0.5f;
@@ -1224,7 +1224,7 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                 Rpp32f weightedWidth[4] = {0};
                 __m128 pWRatio = _mm_set1_ps(wRatio);
                 __m128 pixel_center = _mm_set1_ps(0.5f);
-                __m128 pZero = _mm_set_ps1(0);
+                __m128 pZero = _mm_set1_ps(0);
                 __m128 p0, pColFloor, pTemp;
                 __m128i pxColFloor;
                 Rpp64u vectorLoopCount = 0;
