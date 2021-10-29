@@ -1411,6 +1411,7 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                 srcLocationRowFloor = (Rpp32s) RPPFLOOR(srcLocationRow);
                 Rpp32f weightedHeight = srcLocationRow - srcLocationRowFloor;
                 srcLocationRowFloor = (srcLocationRowFloor > heightLimit) ? heightLimit : srcLocationRowFloor;
+                srcPtrRow0 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor - 2, 0, heightLimit) * elementsInRow;
                 srcPtrRow1 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor - 1, 0, heightLimit) * elementsInRow;
                 srcPtrRow2 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor, 0,heightLimit) * elementsInRow;
                 srcPtrRow3 = srcPtrTemp + RPPPRANGECHECK(srcLocationRowFloor + 1, 0, heightLimit) * elementsInRow;
@@ -1422,11 +1423,11 @@ inline RppStatus resize_kernel_host(T* srcPtr, RppiSize srcSize, U* dstPtr, Rppi
                 Rpp32f weightedWidth[4] = {0};
                 __m128 pWRatio = _mm_set1_ps(wRatio);
                 __m128 pixel_center = _mm_set1_ps(0.5f);
-                __m128 p0, pColFloor, pZero, pTemp;
+                __m128 pZero = _mm_set1_ps(0);
+                __m128 p0, pColFloor, pTemp;
                 __m128i pxColFloor;
                 Rpp64u vectorLoopCount = 0;
                 CalculateLanczosCoefficients(coeffs_y, weightedHeight, a);
-                pZero = _mm_set_ps1(0);
                 for (; vectorLoopCount < alignedLength; vectorLoopCount+=4)
                 {
                     p0 = _mm_setr_ps(vectorLoopCount, vectorLoopCount + 1, vectorLoopCount + 2, vectorLoopCount + 3);
