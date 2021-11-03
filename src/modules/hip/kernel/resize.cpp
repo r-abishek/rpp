@@ -23,8 +23,8 @@ __device__ __forceinline__ void CalculateLanczosCoefficients(float* coeffs, floa
     float sum = 0;
     for(int i=0; i < k; i++)
     {
-        float temp = x - 1 - i + (k/2);
-        coeffs[i] = (fabsf(temp) >= a) ? 0.0f : (sinc(temp)*sinc(temp / a));
+        float xTemp = x - 1 - i + (k/2);
+        coeffs[i] = (fabsf(xTemp) >= a) ? 0.0f : (sinc(xTemp)*sinc(xTemp / a));
         sum += coeffs[i];
     }
     sum = 1.f/sum;
@@ -453,6 +453,7 @@ extern "C" __global__ void resize_cubic_crop_batch(unsigned char *srcPtr,
         return;
     }
     int kernel_size = 4;
+    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -482,7 +483,7 @@ extern "C" __global__ void resize_cubic_crop_batch(unsigned char *srcPtr,
             A = B = C = D = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -534,6 +535,7 @@ extern "C" __global__ void resize_lanczos_crop_batch(unsigned char *srcPtr,
     }
     int a = 3; // order of the filter
     int kernel_size = 2 * a;
+    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -545,26 +547,33 @@ extern "C" __global__ void resize_lanczos_crop_batch(unsigned char *srcPtr,
     x = xroi_begin[id_z] + x;
     y = yroi_begin[id_z] + y;
     unsigned long dst_pixIdx = 0;
-    float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
-    int width_limit = source_width[id_z] - 1;
-    int height_limit = source_height[id_z] - 1;
     if (x < source_width[id_z] && y < source_height[id_z])
     {
+        float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
+        int width_limit = source_width[id_z] - 1;
+        int height_limit = source_height[id_z] - 1;
         CalculateLanczosCoefficients(coeffs_x, x_diff, a);
         CalculateLanczosCoefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
+        int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx2 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
+        int yIdx3 = RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx4 = RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx5 = RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z];
         for (int indextmp = 0; indextmp < channel; indextmp++)
         {
+            int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
-                A += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                B += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 1), 0, height_limit)  * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                C += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                D += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                E += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                F += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                D += srcPtr[source_batch_index[id_z] + (xIdx + yIdx3) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                E += srcPtr[source_batch_index[id_z] + (xIdx + yIdx4) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                F += srcPtr[source_batch_index[id_z] + (xIdx + yIdx5) * in_plnpkdind + indexTemp] * coeffs_x[k];
             }
             dstPtr[dst_pixIdx] = SATURATE_U8(A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3] + E * coeffs_y[4] + F * coeffs_y[5]);
             dst_pixIdx += dest_inc[id_z];
@@ -738,6 +747,7 @@ extern "C" __global__ void resize_cubic_crop_batch_int8(signed char *srcPtr,
         return;
     }
     int kernel_size = 4;
+    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -767,7 +777,7 @@ extern "C" __global__ void resize_cubic_crop_batch_int8(signed char *srcPtr,
             A = B = C = D = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -819,6 +829,7 @@ extern "C" __global__ void resize_lanczos_crop_batch_int8(signed char *srcPtr,
     }
     int a = 3; // order of the filter
     int kernel_size = 2 * a;
+    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -830,26 +841,33 @@ extern "C" __global__ void resize_lanczos_crop_batch_int8(signed char *srcPtr,
     x = xroi_begin[id_z] + x;
     y = yroi_begin[id_z] + y;
     unsigned long dst_pixIdx = 0;
-    float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
-    int width_limit = source_width[id_z] - 1;
-    int height_limit = source_height[id_z] - 1;
     if (x < source_width[id_z] && y < source_height[id_z])
     {
+        float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
+        int width_limit = source_width[id_z] - 1;
+        int height_limit = source_height[id_z] - 1;
         CalculateLanczosCoefficients(coeffs_x, x_diff, a);
         CalculateLanczosCoefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
+        int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx2 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
+        int yIdx3 = RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx4 = RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx5 = RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z];
         for (int indextmp = 0; indextmp < channel; indextmp++)
         {
+            int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
-                A += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                B += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 1), 0, height_limit)  * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                C += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                D += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                E += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                F += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                D += srcPtr[source_batch_index[id_z] + (xIdx + yIdx3) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                E += srcPtr[source_batch_index[id_z] + (xIdx + yIdx4) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                F += srcPtr[source_batch_index[id_z] + (xIdx + yIdx5) * in_plnpkdind + indexTemp] * coeffs_x[k];
             }
             dstPtr[dst_pixIdx] = SATURATE_I8(A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3] + E * coeffs_y[4] + F * coeffs_y[5]);
             dst_pixIdx += dest_inc[id_z];
@@ -1092,6 +1110,7 @@ extern "C" __global__ void resize_cubic_crop_batch_fp32(float *srcPtr,
         return;
     }
     int kernel_size = 4;
+    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1121,7 +1140,7 @@ extern "C" __global__ void resize_cubic_crop_batch_fp32(float *srcPtr,
             A = B = C = D = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1173,6 +1192,7 @@ extern "C" __global__ void resize_lanczos_crop_batch_fp32(float *srcPtr,
     }
     int a = 3; // order of the filter
     int kernel_size = 2 * a;
+    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1184,26 +1204,33 @@ extern "C" __global__ void resize_lanczos_crop_batch_fp32(float *srcPtr,
     x = xroi_begin[id_z] + x;
     y = yroi_begin[id_z] + y;
     unsigned long dst_pixIdx = 0;
-    float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
-    int width_limit = source_width[id_z] - 1;
-    int height_limit = source_height[id_z] - 1;
     if (x < source_width[id_z] && y < source_height[id_z])
     {
+        float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
+        int width_limit = source_width[id_z] - 1;
+        int height_limit = source_height[id_z] - 1;
         CalculateLanczosCoefficients(coeffs_x, x_diff, a);
         CalculateLanczosCoefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
+        int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx2 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
+        int yIdx3 = RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx4 = RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx5 = RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z];
         for (int indextmp = 0; indextmp < channel; indextmp++)
         {
+            int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
-                A += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                B += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 1), 0, height_limit)  * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                C += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                D += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                E += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                F += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                D += srcPtr[source_batch_index[id_z] + (xIdx + yIdx3) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                E += srcPtr[source_batch_index[id_z] + (xIdx + yIdx4) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                F += srcPtr[source_batch_index[id_z] + (xIdx + yIdx5) * in_plnpkdind + indexTemp] * coeffs_x[k];
             }
             dstPtr[dst_pixIdx] = SATURATE_F32(A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3] + E * coeffs_y[4] + F * coeffs_y[5]);
             dst_pixIdx += dest_inc[id_z];
@@ -1377,6 +1404,7 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_fp32(unsigned char *srcPtr
         return;
     }
     int kernel_size = 4;
+    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1406,7 +1434,7 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_fp32(unsigned char *srcPtr
             A = B = C = D = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1458,6 +1486,7 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_fp32(unsigned char *srcP
     }
     int a = 3; // order of the filter
     int kernel_size = 2 * a;
+    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1469,26 +1498,33 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_fp32(unsigned char *srcP
     x = xroi_begin[id_z] + x;
     y = yroi_begin[id_z] + y;
     unsigned long dst_pixIdx = 0;
-    float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
-    int width_limit = source_width[id_z] - 1;
-    int height_limit = source_height[id_z] - 1;
     if (x < source_width[id_z] && y < source_height[id_z])
     {
+        float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
+        int width_limit = source_width[id_z] - 1;
+        int height_limit = source_height[id_z] - 1;
         CalculateLanczosCoefficients(coeffs_x, x_diff, a);
         CalculateLanczosCoefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
+        int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx2 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
+        int yIdx3 = RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx4 = RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx5 = RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z];
         for (int indextmp = 0; indextmp < channel; indextmp++)
         {
+            int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
-                A += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                B += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 1), 0, height_limit)  * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                C += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                D += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                E += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                F += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                D += srcPtr[source_batch_index[id_z] + (xIdx + yIdx3) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                E += srcPtr[source_batch_index[id_z] + (xIdx + yIdx4) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                F += srcPtr[source_batch_index[id_z] + (xIdx + yIdx5) * in_plnpkdind + indexTemp] * coeffs_x[k];
             }
             dstPtr[dst_pixIdx] = SATURATE_F32((A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3] + E * coeffs_y[4] + F * coeffs_y[5]) * 0.00392157f);
             dst_pixIdx += dest_inc[id_z];
@@ -1729,6 +1765,7 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_int8(unsigned char *srcPtr
         return;
     }
     int kernel_size = 4;
+    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1758,7 +1795,7 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_int8(unsigned char *srcPtr
             A = B = C = D = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1810,6 +1847,7 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_int8(unsigned char *srcP
     }
     int a = 3; // order of the filter
     int kernel_size = 2 * a;
+    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1821,26 +1859,33 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_int8(unsigned char *srcP
     x = xroi_begin[id_z] + x;
     y = yroi_begin[id_z] + y;
     unsigned long dst_pixIdx = 0;
-    float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
-    int width_limit = source_width[id_z] - 1;
-    int height_limit = source_height[id_z] - 1;
     if (x < source_width[id_z] && y < source_height[id_z])
     {
+        float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
+        int width_limit = source_width[id_z] - 1;
+        int height_limit = source_height[id_z] - 1;
         CalculateLanczosCoefficients(coeffs_x, x_diff, a);
         CalculateLanczosCoefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
+        int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx2 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
+        int yIdx3 = RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z];
+        int yIdx4 = RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z];
+        int yIdx5 = RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z];
         for (int indextmp = 0; indextmp < channel; indextmp++)
         {
+            int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
             for (int k = 0; k < kernel_size; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - (kernel_size / 2), 0, width_limit);
-                A += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                B += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y - 1), 0, height_limit)  * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                C += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                D += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 1), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                E += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 2), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
-                F += srcPtr[source_batch_index[id_z] + (xIdx + (RANGE_CHECK((y + 3), 0, height_limit) * max_source_width[id_z])) * in_plnpkdind + indextmp * source_inc[id_z]] * coeffs_x[k];
+                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                D += srcPtr[source_batch_index[id_z] + (xIdx + yIdx3) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                E += srcPtr[source_batch_index[id_z] + (xIdx + yIdx4) * in_plnpkdind + indexTemp] * coeffs_x[k];
+                F += srcPtr[source_batch_index[id_z] + (xIdx + yIdx5) * in_plnpkdind + indexTemp] * coeffs_x[k];
             }
             dstPtr[dst_pixIdx] = SATURATE_I8((A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3] + E * coeffs_y[4] + F * coeffs_y[5]) - 128  );
             dst_pixIdx += dest_inc[id_z];
@@ -2291,7 +2336,6 @@ RppStatus hip_exec_resize_crop_batch(Rpp8u *srcPtr, Rpp8u *dstPtr, rpp::Handle& 
     }
     else if(interpType == RppiResizeInterpType::CUBIC)
     {
-        std::cerr << "CUBIC U8\n";
         hipLaunchKernelGGL(resize_cubic_crop_batch,
                         dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
                         dim3(localThreads_x, localThreads_y, localThreads_z),
@@ -2491,7 +2535,6 @@ RppStatus hip_exec_resize_crop_batch_u8_fp32(Rpp8u *srcPtr, Rpp32f *dstPtr, rpp:
     }
     else if(interpType == RppiResizeInterpType::CUBIC)
     {
-        std::cerr << "CUBIC U8 F32\n";
         hipLaunchKernelGGL(resize_cubic_crop_batch_u8_fp32,
                         dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
                         dim3(localThreads_x, localThreads_y, localThreads_z),
@@ -2636,7 +2679,6 @@ RppStatus hip_exec_resize_crop_batch_u8_int8(Rpp8u *srcPtr, Rpp8s *dstPtr, rpp::
     }
     else if(interpType == RppiResizeInterpType::CUBIC)
     {
-        std::cerr << "CUBIC U8 INT8\n";
         hipLaunchKernelGGL(resize_cubic_crop_batch_u8_int8,
                         dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
                         dim3(localThreads_x, localThreads_y, localThreads_z),
@@ -2836,7 +2878,6 @@ RppStatus hip_exec_resize_crop_batch_fp32(Rpp32f *srcPtr, Rpp32f *dstPtr, rpp::H
     }
     else if(interpType == RppiResizeInterpType::CUBIC)
     {
-        std::cerr << "CUBIC F32\n";
         hipLaunchKernelGGL(resize_cubic_crop_batch_fp32,
                         dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
                         dim3(localThreads_x, localThreads_y, localThreads_z),
@@ -2981,7 +3022,6 @@ RppStatus hip_exec_resize_crop_batch_int8(Rpp8s *srcPtr, Rpp8s *dstPtr, rpp::Han
     }
     else if(interpType == RppiResizeInterpType::CUBIC)
     {
-        std::cerr << "CUBIC I8\n";
         hipLaunchKernelGGL(resize_cubic_crop_batch_int8,
                         dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
                         dim3(localThreads_x, localThreads_y, localThreads_z),
