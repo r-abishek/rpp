@@ -112,7 +112,7 @@ inline void CalculateLanczosCoefficients(float* coeffs, float x, int a)
     float sum = 0;
     for(int i=0; i < k; i++)
     {
-        int xTemp = x - 1 - i + a;
+        float xTemp = x - 1 - i + a;
         coeffs[i] = fabs(xTemp) >= a ? 0.0f : (sinc(xTemp)*sinc(xTemp / a));
         sum += coeffs[i];
     }
