@@ -17,7 +17,7 @@ __device__ __forceinline__ float sinc(float x) {
     return std::sin(x) / x;
 }
 
-__device__ __forceinline__ void CalculateLanczosCoefficients(float* coeffs, float x, int a)
+__device__ __forceinline__ void calculate_lanczos_coefficients(float* coeffs, float x, int a)
 {
     int k = 2 * a;
     float sum = 0;
@@ -32,7 +32,7 @@ __device__ __forceinline__ void CalculateLanczosCoefficients(float* coeffs, floa
         coeffs[i] *= sum;
 }
 
-__device__ __forceinline__ void CalculateCubicCoefficients(float* coeffs, float x)
+__device__ __forceinline__ void calculate_cubic_coefficients(float* coeffs, float x)
 {
     float A = -0.5f;
     coeffs[0] = ((A * (x + 1) - 5 * A) * (x + 1) + 8 * A) * (x + 1) - 4 * A;
@@ -470,8 +470,8 @@ extern "C" __global__ void resize_cubic_crop_batch(unsigned char *srcPtr,
         float A, B, C, D, coeffs_x[4], coeffs_y[4];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateCubicCoefficients(coeffs_x, x_diff);
-        CalculateCubicCoefficients(coeffs_y, y_diff);
+        calculate_cubic_coefficients(coeffs_x, x_diff);
+        calculate_cubic_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
@@ -552,8 +552,8 @@ extern "C" __global__ void resize_lanczos_crop_batch(unsigned char *srcPtr,
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateLanczosCoefficients(coeffs_x, x_diff, a);
-        CalculateLanczosCoefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
+        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -764,8 +764,8 @@ extern "C" __global__ void resize_cubic_crop_batch_int8(signed char *srcPtr,
         float A, B, C, D, coeffs_x[4], coeffs_y[4];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateCubicCoefficients(coeffs_x, x_diff);
-        CalculateCubicCoefficients(coeffs_y, y_diff);
+        calculate_cubic_coefficients(coeffs_x, x_diff);
+        calculate_cubic_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
@@ -846,8 +846,8 @@ extern "C" __global__ void resize_lanczos_crop_batch_int8(signed char *srcPtr,
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateLanczosCoefficients(coeffs_x, x_diff, a);
-        CalculateLanczosCoefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
+        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -1127,8 +1127,8 @@ extern "C" __global__ void resize_cubic_crop_batch_fp32(float *srcPtr,
         float A, B, C, D, coeffs_x[4], coeffs_y[4];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateCubicCoefficients(coeffs_x, x_diff);
-        CalculateCubicCoefficients(coeffs_y, y_diff);
+        calculate_cubic_coefficients(coeffs_x, x_diff);
+        calculate_cubic_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
@@ -1209,8 +1209,8 @@ extern "C" __global__ void resize_lanczos_crop_batch_fp32(float *srcPtr,
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateLanczosCoefficients(coeffs_x, x_diff, a);
-        CalculateLanczosCoefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
+        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -1421,8 +1421,8 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_fp32(unsigned char *srcPtr
         float A, B, C, D, coeffs_x[4], coeffs_y[4];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateCubicCoefficients(coeffs_x, x_diff);
-        CalculateCubicCoefficients(coeffs_y, y_diff);
+        calculate_cubic_coefficients(coeffs_x, x_diff);
+        calculate_cubic_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
@@ -1503,8 +1503,8 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_fp32(unsigned char *srcP
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateLanczosCoefficients(coeffs_x, x_diff, a);
-        CalculateLanczosCoefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
+        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -1782,8 +1782,8 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_int8(unsigned char *srcPtr
         float A, B, C, D, coeffs_x[4], coeffs_y[4];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateCubicCoefficients(coeffs_x, x_diff);
-        CalculateCubicCoefficients(coeffs_y, y_diff);
+        calculate_cubic_coefficients(coeffs_x, x_diff);
+        calculate_cubic_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK(y, 0, height_limit) * max_source_width[id_z];
@@ -1864,8 +1864,8 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_int8(unsigned char *srcP
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        CalculateLanczosCoefficients(coeffs_x, x_diff, a);
-        CalculateLanczosCoefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
+        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
