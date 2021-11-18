@@ -128,11 +128,12 @@ inline void calculate_lanczos_coefficients(float* coeffs, float x)
 
 inline void calculate_cubic_coefficients(Rpp32f* coeffs, Rpp32f x)
 {
-    Rpp32f x2 = x * x;
-    Rpp32f x3 = x2 * x;
-    coeffs[0] = -0.5f * x3 + x2 - 0.5f * x;
-    coeffs[1] = 1.5f * x3 - 2.5f * x2 + 1;
-    coeffs[2] = -1.5f * x3 + 2.0f * x2 + 0.5f * x;
+    Rpp32f xo2 = 0.5f * x;
+    Rpp32f xt3o2 = xo2 * 3.0f;
+    Rpp32f xp2 = x * x;
+    coeffs[0] = (-xo2 + 1) * xp2 - xo2;
+    coeffs[1] = (xt3o2 - 2.5) * xp2 + 1;
+    coeffs[2] = (-xt3o2 + 2) * xp2 + xo2;
     coeffs[3] = 1.0f - coeffs[0] - coeffs[1] - coeffs[2];
 }
 
