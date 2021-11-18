@@ -13,31 +13,34 @@ using half_float::half;
 __device__ __forceinline__ float sinc(float x) {
     x *= M_PI;
     if (std::abs(x) < 1e-5f)
-    return 1.0f - x * x * (1.0f / 6);  // remove singularity by using Taylor expansion
+    return 1.0f - x * x * 0.1666666f;  // remove singularity by using Taylor expansion
     return std::sin(x) / x;
 }
 
-__device__ __forceinline__ void calculate_lanczos_coefficients(float* coeffs, float x, int a)
+__device__ __forceinline__ void calculate_lanczos_coefficients(float* coeffs, float x)
 {
-    int k = 2 * a;
+    int k = 6;
+    int a = 3; // order of the filter = 3
     float sum = 0;
     for(int i=0; i < k; i++)
     {
-        float xTemp = x - 1 - i + (k/2);
+        float xTemp = x - i + 2;
         coeffs[i] = (fabsf(xTemp) >= a) ? 0.0f : (sinc(xTemp)*sinc(xTemp / a));
         sum += coeffs[i];
     }
     sum = 1.f/sum;
-    for(int i = 0; i < k; i++ )
+    for(int i = 0; i < k; i++)
         coeffs[i] *= sum;
 }
 
 __device__ __forceinline__ void calculate_cubic_coefficients(float* coeffs, float x)
 {
-    float A = -0.5f;
-    coeffs[0] = ((A * (x + 1) - 5 * A) * (x + 1) + 8 * A) * (x + 1) - 4 * A;
-    coeffs[1] = ((A + 2) * x - (A + 3)) * x * x + 1;
-    coeffs[2] = ((A + 2) * (1 - x) - (A + 3)) * (1 - x) * (1 - x) + 1;
+    Rpp32f xo2 = 0.5f * x;
+    Rpp32f xt3o2 = xo2 * 3.0f;
+    Rpp32f xp2 = x * x;
+    coeffs[0] = (-xo2 + 1) * xp2 - xo2;
+    coeffs[1] = (xt3o2 - 2.5) * xp2 + 1;
+    coeffs[2] = (-xt3o2 + 2) * xp2 + xo2;
     coeffs[3] = 1.0f - coeffs[0] - coeffs[1] - coeffs[2];
 }
 
@@ -452,8 +455,6 @@ extern "C" __global__ void resize_cubic_crop_batch(unsigned char *srcPtr,
     {
         return;
     }
-    int kernel_size = 4;
-    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -481,9 +482,9 @@ extern "C" __global__ void resize_cubic_crop_batch(unsigned char *srcPtr,
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 4; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 1, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -533,9 +534,6 @@ extern "C" __global__ void resize_lanczos_crop_batch(unsigned char *srcPtr,
     {
         return;
     }
-    int a = 3; // order of the filter
-    int kernel_size = 2 * a;
-    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -552,8 +550,8 @@ extern "C" __global__ void resize_lanczos_crop_batch(unsigned char *srcPtr,
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
-        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff);
+        calculate_lanczos_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -565,9 +563,9 @@ extern "C" __global__ void resize_lanczos_crop_batch(unsigned char *srcPtr,
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 6; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -746,8 +744,6 @@ extern "C" __global__ void resize_cubic_crop_batch_int8(signed char *srcPtr,
     {
         return;
     }
-    int kernel_size = 4;
-    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -775,9 +771,9 @@ extern "C" __global__ void resize_cubic_crop_batch_int8(signed char *srcPtr,
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 4; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 1, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -827,9 +823,6 @@ extern "C" __global__ void resize_lanczos_crop_batch_int8(signed char *srcPtr,
     {
         return;
     }
-    int a = 3; // order of the filter
-    int kernel_size = 2 * a;
-    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -846,8 +839,8 @@ extern "C" __global__ void resize_lanczos_crop_batch_int8(signed char *srcPtr,
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
-        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff);
+        calculate_lanczos_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -859,9 +852,9 @@ extern "C" __global__ void resize_lanczos_crop_batch_int8(signed char *srcPtr,
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 6; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1109,8 +1102,6 @@ extern "C" __global__ void resize_cubic_crop_batch_fp32(float *srcPtr,
     {
         return;
     }
-    int kernel_size = 4;
-    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1138,9 +1129,9 @@ extern "C" __global__ void resize_cubic_crop_batch_fp32(float *srcPtr,
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 4; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 1, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1190,9 +1181,6 @@ extern "C" __global__ void resize_lanczos_crop_batch_fp32(float *srcPtr,
     {
         return;
     }
-    int a = 3; // order of the filter
-    int kernel_size = 2 * a;
-    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1209,8 +1197,8 @@ extern "C" __global__ void resize_lanczos_crop_batch_fp32(float *srcPtr,
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
-        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff);
+        calculate_lanczos_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -1222,9 +1210,9 @@ extern "C" __global__ void resize_lanczos_crop_batch_fp32(float *srcPtr,
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 6; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1403,8 +1391,6 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_fp32(unsigned char *srcPtr
     {
         return;
     }
-    int kernel_size = 4;
-    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1432,9 +1418,9 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_fp32(unsigned char *srcPtr
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 4; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 1, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1484,9 +1470,6 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_fp32(unsigned char *srcP
     {
         return;
     }
-    int a = 3; // order of the filter
-    int kernel_size = 2 * a;
-    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1503,8 +1486,8 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_fp32(unsigned char *srcP
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
-        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff);
+        calculate_lanczos_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -1516,9 +1499,9 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_fp32(unsigned char *srcP
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 6; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1764,8 +1747,6 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_int8(unsigned char *srcPtr
     {
         return;
     }
-    int kernel_size = 4;
-    int kernel_size2 = kernel_size / 2;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1793,9 +1774,9 @@ extern "C" __global__ void resize_cubic_crop_batch_u8_int8(unsigned char *srcPtr
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 4; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 1, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1845,9 +1826,6 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_int8(unsigned char *srcP
     {
         return;
     }
-    int a = 3; // order of the filter
-    int kernel_size = 2 * a;
-    int kernel_size2 = a;
     float x_ratio = ((float)(xroi_end[id_z] - xroi_begin[id_z])) / dest_width[id_z];
     float y_ratio = ((float)(yroi_end[id_z] - yroi_begin[id_z])) / dest_height[id_z];
     float xf = (x_ratio * (id_x + 0.5f) - 0.5f);
@@ -1864,8 +1842,8 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_int8(unsigned char *srcP
         float A, B, C, D, E, F, coeffs_x[6], coeffs_y[6];
         int width_limit = source_width[id_z] - 1;
         int height_limit = source_height[id_z] - 1;
-        calculate_lanczos_coefficients(coeffs_x, x_diff, a);
-        calculate_lanczos_coefficients(coeffs_y, y_diff, a);
+        calculate_lanczos_coefficients(coeffs_x, x_diff);
+        calculate_lanczos_coefficients(coeffs_y, y_diff);
         dst_pixIdx = dest_batch_index[id_z] + (id_x + id_y * max_dest_width[id_z]) * out_plnpkdind;
         int yIdx0 = RANGE_CHECK((y - 2), 0, height_limit) * max_source_width[id_z];
         int yIdx1 = RANGE_CHECK((y - 1), 0, height_limit) * max_source_width[id_z];
@@ -1877,9 +1855,9 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_int8(unsigned char *srcP
         {
             int indexTemp = indextmp * source_inc[id_z];
             A = B = C = D = E = F = 0;
-            for (int k = 0; k < kernel_size; k++)
+            for (int k = 0; k < 6; k++)
             {
-                int xIdx = RANGE_CHECK(x + 1 + k - kernel_size2, 0, width_limit);
+                int xIdx = RANGE_CHECK(x + k - 2, 0, width_limit);
                 A += srcPtr[source_batch_index[id_z] + (xIdx + yIdx0) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 B += srcPtr[source_batch_index[id_z] + (xIdx + yIdx1) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 C += srcPtr[source_batch_index[id_z] + (xIdx + yIdx2) * in_plnpkdind + indexTemp] * coeffs_x[k];
@@ -1887,7 +1865,7 @@ extern "C" __global__ void resize_lanczos_crop_batch_u8_int8(unsigned char *srcP
                 E += srcPtr[source_batch_index[id_z] + (xIdx + yIdx4) * in_plnpkdind + indexTemp] * coeffs_x[k];
                 F += srcPtr[source_batch_index[id_z] + (xIdx + yIdx5) * in_plnpkdind + indexTemp] * coeffs_x[k];
             }
-            dstPtr[dst_pixIdx] = SATURATE_I8((A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3] + E * coeffs_y[4] + F * coeffs_y[5]) - 128  );
+            dstPtr[dst_pixIdx] = SATURATE_I8((A * coeffs_y[0] + B * coeffs_y[1] + C * coeffs_y[2] + D * coeffs_y[3] + E * coeffs_y[4] + F * coeffs_y[5]) - 128);
             dst_pixIdx += dest_inc[id_z];
         }
     }
