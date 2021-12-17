@@ -1872,4 +1872,74 @@ inline RppStatus rpp_cubic_load_f32pln1_to_f32pln1(Rpp32f** srcRowPtrsForInterp,
 
     return RPP_SUCCESS;
 }
+
+inline RppStatus rpp_cubic_load_f16pkd3_to_f32pln3(Rpp16f** srcRowPtrsForInterp, Rpp32s loc, __m128* p)
+{
+    Rpp32f row0[4][4], row1[4][4], row2[4][4], row3[4][4];
+    /* Converts float16 pixels to float type for computation*/
+    for(int cnt = 0; cnt < 4; cnt++)
+    {
+        *(row0[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc + cnt);
+        *(row0[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc + 3 + cnt);
+        *(row0[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc + 6 + cnt);
+        *(row0[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc + 9 + cnt);
+        *(row1[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc + cnt);
+        *(row1[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc + 3 + cnt);
+        *(row1[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc + 6 + cnt);
+        *(row1[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc + 9 + cnt);
+        *(row2[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[2] + loc + cnt);
+        *(row2[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[2] + loc + 3 + cnt);
+        *(row2[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[2] + loc + 6 + cnt);
+        *(row2[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[2] + loc + 9 + cnt);
+        *(row3[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[3] + loc + cnt);
+        *(row3[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[3] + loc + 3 + cnt);
+        *(row3[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[3] + loc + 6 + cnt);
+        *(row3[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[3] + loc + 9 + cnt);
+    }
+    __m128 pTemp;
+    p[0] = _mm_loadu_ps(row0[0]);
+    p[4] = _mm_loadu_ps(row0[1]);
+    p[8] = _mm_loadu_ps(row0[2]);
+    pTemp = _mm_loadu_ps(row0[3]);
+    _MM_TRANSPOSE4_PS(p[0], p[4], p[8], pTemp);
+
+    p[1] = _mm_loadu_ps(row1[0]);
+    p[5] = _mm_loadu_ps(row1[1]);
+    p[9] = _mm_loadu_ps(row1[2]);
+    pTemp = _mm_loadu_ps(row1[3]);
+    _MM_TRANSPOSE4_PS(p[1], p[5], p[9], pTemp);
+
+    p[2] = _mm_loadu_ps(row2[0]);
+    p[6] = _mm_loadu_ps(row2[1]);
+    p[10] = _mm_loadu_ps(row2[2]);
+    pTemp = _mm_loadu_ps(row2[3]);
+    _MM_TRANSPOSE4_PS(p[2], p[6], p[10], pTemp);
+
+    p[3] = _mm_loadu_ps(row3[0]);
+    p[7] = _mm_loadu_ps(row3[1]);
+    p[11] = _mm_loadu_ps(row3[2]);
+    pTemp = _mm_loadu_ps(row3[3]);
+    _MM_TRANSPOSE4_PS(p[3], p[7], p[11], pTemp);
+
+    return RPP_SUCCESS;
+}
+
+inline RppStatus rpp_cubic_load_f16pln1_to_f32pln1(Rpp16f** srcRowPtrsForInterp, Rpp32s loc, __m128* p)
+{
+    Rpp32f row[4][4];
+    /*Converts float16 pixels to float type for computation*/
+    for(int cnt = 0; cnt < 4; cnt++)
+    {
+        *(row[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc + cnt);
+        *(row[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc + cnt);
+        *(row[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[2] + loc + cnt);
+        *(row[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[3] + loc + cnt);
+    }
+    p[0] = _mm_loadu_ps(row[0]); /* load [R01|R02|R03|R04] - Need R 01-04 */
+    p[1] = _mm_loadu_ps(row[1]); /* load [R11|R12|R13|R14] - Need R 11-14 */
+    p[2] = _mm_loadu_ps(row[2]); /* load [R21|R22|R23|R24] - Need R 21-24 */
+    p[3] = _mm_loadu_ps(row[3]); /* load [R31|R32|R33|R34] - Need R 31-34 */
+
+    return RPP_SUCCESS;
+}
 #endif //AMD_RPP_RPP_CPU_SIMD_HPP
