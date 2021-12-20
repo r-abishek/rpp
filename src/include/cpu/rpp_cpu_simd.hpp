@@ -1619,50 +1619,50 @@ inline RppStatus rpp_store4_f32pln1_to_f32pln1(Rpp32f* dstPtr, __m128 p)
 
 inline RppStatus rpp_bilinear_load_f16pkd3_to_f32pln3(Rpp16f **srcRowPtrsForInterp, Rpp32s *loc, __m128* p)
 {
-    float T1[4][4], T2[4][4], B1[4][4], B2[4][4];
+    Rpp32f topRow0[4][4], topRow1[4][4], bottomRow0[4][4], bottomRow1[4][4];
     /* Converts float16 pixels to float type for computation*/
     for(int cnt = 0; cnt < 4; cnt++)
     {
-        *(T1[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[0] + cnt);
-        *(T1[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[1] + cnt);
-        *(T1[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[2] + cnt);
-        *(T1[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[3] + cnt);
-        *(T2[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[0] + 3 + cnt);
-        *(T2[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[1] + 3 + cnt);
-        *(T2[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[2] + 3 + cnt);
-        *(T2[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[3] + 3 + cnt);
-        *(B1[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[0] + cnt);
-        *(B1[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[1] + cnt);
-        *(B1[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[2] + cnt);
-        *(B1[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[3] + cnt);
-        *(B2[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[0] + 3 + cnt);
-        *(B2[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[1] + 3 + cnt);
-        *(B2[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[2] + 3 + cnt);
-        *(B2[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[3] + 3 + cnt);
+        *(topRow0[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[0] + cnt);
+        *(topRow0[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[1] + cnt);
+        *(topRow0[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[2] + cnt);
+        *(topRow0[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[3] + cnt);
+        *(topRow1[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[0] + 3 + cnt);
+        *(topRow1[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[1] + 3 + cnt);
+        *(topRow1[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[2] + 3 + cnt);
+        *(topRow1[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[3] + 3 + cnt);
+        *(bottomRow0[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[0] + cnt);
+        *(bottomRow0[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[1] + cnt);
+        *(bottomRow0[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[2] + cnt);
+        *(bottomRow0[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[3] + cnt);
+        *(bottomRow1[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[0] + 3 + cnt);
+        *(bottomRow1[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[1] + 3 + cnt);
+        *(bottomRow1[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[2] + 3 + cnt);
+        *(bottomRow1[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[3] + 3 + cnt);
     }
     __m128 pTemp;
-    p[0] = _mm_loadu_ps(T1[0]);     /* Top Row load LOC0 [R01|G01|B01|R02] Need RGB01 */
-    p[4] = _mm_loadu_ps(T1[1]);     /* Top Row load LOC1 [R01|G01|B01|R02] Need RGB01 */
-    p[8] = _mm_loadu_ps(T1[2]);     /* Top Row load LOC2 [R01|G01|B01|R02] Need RGB01 */
-    pTemp = _mm_loadu_ps(T1[3]);    /* Top Row load LOC3 [R01|G01|B01|R02] Need RGB01 */
+    p[0] = _mm_loadu_ps(topRow0[0]);     /* Top Row load LOC0 [R01|G01|B01|R02] Need RGB01 */
+    p[4] = _mm_loadu_ps(topRow0[1]);     /* Top Row load LOC1 [R01|G01|B01|R02] Need RGB01 */
+    p[8] = _mm_loadu_ps(topRow0[2]);     /* Top Row load LOC2 [R01|G01|B01|R02] Need RGB01 */
+    pTemp = _mm_loadu_ps(topRow0[3]);    /* Top Row load LOC3 [R01|G01|B01|R02] Need RGB01 */
     _MM_TRANSPOSE4_PS(p[0], p[4], p[8], pTemp); /* Transpose to obtain independent RGB vectors */
 
-    p[1] = _mm_loadu_ps(T2[0]);     /* Top Row load LOC0 [R02|G02|B02|R03] Need RGB02 */
-    p[5] = _mm_loadu_ps(T2[1]);     /* Top Row load LOC1 [R02|G02|B02|R03] Need RGB02 */
-    p[9] = _mm_loadu_ps(T2[2]);     /* Top Row load LOC2 [R02|G02|B02|R03] Need RGB02 */
-    pTemp = _mm_loadu_ps(T2[3]);    /* Top Row load LOC3 [R02|G02|B02|R03] Need RGB02 */
+    p[1] = _mm_loadu_ps(topRow1[0]);     /* Top Row load LOC0 [R02|G02|B02|R03] Need RGB02 */
+    p[5] = _mm_loadu_ps(topRow1[1]);     /* Top Row load LOC1 [R02|G02|B02|R03] Need RGB02 */
+    p[9] = _mm_loadu_ps(topRow1[2]);     /* Top Row load LOC2 [R02|G02|B02|R03] Need RGB02 */
+    pTemp = _mm_loadu_ps(topRow1[3]);    /* Top Row load LOC3 [R02|G02|B02|R03] Need RGB02 */
     _MM_TRANSPOSE4_PS(p[1], p[5], p[9], pTemp); /* Transpose to obtain independent RGB vectors */
 
-    p[2] = _mm_loadu_ps(B1[0]);     /* Bottom Row load LOC0 [R01|G01|B01|R02] Need RGB01 */
-    p[6] = _mm_loadu_ps(B1[1]);     /* Bottom Row load LOC1 [R01|G01|B01|R02] Need RGB01 */
-    p[10] = _mm_loadu_ps(B1[2]);    /* Bottom Row load LOC2 [R01|G01|B01|R02] Need RGB01 */
-    pTemp = _mm_loadu_ps(B1[3]);    /* Bottom Row load LOC3 [R01|G01|B01|R02] Need RGB01 */
+    p[2] = _mm_loadu_ps(bottomRow0[0]);     /* Bottom Row load LOC0 [R01|G01|B01|R02] Need RGB01 */
+    p[6] = _mm_loadu_ps(bottomRow0[1]);     /* Bottom Row load LOC1 [R01|G01|B01|R02] Need RGB01 */
+    p[10] = _mm_loadu_ps(bottomRow0[2]);    /* Bottom Row load LOC2 [R01|G01|B01|R02] Need RGB01 */
+    pTemp = _mm_loadu_ps(bottomRow0[3]);    /* Bottom Row load LOC3 [R01|G01|B01|R02] Need RGB01 */
     _MM_TRANSPOSE4_PS(p[2], p[6], p[10], pTemp);    /* Transpose to obtain independent RGB vectors */
 
-    p[3] = _mm_loadu_ps(B2[0]);     /* Bottom Row load LOC0 [R02|G02|B02|R03] Need RGB02 */
-    p[7] = _mm_loadu_ps(B2[1]);     /* Bottom Row load LOC1 [R02|G02|B02|R03] Need RGB02 */
-    p[11] = _mm_loadu_ps(B2[2]);    /* Bottom Row load LOC2 [R02|G02|B02|R03] Need RGB02 */
-    pTemp = _mm_loadu_ps(B2[3]);    /* Bottom Row load LOC3 [R02|G02|B02|R03] Need RGB02 */
+    p[3] = _mm_loadu_ps(bottomRow1[0]);     /* Bottom Row load LOC0 [R02|G02|B02|R03] Need RGB02 */
+    p[7] = _mm_loadu_ps(bottomRow1[1]);     /* Bottom Row load LOC1 [R02|G02|B02|R03] Need RGB02 */
+    p[11] = _mm_loadu_ps(bottomRow1[2]);    /* Bottom Row load LOC2 [R02|G02|B02|R03] Need RGB02 */
+    pTemp = _mm_loadu_ps(bottomRow1[3]);    /* Bottom Row load LOC3 [R02|G02|B02|R03] Need RGB02 */
     _MM_TRANSPOSE4_PS(p[3], p[7], p[11], pTemp);    /* Transpose to obtain independent RGB vectors */
 
     return RPP_SUCCESS;
@@ -1670,29 +1670,29 @@ inline RppStatus rpp_bilinear_load_f16pkd3_to_f32pln3(Rpp16f **srcRowPtrsForInte
 
 inline RppStatus rpp_bilinear_load_f16pln1_to_f32pln1(Rpp16f **srcRowPtrsForInterp, Rpp32s *loc, __m128* p)
 {
-    float T1[4][4], B1[4][4];
+    Rpp32f topRow[4][4], bottomRow[4][4];
     /*Converts float16 pixels to float type for computation*/
     for(int cnt = 0; cnt < 4; cnt++)
     {
-        *(T1[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[0] + cnt);
-        *(T1[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[1] + cnt);
-        *(T1[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[2] + cnt);
-        *(T1[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[3] + cnt);
-        *(B1[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[0] + cnt);
-        *(B1[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[1] + cnt);
-        *(B1[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[2] + cnt);
-        *(B1[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[3] + cnt);
+        *(topRow[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[0] + cnt);
+        *(topRow[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[1] + cnt);
+        *(topRow[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[2] + cnt);
+        *(topRow[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[0] + loc[3] + cnt);
+        *(bottomRow[0] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[0] + cnt);
+        *(bottomRow[1] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[1] + cnt);
+        *(bottomRow[2] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[2] + cnt);
+        *(bottomRow[3] + cnt) = (Rpp32f) *(srcRowPtrsForInterp[1] + loc[3] + cnt);
     }
     __m128 pTemp[2];
-    p[0] = _mm_loadu_ps(T1[0]);     /* Top Row load LOC0 [R01|R02|R03|R04] Need R01-02*/
-    p[1] = _mm_loadu_ps(T1[1]);     /* Top Row load LOC1 [R01|R02|R03|R04] Need R01-02*/
-    pTemp[0] = _mm_loadu_ps(T1[2]); /* Top Row load LOC2 [R01|R02|R03|R04] Need R01-02*/
-    pTemp[1] = _mm_loadu_ps(T1[3]); /* Top Row load LOC3 [R01|R02|R03|R04] Need R01-02*/
+    p[0] = _mm_loadu_ps(topRow[0]);     /* Top Row load LOC0 [R01|R02|R03|R04] Need R01-02*/
+    p[1] = _mm_loadu_ps(topRow[1]);     /* Top Row load LOC1 [R01|R02|R03|R04] Need R01-02*/
+    pTemp[0] = _mm_loadu_ps(topRow[2]); /* Top Row load LOC2 [R01|R02|R03|R04] Need R01-02*/
+    pTemp[1] = _mm_loadu_ps(topRow[3]); /* Top Row load LOC3 [R01|R02|R03|R04] Need R01-02*/
     _MM_TRANSPOSE4_PS(p[0], p[1], pTemp[0], pTemp[1]);
-    p[2] = _mm_loadu_ps(B1[0]);         /* Bottom Row load LOC0 [R01|R02|R03|R04] Need R01-02*/
-    p[3] = _mm_loadu_ps(B1[1]);         /* Bottom Row load LOC1 [R01|R02|R03|R04] Need R01-02*/
-    pTemp[0] = _mm_loadu_ps(B1[2]);     /* Bottom Row load LOC2 [R01|R02|R03|R04] Need R01-02*/
-    pTemp[1] = _mm_loadu_ps(B1[3]);     /* Bottom Row load LOC3 [R01|R02|R03|R04] Need R01-02*/
+    p[2] = _mm_loadu_ps(bottomRow[0]);         /* Bottom Row load LOC0 [R01|R02|R03|R04] Need R01-02*/
+    p[3] = _mm_loadu_ps(bottomRow[1]);         /* Bottom Row load LOC1 [R01|R02|R03|R04] Need R01-02*/
+    pTemp[0] = _mm_loadu_ps(bottomRow[2]);     /* Bottom Row load LOC2 [R01|R02|R03|R04] Need R01-02*/
+    pTemp[1] = _mm_loadu_ps(bottomRow[3]);     /* Bottom Row load LOC3 [R01|R02|R03|R04] Need R01-02*/
     _MM_TRANSPOSE4_PS(p[2], p[3], pTemp[0], pTemp[1]);
 
     return RPP_SUCCESS;
@@ -1700,7 +1700,7 @@ inline RppStatus rpp_bilinear_load_f16pln1_to_f32pln1(Rpp16f **srcRowPtrsForInte
 
 inline RppStatus rpp_store12_f32pln3_to_f16pln3(Rpp16f* dstRPtr, Rpp16f* dstGPtr, Rpp16f* dstBPtr, __m128* p)
 {
-    float temp[3][4];
+    Rpp32f temp[3][4];
     _mm_storeu_ps((float *)temp[0], p[0]);
     _mm_storeu_ps((float *)temp[1], p[1]);
     _mm_storeu_ps((float *)temp[2], p[2]);
@@ -1718,7 +1718,7 @@ inline RppStatus rpp_store12_f32pln3_to_f16pln3(Rpp16f* dstRPtr, Rpp16f* dstGPtr
 inline RppStatus rpp_store12_f32pln3_to_f16pkd3(Rpp16f* dstPtr, __m128* p)
 {
     __m128 pTemp = xmm_p0;
-    float temp[4][4];
+    Rpp32f temp[4][4];
     _MM_TRANSPOSE4_PS(p[0], p[1], p[2], pTemp); /* Transpose the pixels to obtain packed RGB format*/
     _mm_storeu_ps((float *)temp[0], p[0]);
     _mm_storeu_ps((float *)temp[1], p[1]);
@@ -1738,7 +1738,7 @@ inline RppStatus rpp_store12_f32pln3_to_f16pkd3(Rpp16f* dstPtr, __m128* p)
 
 inline RppStatus rpp_store4_f32pln1_to_f16pln1(Rpp16f* dstPtr, __m128 p)
 {
-    float temp[4];
+    Rpp32f temp[4];
     _mm_storeu_ps(temp, p);
     /* Convert float pixels to float16 type and store in destination */
     dstPtr[0] = (Rpp16f) temp[0];
