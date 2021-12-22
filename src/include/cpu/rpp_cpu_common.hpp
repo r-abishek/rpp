@@ -22,12 +22,14 @@ typedef halfhpp Rpp16f;
 #define RPPMAX3(a,b,c)                  ((a > b) && (a > c) ?  a : ((b > c) ? b : c))
 #define RPPINRANGE(a, x, y)             ((a >= x) && (a <= y) ? 1 : 0)
 #define RPPPRANGECHECK(value, a, b)     (value < (Rpp32f) a) ? ((Rpp32f) a) : ((value < (Rpp32f) b) ? value : ((Rpp32f) b))
+#define RPPPRANGECHECKINT(value, a, b)     ((value < a) ? a : ((value < b) ? value : b))
 #define RPPFLOOR(a)                     ((int) a)
 #define RPPCEIL(a)                      ((int) (a + 1.0))
 #define RPPISEVEN(a)                    ((a % 2 == 0) ? 1 : 0)
-#define RPPPIXELCHECK(pixel)            (pixel < (Rpp32f) 0) ? ((Rpp32f) 0) : ((pixel < (Rpp32f) 255) ? pixel : ((Rpp32f) 255))
-#define RPPPIXELCHECKF32(pixel)         (pixel < (Rpp32f) 0) ? ((Rpp32f) 0) : ((pixel < (Rpp32f) 1) ? pixel : ((Rpp32f) 1))
-#define RPPPIXELCHECKI8(pixel)          (pixel < (Rpp32f) -128) ? ((Rpp32f) -128) : ((pixel < (Rpp32f) 127) ? pixel : ((Rpp32f) 127))
+#define RPPPIXELCHECK(pixel)            ((pixel < 0) ? 0 : ((pixel < 255) ? pixel : 255))
+#define RPPPIXELCHECKF32(pixel)         ((pixel < 0) ? 0 : ((pixel < 1) ? pixel : 1))
+#define RPPPIXELCHECKF16(pixel)         ((pixel < 0) ? 0 : ((pixel < 1) ? pixel : 1))
+#define RPPPIXELCHECKI8(pixel)          ((pixel < -128) ? -128 : ((pixel < 127) ? pixel : 127))
 #define RPPISGREATER(pixel, value)      ((pixel > value) ? 1 : 0)
 #define RPPISLESSER(pixel, value)       ((pixel < value) ? 1 : 0)
 
@@ -80,6 +82,26 @@ inline int power_function(int a, int b)
     for(int i = 0; i < b; i++)
         product *= product * a;
     return product;
+}
+
+inline void saturate_pixel(Rpp32f pixel, Rpp8u* dst)
+{
+    *dst = RPPPIXELCHECK(pixel);
+}
+
+inline void saturate_pixel(Rpp32f pixel, Rpp8s* dst)
+{
+    *dst = RPPPIXELCHECKI8(pixel - 128);
+}
+
+inline void saturate_pixel(Rpp32f pixel, Rpp32f* dst)
+{
+    *dst = (Rpp32f)pixel;
+}
+
+inline void saturate_pixel(Rpp32f pixel, Rpp16f* dst)
+{
+    *dst = (Rpp16f)pixel;
 }
 
 template <typename T>
@@ -3963,9 +3985,9 @@ inline void compute_dst_size_cap_host(RpptImagePatchPtr dstImgSize, RpptDescPtr 
     dstImgSize->height = std::min(dstImgSize->height, dstDescPtr->h);
 }
 
-inline void compute_resize_src_loc(Rpp32s dstLocation, Rpp32f scale, Rpp32u limit, Rpp32s &srcLoc, Rpp32f *weight, bool hasRGBChannels = false)
+inline void compute_resize_src_loc(Rpp32s dstLocation, Rpp32f scale, Rpp32u limit, Rpp32s &srcLoc, Rpp32f *weight, Rpp32f offset = 0, bool hasRGBChannels = false)
 {
-    Rpp32f srcLocation = ((Rpp32f) dstLocation) * scale;
+    Rpp32f srcLocation = ((Rpp32f) dstLocation) * scale + offset;
     Rpp32s srcLocationFloor = (Rpp32s) RPPFLOOR(srcLocation);
     weight[0] = srcLocation - srcLocationFloor;
     weight[1] = 1 - weight[0];
@@ -3974,9 +3996,9 @@ inline void compute_resize_src_loc(Rpp32s dstLocation, Rpp32f scale, Rpp32u limi
         srcLoc = srcLoc * 3;
 }
 
-inline void compute_resize_src_loc_sse(__m128 &pDstLoc, __m128 &pScale, __m128 &pLimit, Rpp32s *srcLoc, __m128 *pWeight, bool hasRGBChannels = false)
+inline void compute_resize_src_loc_sse(__m128 &pDstLoc, __m128 &pScale, __m128 &pLimit, Rpp32s *srcLoc, __m128 *pWeight, __m128 pOffset = xmm_p0, bool hasRGBChannels = false)
 {
-    __m128 pLoc = _mm_mul_ps(pDstLoc, pScale);
+    __m128 pLoc = _mm_add_ps(_mm_mul_ps(pDstLoc, pScale), pOffset);
     pDstLoc = _mm_add_ps(pDstLoc, xmm_p4);
     __m128 pLocFloor = _mm_floor_ps(pLoc);
     pWeight[0] = _mm_sub_ps(pLoc, pLocFloor);
@@ -4058,6 +4080,61 @@ inline void compute_bilinear_interpolation_1c(T **srcRowPtrsForInterp, Rpp32s lo
                   ((*(srcRowPtrsForInterp[0] + loc + 1)) * bilinearCoeffs[1]) +
                   ((*(srcRowPtrsForInterp[1] + loc)) * bilinearCoeffs[2]) +
                   ((*(srcRowPtrsForInterp[1] + loc + 1)) * bilinearCoeffs[3]));
+}
+
+inline void compute_cubic_coefficients(Rpp32f* coeffs, Rpp32f x)
+{
+    Rpp32f xo2 = 0.5f * x;
+    Rpp32f xt3o2 = xo2 * 3.0f;
+    Rpp32f xp2 = x * x;
+    coeffs[0] = (-xo2 + 1) * xp2 - xo2;
+    coeffs[1] = (xt3o2 - 2.5) * xp2 + 1;
+    coeffs[2] = (-xt3o2 + 2) * xp2 + xo2;
+    coeffs[3] = 1.0f - coeffs[0] - coeffs[1] - coeffs[2];
+}
+
+template <typename T>
+inline void compute_cubic_interpolation_3c_sse(__m128 *srcPixels, __m128 coeffs_x, __m128 *coeffs_y, T *dstPtrR, T *dstPtrG, T *dstPtrB)
+{
+    __m128 px[6], p[3];
+    float tempArr[4];
+    px[0] = _mm_mul_ps(_mm_mul_ps(srcPixels[0], coeffs_x), coeffs_y[0]);
+    px[0] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[1], coeffs_x), coeffs_y[1], px[0]);
+    px[1] = _mm_mul_ps(_mm_mul_ps(srcPixels[2], coeffs_x), coeffs_y[2]);
+    px[1] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[3], coeffs_x), coeffs_y[3], px[1]);
+    p[0] = _mm_add_ps(px[0], px[1]);
+    _mm_storeu_ps(tempArr, p[0]);
+    saturate_pixel((tempArr[0] + tempArr[1] + tempArr[2] + tempArr[3]), dstPtrR);
+
+    px[2] = _mm_mul_ps(_mm_mul_ps(srcPixels[4], coeffs_x), coeffs_y[0]);
+    px[2] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[5], coeffs_x), coeffs_y[1], px[2]);
+    px[3] = _mm_mul_ps(_mm_mul_ps(srcPixels[6], coeffs_x), coeffs_y[2]);
+    px[3] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[7], coeffs_x), coeffs_y[3], px[3]);
+    p[1] = _mm_add_ps(px[2], px[3]);
+    _mm_storeu_ps(tempArr, p[1]);
+    saturate_pixel((tempArr[0] + tempArr[1] + tempArr[2] + tempArr[3]), dstPtrG);
+
+    px[4] = _mm_mul_ps(_mm_mul_ps(srcPixels[8], coeffs_x), coeffs_y[0]);
+    px[4] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[9], coeffs_x), coeffs_y[1], px[4]);
+    px[5] = _mm_mul_ps(_mm_mul_ps(srcPixels[10], coeffs_x), coeffs_y[2]);
+    px[5] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[11], coeffs_x), coeffs_y[3], px[5]);
+    p[2] = _mm_add_ps(px[4], px[5]);
+    _mm_storeu_ps(tempArr, p[2]);
+    saturate_pixel((tempArr[0] + tempArr[1] + tempArr[2] + tempArr[3]), dstPtrB);
+}
+
+template <typename T>
+inline void compute_cubic_interpolation_1c_sse(__m128 *srcPixels, __m128 coeffs_x, __m128 *coeffs_y, T *dstPtr)
+{
+    __m128 px[6], p[3];
+    float tempArr[4];
+    px[0] = _mm_mul_ps(_mm_mul_ps(srcPixels[0], coeffs_x), coeffs_y[0]);
+    px[0] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[1], coeffs_x), coeffs_y[1], px[0]);
+    px[1] = _mm_mul_ps(_mm_mul_ps(srcPixels[2], coeffs_x), coeffs_y[2]);
+    px[1] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[3], coeffs_x), coeffs_y[3], px[1]);
+    p[0] = _mm_add_ps(px[0], px[1]);
+    _mm_storeu_ps(tempArr, p[0]);
+    saturate_pixel((tempArr[0] + tempArr[1] + tempArr[2] + tempArr[3]), dstPtr);
 }
 
 #endif //RPP_CPU_COMMON_H
