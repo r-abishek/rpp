@@ -8680,7 +8680,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[2] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 1, 0, heightLimit) * srcDescPtr->strides.hStride);
                 srcRowPtrsForInterp[3] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 2, 0, heightLimit) * srcDescPtr->strides.hStride);
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -8688,8 +8688,9 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_u8pkd3_to_f32pln3, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTempR, dstPtrTempG, dstPtrTempB);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTempR, dstPtrTempG, dstPtrTempB);
                     dstPtrTempR++;
                     dstPtrTempG++;
                     dstPtrTempB++;
@@ -8732,7 +8733,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[10] = srcRowPtrsForInterp[6] + srcDescPtr->strides.cStride;
                 srcRowPtrsForInterp[11] = srcRowPtrsForInterp[7] + srcDescPtr->strides.cStride;
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -8740,10 +8741,11 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_u8pln1_to_f32pln1, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
                     rpp_simd_load(rpp_cubic_load_u8pln1_to_f32pln1, srcRowPtrsForInterp + 4, srcLocCF[vectorLoopCount], pRow + 4);
                     rpp_simd_load(rpp_cubic_load_u8pln1_to_f32pln1, srcRowPtrsForInterp + 8, srcLocCF[vectorLoopCount], pRow + 8);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
                     dstPtrTemp+=3;
                 }
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -8774,7 +8776,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[2] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 1, 0, heightLimit) * srcDescPtr->strides.hStride);
                 srcRowPtrsForInterp[3] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 2, 0, heightLimit) * srcDescPtr->strides.hStride);
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -8782,8 +8784,9 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_u8pkd3_to_f32pln3, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
                     dstPtrTemp+=3;
                 }
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -8822,7 +8825,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[10] = srcRowPtrsForInterp[6] + srcDescPtr->strides.cStride;
                 srcRowPtrsForInterp[11] = srcRowPtrsForInterp[7] + srcDescPtr->strides.cStride;
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -8832,10 +8835,11 @@ omp_set_dynamic(0);
                     Rpp8u *dstPtrTempChn;
                     dstPtrTempChn = dstPtrTemp;
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     for (int c = 0; c < dstDescPtr->c; c++)
                     {
                         rpp_simd_load(rpp_cubic_load_u8pln1_to_f32pln1, &srcRowPtrsForInterp[c * 4], srcLocCF[vectorLoopCount], pRow);
-                        compute_cubic_interpolation_1c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTempChn);
+                        compute_cubic_interpolation_1c_sse(pRow, pCubicCoeffs, dstPtrTempChn);
                         dstPtrTempChn += dstDescPtr->strides.cStride;
                     }
                     dstPtrTemp++;
@@ -8942,7 +8946,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[2] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 1, 0, heightLimit) * srcDescPtr->strides.hStride);
                 srcRowPtrsForInterp[3] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 2, 0, heightLimit) * srcDescPtr->strides.hStride);
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -8950,8 +8954,9 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_f32pkd3_to_f32pln3, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTempR, dstPtrTempG, dstPtrTempB);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTempR, dstPtrTempG, dstPtrTempB);
                     dstPtrTempR++;
                     dstPtrTempG++;
                     dstPtrTempB++;
@@ -8994,7 +8999,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[10] = srcRowPtrsForInterp[6] + srcDescPtr->strides.cStride;
                 srcRowPtrsForInterp[11] = srcRowPtrsForInterp[7] + srcDescPtr->strides.cStride;
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9002,10 +9007,11 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_f32pln1_to_f32pln1, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
                     rpp_simd_load(rpp_cubic_load_f32pln1_to_f32pln1, srcRowPtrsForInterp + 4, srcLocCF[vectorLoopCount], pRow + 4);
                     rpp_simd_load(rpp_cubic_load_f32pln1_to_f32pln1, srcRowPtrsForInterp + 8, srcLocCF[vectorLoopCount], pRow + 8);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
                     dstPtrTemp+=3;
                 }
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -9036,7 +9042,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[2] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 1, 0, heightLimit) * srcDescPtr->strides.hStride);
                 srcRowPtrsForInterp[3] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 2, 0, heightLimit) * srcDescPtr->strides.hStride);
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9044,8 +9050,9 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_f32pkd3_to_f32pln3, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
                     dstPtrTemp+=3;
                 }
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -9085,7 +9092,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[10] = srcRowPtrsForInterp[6] + srcDescPtr->strides.cStride;
                 srcRowPtrsForInterp[11] = srcRowPtrsForInterp[7] + srcDescPtr->strides.cStride;
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9095,10 +9102,11 @@ omp_set_dynamic(0);
                     Rpp32f *dstPtrTempChn;
                     dstPtrTempChn = dstPtrTemp;
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     for (int c = 0; c < dstDescPtr->c; c++)
                     {
                         rpp_simd_load(rpp_cubic_load_f32pln1_to_f32pln1, &srcRowPtrsForInterp[c * 4], srcLocCF[vectorLoopCount], pRow);
-                        compute_cubic_interpolation_1c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTempChn);
+                        compute_cubic_interpolation_1c_sse(pRow, pCubicCoeffs, dstPtrTempChn);
                         dstPtrTempChn += dstDescPtr->strides.cStride;
                     }
                     dstPtrTemp++;
@@ -9205,7 +9213,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[2] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 1, 0, heightLimit) * srcDescPtr->strides.hStride);
                 srcRowPtrsForInterp[3] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 2, 0, heightLimit) * srcDescPtr->strides.hStride);
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9213,8 +9221,9 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_i8pkd3_to_f32pln3, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTempR, dstPtrTempG, dstPtrTempB);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTempR, dstPtrTempG, dstPtrTempB);
                     dstPtrTempR++;
                     dstPtrTempG++;
                     dstPtrTempB++;
@@ -9257,7 +9266,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[10] = srcRowPtrsForInterp[6] + srcDescPtr->strides.cStride;
                 srcRowPtrsForInterp[11] = srcRowPtrsForInterp[7] + srcDescPtr->strides.cStride;
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9265,10 +9274,11 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_i8pln1_to_f32pln1, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
                     rpp_simd_load(rpp_cubic_load_i8pln1_to_f32pln1, srcRowPtrsForInterp + 4, srcLocCF[vectorLoopCount], pRow + 4);
                     rpp_simd_load(rpp_cubic_load_i8pln1_to_f32pln1, srcRowPtrsForInterp + 8, srcLocCF[vectorLoopCount], pRow + 8);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
                     dstPtrTemp+=3;
                 }
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -9299,7 +9309,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[2] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 1, 0, heightLimit) * srcDescPtr->strides.hStride);
                 srcRowPtrsForInterp[3] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 2, 0, heightLimit) * srcDescPtr->strides.hStride);
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+            __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9307,8 +9317,9 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_i8pkd3_to_f32pln3, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
                     dstPtrTemp+=3;
                 }
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -9347,7 +9358,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[10] = srcRowPtrsForInterp[6] + srcDescPtr->strides.cStride;
                 srcRowPtrsForInterp[11] = srcRowPtrsForInterp[7] + srcDescPtr->strides.cStride;
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9357,10 +9368,11 @@ omp_set_dynamic(0);
                     Rpp8s *dstPtrTempChn;
                     dstPtrTempChn = dstPtrTemp;
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     for (int c = 0; c < dstDescPtr->c; c++)
                     {
                         rpp_simd_load(rpp_cubic_load_i8pln1_to_f32pln1, &srcRowPtrsForInterp[c * 4], srcLocCF[vectorLoopCount], pRow);
-                        compute_cubic_interpolation_1c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTempChn);
+                        compute_cubic_interpolation_1c_sse(pRow, pCubicCoeffs, dstPtrTempChn);
                         dstPtrTempChn += dstDescPtr->strides.cStride;
                     }
                     dstPtrTemp++;
@@ -9467,7 +9479,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[2] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 1, 0, heightLimit) * srcDescPtr->strides.hStride);
                 srcRowPtrsForInterp[3] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 2, 0, heightLimit) * srcDescPtr->strides.hStride);
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9475,8 +9487,9 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_f16pkd3_to_f32pln3, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTempR, dstPtrTempG, dstPtrTempB);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTempR, dstPtrTempG, dstPtrTempB);
                     dstPtrTempR++;
                     dstPtrTempG++;
                     dstPtrTempB++;
@@ -9519,7 +9532,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[10] = srcRowPtrsForInterp[6] + srcDescPtr->strides.cStride;
                 srcRowPtrsForInterp[11] = srcRowPtrsForInterp[7] + srcDescPtr->strides.cStride;
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9527,10 +9540,11 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_f16pln1_to_f32pln1, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
                     rpp_simd_load(rpp_cubic_load_f16pln1_to_f32pln1, srcRowPtrsForInterp + 4, srcLocCF[vectorLoopCount], pRow + 4);
                     rpp_simd_load(rpp_cubic_load_f16pln1_to_f32pln1, srcRowPtrsForInterp + 8, srcLocCF[vectorLoopCount], pRow + 8);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
                     dstPtrTemp+=3;
                 }
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -9561,7 +9575,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[2] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 1, 0, heightLimit) * srcDescPtr->strides.hStride);
                 srcRowPtrsForInterp[3] = srcPtrChannel + (RPPPRANGECHECKINT(srcLocationRowFloor + 2, 0, heightLimit) * srcDescPtr->strides.hStride);
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9569,8 +9583,9 @@ omp_set_dynamic(0);
                 for (int vectorLoopCount = 0, count = 0; vectorLoopCount < dstImgSize[batchCount].width; vectorLoopCount++, count += 4)
                 {
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     rpp_simd_load(rpp_cubic_load_f16pkd3_to_f32pln3, srcRowPtrsForInterp, srcLocCF[vectorLoopCount], pRow);
-                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
+                    compute_cubic_interpolation_3c_sse(pRow, pCubicCoeffs, dstPtrTemp, dstPtrTemp + 1, dstPtrTemp + 2);
                     dstPtrTemp+=3;
                 }
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -9609,7 +9624,7 @@ omp_set_dynamic(0);
                 srcRowPtrsForInterp[10] = srcRowPtrsForInterp[6] + srcDescPtr->strides.cStride;
                 srcRowPtrsForInterp[11] = srcRowPtrsForInterp[7] + srcDescPtr->strides.cStride;
                 compute_cubic_coefficients(cubicCoeffsY, weightParams[0]);
-                __m128 pCubicCoeffX, pCubicCoeffY[4];
+                __m128 pCubicCoeffX, pCubicCoeffY[4], pCubicCoeffs[4];
                 pCubicCoeffY[0] = _mm_set1_ps(cubicCoeffsY[0]);
                 pCubicCoeffY[1] = _mm_set1_ps(cubicCoeffsY[1]);
                 pCubicCoeffY[2] = _mm_set1_ps(cubicCoeffsY[2]);
@@ -9619,10 +9634,11 @@ omp_set_dynamic(0);
                     Rpp16f *dstPtrTempChn;
                     dstPtrTempChn = dstPtrTemp;
                     pCubicCoeffX = _mm_load_ps(cubicCoeffsX + count);
+                    compute_final_cubic_coefficients(pCubicCoeffX, pCubicCoeffY, pCubicCoeffs);
                     for (int c = 0; c < dstDescPtr->c; c++)
                     {
                         rpp_simd_load(rpp_cubic_load_f16pln1_to_f32pln1, &srcRowPtrsForInterp[c * 4], srcLocCF[vectorLoopCount], pRow);
-                        compute_cubic_interpolation_1c_sse(pRow, pCubicCoeffX, pCubicCoeffY, dstPtrTempChn);
+                        compute_cubic_interpolation_1c_sse(pRow, pCubicCoeffs, dstPtrTempChn);
                         dstPtrTempChn += dstDescPtr->strides.cStride;
                     }
                     dstPtrTemp++;

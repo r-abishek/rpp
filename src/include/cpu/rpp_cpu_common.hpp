@@ -4093,46 +4093,54 @@ inline void compute_cubic_coefficients(Rpp32f* coeffs, Rpp32f x)
     coeffs[3] = 1.0f - coeffs[0] - coeffs[1] - coeffs[2];
 }
 
-template <typename T>
-inline void compute_cubic_interpolation_3c_sse(__m128 *srcPixels, __m128 coeffs_x, __m128 *coeffs_y, T *dstPtrR, T *dstPtrG, T *dstPtrB)
+inline void compute_final_cubic_coefficients(__m128 &pCoeffX, __m128 *pCoeffY, __m128 *pFinalCoeffs)
 {
-    __m128 px[6], p[3];
+    pFinalCoeffs[0] = _mm_mul_ps(pCoeffX, pCoeffY[0]);
+    pFinalCoeffs[1] = _mm_mul_ps(pCoeffX, pCoeffY[1]);
+    pFinalCoeffs[2] = _mm_mul_ps(pCoeffX, pCoeffY[2]);
+    pFinalCoeffs[3] = _mm_mul_ps(pCoeffX, pCoeffY[3]);
+}
+
+template <typename T>
+inline void compute_cubic_interpolation_3c_sse(__m128 *srcPixels, __m128 *cubicCoeffs, T *dstPtrR, T *dstPtrG, T *dstPtrB)
+{
+    __m128 p[6];
     float tempArr[4];
-    px[0] = _mm_mul_ps(_mm_mul_ps(srcPixels[0], coeffs_x), coeffs_y[0]);
-    px[0] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[1], coeffs_x), coeffs_y[1], px[0]);
-    px[1] = _mm_mul_ps(_mm_mul_ps(srcPixels[2], coeffs_x), coeffs_y[2]);
-    px[1] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[3], coeffs_x), coeffs_y[3], px[1]);
-    p[0] = _mm_add_ps(px[0], px[1]);
+    p[0] = _mm_mul_ps(srcPixels[0], cubicCoeffs[0]);
+    p[0] = _mm_fmadd_ps(srcPixels[1], cubicCoeffs[1], p[0]);
+    p[1] = _mm_mul_ps(srcPixels[2], cubicCoeffs[2]);
+    p[1] = _mm_fmadd_ps(srcPixels[3], cubicCoeffs[3], p[1]);
+    p[0] = _mm_add_ps(p[0], p[1]);
     _mm_storeu_ps(tempArr, p[0]);
     saturate_pixel((tempArr[0] + tempArr[1] + tempArr[2] + tempArr[3]), dstPtrR);
 
-    px[2] = _mm_mul_ps(_mm_mul_ps(srcPixels[4], coeffs_x), coeffs_y[0]);
-    px[2] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[5], coeffs_x), coeffs_y[1], px[2]);
-    px[3] = _mm_mul_ps(_mm_mul_ps(srcPixels[6], coeffs_x), coeffs_y[2]);
-    px[3] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[7], coeffs_x), coeffs_y[3], px[3]);
-    p[1] = _mm_add_ps(px[2], px[3]);
-    _mm_storeu_ps(tempArr, p[1]);
+    p[2] = _mm_mul_ps(srcPixels[4], cubicCoeffs[0]);
+    p[2] = _mm_fmadd_ps(srcPixels[5], cubicCoeffs[1], p[2]);
+    p[3] = _mm_mul_ps(srcPixels[6], cubicCoeffs[2]);
+    p[3] = _mm_fmadd_ps(srcPixels[7], cubicCoeffs[3], p[3]);
+    p[2] = _mm_add_ps(p[2], p[3]);
+    _mm_storeu_ps(tempArr, p[2]);
     saturate_pixel((tempArr[0] + tempArr[1] + tempArr[2] + tempArr[3]), dstPtrG);
 
-    px[4] = _mm_mul_ps(_mm_mul_ps(srcPixels[8], coeffs_x), coeffs_y[0]);
-    px[4] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[9], coeffs_x), coeffs_y[1], px[4]);
-    px[5] = _mm_mul_ps(_mm_mul_ps(srcPixels[10], coeffs_x), coeffs_y[2]);
-    px[5] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[11], coeffs_x), coeffs_y[3], px[5]);
-    p[2] = _mm_add_ps(px[4], px[5]);
-    _mm_storeu_ps(tempArr, p[2]);
+    p[4] = _mm_mul_ps(srcPixels[8], cubicCoeffs[0]);
+    p[4] = _mm_fmadd_ps(srcPixels[9], cubicCoeffs[1], p[4]);
+    p[5] = _mm_mul_ps(srcPixels[10], cubicCoeffs[2]);
+    p[5] = _mm_fmadd_ps(srcPixels[11], cubicCoeffs[3], p[5]);
+    p[4] = _mm_add_ps(p[4], p[5]);
+    _mm_storeu_ps(tempArr, p[4]);
     saturate_pixel((tempArr[0] + tempArr[1] + tempArr[2] + tempArr[3]), dstPtrB);
 }
 
 template <typename T>
-inline void compute_cubic_interpolation_1c_sse(__m128 *srcPixels, __m128 coeffs_x, __m128 *coeffs_y, T *dstPtr)
+inline void compute_cubic_interpolation_1c_sse(__m128 *srcPixels, __m128 *cubicCoeffs, T *dstPtr)
 {
-    __m128 px[6], p[3];
+    __m128 p[2];
     float tempArr[4];
-    px[0] = _mm_mul_ps(_mm_mul_ps(srcPixels[0], coeffs_x), coeffs_y[0]);
-    px[0] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[1], coeffs_x), coeffs_y[1], px[0]);
-    px[1] = _mm_mul_ps(_mm_mul_ps(srcPixels[2], coeffs_x), coeffs_y[2]);
-    px[1] = _mm_fmadd_ps(_mm_mul_ps(srcPixels[3], coeffs_x), coeffs_y[3], px[1]);
-    p[0] = _mm_add_ps(px[0], px[1]);
+    p[0] = _mm_mul_ps(srcPixels[0], cubicCoeffs[0]);
+    p[0] = _mm_fmadd_ps(srcPixels[1], cubicCoeffs[1], p[0]);
+    p[1] = _mm_mul_ps(srcPixels[2], cubicCoeffs[2]);
+    p[1] = _mm_fmadd_ps(srcPixels[3], cubicCoeffs[3], p[1]);
+    p[0] = _mm_add_ps(p[0], p[1]);
     _mm_storeu_ps(tempArr, p[0]);
     saturate_pixel((tempArr[0] + tempArr[1] + tempArr[2] + tempArr[3]), dstPtr);
 }
