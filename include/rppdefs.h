@@ -210,7 +210,9 @@ typedef enum
     NEAREST_NEIGHBOR,
     BILINEAR,
     BICUBIC,
-    LANCZOS
+    LANCZOS,
+    GAUSSIAN,
+    TRIANGULAR
 } RpptInterpolationType;
 
 typedef struct
