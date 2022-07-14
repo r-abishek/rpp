@@ -46,12 +46,12 @@ RppStatus salt_and_pepper_noise_u8_u8_host_tensor(Rpp8u *srcPtr,
         Rpp32u vectorIncrementPerChannel = 16;
 
         RpptXorwowState xorwowState;
-        xorwowState.x[0] = xorwowInitialStatePtr[0].x[0] + offset;
-        xorwowState.x[1] = xorwowInitialStatePtr[0].x[1] + offset;
-        xorwowState.x[2] = xorwowInitialStatePtr[0].x[2] + offset;
-        xorwowState.x[3] = xorwowInitialStatePtr[0].x[3] + offset;
-        xorwowState.x[4] = xorwowInitialStatePtr[0].x[4] + offset;
-        xorwowState.counter = xorwowInitialStatePtr[0].counter + offset;
+        xorwowState.x[0] = xorwowInitialStatePtr[0].x[0] + 2 * offset;
+        xorwowState.x[1] = xorwowInitialStatePtr[0].x[1] + 2 * offset;
+        xorwowState.x[2] = xorwowInitialStatePtr[0].x[2] + 2 * offset;
+        xorwowState.x[3] = xorwowInitialStatePtr[0].x[3] + 2 * offset;
+        xorwowState.x[4] = xorwowInitialStatePtr[0].x[4] + 2 * offset;
+        xorwowState.counter = xorwowInitialStatePtr[0].counter + 2 * offset;
 
 #if __AVX2__
         __m256i pxXorwowStateX[5], pxXorwowStateCounter;
