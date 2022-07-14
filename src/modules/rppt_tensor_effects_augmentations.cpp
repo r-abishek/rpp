@@ -119,18 +119,18 @@ RppStatus rppt_spatter_host(RppPtr_t srcPtr,
                             rppHandle_t rppHandle)
 {
     RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
-    if (roiType == RpptRoiType::XYWH)
-    {
-        for(int i = 0; i < srcDescPtr->n; i++)
-            if ((roiTensorPtrSrc[i].xywhROI.roiWidth > SPATTER_MAX_WIDTH) || (roiTensorPtrSrc[i].xywhROI.roiHeight > SPATTER_MAX_HEIGHT))
-                return RPP_ERROR_HIGH_SRC_DIMENSION;
-    }
-    else if (roiType == RpptRoiType::LTRB)
-    {
-        for(int i = 0; i < srcDescPtr->n; i++)
-            if ((roiTensorPtrSrc[i].ltrbROI.rb.x - roiTensorPtrSrc[i].ltrbROI.lt.x > SPATTER_MAX_XDIM) || (roiTensorPtrSrc[i].ltrbROI.rb.y - roiTensorPtrSrc[i].ltrbROI.lt.y > SPATTER_MAX_YDIM))
-                return RPP_ERROR_HIGH_SRC_DIMENSION;
-    }
+    // if (roiType == RpptRoiType::XYWH)
+    // {
+    //     for(int i = 0; i < srcDescPtr->n; i++)
+    //         if ((roiTensorPtrSrc[i].xywhROI.roiWidth > SPATTER_MAX_WIDTH) || (roiTensorPtrSrc[i].xywhROI.roiHeight > SPATTER_MAX_HEIGHT))
+    //             return RPP_ERROR_HIGH_SRC_DIMENSION;
+    // }
+    // else if (roiType == RpptRoiType::LTRB)
+    // {
+    //     for(int i = 0; i < srcDescPtr->n; i++)
+    //         if ((roiTensorPtrSrc[i].ltrbROI.rb.x - roiTensorPtrSrc[i].ltrbROI.lt.x > SPATTER_MAX_XDIM) || (roiTensorPtrSrc[i].ltrbROI.rb.y - roiTensorPtrSrc[i].ltrbROI.lt.y > SPATTER_MAX_YDIM))
+    //             return RPP_ERROR_HIGH_SRC_DIMENSION;
+    // }
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -195,9 +195,9 @@ RppStatus rppt_salt_and_pepper_noise_host(RppPtr_t srcPtr,
                                           RpptRoiType roiType,
                                           rppHandle_t rppHandle)
 {
-    for(int i = 0; i < srcDescPtr->n; i++)
-        if (!RPPINRANGE(noiseProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltValueTensor[i], 0, 1) || !RPPINRANGE(pepperValueTensor[i], 0, 1))
-            return RPP_ERROR_INVALID_ARGUMENTS;
+    // for(int i = 0; i < srcDescPtr->n; i++)
+    //     if (!RPPINRANGE(noiseProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltValueTensor[i], 0, 1) || !RPPINRANGE(pepperValueTensor[i], 0, 1))
+    //         return RPP_ERROR_INVALID_ARGUMENTS;
 
     RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
     RpptXorwowState xorwowInitialState[SIMD_FLOAT_VECTOR_LENGTH];
@@ -369,18 +369,18 @@ RppStatus rppt_spatter_gpu(RppPtr_t srcPtr,
 #ifdef HIP_COMPILE
     RpptROI roiTensorPtrSrcHost[dstDescPtr->n];
     hipMemcpy(roiTensorPtrSrcHost, roiTensorPtrSrc, dstDescPtr->n * sizeof(RpptROI), hipMemcpyDeviceToHost);
-    if (roiType == RpptRoiType::XYWH)
-    {
-        for(int i = 0; i < dstDescPtr->n; i++)
-            if ((roiTensorPtrSrcHost[i].xywhROI.roiWidth > SPATTER_MAX_WIDTH) || (roiTensorPtrSrcHost[i].xywhROI.roiHeight > SPATTER_MAX_HEIGHT))
-                return RPP_ERROR_HIGH_SRC_DIMENSION;
-    }
-    else if (roiType == RpptRoiType::LTRB)
-    {
-        for(int i = 0; i < dstDescPtr->n; i++)
-            if ((roiTensorPtrSrcHost[i].ltrbROI.rb.x - roiTensorPtrSrcHost[i].ltrbROI.lt.x > SPATTER_MAX_XDIM) || (roiTensorPtrSrcHost[i].ltrbROI.rb.y - roiTensorPtrSrcHost[i].ltrbROI.lt.y > SPATTER_MAX_YDIM))
-                return RPP_ERROR_HIGH_SRC_DIMENSION;
-    }
+    // if (roiType == RpptRoiType::XYWH)
+    // {
+    //     for(int i = 0; i < dstDescPtr->n; i++)
+    //         if ((roiTensorPtrSrcHost[i].xywhROI.roiWidth > SPATTER_MAX_WIDTH) || (roiTensorPtrSrcHost[i].xywhROI.roiHeight > SPATTER_MAX_HEIGHT))
+    //             return RPP_ERROR_HIGH_SRC_DIMENSION;
+    // }
+    // else if (roiType == RpptRoiType::LTRB)
+    // {
+    //     for(int i = 0; i < dstDescPtr->n; i++)
+    //         if ((roiTensorPtrSrcHost[i].ltrbROI.rb.x - roiTensorPtrSrcHost[i].ltrbROI.lt.x > SPATTER_MAX_XDIM) || (roiTensorPtrSrcHost[i].ltrbROI.rb.y - roiTensorPtrSrcHost[i].ltrbROI.lt.y > SPATTER_MAX_YDIM))
+    //             return RPP_ERROR_HIGH_SRC_DIMENSION;
+    // }
 
     std::random_device rd;  // Random number engine seed
     std::mt19937 gen(rd()); // Seeding rd() to fast mersenne twister engine
@@ -464,9 +464,9 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
                                          rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    for(int i = 0; i < srcDescPtr->n; i++)
-        if (!RPPINRANGE(noiseProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltValueTensor[i], 0, 1) || !RPPINRANGE(pepperValueTensor[i], 0, 1))
-            return RPP_ERROR_INVALID_ARGUMENTS;
+    // for(int i = 0; i < srcDescPtr->n; i++)
+    //     if (!RPPINRANGE(noiseProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltValueTensor[i], 0, 1) || !RPPINRANGE(pepperValueTensor[i], 0, 1))
+    //         return RPP_ERROR_INVALID_ARGUMENTS;
 
     Rpp32u paramIndex = 0;
     copy_param_float(noiseProbabilityTensor, rpp::deref(rppHandle), paramIndex++);
