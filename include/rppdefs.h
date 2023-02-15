@@ -252,6 +252,25 @@ typedef enum
     TRIANGULAR
 } RpptInterpolationType;
 
+typedef enum
+{
+    ZERO = 0,
+    CLAMP,
+    REFLECT
+} RpptAudioBorderType;
+
+typedef enum
+{
+    SLANEY = 0,
+    HTK,
+} RpptMelScaleFormula;
+
+typedef enum
+{
+    FT = 0,
+    TF,
+} RpptSpectrogramLayout;
+
 typedef struct
 {
     RppiPoint lt, rb;

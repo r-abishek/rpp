@@ -1,6 +1,6 @@
 #pragma OPENCL EXTENSION cl_khr_fp16 : enable
 #define saturate_8u(value) ((value) > 255 ? 255 : ((value) < 0 ? 0 : (value)))
-#define PI 3.14159265
+#define PI 3.14159265358979323846
 #define RAD(deg) (deg * PI / 180)
 
 __kernel void

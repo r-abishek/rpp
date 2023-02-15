@@ -102,6 +102,7 @@ const __m256 avx_p255 = _mm256_set1_ps(255.0f);
 const __m256 avx_p1op255 = _mm256_set1_ps(1.0f / 255.0f);
 const __m256 avx_p1op3 = _mm256_set1_ps(1.0f / 3.0f);
 const __m256 avx_p2op3 = _mm256_set1_ps(2.0f / 3.0f);
+const __m256 avx_pm1 = _mm256_set1_ps(-1.0f);
 
 const __m256i avx_cephesSQRTHF = _mm256_set1_ps(0.707106781186547524);
 const __m256i avx_cephesLogP0 = _mm256_set1_ps(7.0376836292E-2);
@@ -265,6 +266,15 @@ inline void rpp_saturate16_0to1_avx(__m256 *p)
 inline void rpp_saturate8_0to1_avx(__m256 *p)
 {
     p[0] = _mm256_min_ps(_mm256_max_ps(p[0], avx_p0), avx_p1);
+}
+
+inline Rpp32f rpp_horizontal_add_sse(__m128 p)
+{
+    __m128 shuf = _mm_movehdup_ps(p);
+    __m128 sums = _mm_add_ps(p, shuf);
+    shuf = _mm_movehl_ps(shuf, sums);
+    sums = _mm_add_ss(sums, shuf);
+    return _mm_cvtss_f32(sums);
 }
 
 // SSE loads and stores
@@ -2214,6 +2224,15 @@ inline void rpp_generic_bilinear_load_mask_avx(__m256 &pSrcY, __m256 &pSrcX, __m
         _mm256_or_ps(_mm256_cmp_ps(pSrcX, pRoiLTRB[0], _CMP_LT_OQ), _mm256_cmp_ps(pSrcY, pRoiLTRB[1], _CMP_LT_OQ)),
         _mm256_or_ps(_mm256_cmp_ps(pSrcX, pRoiLTRB[2], _CMP_GT_OQ), _mm256_cmp_ps(pSrcY, pRoiLTRB[3], _CMP_GT_OQ))
     )));
+}
+
+inline Rpp32f rpp_horizontal_add_avx(__m256 pSrc)
+{
+    __m256 pSrcAdd = _mm256_add_ps(pSrc, _mm256_permute2f128_ps(pSrc, pSrc, 1));
+    pSrcAdd = _mm256_add_ps(pSrcAdd, _mm256_shuffle_ps(pSrcAdd, pSrcAdd, _MM_SHUFFLE(1, 0, 3, 2)));
+    pSrcAdd = _mm256_add_ps(pSrcAdd, _mm256_shuffle_ps(pSrcAdd, pSrcAdd, _MM_SHUFFLE(2, 3, 0, 1)));
+    Rpp32f *addResult = (Rpp32f *)&pSrcAdd;
+    return addResult[0];
 }
 
 template <typename T>

@@ -88,7 +88,7 @@ struct RPPTensorFunctionMetaData
 #define ONE_OVER_255                    0.00392157f
 #define ONE_OVER_256                    0.00390625f
 #define SIX_OVER_360                    0.01666667f
-#define PI                              3.14159265
+#define PI                              3.14159265358979323846
 #define RGB_TO_GREY_WEIGHT_RED          0.299f
 #define RGB_TO_GREY_WEIGHT_GREEN        0.587f
 #define RGB_TO_GREY_WEIGHT_BLUE         0.114f

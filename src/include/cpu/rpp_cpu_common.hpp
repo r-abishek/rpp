@@ -12,7 +12,8 @@ using halfhpp = half_float::half;
 typedef halfhpp Rpp16f;
 #include "rpp_cpu_simd.hpp"
 
-#define PI                              3.14159265
+#define PI                              3.14159265358979323846
+#define TWO_PI                          2.0f * PI
 #define PI_OVER_180                     0.0174532925
 #define ONE_OVER_255                    0.00392157f
 #define ONE_OVER_256                    0.00390625f
@@ -47,6 +48,7 @@ typedef halfhpp Rpp16f;
 #define RPP_2POW32_INV_DIV_2            1.164153218e-10f    // RPP_2POW32_INV / 2
 #define RPP_2POW32_INV_MUL_2PI          1.46291812e-09f     // (1 / 2^32) * 2PI
 #define RPP_2POW32_INV_MUL_2PI_DIV_2    7.3145906e-10f      // RPP_2POW32_INV_MUL_2PI / 2
+#define ONE_OVER_LOG10BE                0.434294481903f     // 1 / ln(10)
 
 const __m128 xmm_p2Pow32 = _mm_set1_ps(RPP_2POW32);
 const __m128 xmm_p2Pow32Inv = _mm_set1_ps(RPP_2POW32_INV);
@@ -5838,4 +5840,18 @@ inline void compute_separable_horizontal_resample(Rpp32f *inputPtr, T *outputPtr
     }
 }
 
+inline void generate_pad_tensor_f32_host(Rpp32f *ptr, __m256 &pFillValue, Rpp32f fillValue, Rpp32s alignedLength, Rpp32s bufferLength, Rpp32s increment)
+{
+    int idx = 0;
+    for (; idx < alignedLength; idx += increment)
+    {
+        _mm256_storeu_ps(ptr, pFillValue);
+        ptr += increment;
+    }
+    for (; idx < bufferLength; idx++)
+    {
+        *ptr = fillValue;
+        ptr++;
+    }
+}
 #endif //RPP_CPU_COMMON_H

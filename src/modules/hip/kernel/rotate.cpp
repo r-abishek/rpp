@@ -5,7 +5,7 @@
 using half_float::half;
 
 #define saturate_8u(value) ((value) > 255 ? 255 : ((value) < 0 ? 0 : (value)))
-#define PI 3.14159265
+#define PI 3.14159265358979323846
 #define RAD(deg) (deg * PI / 180)
 
 extern "C" __global__ void rotate_pln(unsigned char *srcPtr,

@@ -20,23 +20,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef RPPT_H
-#define RPPT_H
+#ifndef HOST_TENSOR_AUDIO_AUGMENTATIONS_HPP
+#define HOST_TENSOR_AUDIO_AUGMENTATIONS_HPP
 
-#include "rpp.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "kernel/non_silent_region_detection.hpp"
+#include "kernel/to_decibels.hpp"
+#include "kernel/pre_emphasis_filter.hpp"
+#include "kernel/down_mixing.hpp"
+#include "kernel/slice.hpp"
+#include "kernel/mel_filter_bank.hpp"
+#include "kernel/spectrogram.hpp"
+#include "kernel/resample.hpp"
+#include "kernel/normalize.hpp"
 
-#include "rppt_tensor_color_augmentations.h"
-#include "rppt_tensor_data_exchange_operations.h"
-#include "rppt_tensor_effects_augmentations.h"
-#include "rppt_tensor_filter_augmentations.h"
-#include "rppt_tensor_geometric_augmentations.h"
-#include "rppt_tensor_morphological_operations.h"
-#include "rppt_tensor_audio_augmentations.h"
-
-#ifdef __cplusplus
-}
-#endif
-#endif // RPPT_H
+#endif // HOST_TENSOR_AUDIO_AUGMENTATIONS_HPP
