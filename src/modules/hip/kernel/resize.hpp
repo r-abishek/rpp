@@ -373,7 +373,6 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     int hKernelSize = ceilf(hRadius * 2);
 
     float rowWeight, colWeight, rowCoeff, colCoeff;
-    float rowCoeffs[100], colCoeffs[100];
     float3 coeffs_f3[100] = {(float3)0.0f};
     int srcLocationRowFloor, srcLocationColumnFloor;
     resize_roi_generic_srcloc_and_weight_hip_compute(srcRoi_i4.x, id_x, wRatio, widthLimit, &srcLocationColumnFloor, &colWeight, wOffset, 3);
@@ -386,38 +385,32 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     {
         rpp_hip_compute_interpolation_coefficient(interpolationType, (rowWeight - hRadius + j) * hScale , &rowCoeff);
         rowCoeffSum += rowCoeff;
-        rowCoeffs[j] = rowCoeff;
     }
     for(int k = 0; k < wKernelSize; k++)
     {
         rpp_hip_compute_interpolation_coefficient(interpolationType, (colWeight - wRadius + k) * wScale , &colCoeff);
         colCoeffSum += colCoeff;
-        colCoeffs[k] = colCoeff;
     }
     rowCoeffSum = (rowCoeffSum == 0.0f) ? 1.0f : rowCoeffSum;
     colCoeffSum = (colCoeffSum == 0.0f) ? 1.0f : colCoeffSum;
     for(int j = 0; j < hKernelSize; j++)
     {
-        rowCoeffs[j] /= rowCoeffSum;
-    }
-    for(int k = 0; k < wKernelSize; k++)
-    {
-        colCoeffs[k] /= colCoeffSum;
-    }
-    for(int j = 0; j < hKernelSize; j++)
-    {
         int rowIndex = fminf(fmaxf((int)(srcLocationRowFloor + j), 0), heightLimit);
         T *srcRowPtrsForInterp = srcPtrTemp + rowIndex * srcStridesNH.y;
+        rpp_hip_compute_interpolation_coefficient(interpolationType, (rowWeight - hRadius + j) * hScale , &rowCoeff);
+        rowCoeff /= rowCoeffSum;
 
         for(int k = 0; k < wKernelSize; k++)
         {
             int colIndex = fminf(fmaxf((int)(srcLocationColumnFloor + (k * 3)), 0), widthLimit);
-            coeffs_f3[k] += (make_float3(srcRowPtrsForInterp[colIndex], srcRowPtrsForInterp[colIndex + 1], srcRowPtrsForInterp[colIndex + 2]) * (float3)rowCoeffs[j]);
+            coeffs_f3[k] += (make_float3(srcRowPtrsForInterp[colIndex], srcRowPtrsForInterp[colIndex + 1], srcRowPtrsForInterp[colIndex + 2]) * (float3)rowCoeff);
         }
     }
     for(int k = 0; k < wKernelSize; k++)
     {
-        outPixel_f3 += coeffs_f3[k] * (float3)colCoeffs[k];
+        rpp_hip_compute_interpolation_coefficient(interpolationType, (colWeight - wRadius + k) * wScale , &colCoeff);
+        colCoeff /= colCoeffSum;
+        outPixel_f3 += coeffs_f3[k] * (float3)colCoeff;
     }
     
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
@@ -466,7 +459,6 @@ __global__ void resize_generic_pln3_tensor(T *srcPtr,
     int hKernelSize = ceilf(hRadius * 2);
 
     float rowWeight, colWeight, rowCoeff, colCoeff;
-    float rowCoeffs[100], colCoeffs[100];
     float3 coeffs_f3[100] = {(float3)0.0f};
     int srcLocationRowFloor, srcLocationColumnFloor;
     resize_roi_generic_srcloc_and_weight_hip_compute(srcRoi_i4.x, id_x, wRatio, widthLimit, &srcLocationColumnFloor, &colWeight, wOffset, 1);
@@ -484,40 +476,34 @@ __global__ void resize_generic_pln3_tensor(T *srcPtr,
     {
         rpp_hip_compute_interpolation_coefficient(interpolationType, (rowWeight - hRadius + j) * hScale , &rowCoeff);
         rowCoeffSum += rowCoeff;
-        rowCoeffs[j] = rowCoeff;
     }
     for(int k = 0; k < wKernelSize; k++)
     {
         rpp_hip_compute_interpolation_coefficient(interpolationType, (colWeight - wRadius + k) * wScale , &colCoeff);
         colCoeffSum += colCoeff;
-        colCoeffs[k] = colCoeff;
     }
     rowCoeffSum = (rowCoeffSum == 0.0f) ? 1.0f : rowCoeffSum;
     colCoeffSum = (colCoeffSum == 0.0f) ? 1.0f : colCoeffSum;
-    for(int j = 0; j < hKernelSize; j++)
-    {
-        rowCoeffs[j] /= rowCoeffSum;
-    }
-    for(int k = 0; k < wKernelSize; k++)
-    {
-        colCoeffs[k] /= colCoeffSum;
-    }
     for(int j = 0; j < hKernelSize; j++)
     {
         int rowIndex = fminf(fmaxf((int)(srcLocationRowFloor + j), 0), heightLimit);
         srcRowPtrsForInterp[0] = srcPtrTemp[0] + rowIndex * srcStridesNCH.z;
         srcRowPtrsForInterp[1] = srcPtrTemp[1] + rowIndex * srcStridesNCH.z;
         srcRowPtrsForInterp[2] = srcPtrTemp[2] + rowIndex * srcStridesNCH.z;
+        rpp_hip_compute_interpolation_coefficient(interpolationType, (rowWeight - hRadius + j) * hScale , &rowCoeff);
+        rowCoeff /= rowCoeffSum;
 
         for(int k = 0; k < wKernelSize; k++)
         {
             int colIndex = fminf(fmaxf((int)(srcLocationColumnFloor + k), 0), widthLimit);
-            coeffs_f3[k] += (make_float3(srcRowPtrsForInterp[0][colIndex], srcRowPtrsForInterp[1][colIndex], srcRowPtrsForInterp[2][colIndex]) * (float3)rowCoeffs[j]);
+            coeffs_f3[k] += (make_float3(srcRowPtrsForInterp[0][colIndex], srcRowPtrsForInterp[1][colIndex], srcRowPtrsForInterp[2][colIndex]) * (float3)rowCoeff);
         }
     }
     for(int k = 0; k < wKernelSize; k++)
     {
-        outPixel_f3 += coeffs_f3[k] * (float3)colCoeffs[k];
+        rpp_hip_compute_interpolation_coefficient(interpolationType, (colWeight - wRadius + k) * wScale , &colCoeff);
+        colCoeff /= colCoeffSum;
+        outPixel_f3 += coeffs_f3[k] * (float3)colCoeff;
     }
     
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
