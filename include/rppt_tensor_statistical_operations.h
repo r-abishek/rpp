@@ -59,6 +59,7 @@ RppStatus rppt_cartesian_to_polar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGen
 // *retval RPP_SUCCESS : succesful completion
 // *retval RPP_ERROR : Error
 
+RppStatus rppt_image_sum_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t imageSumArr, Rpp32u imageSumArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 #ifdef GPU_SUPPORT
 RppStatus rppt_image_sum_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t imageSumArr, Rpp32u imageSumArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 #endif // GPU_SUPPORT

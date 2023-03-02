@@ -102,6 +102,7 @@ int main(int argc, char **argv)
     bool kernelSizeCase = false;
     bool interpolationTypeCase = (test_case == 21 || test_case == 24);
     bool noiseTypeCase = (test_case == 8);
+    bool reductionTypeCase = (test_case == 87);
 
     unsigned int verbosity = additionalParamCase ? atoi(argv[8]) : atoi(argv[7]);
     unsigned int additionalParam = additionalParamCase ? atoi(argv[7]) : 1;
@@ -188,6 +189,9 @@ int main(int argc, char **argv)
         break;
     case 86:
         strcpy(funcName, "color_to_greyscale");
+        break;
+    case 87:
+        strcpy(funcName, "image_sum");
         break;
     default:
         strcpy(funcName, "test_case");
@@ -567,6 +571,12 @@ int main(int argc, char **argv)
             inputi8_secondTemp++;
         }
     }
+
+    // Initialize buffers for any reductionType functions
+    Rpp32f *reductionFuncResultArr;
+    Rpp32u reductionFuncResultArrLength = srcDescPtr->n * 2;
+    if(reductionTypeCase)
+        reductionFuncResultArr = (Rpp32f *)malloc(reductionFuncResultArrLength * sizeof(Rpp32f));
 
     // Run case-wise RPP API and measure time
 
@@ -1542,6 +1552,56 @@ int main(int argc, char **argv)
 
         break;
     }
+    case 87:
+    {
+        test_case_name = "image_sum";
+
+        reductionFuncResultArrLength /= 2;
+
+        // Uncomment to run test case with an xywhROI override
+        /*for (i = 0; i < images; i++)
+        {
+            roiTensorPtrSrc[i].xywhROI.xy.x = 0;
+            roiTensorPtrSrc[i].xywhROI.xy.y = 0;
+            dstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth = 100;
+            dstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight = 180;
+        }*/
+
+        // Uncomment to run test case with an ltrbROI override
+        /*for (i = 0; i < images; i++)
+        {
+            roiTensorPtrSrc[i].ltrbROI.lt.x = 50;
+            roiTensorPtrSrc[i].ltrbROI.lt.y = 30;
+            roiTensorPtrSrc[i].ltrbROI.rb.x = 210;
+            roiTensorPtrSrc[i].ltrbROI.rb.y = 210;
+            dstImgSizes[i].width = roiTensorPtrSrc[i].ltrbROI.rb.x - roiTensorPtrSrc[i].ltrbROI.lt.x + 1;
+            dstImgSizes[i].height = roiTensorPtrSrc[i].ltrbROI.rb.y - roiTensorPtrSrc[i].ltrbROI.lt.y + 1;
+        }
+        roiTypeSrc = RpptRoiType::LTRB;
+        roiTypeDst = RpptRoiType::LTRB;*/
+
+        start_omp = omp_get_wtime();
+        start = clock();
+
+        if (ip_bitDepth == 0)
+            rppt_image_sum_host(input, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, roiTensorPtrSrc, roiTypeSrc, handle);
+        else if (ip_bitDepth == 1)
+            rppt_image_sum_host(inputf16, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, roiTensorPtrSrc, roiTypeSrc, handle);
+        else if (ip_bitDepth == 2)
+            rppt_image_sum_host(inputf32, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, roiTensorPtrSrc, roiTypeSrc, handle);
+        else if (ip_bitDepth == 3)
+            missingFuncFlag = 1;
+        else if (ip_bitDepth == 4)
+            missingFuncFlag = 1;
+        else if (ip_bitDepth == 5)
+            rppt_image_sum_host(inputi8, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, roiTensorPtrSrc, roiTypeSrc, handle);
+        else if (ip_bitDepth == 6)
+            missingFuncFlag = 1;
+        else
+            missingFuncFlag = 1;
+
+        break;
+    }
     default:
         missingFuncFlag = 1;
         break;
@@ -1564,167 +1624,180 @@ int main(int argc, char **argv)
     cout << "\nOMP Time - BatchPD : " << omp_time_used;
     printf("\n");
 
-    // Reconvert other bit depths to 8u for output display purposes
-
-    string fileName = std::to_string(ip_bitDepth);
-    ofstream outputFile (fileName + ".csv");
-
-    if (ip_bitDepth == 0)
+    // Display results for reduction functions
+    if (reductionTypeCase)
     {
-        Rpp8u *outputTemp;
-        outputTemp = output;
-
-        if (outputFile.is_open())
+        printf("\nReduction result (Batch of 1 channel images produces 1 result per image in batch): ");
+        for (int i = 0; i < reductionFuncResultArrLength; i++)
         {
-            for (int i = 0; i < oBufferSize; i++)
-            {
-                outputFile << (Rpp32u) *outputTemp << ",";
-                outputTemp++;
-            }
-            outputFile.close();
+            printf(" %0.3f ", reductionFuncResultArr[i]);
         }
-        else
-            cout << "Unable to open file!";
-
+        printf("\n");
     }
-    else if ((ip_bitDepth == 1) || (ip_bitDepth == 3))
+    else
     {
-        Rpp8u *outputTemp;
-        outputTemp = output;
-        Rpp16f *outputf16Temp;
-        outputf16Temp = outputf16;
+        // Reconvert other bit depths to 8u for output display purposes
 
-        if (outputFile.is_open())
+        string fileName = std::to_string(ip_bitDepth);
+        ofstream outputFile (fileName + ".csv");
+
+        if (ip_bitDepth == 0)
         {
-            for (int i = 0; i < oBufferSize; i++)
+            Rpp8u *outputTemp;
+            outputTemp = output;
+
+            if (outputFile.is_open())
             {
-                outputFile << *outputf16Temp << ",";
-                *outputTemp = (Rpp8u)RPPPIXELCHECK(*outputf16Temp * invConversionFactor);
-                outputf16Temp++;
-                outputTemp++;
+                for (int i = 0; i < oBufferSize; i++)
+                {
+                    outputFile << (Rpp32u) *outputTemp << ",";
+                    outputTemp++;
+                }
+                outputFile.close();
             }
-            outputFile.close();
+            else
+                cout << "Unable to open file!";
+
         }
-        else
-            cout << "Unable to open file!";
-
-    }
-    else if ((ip_bitDepth == 2) || (ip_bitDepth == 4))
-    {
-        Rpp8u *outputTemp;
-        outputTemp = output;
-        Rpp32f *outputf32Temp;
-        outputf32Temp = outputf32;
-
-        if (outputFile.is_open())
+        else if ((ip_bitDepth == 1) || (ip_bitDepth == 3))
         {
-            for (int i = 0; i < oBufferSize; i++)
-            {
-                outputFile << *outputf32Temp << ",";
-                *outputTemp = (Rpp8u)RPPPIXELCHECK(*outputf32Temp * invConversionFactor);
-                outputf32Temp++;
-                outputTemp++;
-            }
-            outputFile.close();
-        }
-        else
-            cout << "Unable to open file!";
-    }
-    else if ((ip_bitDepth == 5) || (ip_bitDepth == 6))
-    {
-        Rpp8u *outputTemp;
-        outputTemp = output;
-        Rpp8s *outputi8Temp;
-        outputi8Temp = outputi8;
+            Rpp8u *outputTemp;
+            outputTemp = output;
+            Rpp16f *outputf16Temp;
+            outputf16Temp = outputf16;
 
-        if (outputFile.is_open())
+            if (outputFile.is_open())
+            {
+                for (int i = 0; i < oBufferSize; i++)
+                {
+                    outputFile << *outputf16Temp << ",";
+                    *outputTemp = (Rpp8u)RPPPIXELCHECK(*outputf16Temp * invConversionFactor);
+                    outputf16Temp++;
+                    outputTemp++;
+                }
+                outputFile.close();
+            }
+            else
+                cout << "Unable to open file!";
+
+        }
+        else if ((ip_bitDepth == 2) || (ip_bitDepth == 4))
         {
-            for (int i = 0; i < oBufferSize; i++)
+            Rpp8u *outputTemp;
+            outputTemp = output;
+            Rpp32f *outputf32Temp;
+            outputf32Temp = outputf32;
+
+            if (outputFile.is_open())
             {
-                outputFile << (Rpp32s) *outputi8Temp << ",";
-                *outputTemp = (Rpp8u) RPPPIXELCHECK(((Rpp32s) *outputi8Temp) + 128);
-                outputi8Temp++;
-                outputTemp++;
+                for (int i = 0; i < oBufferSize; i++)
+                {
+                    outputFile << *outputf32Temp << ",";
+                    *outputTemp = (Rpp8u)RPPPIXELCHECK(*outputf32Temp * invConversionFactor);
+                    outputf32Temp++;
+                    outputTemp++;
+                }
+                outputFile.close();
             }
-            outputFile.close();
+            else
+                cout << "Unable to open file!";
         }
-        else
-            cout << "Unable to open file!";
-    }
+        else if ((ip_bitDepth == 5) || (ip_bitDepth == 6))
+        {
+            Rpp8u *outputTemp;
+            outputTemp = output;
+            Rpp8s *outputi8Temp;
+            outputi8Temp = outputi8;
 
-    // Calculate exact dstROI in XYWH format for OpenCV dump
+            if (outputFile.is_open())
+            {
+                for (int i = 0; i < oBufferSize; i++)
+                {
+                    outputFile << (Rpp32s) *outputi8Temp << ",";
+                    *outputTemp = (Rpp8u) RPPPIXELCHECK(((Rpp32s) *outputi8Temp) + 128);
+                    outputi8Temp++;
+                    outputTemp++;
+                }
+                outputFile.close();
+            }
+            else
+                cout << "Unable to open file!";
+        }
 
-    if (roiTypeSrc == RpptRoiType::LTRB)
-    {
+        // Calculate exact dstROI in XYWH format for OpenCV dump
+
+        if (roiTypeSrc == RpptRoiType::LTRB)
+        {
+            for (int i = 0; i < dstDescPtr->n; i++)
+            {
+                int ltX = roiTensorPtrSrc[i].ltrbROI.lt.x;
+                int ltY = roiTensorPtrSrc[i].ltrbROI.lt.y;
+                int rbX = roiTensorPtrSrc[i].ltrbROI.rb.x;
+                int rbY = roiTensorPtrSrc[i].ltrbROI.rb.y;
+
+                roiTensorPtrSrc[i].xywhROI.xy.x = ltX;
+                roiTensorPtrSrc[i].xywhROI.xy.y = ltY;
+                roiTensorPtrSrc[i].xywhROI.roiWidth = rbX - ltX + 1;
+                roiTensorPtrSrc[i].xywhROI.roiHeight = rbY - ltY + 1;
+            }
+        }
+
+        RpptROI roiDefault;
+        RpptROIPtr roiPtrDefault;
+        roiPtrDefault = &roiDefault;
+        roiPtrDefault->xywhROI.xy.x = 0;
+        roiPtrDefault->xywhROI.xy.y = 0;
+        roiPtrDefault->xywhROI.roiWidth = dstDescPtr->w;
+        roiPtrDefault->xywhROI.roiHeight = dstDescPtr->h;
+
         for (int i = 0; i < dstDescPtr->n; i++)
         {
-            int ltX = roiTensorPtrSrc[i].ltrbROI.lt.x;
-            int ltY = roiTensorPtrSrc[i].ltrbROI.lt.y;
-            int rbX = roiTensorPtrSrc[i].ltrbROI.rb.x;
-            int rbY = roiTensorPtrSrc[i].ltrbROI.rb.y;
-
-            roiTensorPtrSrc[i].xywhROI.xy.x = ltX;
-            roiTensorPtrSrc[i].xywhROI.xy.y = ltY;
-            roiTensorPtrSrc[i].xywhROI.roiWidth = rbX - ltX + 1;
-            roiTensorPtrSrc[i].xywhROI.roiHeight = rbY - ltY + 1;
+            roiTensorPtrSrc[i].xywhROI.roiWidth = RPPMIN2(roiPtrDefault->xywhROI.roiWidth - roiTensorPtrSrc[i].xywhROI.xy.x, roiTensorPtrSrc[i].xywhROI.roiWidth);
+            roiTensorPtrSrc[i].xywhROI.roiHeight = RPPMIN2(roiPtrDefault->xywhROI.roiHeight - roiTensorPtrSrc[i].xywhROI.xy.y, roiTensorPtrSrc[i].xywhROI.roiHeight);
+            roiTensorPtrSrc[i].xywhROI.xy.x = RPPMAX2(roiPtrDefault->xywhROI.xy.x, roiTensorPtrSrc[i].xywhROI.xy.x);
+            roiTensorPtrSrc[i].xywhROI.xy.y = RPPMAX2(roiPtrDefault->xywhROI.xy.y, roiTensorPtrSrc[i].xywhROI.xy.y);
         }
-    }
 
-    RpptROI roiDefault;
-    RpptROIPtr roiPtrDefault;
-    roiPtrDefault = &roiDefault;
-    roiPtrDefault->xywhROI.xy.x = 0;
-    roiPtrDefault->xywhROI.xy.y = 0;
-    roiPtrDefault->xywhROI.roiWidth = dstDescPtr->w;
-    roiPtrDefault->xywhROI.roiHeight = dstDescPtr->h;
+        rppDestroyHost(handle);
 
-    for (int i = 0; i < dstDescPtr->n; i++)
-    {
-        roiTensorPtrSrc[i].xywhROI.roiWidth = RPPMIN2(roiPtrDefault->xywhROI.roiWidth - roiTensorPtrSrc[i].xywhROI.xy.x, roiTensorPtrSrc[i].xywhROI.roiWidth);
-        roiTensorPtrSrc[i].xywhROI.roiHeight = RPPMIN2(roiPtrDefault->xywhROI.roiHeight - roiTensorPtrSrc[i].xywhROI.xy.y, roiTensorPtrSrc[i].xywhROI.roiHeight);
-        roiTensorPtrSrc[i].xywhROI.xy.x = RPPMAX2(roiPtrDefault->xywhROI.xy.x, roiTensorPtrSrc[i].xywhROI.xy.x);
-        roiTensorPtrSrc[i].xywhROI.xy.y = RPPMAX2(roiPtrDefault->xywhROI.xy.y, roiTensorPtrSrc[i].xywhROI.xy.y);
-    }
+        // OpenCV dump
 
-    rppDestroyHost(handle);
+        mkdir(dst, 0700);
+        strcat(dst, "/");
 
-    // OpenCV dump
+        count = 0;
+        elementsInRowMax = dstDescPtr->w * ip_channel;
 
-    mkdir(dst, 0700);
-    strcat(dst, "/");
-
-    count = 0;
-    elementsInRowMax = dstDescPtr->w * ip_channel;
-
-    for (j = 0; j < dstDescPtr->n; j++)
-    {
-        int height = dstImgSizes[j].height;
-        int width = dstImgSizes[j].width;
-
-        int op_size = height * width * ip_channel;
-        Rpp8u *temp_output = (Rpp8u *)calloc(op_size, sizeof(Rpp8u));
-        Rpp8u *temp_output_row;
-        temp_output_row = temp_output;
-        Rpp32u elementsInRow = width * ip_channel;
-        Rpp8u *output_row = output + count;
-
-        for (int k = 0; k < height; k++)
+        for (j = 0; j < dstDescPtr->n; j++)
         {
-            memcpy(temp_output_row, (output_row), elementsInRow * sizeof (Rpp8u));
-            temp_output_row += elementsInRow;
-            output_row += elementsInRowMax;
+            int height = dstImgSizes[j].height;
+            int width = dstImgSizes[j].width;
+
+            int op_size = height * width * ip_channel;
+            Rpp8u *temp_output = (Rpp8u *)calloc(op_size, sizeof(Rpp8u));
+            Rpp8u *temp_output_row;
+            temp_output_row = temp_output;
+            Rpp32u elementsInRow = width * ip_channel;
+            Rpp8u *output_row = output + count;
+
+            for (int k = 0; k < height; k++)
+            {
+                memcpy(temp_output_row, (output_row), elementsInRow * sizeof (Rpp8u));
+                temp_output_row += elementsInRow;
+                output_row += elementsInRowMax;
+            }
+            count += dstDescPtr->strides.nStride;
+
+            char temp[1000];
+            strcpy(temp, dst);
+            strcat(temp, imageNames[j]);
+
+            Mat mat_op_image;
+            mat_op_image = Mat(height, width, CV_8UC1, temp_output);
+            imwrite(temp, mat_op_image);
+
+            free(temp_output);
         }
-        count += dstDescPtr->strides.nStride;
-
-        char temp[1000];
-        strcpy(temp, dst);
-        strcat(temp, imageNames[j]);
-
-        Mat mat_op_image;
-        mat_op_image = Mat(height, width, CV_8UC1, temp_output);
-        imwrite(temp, mat_op_image);
-
-        free(temp_output);
     }
 
     // Free memory

@@ -5838,4 +5838,14 @@ inline void compute_separable_horizontal_resample(Rpp32f *inputPtr, T *outputPtr
     }
 }
 
+inline void compute_sum_16_host(__m256 *p1, __m256 *p2, __m256 *pSum)
+{
+    __m256i pxMask = _mm256_setr_epi32(4, 0, 5, 1, 6, 2, 7, 3);
+    __m256 zero = _mm256_setzero_ps();
+    p1[0] = _mm256_add_ps(_mm256_add_ps(p1[0], p2[0]), _mm256_add_ps(p1[1], p2[1])); //add both 16 values and bring it down to 8
+    p1[0] = _mm256_add_ps(_mm256_permute2f128_ps(p1[0], zero, 32), _mm256_permute2f128_ps(p1[0], zero, 33)); //modify register to _ _ _ _ 0 0 0 0 format and add higher and lower 128bits.
+    p1[0] = _mm256_permutevar8x32_ps(p1[0], pxMask); //modify register to store 0 _ 0 _ 0 _ 0 _
+    pSum[0] = _mm256_add_ps(_mm256_permute2f128_ps(p1[0], zero, 32), _mm256_permute2f128_ps(p1[0], zero, 33));  //modify register to 0 _ 0 _ 0 0 0 0 format and add higher and lower 128bits.
+}
+
 #endif //RPP_CPU_COMMON_H

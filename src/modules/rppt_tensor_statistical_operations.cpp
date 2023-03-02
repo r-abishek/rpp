@@ -23,11 +23,79 @@ THE SOFTWARE.
 #include "rppdefs.h"
 #include "rppi_validate.hpp"
 #include "rppt_tensor_statistical_operations.h"
+#include "cpu/host_tensor_statistical_operations.hpp"
 
 #ifdef HIP_COMPILE
     #include <hip/hip_fp16.h>
     #include "hip/hip_tensor_statistical_operations.hpp"
 #endif // HIP_COMPILE
+
+/******************** image_sum ********************/
+
+RppStatus rppt_image_sum_host(RppPtr_t srcPtr,
+                              RpptDescPtr srcDescPtr,
+                              RppPtr_t imageSumArr,
+                              Rpp32u imageSumArrLength,
+                              RpptROIPtr roiTensorPtrSrc,
+                              RpptRoiType roiType,
+                              rppHandle_t rppHandle)
+{
+    if (srcDescPtr->c == 1)
+    {
+        if (imageSumArrLength < srcDescPtr->n)      // sum of single channel
+            return RPP_ERROR_INSUFFICIENT_DST_BUFFER_LENGTH;
+    }
+    else if (srcDescPtr->c == 3)
+    {
+        if (imageSumArrLength < srcDescPtr->n * 4)  // sum of each channel, and total sum of all 3 channels
+            return RPP_ERROR_INSUFFICIENT_DST_BUFFER_LENGTH;
+    }
+
+    RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
+
+    if (srcDescPtr->dataType == RpptDataType::U8)
+    {
+        image_sum_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                    srcDescPtr,
+                                    static_cast<Rpp32f*>(imageSumArr),
+                                    imageSumArrLength,
+                                    roiTensorPtrSrc,
+                                    roiType,
+                                    layoutParams);
+    }
+    /*else if (srcDescPtr->dataType == RpptDataType::F16)
+    {
+        image_sum_f16_f16_host_tensor((Rpp16f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                       srcDescPtr,
+                                       static_cast<Rpp32f*>(imageSumArr),
+                                       imageSumArrLength,
+                                       roiTensorPtrSrc,
+                                       roiType,
+                                       layoutParams);
+    }
+    else if (srcDescPtr->dataType == RpptDataType::F32)
+    {
+        image_sum_f32_f32_host_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                       srcDescPtr,
+                                       static_cast<Rpp32f*>(imageSumArr),
+                                       imageSumArrLength,
+                                       roiTensorPtrSrc,
+                                       roiType,
+                                       layoutParams);
+    }
+    else if (srcDescPtr->dataType == RpptDataType::I8)
+    {
+        image_sum_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                     srcDescPtr,
+                                     static_cast<Rpp32f*>(imageSumArr),
+                                     imageSumArrLength,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     layoutParams);
+    }*/
+
+    return RPP_SUCCESS;
+}
 
 /********************************************************************************************************************/
 /*********************************************** RPP_GPU_SUPPORT = ON ***********************************************/
