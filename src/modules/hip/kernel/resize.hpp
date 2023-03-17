@@ -355,25 +355,26 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     }
 
     int4 srcRoi_i4 = *(int4 *)&roiTensorPtrSrc[id_z];
-    uint2 srcDimsWH;
-    srcDimsWH.x = srcRoi_i4.z - srcRoi_i4.x + 1;
-    srcDimsWH.y = srcRoi_i4.w - srcRoi_i4.y + 1;
 
-    int widthLimit = srcRoi_i4.z * 3;
-    int heightLimit = srcRoi_i4.w;
-    float wRatio = (float)srcDimsWH.x / (float)dstDimsWH.x;
-    float hRatio = (float)srcDimsWH.y / (float)dstDimsWH.y;
-    float hScale = 1.0f, wScale = 1.0f, hRadius = 1.0f, wRadius = 1.0f;
+    int widthLimit = (srcRoi_i4.z - 1) * 3;
+    int heightLimit = srcRoi_i4.w - 1;
+    float wRatio = (float)srcRoi_i4.z / (float)dstDimsWH.x;
+    float hRatio = (float)srcRoi_i4.w / (float)dstDimsWH.y;
+    float hRadius, wRadius, hScale = 1.0f, wScale = 1.0f;
 
-    rpp_hip_compute_interpolation_scale_and_radius(interpolationType, &wScale, &wRadius, wRatio);
-    rpp_hip_compute_interpolation_scale_and_radius(interpolationType, &hScale, &hRadius, hRatio);
+    // Added support only for triangular
+    wRadius = fmaxf(1.0f, wRatio);
+    hRadius = fmaxf(1.0f, hRatio);
+    wScale = fmaxf(1.0f, 1/wRatio);
+    hScale = fmaxf(1.0f, 1/hRatio);
+
     float wOffset = (wRatio - 1) * 0.5f - wRadius;
     float hOffset = (hRatio - 1) * 0.5f - hRadius;
     int wKernelSize = ceilf(wRadius * 2);
     int hKernelSize = ceilf(hRadius * 2);
 
     float rowWeight, colWeight, rowCoeff, colCoeff;
-    float rowCoeffs[100], colCoeffs[100];
+    float rowCoeffs[100], colCoeffs[100]; // 40/45 enough??
     float3 coeffs_f3[100] = {(float3)0.0f};
     int srcLocationRowFloor, srcLocationColumnFloor;
     resize_roi_generic_srcloc_and_weight_hip_compute(srcRoi_i4.x, id_x, wRatio, widthLimit, &srcLocationColumnFloor, &colWeight, wOffset, 3);
@@ -382,46 +383,52 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     T *srcPtrTemp = srcPtr + (id_z * srcStridesNH.x);
     float3 outPixel_f3 = (float3)0.0f;
     float rowCoeffSum = 0.0f, colCoeffSum = 0.0f;
-    for(int j = 0; j < hKernelSize; j++)
+
+    float rDiff = (rowWeight - hRadius) * hScale;
+    for(int j = 0, k = 0; j < hKernelSize * hScale; j += hScale, k++)
     {
-        rpp_hip_compute_interpolation_coefficient(interpolationType, (rowWeight - hRadius + j) * hScale , &rowCoeff);
+        rowCoeff = fmaxf(0, 1 - fabsf(rDiff + j));
+
         rowCoeffSum += rowCoeff;
-        rowCoeffs[j] = rowCoeff;
+        rowCoeffs[k] = rowCoeff; // avoidable?
     }
-    for(int k = 0; k < wKernelSize; k++)
+
+    float cDiff = (colWeight - wRadius) * wScale;
+    for(int j = 0, k = 0; j < wKernelSize * wScale; j += hScale, k++)
     {
-        rpp_hip_compute_interpolation_coefficient(interpolationType, (colWeight - wRadius + k) * wScale , &colCoeff);
+        colCoeff = fmaxf(0, 1 - fabsf(cDiff + j));
+        
         colCoeffSum += colCoeff;
         colCoeffs[k] = colCoeff;
     }
+
     rowCoeffSum = (rowCoeffSum == 0.0f) ? 1.0f : rowCoeffSum;
     colCoeffSum = (colCoeffSum == 0.0f) ? 1.0f : colCoeffSum;
-    for(int j = 0; j < hKernelSize; j++)
-    {
-        rowCoeffs[j] /= rowCoeffSum;
-    }
-    for(int k = 0; k < wKernelSize; k++)
-    {
-        colCoeffs[k] /= colCoeffSum;
-    }
+
+    float oneOverRowCoeffSum = 1 / rowCoeffSum;
+    float oneOverColCoeffSum = 1 / colCoeffSum;
+
     for(int j = 0; j < hKernelSize; j++)
     {
         int rowIndex = fminf(fmaxf((int)(srcLocationRowFloor + j), 0), heightLimit);
         T *srcRowPtrsForInterp = srcPtrTemp + rowIndex * srcStridesNH.y;
 
+        float3 rowCoeffs_f3 = (float3)(rowCoeffs[j] * oneOverRowCoeffSum);
+
         for(int k = 0; k < wKernelSize; k++)
         {
             int colIndex = fminf(fmaxf((int)(srcLocationColumnFloor + (k * 3)), 0), widthLimit);
-            coeffs_f3[k] += (make_float3(srcRowPtrsForInterp[colIndex], srcRowPtrsForInterp[colIndex + 1], srcRowPtrsForInterp[colIndex + 2]) * (float3)rowCoeffs[j]);
+            coeffs_f3[k] += make_float3(srcRowPtrsForInterp[colIndex], srcRowPtrsForInterp[colIndex + 1], srcRowPtrsForInterp[colIndex + 2]) * rowCoeffs_f3;
+            /// coeffs_f3[k] += ((float3) 100.0f -> check if local that global read helps
         }
     }
     for(int k = 0; k < wKernelSize; k++)
-    {
         outPixel_f3 += coeffs_f3[k] * (float3)colCoeffs[k];
-    }
-    
+
+    outPixel_f3 *= (float3)oneOverColCoeffSum;
+
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
-    rpp_hip_pixel_check_and_store(nearbyintf(outPixel_f3.x), &dstPtr[dstIdx]);
+    rpp_hip_pixel_check_and_store(nearbyintf(outPixel_f3.x), &dstPtr[dstIdx]); /// check if check and store necessary
     rpp_hip_pixel_check_and_store(nearbyintf(outPixel_f3.y), &dstPtr[dstIdx + 1]);
     rpp_hip_pixel_check_and_store(nearbyintf(outPixel_f3.z), &dstPtr[dstIdx + 2]);
 }
@@ -822,11 +829,12 @@ RppStatus hip_exec_resize_tensor(T *srcPtr,
                                  RpptRoiType roiType,
                                  rpp::Handle& handle)
 {
-    if (roiType == RpptRoiType::XYWH)
-        hip_exec_roi_converison_xywh_to_ltrb(roiTensorPtrSrc, handle);
 
     if (interpolationType == RpptInterpolationType::NEAREST_NEIGHBOR)
     {
+        if (roiType == RpptRoiType::XYWH)
+            hip_exec_roi_converison_xywh_to_ltrb(roiTensorPtrSrc, handle);
+        
         int localThreads_x = 16;
         int localThreads_y = 16;
         int localThreads_z = 1;
@@ -897,6 +905,9 @@ RppStatus hip_exec_resize_tensor(T *srcPtr,
     }
     else if (interpolationType == RpptInterpolationType::BILINEAR)
     {
+        if (roiType == RpptRoiType::XYWH)
+            hip_exec_roi_converison_xywh_to_ltrb(roiTensorPtrSrc, handle);
+        
         int localThreads_x = 16;
         int localThreads_y = 16;
         int localThreads_z = 1;
@@ -966,6 +977,9 @@ RppStatus hip_exec_resize_tensor(T *srcPtr,
     }
     else
     {
+        if (roiType == RpptRoiType::LTRB)
+            hip_exec_roi_converison_ltrb_to_xywh(roiTensorPtrSrc, handle);
+        
         int localThreads_x = LOCAL_THREADS_X;
         int localThreads_y = LOCAL_THREADS_Y;
         int localThreads_z = LOCAL_THREADS_Z;
