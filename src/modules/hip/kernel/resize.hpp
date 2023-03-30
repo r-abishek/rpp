@@ -360,13 +360,14 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     int heightLimit = srcRoi_i4.w - 1;
     float wRatio = (float)srcRoi_i4.z / (float)dstDimsWH.x;
     float hRatio = (float)srcRoi_i4.w / (float)dstDimsWH.y;
-    float hRadius, wRadius, hScale = 1.0f, wScale = 1.0f;
+
+    float hRadius, wRadius, hScale, wScale;
 
     // Added support only for triangular
     wRadius = fmaxf(1.0f, wRatio);
     hRadius = fmaxf(1.0f, hRatio);
-    wScale = fmaxf(1.0f, 1/wRatio);
-    hScale = fmaxf(1.0f, 1/hRatio);
+    wScale = 1/(fmaxf(1.0f, wRatio));
+    hScale = 1/(fmaxf(1.0f, hRatio));
 
     float wOffset = (wRatio - 1) * 0.5f - wRadius;
     float hOffset = (hRatio - 1) * 0.5f - hRadius;
@@ -384,20 +385,15 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     float3 outPixel_f3 = (float3)0.0f;
     float rowCoeffSum = 0.0f, colCoeffSum = 0.0f;
 
-    float rDiff = (rowWeight - hRadius) * hScale;
-    for(int j = 0, k = 0; j < hKernelSize * hScale; j += hScale, k++)
+    for(int j = 0; j < hKernelSize; j++)
     {
-        rowCoeff = fmaxf(0, 1 - fabsf(rDiff + j));
-
+        rpp_hip_compute_interpolation_coefficient(interpolationType, (rowWeight - hRadius + j) * hScale , &rowCoeff);
         rowCoeffSum += rowCoeff;
-        rowCoeffs[k] = rowCoeff; // avoidable?
+        rowCoeffs[j] = rowCoeff;
     }
-
-    float cDiff = (colWeight - wRadius) * wScale;
-    for(int j = 0, k = 0; j < wKernelSize * wScale; j += hScale, k++)
+    for(int k = 0; k < wKernelSize; k++)
     {
-        colCoeff = fmaxf(0, 1 - fabsf(cDiff + j));
-        
+        rpp_hip_compute_interpolation_coefficient(interpolationType, (colWeight - wRadius + k) * wScale , &colCoeff);
         colCoeffSum += colCoeff;
         colCoeffs[k] = colCoeff;
     }
@@ -405,32 +401,26 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     rowCoeffSum = (rowCoeffSum == 0.0f) ? 1.0f : rowCoeffSum;
     colCoeffSum = (colCoeffSum == 0.0f) ? 1.0f : colCoeffSum;
 
-    float oneOverRowCoeffSum = 1 / rowCoeffSum;
-    float oneOverColCoeffSum = 1 / colCoeffSum;
-
     for(int j = 0; j < hKernelSize; j++)
     {
         int rowIndex = fminf(fmaxf((int)(srcLocationRowFloor + j), 0), heightLimit);
         T *srcRowPtrsForInterp = srcPtrTemp + rowIndex * srcStridesNH.y;
 
-        float3 rowCoeffs_f3 = (float3)(rowCoeffs[j] * oneOverRowCoeffSum);
-
         for(int k = 0; k < wKernelSize; k++)
         {
+            float3 src_f3;
             int colIndex = fminf(fmaxf((int)(srcLocationColumnFloor + (k * 3)), 0), widthLimit);
-            coeffs_f3[k] += make_float3(srcRowPtrsForInterp[colIndex], srcRowPtrsForInterp[colIndex + 1], srcRowPtrsForInterp[colIndex + 2]) * rowCoeffs_f3;
-            /// coeffs_f3[k] += ((float3) 100.0f -> check if local that global read helps
+            rpp_hip_interpolate3_triangular_load_pkd3(srcRowPtrsForInterp, colIndex, &src_f3); // To add helper function for I8 and float
+            coeffs_f3[k] +=  src_f3 * (float3)(rowCoeffs[j] / rowCoeffSum);
         }
     }
     for(int k = 0; k < wKernelSize; k++)
-        outPixel_f3 += coeffs_f3[k] * (float3)colCoeffs[k];
-
-    outPixel_f3 *= (float3)oneOverColCoeffSum;
+        outPixel_f3 += coeffs_f3[k] * (float3)(colCoeffs[k] /colCoeffSum);
 
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
-    rpp_hip_pixel_check_and_store(nearbyintf(outPixel_f3.x), &dstPtr[dstIdx]); /// check if check and store necessary
-    rpp_hip_pixel_check_and_store(nearbyintf(outPixel_f3.y), &dstPtr[dstIdx + 1]);
-    rpp_hip_pixel_check_and_store(nearbyintf(outPixel_f3.z), &dstPtr[dstIdx + 2]);
+    rpp_hip_pixel_store(nearbyintf(outPixel_f3.x), &dstPtr[dstIdx]);
+    rpp_hip_pixel_store(nearbyintf(outPixel_f3.y), &dstPtr[dstIdx + 1]);
+    rpp_hip_pixel_store(nearbyintf(outPixel_f3.z), &dstPtr[dstIdx + 2]);
 }
 
 template <typename T>

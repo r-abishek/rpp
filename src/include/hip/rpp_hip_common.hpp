@@ -864,6 +864,32 @@ __device__ __forceinline__ void rpp_hip_load24_pln3_and_unpack_to_float24_pkd3(h
 
 // WITHOUT LAYOUT TOGGLE
 
+// float pixel store for U8
+
+__device__ __forceinline__ void rpp_hip_pixel_store(float pixel, uchar* dst)
+{
+    *dst = (uchar)pixel;
+}
+
+// float pixel store for I8
+
+__device__ __forceinline__ void rpp_hip_pixel_store(float pixel, schar* dst)
+{
+    *dst = (schar)pixel;
+}
+
+// float pixel store for float
+
+__device__ __forceinline__ void rpp_hip_pixel_store(float pixel, float* dst)
+{
+    *dst = pixel;
+}
+
+__device__ __forceinline__ void rpp_hip_pixel_store(float pixel, half* dst)
+{
+    *dst = (half)pixel;
+}
+
 // U8 stores without layout toggle (8 U8 pixels)
 
 __device__ __forceinline__ void rpp_hip_pack_float8_and_store8(uchar *dstPtr, d_float8 *dstPtr_f8)
@@ -2325,6 +2351,18 @@ __device__ __forceinline__ void rpp_hip_interpolate24_nearest_neighbor_pkd3(T *s
     rpp_hip_interpolate3_nearest_neighbor_pkd3(srcPtr, srcStrideH, locPtrSrc_f16->f1[5], locPtrSrc_f16->f1[13], roiPtrSrc_i4, &(dst_f24->f3[5]));
     rpp_hip_interpolate3_nearest_neighbor_pkd3(srcPtr, srcStrideH, locPtrSrc_f16->f1[6], locPtrSrc_f16->f1[14], roiPtrSrc_i4, &(dst_f24->f3[6]));
     rpp_hip_interpolate3_nearest_neighbor_pkd3(srcPtr, srcStrideH, locPtrSrc_f16->f1[7], locPtrSrc_f16->f1[15], roiPtrSrc_i4, &(dst_f24->f3[7]));
+}
+
+// U8 loads for triangular interpolation (3 U8 pixels)
+
+template <typename T>
+__device__ __forceinline__ void rpp_hip_interpolate3_triangular_load_pkd3(T *srcRowPtrsForInterp, int colIndex, float3 *src_f3)
+{
+    uint srcRow;
+    srcRow = *(uint *)&srcRowPtrsForInterp[colIndex];
+    src_f3->x = rpp_hip_unpack0(srcRow);
+    src_f3->y = rpp_hip_unpack1(srcRow);
+    src_f3->z = rpp_hip_unpack2(srcRow);
 }
 
 #endif // RPP_HIP_COMMON_H
