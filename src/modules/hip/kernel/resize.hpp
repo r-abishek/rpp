@@ -375,22 +375,31 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     int hKernelSize = ceilf(hRadius * 2);
 
     float rowWeight, colWeight, rowCoeff, colCoeff;
-    float rowCoeffs[45], colCoeffs[45];
+    __shared__ float rowCoeffs[45];
+    float colCoeffs[45];
+    __shared__ float rowCoeffSum;
+    rowCoeffSum = 0.0f;
+    float colCoeffSum = 0.0f;
     float3 coeffs_f3[45] = {(float3)0.0f};
+
     int srcLocationRowFloor, srcLocationColumnFloor;
     resize_roi_generic_srcloc_and_weight_hip_compute(srcRoi_i4.x, id_x, wRatio, widthLimit, &srcLocationColumnFloor, &colWeight, wOffset, 3);
     resize_roi_generic_srcloc_and_weight_hip_compute(srcRoi_i4.y, id_y, hRatio, heightLimit, &srcLocationRowFloor, &rowWeight, hOffset, 1);
 
     T *srcPtrTemp = srcPtr + (id_z * srcStridesNH.x);
     float3 outPixel_f3 = (float3)0.0f;
-    float rowCoeffSum = 0.0f, colCoeffSum = 0.0f;
-
-    for(int j = 0; j < hKernelSize; j++)
+    if(hipThreadIdx_x==0)
     {
-        rpp_hip_compute_interpolation_coefficient(interpolationType, (rowWeight - hRadius + j) * hScale , &rowCoeff);
-        rowCoeffSum += rowCoeff;
-        rowCoeffs[j] = rowCoeff;
+        for(int j = 0; j < hKernelSize; j++)
+        {
+            rpp_hip_compute_interpolation_coefficient(interpolationType, (rowWeight - hRadius + j) * hScale , &rowCoeff);
+            rowCoeffSum += rowCoeff;
+            rowCoeffs[j] = rowCoeff;
+        }
+        rowCoeffSum = (rowCoeffSum == 0.0f) ? 1.0f : rowCoeffSum;
     }
+    __syncthreads();
+
     for(int k = 0; k < wKernelSize; k++)
     {
         rpp_hip_compute_interpolation_coefficient(interpolationType, (colWeight - wRadius + k) * wScale , &colCoeff);
@@ -398,7 +407,6 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
         colCoeffs[k] = colCoeff;
     }
 
-    rowCoeffSum = (rowCoeffSum == 0.0f) ? 1.0f : rowCoeffSum;
     colCoeffSum = (colCoeffSum == 0.0f) ? 1.0f : colCoeffSum;
 
     for(int j = 0; j < hKernelSize; j++)
@@ -415,7 +423,7 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
         }
     }
     for(int k = 0; k < wKernelSize; k++)
-        outPixel_f3 += coeffs_f3[k] * (float3)(colCoeffs[k] /colCoeffSum);
+        outPixel_f3 += coeffs_f3[k] * (float3)(colCoeffs[k] / colCoeffSum);
 
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
     rpp_hip_pixel_store(nearbyintf(outPixel_f3.x), &dstPtr[dstIdx]);
