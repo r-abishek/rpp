@@ -375,8 +375,8 @@ __global__ void resize_generic_pkd_tensor(T *srcPtr,
     int hKernelSize = ceilf(hRadius * 2);
 
     float rowWeight, colWeight, rowCoeff, colCoeff;
-    float rowCoeffs[100], colCoeffs[100]; // 40/45 enough??
-    float3 coeffs_f3[100] = {(float3)0.0f};
+    float rowCoeffs[45], colCoeffs[45];
+    float3 coeffs_f3[45] = {(float3)0.0f};
     int srcLocationRowFloor, srcLocationColumnFloor;
     resize_roi_generic_srcloc_and_weight_hip_compute(srcRoi_i4.x, id_x, wRatio, widthLimit, &srcLocationColumnFloor, &colWeight, wOffset, 3);
     resize_roi_generic_srcloc_and_weight_hip_compute(srcRoi_i4.y, id_y, hRatio, heightLimit, &srcLocationRowFloor, &rowWeight, hOffset, 1);
