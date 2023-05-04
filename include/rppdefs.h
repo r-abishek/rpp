@@ -37,7 +37,7 @@ THE SOFTWARE.
 #define RPP_MIN_16U     ( 0 )
 #define RPP_MAX_16U     ( 65535 )
 #define RPPT_MAX_DIMS   ( 4 )
-
+#define RPP_MACHEPS     1.19209290e-7f  // define machine epsilon as per ISO C standard
 const float ONE_OVER_6 = 1.0f / 6;
 const float ONE_OVER_3 = 1.0f / 3;
 
@@ -71,7 +71,9 @@ typedef enum
     RPP_ERROR_INVALID_SRC_DATA_TYPE     = -11,
     RPP_ERROR_INVALID_DST_DATA_TYPE     = -12,
     RPP_ERROR_INVALID_SRC_OR_DST_DATA_TYPE      = -13,
-    RPP_ERROR_INSUFFICIENT_DST_BUFFER_LENGTH    = -14
+    RPP_ERROR_INSUFFICIENT_DST_BUFFER_LENGTH    = -14,
+    RPP_ERROR_MISMATCH_SRC_AND_DST_WIDTHS       = -15,
+    RPP_ERROR_MISMATCH_SRC_AND_DST_HEIGHTS      = -16
 } RppStatus;
 
 typedef enum
@@ -137,6 +139,7 @@ typedef struct
 {
     Rpp32f data[2];
 } Rpp32f2;
+
 typedef struct
 {
     Rpp32f data[6];
@@ -314,7 +317,7 @@ typedef struct
     RppSize_t numDims;
     Rpp32u offsetInBytes;
     RpptDataType dataType;
-    Rpp32u n, h, w, c;
+    Rpp32s n, h, w, c;
     RpptStrides strides;
     RpptLayout layout;
 } RpptDesc, *RpptDescPtr;
@@ -357,8 +360,8 @@ typedef struct
 
 typedef struct
 {
-    Rpp32u width;
-    Rpp32u height;
+    Rpp32s width;
+    Rpp32s height;
 } RpptImagePatch, *RpptImagePatchPtr;
 
 typedef struct
