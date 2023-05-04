@@ -242,6 +242,14 @@ RppStatus rppt_copy_gpu(RppPtr_t srcPtr,
                              dstDescPtr,
                              rpp::deref(rppHandle));
     }
+    else if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::F32))
+    {
+        hip_exec_copy_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+                             srcDescPtr,
+                             (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                             dstDescPtr,
+                             rpp::deref(rppHandle));
+    }
 
     return RPP_SUCCESS;
 #elif defined(OCL_COMPILE)
