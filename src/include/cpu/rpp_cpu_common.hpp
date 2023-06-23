@@ -5195,6 +5195,19 @@ inline void compute_resize_bilinear_src_loc_and_weights_mirror_avx(__m256 &pDstL
     _mm256_storeu_si256((__m256i *)srcLoc, pxLoc);
 }
 
+inline void compute_resize_bilinear_src_loc_and_weights_avx512(__m512 &pDstLoc, __m512 &pScale, Rpp32s *srcLoc, __m512 *pWeight, __m512i &pxLoc, __m512 pOffset = avx512_p0, bool hasRGBChannels = false)
+{
+    __m512 pLocFloat = _mm512_fmadd_ps(pDstLoc, pScale, pOffset);
+    pDstLoc = _mm512_add_ps(pDstLoc, avx512_p16);
+    __m512 pLoc = _mm512_ceil_ps(pLocFloat);
+    pWeight[1] = _mm512_sub_ps(pLoc, pLocFloat);
+    pWeight[0] = _mm512_sub_ps(avx512_p1, pWeight[1]);
+    if(hasRGBChannels)
+        pLoc = _mm512_mul_ps(pLoc, avx512_p3);
+    pxLoc = _mm512_cvtps_epi32(pLoc);
+    _mm512_storeu_si512((__m512i*) srcLoc, pxLoc);
+}
+
 inline void compute_bicubic_coefficient(Rpp32f weight, Rpp32f &coeff)
 {
     Rpp32f x = fabsf(weight);
@@ -5318,6 +5331,14 @@ inline void compute_bilinear_coefficients_avx(__m256 *pWeightParams, __m256 *pBi
     pBilinearCoeffs[3] = _mm256_mul_ps(pWeightParams[0], pWeightParams[2]);    // weightedHeight * weightedWidth
 }
 
+inline void compute_bilinear_coefficients_avx512(__m512 *pWeightParams, __m512 *pBilinearCoeffs)
+{
+    pBilinearCoeffs[0] = _mm512_mul_ps(pWeightParams[1], pWeightParams[3]);    // (1 - weightedHeight) * (1 - weightedWidth)
+    pBilinearCoeffs[1] = _mm512_mul_ps(pWeightParams[1], pWeightParams[2]);    // (1 - weightedHeight) * weightedWidth
+    pBilinearCoeffs[2] = _mm512_mul_ps(pWeightParams[0], pWeightParams[3]);    // weightedHeight * (1 - weightedWidth)
+    pBilinearCoeffs[3] = _mm512_mul_ps(pWeightParams[0], pWeightParams[2]);    // weightedHeight * weightedWidth
+}
+
 template <typename T, typename U>
 inline void compute_bilinear_interpolation_1c(T **srcRowPtrsForInterp, Rpp32s loc, Rpp32s limit, Rpp32f *bilinearCoeffs, U *dstPtr)
 {
@@ -5367,6 +5388,19 @@ inline void compute_bilinear_interpolation_3c_avx(__m256 *pSrcPixels, __m256 *pB
     compute_bilinear_interpolation_1c_avx(pSrcPixels, pBilinearCoeffs, pDstPixels[0]);
     compute_bilinear_interpolation_1c_avx(pSrcPixels + 4, pBilinearCoeffs, pDstPixels[1]);
     compute_bilinear_interpolation_1c_avx(pSrcPixels + 8, pBilinearCoeffs, pDstPixels[2]);
+}
+
+inline void compute_bilinear_interpolation_1c_avx512(__m512 *pSrcPixels, __m512 *pBilinearCoeffs, __m512 &pDstPixels)
+{
+    pDstPixels = _mm512_fmadd_ps(pSrcPixels[3], pBilinearCoeffs[3], _mm512_fmadd_ps(pSrcPixels[2], pBilinearCoeffs[2],
+                 _mm512_fmadd_ps(pSrcPixels[1], pBilinearCoeffs[1], _mm512_mul_ps(pSrcPixels[0], pBilinearCoeffs[0]))));
+}
+
+inline void compute_bilinear_interpolation_3c_avx512(__m512 *pSrcPixels, __m512 *pBilinearCoeffs, __m512 *pDstPixels)
+{
+    compute_bilinear_interpolation_1c_avx512(pSrcPixels, pBilinearCoeffs, pDstPixels[0]);
+    compute_bilinear_interpolation_1c_avx512(pSrcPixels + 4, pBilinearCoeffs, pDstPixels[1]);
+    compute_bilinear_interpolation_1c_avx512(pSrcPixels + 8, pBilinearCoeffs, pDstPixels[2]);
 }
 
 template <typename T>
