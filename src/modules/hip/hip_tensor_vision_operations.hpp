@@ -20,25 +20,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-#ifndef RPPT_H
-#define RPPT_H
+#ifndef HIP_TENSOR_VISION_OPERATIONS_HPP
+#define HIP_TENSOR_VISION_OPERATIONS_HPP
 
-#include "rpp.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "kernel/farneback_optical_flow.hpp"
 
-#include "rppt_tensor_color_augmentations.h"
-#include "rppt_tensor_data_exchange_operations.h"
-#include "rppt_tensor_effects_augmentations.h"
-#include "rppt_tensor_filter_augmentations.h"
-#include "rppt_tensor_geometric_augmentations.h"
-#include "rppt_tensor_morphological_operations.h"
-#include "rppt_tensor_statistical_operations.h"
-#include "rppt_tensor_arithmetic_operations.h"
-#include "rppt_tensor_vision_operations.h"
-
-#ifdef __cplusplus
-}
-#endif
-#endif // RPPT_H
+#endif // HIP_TENSOR_VISION_OPERATIONS_HPP
