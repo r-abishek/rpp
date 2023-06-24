@@ -1269,4 +1269,45 @@ return RPP_SUCCESS;
 #endif // backend
 }
 
+/******************** resize_scale_intensity ********************/
+
+RppStatus rppt_resize_scale_intensity_gpu(RppPtr_t srcPtr,
+                                          RpptDescPtr srcDescPtr,
+                                          RppPtr_t dstPtr,
+                                          RpptDescPtr dstDescPtr,
+                                          RpptImagePatchPtr dstImgSizes,
+                                          RpptInterpolationType interpolationType,
+                                          Rpp32f intensityScaleFactor,
+                                          RpptROIPtr roiTensorPtrSrc,
+                                          RpptRoiType roiType,
+                                          rppHandle_t rppHandle)
+{
+#ifdef HIP_COMPILE
+    if (interpolationType != RpptInterpolationType::BILINEAR)
+        return RPP_ERROR_INVALID_ARGUMENTS;
+    if (srcDescPtr->dataType != RpptDataType::F32)
+        return RPP_ERROR_INVALID_SRC_DATA_TYPE;
+    if (dstDescPtr->dataType != RpptDataType::F32)
+        return RPP_ERROR_INVALID_DST_DATA_TYPE;
+
+    if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+    {
+        hip_exec_resize_scale_intensity_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                               srcDescPtr,
+                                               (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                               dstDescPtr,
+                                               dstImgSizes,
+                                               interpolationType,
+                                               intensityScaleFactor,
+                                               roiTensorPtrSrc,
+                                               roiType,
+                                               rpp::deref(rppHandle));
+    }
+
+    return RPP_SUCCESS;
+#elif defined(OCL_COMPILE)
+    return RPP_ERROR_NOT_IMPLEMENTED;
+#endif // backend
+}
+
 #endif // GPU_SUPPORT
