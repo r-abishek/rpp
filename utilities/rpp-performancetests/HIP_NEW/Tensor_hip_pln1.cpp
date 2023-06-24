@@ -79,7 +79,7 @@ int main(int argc, char **argv)
     if (argc < MIN_ARG_COUNT)
     {
         printf("\nImproper Usage! Needs all arguments!\n");
-        printf("\nUsage: ./Tensor_host_pln1 <src1 folder> <src2 folder (place same as src1 folder for single image functionalities)> <u8 = 0 / f16 = 1 / f32 = 2 / u8->f16 = 3 / u8->f32 = 4 / i8 = 5 / u8->i8 = 6> <outputFormatToggle (pkd->pkd = 0 / pkd->pln = 1)> <case number = 0:86> <verbosity = 0/1>\n");
+        printf("\nUsage: ./Tensor_host_pln1 <src1 folder> <src2 folder (place same as src1 folder for single image functionalities)> <u8 = 0 / f16 = 1 / f32 = 2 / u8->f16 = 3 / u8->f32 = 4 / i8 = 5 / u8->i8 = 6> <outputFormatToggle (pkd->pkd = 0 / pkd->pln = 1)> <case number = 0:88> <verbosity = 0/1>\n");
         return -1;
     }
     if (atoi(argv[4]) != 0)
@@ -98,6 +98,7 @@ int main(int argc, char **argv)
     bool kernelSizeCase = (test_case == 40 || test_case == 41 || test_case == 49);
     bool interpolationTypeCase = (test_case == 21 || test_case == 24);
     bool noiseTypeCase = (test_case == 8);
+    bool reductionTypeCase = (test_case == 87) || (test_case == 88);
 
     unsigned int verbosity = additionalParamCase ? atoi(argv[7]) : atoi(argv[6]);
     unsigned int additionalParam = additionalParamCase ? atoi(argv[6]) : 1;
@@ -109,7 +110,7 @@ int main(int argc, char **argv)
         printf("\nsrc2 = %s", argv[2]);
         printf("\nu8 / f16 / f32 / u8->f16 / u8->f32 / i8 / u8->i8 (0/1/2/3/4/5/6) = %s", argv[3]);
         printf("\noutputFormatToggle (pkd->pkd = 0 / pkd->pln = 1) = %s", argv[4]);
-        printf("\ncase number (0:86) = %s", argv[5]);
+        printf("\ncase number (0:88) = %s", argv[5]);
     }
 
     int ip_channel = 1;
@@ -211,6 +212,14 @@ int main(int argc, char **argv)
         break;
     case 86:
         strcpy(funcName, "color_to_greyscale");
+        outputFormatToggle = 0;
+        break;
+    case 87:
+        strcpy(funcName, "image_sum");
+        outputFormatToggle = 0;
+        break;
+    case 88:
+        strcpy(funcName, "image_min_max");
         outputFormatToggle = 0;
         break;
     default:
@@ -670,6 +679,12 @@ int main(int argc, char **argv)
         hipMemcpy(d_outputi8, outputi8, oBufferSizeInBytes_i8, hipMemcpyHostToDevice);
     }
 
+    // Initialize buffers for any reductionType functions
+    Rpp32f *reductionFuncResultArr;
+    Rpp32u reductionFuncResultArrLength = srcDescPtr->n * 2;
+    if(reductionTypeCase)
+        hipHostMalloc(&reductionFuncResultArr, reductionFuncResultArrLength * sizeof(Rpp32f));
+
     // Run case-wise RPP API and measure time
 
     rppHandle_t handle;
@@ -678,7 +693,9 @@ int main(int argc, char **argv)
     rppCreateWithStreamAndBatchSize(&handle, stream, noOfImages);
 
     clock_t start, end;
+    std::chrono::steady_clock::time_point startChrono, endChrono;
     double max_time_used = 0, min_time_used = 500, avg_time_used = 0;
+    std::chrono::duration<double, std::milli> elapsedTimeChrono, maxTimeChrono, minTimeChrono, avgTimeChrono;
 
     string test_case_name;
 
@@ -1880,12 +1897,113 @@ int main(int argc, char **argv)
 
             break;
         }
+        case 87:
+        {
+            test_case_name = "image_sum";
+
+            // Uncomment to run test case with an xywhROI override
+            /*for (i = 0; i < images; i++)
+            {
+                roiTensorPtrSrc[i].xywhROI.xy.x = 0;
+                roiTensorPtrSrc[i].xywhROI.xy.y = 0;
+                dstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth = 100;
+                dstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight = 180;
+            }*/
+
+            // Uncomment to run test case with an ltrbROI override
+            /*for (i = 0; i < images; i++)
+            {
+                roiTensorPtrSrc[i].ltrbROI.lt.x = 50;
+                roiTensorPtrSrc[i].ltrbROI.lt.y = 30;
+                roiTensorPtrSrc[i].ltrbROI.rb.x = 210;
+                roiTensorPtrSrc[i].ltrbROI.rb.y = 210;
+                dstImgSizes[i].width = roiTensorPtrSrc[i].ltrbROI.rb.x - roiTensorPtrSrc[i].ltrbROI.lt.x + 1;
+                dstImgSizes[i].height = roiTensorPtrSrc[i].ltrbROI.rb.y - roiTensorPtrSrc[i].ltrbROI.lt.y + 1;
+            }
+            roiTypeSrc = RpptRoiType::LTRB;
+            roiTypeDst = RpptRoiType::LTRB;*/
+
+            hipMemcpy(d_roiTensorPtrSrc, roiTensorPtrSrc, images * sizeof(RpptROI), hipMemcpyHostToDevice);
+
+            start = clock();
+            startChrono = std::chrono::steady_clock::now();
+
+            if (ip_bitDepth == 0)
+                rppt_image_sum_gpu(d_input, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, d_roiTensorPtrSrc, roiTypeSrc, handle);
+            else if (ip_bitDepth == 1)
+                rppt_image_sum_gpu(d_inputf16, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, d_roiTensorPtrSrc, roiTypeSrc, handle);
+            else if (ip_bitDepth == 2)
+                rppt_image_sum_gpu(d_inputf32, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, d_roiTensorPtrSrc, roiTypeSrc, handle);
+            else if (ip_bitDepth == 3)
+                missingFuncFlag = 1;
+            else if (ip_bitDepth == 4)
+                missingFuncFlag = 1;
+            else if (ip_bitDepth == 5)
+                rppt_image_sum_gpu(d_inputi8, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, d_roiTensorPtrSrc, roiTypeSrc, handle);
+            else if (ip_bitDepth == 6)
+                missingFuncFlag = 1;
+            else
+                missingFuncFlag = 1;
+
+            break;
+        }
+        case 88:
+        {
+            test_case_name = "image_min_max";
+
+            // Uncomment to run test case with an xywhROI override
+            /*for (i = 0; i < images; i++)
+            {
+                roiTensorPtrSrc[i].xywhROI.xy.x = 0;
+                roiTensorPtrSrc[i].xywhROI.xy.y = 0;
+                dstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth = 100;
+                dstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight = 180;
+            }*/
+
+            // Uncomment to run test case with an ltrbROI override
+            /*for (i = 0; i < images; i++)
+            {
+                roiTensorPtrSrc[i].ltrbROI.lt.x = 50;
+                roiTensorPtrSrc[i].ltrbROI.lt.y = 30;
+                roiTensorPtrSrc[i].ltrbROI.rb.x = 210;
+                roiTensorPtrSrc[i].ltrbROI.rb.y = 210;
+                dstImgSizes[i].width = roiTensorPtrSrc[i].ltrbROI.rb.x - roiTensorPtrSrc[i].ltrbROI.lt.x + 1;
+                dstImgSizes[i].height = roiTensorPtrSrc[i].ltrbROI.rb.y - roiTensorPtrSrc[i].ltrbROI.lt.y + 1;
+            }
+            roiTypeSrc = RpptRoiType::LTRB;
+            roiTypeDst = RpptRoiType::LTRB;*/
+
+            hipMemcpy(d_roiTensorPtrSrc, roiTensorPtrSrc, images * sizeof(RpptROI), hipMemcpyHostToDevice);
+            startChrono = std::chrono::steady_clock::now();
+
+            start = clock();
+
+            if (ip_bitDepth == 0)
+                rppt_image_min_max_gpu(d_input, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, d_roiTensorPtrSrc, roiTypeSrc, handle);
+            else if (ip_bitDepth == 1)
+                rppt_image_min_max_gpu(d_inputf16, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, d_roiTensorPtrSrc, roiTypeSrc, handle);
+            else if (ip_bitDepth == 2)
+                rppt_image_min_max_gpu(d_inputf32, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, d_roiTensorPtrSrc, roiTypeSrc, handle);
+            else if (ip_bitDepth == 3)
+                missingFuncFlag = 1;
+            else if (ip_bitDepth == 4)
+                missingFuncFlag = 1;
+            else if (ip_bitDepth == 5)
+                rppt_image_min_max_gpu(d_inputi8, srcDescPtr, reductionFuncResultArr, reductionFuncResultArrLength, d_roiTensorPtrSrc, roiTypeSrc, handle);
+            else if (ip_bitDepth == 6)
+                missingFuncFlag = 1;
+            else
+                missingFuncFlag = 1;
+
+            break;
+        }
         default:
             missingFuncFlag = 1;
             break;
         }
 
         hipDeviceSynchronize();
+        endChrono = std::chrono::steady_clock::now();
         end = clock();
 
         if (missingFuncFlag == 1)
@@ -1902,10 +2020,18 @@ int main(int argc, char **argv)
         if (gpu_time_used < min_time_used)
             min_time_used = gpu_time_used;
         avg_time_used += gpu_time_used;
+
+        std::chrono::duration<double, std::milli> elapsedTimeChrono = endChrono - startChrono;
+        if (elapsedTimeChrono > maxTimeChrono)
+            maxTimeChrono = elapsedTimeChrono;
+        if (elapsedTimeChrono < minTimeChrono)
+            minTimeChrono = elapsedTimeChrono;
+        avgTimeChrono += elapsedTimeChrono;
     }
 
-    avg_time_used /= 100;
-    cout << fixed << "\nmax,min,avg = " << max_time_used << "," << min_time_used << "," << avg_time_used << endl;
+    avgTimeChrono /= 100;
+    // cout << fixed << "\nmax,min,avg = " << max_time_used << "," << min_time_used << "," << avg_time_used << endl;
+    cout << fixed << "\nmax,min,avg = " << maxTimeChrono.count() << "," << minTimeChrono.count() << "," << avgTimeChrono.count() << endl;
 
     rppDestroyGPU(handle);
 
@@ -1977,6 +2103,9 @@ int main(int argc, char **argv)
         hipFree(d_input_second);
         hipFree(d_outputi8);
     }
+
+    if (reductionTypeCase)
+        hipHostFree(&reductionFuncResultArr);
 
     return 0;
 }
