@@ -217,10 +217,10 @@ __global__ void resize_bilinear_pkd_tensor(T *srcPtr,
     rpp_hip_pack_float24_pkd3_and_store24_pkd3(dstPtr + dstIdx, &dst_f24);
 }
 
-template <typename T>
+template <typename T, typename U>   // resize_bilinear_pln_tensor alone supporting bit-depth change (U8->F32) for optical flow
 __global__ void resize_bilinear_pln_tensor(T *srcPtr,
                                            uint3 srcStridesNCH,
-                                           T *dstPtr,
+                                           U *dstPtr,
                                            uint3 dstStridesNCH,
                                            int channelsDst,
                                            RpptImagePatchPtr dstImgSize,
@@ -713,10 +713,10 @@ __global__ void resize_generic_pln3_pkd3_tensor(T *srcPtr,
 
 // -------------------- Set 3 - Kernel Executors --------------------
 
-template <typename T>
+template <typename T, typename U>
 RppStatus hip_exec_resize_tensor(T *srcPtr,
                                  RpptDescPtr srcDescPtr,
-                                 T *dstPtr,
+                                 U *dstPtr,
                                  RpptDescPtr dstDescPtr,
                                  RpptImagePatchPtr dstImgSize,
                                  RpptInterpolationType interpolationType,
