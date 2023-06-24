@@ -26,7 +26,7 @@ __global__ void image_min_max_grid_result_tensor(float *srcPtr,
     srcIdx += (srcIdx + id_x);
 
     d_float8 src_f8;
-    rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);   // load 8 pixels to local mmemory
+    rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);   // load 8 pixels to local memory
     if (id_x + 8 > blocksAndBufferSizePerImage_i2.y)
         for(int i = xDiff; i < 4; i++)
             src_f8.f2[i] = srcRef_f2;                               // local memory reset of invalid values (from the vectorized global load) to srcRef_f2
@@ -80,7 +80,7 @@ __global__ void image_min_max_pln1_tensor(T *srcPtr,
     srcIdx += (((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x));
 
     d_float8 src_f8;
-    rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);               // load 8 pixels to local mmemory
+    rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);               // load 8 pixels to local memory
     if (id_x + 8 > roiTensorPtrSrc[id_z].xywhROI.roiWidth)
         for(int i = xDiff; i < 8; i++)
             src_f8.f1[i] = srcRef;                                              // local memory reset of invalid values (from the vectorized global load) to srcRef
