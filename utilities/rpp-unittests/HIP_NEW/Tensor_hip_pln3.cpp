@@ -791,8 +791,8 @@ int main(int argc, char **argv)
         Rpp32f beta[images];
         for (i = 0; i < images; i++)
         {
-            alpha[i] = 1.75;
-            beta[i] = 50;
+            alpha[i] = 0.5;
+            beta[i] = 0;
         }
 
         // Uncomment to run test case with an xywhROI override
@@ -816,6 +816,44 @@ int main(int argc, char **argv)
         roiTypeSrc = RpptRoiType::LTRB;
         roiTypeDst = RpptRoiType::LTRB;*/
 
+        RpptGenericROIPtr roiGenericSrcPtr;
+        hipHostMalloc(&roiGenericSrcPtr, noOfImages * sizeof(RpptGenericROI));
+        for (i = 0; i < images; i++)
+        {
+            // roiGenericSrcPtr[i].roiBegin = {0, 0, 0, 0, 0};
+            // roiGenericSrcPtr[i].roiLength = {images, 1, 3, 224, 224};
+            roiGenericSrcPtr[i].roiBegin[0] = 0;
+            roiGenericSrcPtr[i].roiBegin[1] = 0;
+            roiGenericSrcPtr[i].roiBegin[2] = 0;
+            roiGenericSrcPtr[i].roiBegin[3] = 0;
+            roiGenericSrcPtr[i].roiBegin[4] = 0;
+            roiGenericSrcPtr[i].roiLength[0] = images;
+            roiGenericSrcPtr[i].roiLength[1] = 1;
+            roiGenericSrcPtr[i].roiLength[2] = 3;
+            roiGenericSrcPtr[i].roiLength[3] = 224;
+            roiGenericSrcPtr[i].roiLength[4] = 224;
+        }
+
+        RpptGenericDesc srcDesc3D, dstDesc3D;
+        RpptGenericDescPtr srcDescPtr3D = &srcDesc3D;
+        RpptGenericDescPtr dstDescPtr3D = &dstDesc3D;
+        srcDescPtr3D->numDims = srcDescPtr->numDims;
+        srcDescPtr3D->offsetInBytes = srcDescPtr->offsetInBytes;
+        srcDescPtr3D->dataType = srcDescPtr->dataType;
+        srcDescPtr3D->dims[0] = static_cast<Rpp32u>(images);
+        srcDescPtr3D->dims[1] = 1;
+        srcDescPtr3D->dims[2] = 3;
+        srcDescPtr3D->dims[3] = 224;
+        srcDescPtr3D->dims[4] = 224;
+        srcDescPtr3D->strides[0] = srcDescPtr->strides.nStride;
+        srcDescPtr3D->strides[1] = srcDescPtr->strides.cStride;
+        srcDescPtr3D->strides[2] = srcDescPtr->strides.cStride;
+        srcDescPtr3D->strides[3] = srcDescPtr->strides.hStride;
+        srcDescPtr3D->strides[4] = srcDescPtr->strides.wStride;
+        srcDescPtr3D->layout = RpptLayout::NCDHW;
+        dstDesc3D = srcDesc3D;
+        dstDescPtr3D->offsetInBytes = dstDescPtr->offsetInBytes;
+
         start = clock();
 
         if (ip_bitDepth == 0)
@@ -823,7 +861,9 @@ int main(int argc, char **argv)
         else if (ip_bitDepth == 1)
             rppt_brightness_gpu(d_inputf16, srcDescPtr, d_outputf16, dstDescPtr, alpha, beta, roiTensorPtrSrc, roiTypeSrc, handle);
         else if (ip_bitDepth == 2)
-            rppt_brightness_gpu(d_inputf32, srcDescPtr, d_outputf32, dstDescPtr, alpha, beta, roiTensorPtrSrc, roiTypeSrc, handle);
+            // rppt_fmadd_scalar_gpu(d_inputf32, (RpptGenericDescPtr)srcDescPtr, d_outputf32, (RpptGenericDescPtr)dstDescPtr, alpha, beta, roiGenericSrcPtr, handle);
+            rppt_fmadd_scalar_gpu(d_inputf32, srcDescPtr3D, d_outputf32, dstDescPtr3D, alpha, beta, roiGenericSrcPtr, handle);
+            // rppt_brightness_gpu(d_inputf32, srcDescPtr, d_outputf32, dstDescPtr, alpha, beta, roiTensorPtrSrc, roiTypeSrc, handle);
         else if (ip_bitDepth == 3)
             missingFuncFlag = 1;
         else if (ip_bitDepth == 4)
