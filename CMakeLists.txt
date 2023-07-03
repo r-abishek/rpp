@@ -159,11 +159,12 @@ find_package(Threads REQUIRED)
 set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} Threads::Threads)
 
 # set global compiler flags for the project
+# -mavx512f -- Support AVX512 built-in functions and code generation.
 # -fPIC -- Generate position-independent code if possible.
 # -mavx2 -- Support MMX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX and AVX2 built-in functions and code generation.
 # -mfma -- Support MMX, SSE, SSE2, SSE3, SSSE3, SSE4.1, SSE4.2, AVX and FMA built-in functions and code generation.
 # -std=gnu++14 -- Conform to the ISO 2014 C++ standard with GNU extensions.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -mavx2 -mf16c -mfma -std=gnu++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mavx512bw -mavx512f -fPIC -mavx2 -mf16c -mfma -std=gnu++14")
 
 # Backend specific settings
 if("${BACKEND}" STREQUAL "HIP")
