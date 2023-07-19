@@ -813,12 +813,12 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
 
 
     // Commenting out temporarily to check box filter with U8
-    hip_exec_copy_tensor(src1Ptr + srcCompDescPtr->offsetInBytes,
+    hip_exec_copy_tensor(src1Ptr,
                          srcCompDescPtr,
                          src1F32,
                          mVecCompDescPtr,
                          handle);
-    hip_exec_copy_tensor(src2Ptr + srcCompDescPtr->offsetInBytes,
+    hip_exec_copy_tensor(src2Ptr,
                          srcCompDescPtr,
                          src2F32,
                          mVecCompDescPtr,
