@@ -188,7 +188,7 @@ void rpp_tensor_write_to_images(string tensorName, Rpp8u *tensor, RpptDescPtr de
     }
 }
 
-void rpp_tensor_write_to_images_and_append_frame_to_video(string tensorName, Rpp8u *tensor, RpptDescPtr desc, RpptImagePatch *imgSizes, cv::VideoWriter &videoOutput)
+void rpp_tensor_write_to_images_and_append_frame_to_video(string tensorName, Rpp8u *tensor, RpptDescPtr desc, RpptImagePatch *imgSizes, cv::VideoWriter &videoOutput, int iterCount)
 {
     Rpp8u outputImage_u8[desc->strides.nStride];
     Rpp8u *tensorTemp, *outputImageTemp_u8;
@@ -207,7 +207,7 @@ void rpp_tensor_write_to_images_and_append_frame_to_video(string tensorName, Rpp
 
         cv::Mat outputImage_mat;
         outputImage_mat = (desc->c == 1) ? Mat(imgSizes[n].height, imgSizes[n].width, CV_8UC1, outputImage_u8) : Mat(imgSizes[n].height, imgSizes[n].width, CV_8UC3, outputImage_u8);
-        // imwrite(tensorName + "_" + std::to_string(n) + ".jpg", outputImage_mat);
+        // imwrite(tensorName + "_" + std::to_string(n) + "_" + std::to_string(iterCount) + ".jpg", outputImage_mat);
         videoOutput.write(outputImage_mat);
     }
 }
@@ -666,6 +666,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
 
         // move output BGR frame from device to host in preparation for visualization
         hipMemcpy(dstRGB, d_dstRGB, sizeInBytesDstRGB, hipMemcpyDeviceToHost);
+        hipDeviceSynchronize();
         std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished move output";
 
         // -------------------- stage output dump check --------------------
@@ -673,7 +674,9 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         // rpp_tensor_write_to_images("dstRGB", dstRGB, dstDescPtrRGB, fbackImgPatchPtr);
 
         // update d_src1
-        hipMemcpy(d_src1, d_src2, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice);
+        hipMemcpy(d_src1, d_src2, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp8u), hipMemcpyDeviceToDevice);
+        hipDeviceSynchronize();
+
         std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished update src1";
 
         // end post pipeline timer
@@ -695,10 +698,8 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         // imshow("result", bgr);
         // rpp_tensor_write_to_images("dstInputRGB", dstInputRGB, dstDescPtrRGB, fbackImgPatchPtr);
         // rpp_tensor_write_to_images("dstRGB", dstRGB, dstDescPtrRGB, fbackImgPatchPtr);
-        rpp_tensor_write_to_images_and_append_frame_to_video("dstRGB", dstRGB, dstDescPtrRGB, fbackImgPatchPtr, videoOutput);
+        rpp_tensor_write_to_images_and_append_frame_to_video("dstRGB", dstRGB, dstDescPtrRGB, fbackImgPatchPtr, videoOutput, iterCount);
         std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished write to video";
-        if (iterCount == 30)
-            break;
 
 
         // break;
