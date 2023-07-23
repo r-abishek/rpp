@@ -400,9 +400,6 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         auto startOpticalFlowTime = high_resolution_clock::now();
 
         // calculate optical flow
-        hipMemset(d_motionVectorsCartesianF32Comp1, 0, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f));
-        hipMemset(d_motionVectorsCartesianF32Comp2, 0, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f));
-        hipDeviceSynchronize();
         rppt_farneback_optical_flow_gpu(d_src1, d_src2, d_intermU8, dh_intermF32, dh_cudaResizdStrided, srcDescPtr, d_motionVectorsCartesianF32Comp1, d_motionVectorsCartesianF32Comp2, mVecCompPlnDescPtr, 0.75f, 5, 9, 3, 5, 1.2f, handle1);
         hipDeviceSynchronize();
 
