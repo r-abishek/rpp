@@ -214,7 +214,7 @@ void rpp_tensor_write_to_images_and_append_frame_to_video(string tensorName, Rpp
 
 void rpp_optical_flow_hip(string inputVideoFileName)
 {
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Entering rpp_optical_flow_hip()";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Entering rpp_optical_flow_hip()";
 
     // initialize map to track time for every stage at each iteration
     unordered_map<string, vector<double>> timers;
@@ -267,7 +267,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     // initialize rpp generic tensor descriptor to extract one component of motion vector
     rpp_tensor_initialize_descriptor_generic(mVecCompPlnGenericDescPtr, RpptLayout::NCHW, RpptDataType::F32, 0, 4, 1, 1, FARNEBACK_FRAME_HEIGHT, FARNEBACK_FRAME_WIDTH, FARNEBACK_OUTPUT_FRAME_SIZE, FARNEBACK_OUTPUT_FRAME_SIZE, FARNEBACK_FRAME_WIDTH, 1);
 
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 1";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 1";
 
     // TEMP initialization to dump saved CSV of motion vectors
     RpptGenericDesc mVecCartPkdGenericDesc;
@@ -297,28 +297,28 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     // Rpp32u num = (srcDescPtr->n * srcDescPtr->strides.nStride) + srcDescPtr->offsetInBytes;
     d_src2 = d_src1 + srcDescPtr->strides.nStride;
     // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> num = " << num;
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2";
 
     // allocate and initialize rpp roi and imagePatch buffers for resize ops on pinned memory
     RpptROI *roiTensorPtrSrcRGB, *roiTensorPtrDstRGB;
     RpptImagePatch *fbackImgPatchPtr;
     hipHostMalloc(&roiTensorPtrSrcRGB, srcDescPtrRGB->n * sizeof(RpptROI));
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2a";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2a";
     hipHostMalloc(&roiTensorPtrDstRGB, dstDescPtrRGB->n * sizeof(RpptROI));
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2b";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2b";
     hipHostMalloc(&fbackImgPatchPtr, srcDescPtrRGB->n * sizeof(RpptImagePatch));
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2c";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2c";
     *roiTensorPtrSrcRGB = {0, 0, srcDescPtrRGB->w, srcDescPtrRGB->h};
     // rpp_tensor_initialize_roi_xywh(roiTensorPtrSrcRGB, 0, 0, srcDescPtrRGB->w, srcDescPtrRGB->h);
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2d";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2d";
     *roiTensorPtrDstRGB = {0, 0, FARNEBACK_FRAME_WIDTH, FARNEBACK_FRAME_HEIGHT};
     // rpp_tensor_initialize_roi_xywh(roiTensorPtrDstRGB, 0, 0, FARNEBACK_FRAME_WIDTH, FARNEBACK_FRAME_HEIGHT);
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2e";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2e";
     fbackImgPatchPtr[0].width = dstDescPtrRGB->w;
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2f";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2f";
     fbackImgPatchPtr[0].height = dstDescPtrRGB->h;
 
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2g";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 2g";
 
     // allocate hip motion vector buffers
     Rpp32f *d_motionVectorsCartesianF32, *d_motionVectorsCartesianF32Comp1, *d_motionVectorsCartesianF32Comp2;
@@ -331,7 +331,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     d_motionVectorsPolarF32Comp2 = d_motionVectorsPolarF32Comp1 + FARNEBACK_OUTPUT_FRAME_SIZE;
     d_motionVectorsPolarF32Comp3 = d_motionVectorsPolarF32Comp2 + FARNEBACK_OUTPUT_FRAME_SIZE;
 
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 3";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 3";
     // preinitialize saturation channel portion of the buffer for HSV and reuse on every iteration in post-processing
     Rpp32f saturationChannel[FARNEBACK_OUTPUT_FRAME_SIZE];
     std::fill(&saturationChannel[0], &saturationChannel[FARNEBACK_OUTPUT_FRAME_SIZE - 1], 1.0f);
@@ -352,7 +352,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     // set saturation to 1
     // hsv[1] = cv::Mat::ones(frame.size(), CV_32F);      // ------- revisit
     // gpuHSV[1].upload(hsv[1]);      // ------- revisit
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 4";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> checkpoint 4";
 
     // create rpp handle for hip with stream and batch size
     rppHandle_t handle1, handle2;
@@ -412,12 +412,12 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     Size frameSize(960, 540);
     cv::VideoWriter videoOutput("videoOutput.mp4", VideoWriter::fourcc('M', 'J', 'P', 'G'), 15, frameSize);
 
-    std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Enterning frame loop";
+    // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Enterning frame loop";
 
     int iterCount = 0;
     while (true)
     {
-        std::cerr << "\n->>>>>>>>>>>>>>>>>>>>>>>> Iter# " << iterCount++;
+        // std::cerr << "\n->>>>>>>>>>>>>>>>>>>>>>>> Iter# " << iterCount++;
         // start full pipeline timer
         auto startFullTime = high_resolution_clock::now();
 
@@ -489,7 +489,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         // add elapsed iteration time
         timers["pre-process"].push_back(duration_cast<microseconds>(endPreProcessTime - startPreProcessTime).count() / 1000.0);
 
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished prre-processing";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished prre-processing";
 
         // ****************************************************************** motion vector generation ******************************************************************
 
@@ -595,7 +595,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         // rpp_tensor_write_to_file("motionVectorsCartesianF32Comp1CPU", motionVectorsCartesianF32Comp1CPU, mVecCompPlnDescPtr);
         // rpp_tensor_write_to_file("motionVectorsCartesianF32Comp2CPU", motionVectorsCartesianF32Comp2CPU, mVecCompPlnDescPtr);
 
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished motion vector computations";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished motion vector computations";
         // break;
 
         // start post-process timer
@@ -603,7 +603,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
 
         // convert from cartesian to polar coordinates
         rppt_cartesian_to_polar_gpu(d_motionVectorsCartesianF32, mVecCartPlnGenericDescPtr, d_motionVectorsPolarF32, mVecPolrPlnGenericDescPtr, angleType, roiTensorPtrDstRGB, roiType, handle1);
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished cartesian to polar";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished cartesian to polar";
 
         // all ops in stream1 need to complete before rppt_multiply_scalar_gpu executes on stream1 and rppt_image_min_max executes on stream2
         // hipStreamSynchronize(stream1);
@@ -623,22 +623,22 @@ void rpp_optical_flow_hip(string inputVideoFileName)
 
         // normalize polar angle from 0 to 1 in hip stream1
         rppt_multiply_scalar_gpu(d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, HUE_CONVERSION_FACTOR, roiTensorPtrDstRGB, roiType, handle1);
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished multiply scalar";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished multiply scalar";
 
         // find min and max of polar magnitude in  hip stream2
         rppt_image_min_max_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, roiTensorPtrDstRGB, roiType, handle1); // could be handle2
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished image min max";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished image min max";
 
         // all ops in stream2 need to complete before rppt_normalize_minmax_gpu executes on stream2
         hipDeviceSynchronize(); // could be a hipStreamSynchronize(stream2);
 
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished synchronnize after image min max";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished synchronnize after image min max";
 
         // break;
 
         // normalize polar magnitude from 0 to 1 in hip stream2
         rppt_normalize_minmax_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp3, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, 0.0f, 1.0f, roiTensorPtrDstRGB, roiType, handle1); // could be handle2
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished nnormalize";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished nnormalize";
 
         // all ops in all streams need to complete before rppt_hsv_to_rgbbgr_gpu executes on stream1
         // hipStreamSynchronize(stream2);
@@ -656,7 +656,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
 
         // move resized input RGB frame from device to host in preparation for visualization
         hipMemcpy(dstInputRGB, d_dstRGB, sizeInBytesDstRGB, hipMemcpyDeviceToHost);
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished memcpy";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished memcpy";
 
         // fused bitDepth + layout + colorType conversion of F32-PLN3 HSV to U8-PKD3 BGR in hip stream1
         rppt_hsv_to_rgbbgr_gpu(d_motionVectorsPolarF32Comp1, dstDescPtrHSV, d_dstRGB, dstDescPtrRGB, subpixelLayout, handle1);
@@ -667,7 +667,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         // move output BGR frame from device to host in preparation for visualization
         hipMemcpy(dstRGB, d_dstRGB, sizeInBytesDstRGB, hipMemcpyDeviceToHost);
         hipDeviceSynchronize();
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished move output";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished move output";
 
         // -------------------- stage output dump check --------------------
         // rpp_tensor_write_to_file("dstRGB", dstRGB, dstDescPtrRGB);
@@ -677,7 +677,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         hipMemcpy(d_src1, d_src2, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp8u), hipMemcpyDeviceToDevice);
         hipDeviceSynchronize();
 
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished update src1";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished update src1";
 
         // end post pipeline timer
         auto endPostProcessTime = high_resolution_clock::now();
@@ -699,7 +699,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         // rpp_tensor_write_to_images("dstInputRGB", dstInputRGB, dstDescPtrRGB, fbackImgPatchPtr);
         // rpp_tensor_write_to_images("dstRGB", dstRGB, dstDescPtrRGB, fbackImgPatchPtr);
         rpp_tensor_write_to_images_and_append_frame_to_video("dstRGB", dstRGB, dstDescPtrRGB, fbackImgPatchPtr, videoOutput, iterCount);
-        std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished write to video";
+        // std::cerr << "\n->>>>>>>DEBUG>>>>>>>>> Finished write to video";
 
 
         // break;
@@ -716,21 +716,21 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     destroyAllWindows();
 
     // destroy rpp handle and deallocate all buffers
-    std::cerr << "\n\nAbout to free1...";
+    // std::cerr << "\n\nAbout to free1...";
     rppDestroyGPU(handle1);
     rppDestroyGPU(handle2);
-    std::cerr << "\n\nAbout to free2...";
+    // std::cerr << "\n\nAbout to free2...";
     hipFree(&d_srcRGB);
     hipFree(&d_dstRGB);
     hipFree(&d_srcBufs);
     hipFree(&d_motionVectorsCartesianF32);
     hipFree(&d_motionVectorsPolarF32);
-    std::cerr << "\n\nAbout to free3...";
+    // std::cerr << "\n\nAbout to free3...";
     hipHostFree(&roiTensorPtrSrcRGB);
     hipHostFree(&roiTensorPtrDstRGB);
     hipHostFree(&fbackImgPatchPtr);
     hipHostFree(&imageMinMaxArr);
-    std::cerr << "\n\nAbout to free4...";
+    // std::cerr << "\n\nAbout to free4...";
     free(srcRGB);
     free(dstRGB);
     free(dstInputRGB);

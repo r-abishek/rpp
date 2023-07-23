@@ -757,15 +757,15 @@ RppStatus hip_exec_gaussian_filter_f32_tensor(T *srcPtr,
 
     float kernelHost[81];
     hipMemcpy(kernelHost, filterTensor, kernelSize * kernelSize * sizeof(Rpp32f), hipMemcpyDeviceToHost);
-    std::cerr << "\n\nPRINTING GAUSSIAN:\n";
-    for (int i = 0; i < kernelSize; i++)
-    {
-        for (int j = 0; j < kernelSize; j++)
-        {
-            std::cerr << kernelHost[i * kernelSize + j] << ", ";
-        }
-        std::cerr << "\n";
-    }
+    // std::cerr << "\n\nPRINTING GAUSSIAN:\n";
+    // for (int i = 0; i < kernelSize; i++)
+    // {
+    //     for (int j = 0; j < kernelSize; j++)
+    //     {
+    //         std::cerr << kernelHost[i * kernelSize + j] << ", ";
+    //     }
+    //     std::cerr << "\n";
+    // }
 
     if ((srcDescPtr->c == 1) && (dstDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
     {

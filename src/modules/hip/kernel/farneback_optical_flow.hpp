@@ -235,18 +235,18 @@ __global__ void farneback_matrices_update_tensor(float *mVecCurrCompX,
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
     int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
-    if(
-        (hipBlockIdx_x == 0) &&
-        (hipBlockIdx_y == 0) &&
-        (hipBlockIdx_z == 0) &&
-        (hipThreadIdx_x == 0) &&
-        (hipThreadIdx_y == 0) &&
-        (hipThreadIdx_z == 0)
-    )
-    {
-        printf("\nInside farneback_matrices_update_tensor:");
-        printf("\nborder[0], border[1], border[2], border[3], border[4], border[5] = %f, %f, %f, %f, %f, %f", border[0], border[1], border[2], border[3], border[4], border[5]);
-    }
+    // if(
+    //     (hipBlockIdx_x == 0) &&
+    //     (hipBlockIdx_y == 0) &&
+    //     (hipBlockIdx_z == 0) &&
+    //     (hipThreadIdx_x == 0) &&
+    //     (hipThreadIdx_y == 0) &&
+    //     (hipThreadIdx_z == 0)
+    // )
+    // {
+    //     printf("\nInside farneback_matrices_update_tensor:");
+    //     printf("\nborder[0], border[1], border[2], border[3], border[4], border[5] = %f, %f, %f, %f, %f, %f", border[0], border[1], border[2], border[3], border[4], border[5]);
+    // }
 
     RpptROI roiSrc = roiTensorPtrSrc[id_z];
 
@@ -551,14 +551,14 @@ RppStatus hip_exec_farneback_polynomial_expansion_tensor(Rpp32f *pyramidLevelF32
     int tileSizeX = localThreads_x - 2 * polyExpNbhoodSize;
     int ldsSize = 3 * localThreads_x * sizeof(float);
 
-    std::cerr << "\nEntering farneback_polynomial_expansion";
-    std::cerr << "\nfarneback_polynomial_expansion src nh strides -> " << srcCompDescPtr->strides.nStride << ", " << srcCompDescPtr->strides.hStride;
-    std::cerr << "\nfarneback_polynomial_expansion dst nch strides -> " << mVecCompDescPtr->strides.nStride << ", " << mVecCompDescPtr->strides.cStride << ", " << mVecCompDescPtr->strides.hStride;
-    std::cerr << "\nfarneback_polynomial_expansion roiTensorPtrSrc[0] w/h -> " << roiTensorPtrSrc[0].xywhROI.roiWidth << ", " << roiTensorPtrSrc[0].xywhROI.roiHeight;
-    std::cerr << "\nfarneback_polynomial_expansion tileSizeX -> " << tileSizeX;
-    std::cerr << "\nfarneback_polynomial_expansion ldsSize -> " << ldsSize;
-    std::cerr << "\nfarneback_polynomial_expansion localThreads_x, localThreads_y, localThreads_z -> " << localThreads_x << ", " << localThreads_y << ", " << localThreads_z;
-    std::cerr << "\nfarneback_polynomial_expansion globalThreads_x, globalThreads_y, globalThreads_z -> " << globalThreads_x << ", " << globalThreads_y << ", " << globalThreads_z;
+    // std::cerr << "\nEntering farneback_polynomial_expansion";
+    // std::cerr << "\nfarneback_polynomial_expansion src nh strides -> " << srcCompDescPtr->strides.nStride << ", " << srcCompDescPtr->strides.hStride;
+    // std::cerr << "\nfarneback_polynomial_expansion dst nch strides -> " << mVecCompDescPtr->strides.nStride << ", " << mVecCompDescPtr->strides.cStride << ", " << mVecCompDescPtr->strides.hStride;
+    // std::cerr << "\nfarneback_polynomial_expansion roiTensorPtrSrc[0] w/h -> " << roiTensorPtrSrc[0].xywhROI.roiWidth << ", " << roiTensorPtrSrc[0].xywhROI.roiHeight;
+    // std::cerr << "\nfarneback_polynomial_expansion tileSizeX -> " << tileSizeX;
+    // std::cerr << "\nfarneback_polynomial_expansion ldsSize -> " << ldsSize;
+    // std::cerr << "\nfarneback_polynomial_expansion localThreads_x, localThreads_y, localThreads_z -> " << localThreads_x << ", " << localThreads_y << ", " << localThreads_z;
+    // std::cerr << "\nfarneback_polynomial_expansion globalThreads_x, globalThreads_y, globalThreads_z -> " << globalThreads_x << ", " << globalThreads_y << ", " << globalThreads_z;
 
 
     if (polyExpNbhoodSize == 5)
@@ -626,11 +626,11 @@ RppStatus hip_exec_farneback_matrices_update_tensor(Rpp32f *mVecCurrCompX,
     // int globalThreads_y = mVecCompDescPtr->h; // can be changed to roi width and height?
     int globalThreads_z = handle.GetBatchSize();
 
-    std::cerr << "\nEntering farneback_matrices_update_tensor";
-    std::cerr << "\nfarneback_matrices_update_tensor mVecCompDescPtr nch strides -> " << mVecCompDescPtr->strides.nStride << ", " << mVecCompDescPtr->strides.cStride << ", " << mVecCompDescPtr->strides.hStride;
-    std::cerr << "\nfarneback_matrices_update_tensor roiTensorPtrSrc[0] w/h -> " << roiTensorPtrSrc[0].xywhROI.roiWidth << ", " << roiTensorPtrSrc[0].xywhROI.roiHeight;
-    std::cerr << "\nfarneback_matrices_update_tensor localThreads_x, localThreads_y, localThreads_z -> " << localThreads_x << ", " << localThreads_y << ", " << localThreads_z;
-    std::cerr << "\nfarneback_matrices_update_tensor globalThreads_x, globalThreads_y, globalThreads_z -> " << globalThreads_x << ", " << globalThreads_y << ", " << globalThreads_z;
+    // std::cerr << "\nEntering farneback_matrices_update_tensor";
+    // std::cerr << "\nfarneback_matrices_update_tensor mVecCompDescPtr nch strides -> " << mVecCompDescPtr->strides.nStride << ", " << mVecCompDescPtr->strides.cStride << ", " << mVecCompDescPtr->strides.hStride;
+    // std::cerr << "\nfarneback_matrices_update_tensor roiTensorPtrSrc[0] w/h -> " << roiTensorPtrSrc[0].xywhROI.roiWidth << ", " << roiTensorPtrSrc[0].xywhROI.roiHeight;
+    // std::cerr << "\nfarneback_matrices_update_tensor localThreads_x, localThreads_y, localThreads_z -> " << localThreads_x << ", " << localThreads_y << ", " << localThreads_z;
+    // std::cerr << "\nfarneback_matrices_update_tensor globalThreads_x, globalThreads_y, globalThreads_z -> " << globalThreads_x << ", " << globalThreads_y << ", " << globalThreads_z;
 
     hipLaunchKernelGGL(farneback_matrices_update_tensor,
                        dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
@@ -675,11 +675,11 @@ RppStatus hip_exec_farneback_motion_vectors_update_tensor(Rpp32f *polyMatricesBl
     // int globalThreads_y = mVecCompDescPtr->h; // can be changed to roi width and height?
     int globalThreads_z = handle.GetBatchSize();
 
-    std::cerr << "\nEntering farneback_motion_vectors_update_tensor";
-    std::cerr << "\nfarneback_motion_vectors_update_tensor mVecCompDescPtr nh strides -> " << mVecCompDescPtr->strides.nStride << ", " << mVecCompDescPtr->strides.hStride;
-    std::cerr << "\nfarneback_motion_vectors_update_tensor roiTensorPtrSrc[0] w/h -> " << roiTensorPtrSrc[0].xywhROI.roiWidth << ", " << roiTensorPtrSrc[0].xywhROI.roiHeight;
-    std::cerr << "\nfarneback_motion_vectors_update_tensor localThreads_x, localThreads_y, localThreads_z -> " << localThreads_x << ", " << localThreads_y << ", " << localThreads_z;
-    std::cerr << "\nfarneback_motion_vectors_update_tensor globalThreads_x, globalThreads_y, globalThreads_z -> " << globalThreads_x << ", " << globalThreads_y << ", " << globalThreads_z;
+    // std::cerr << "\nEntering farneback_motion_vectors_update_tensor";
+    // std::cerr << "\nfarneback_motion_vectors_update_tensor mVecCompDescPtr nh strides -> " << mVecCompDescPtr->strides.nStride << ", " << mVecCompDescPtr->strides.hStride;
+    // std::cerr << "\nfarneback_motion_vectors_update_tensor roiTensorPtrSrc[0] w/h -> " << roiTensorPtrSrc[0].xywhROI.roiWidth << ", " << roiTensorPtrSrc[0].xywhROI.roiHeight;
+    // std::cerr << "\nfarneback_motion_vectors_update_tensor localThreads_x, localThreads_y, localThreads_z -> " << localThreads_x << ", " << localThreads_y << ", " << localThreads_z;
+    // std::cerr << "\nfarneback_motion_vectors_update_tensor globalThreads_x, globalThreads_y, globalThreads_z -> " << globalThreads_x << ", " << globalThreads_y << ", " << globalThreads_z;
     hipLaunchKernelGGL(farneback_motion_vectors_update_tensor,
                        dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
                        dim3(localThreads_x, localThreads_y, localThreads_z),
@@ -870,34 +870,34 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
 
     if (polyExpStdDev < RPP_MACHEPS)
         polyExpStdDev = polyExpNbhoodSize * 0.3f;
-    // std::cout << "\npolyExpStdDev = " << polyExpStdDev;
+    // std::cerr << "\npolyExpStdDev = " << polyExpStdDev;
 
     Rpp32f s = 0; // changed to 32f
     Rpp32f oneOverTwoStddevSquare = 1.0f / (2.0f * polyExpStdDev * polyExpStdDev); // changed to 32f
-    // std::cout << "\noneOverTwoStddevSquare = " << oneOverTwoStddevSquare;
+    // std::cerr << "\noneOverTwoStddevSquare = " << oneOverTwoStddevSquare;
 
     for (int x = -polyExpNbhoodSize; x <= polyExpNbhoodSize; x++)
     {
         xSquare[x] = x * x;     // percompute xSquare for multiple future uses
         g[x] = (Rpp32f)std::exp(-xSquare[x] * oneOverTwoStddevSquare);
         s += g[x];
-        // std::cout << "\n\n g[x] = " << g[x];
+        // std::cerr << "\n\n g[x] = " << g[x];
     }
-    // std::cout << "\ns before inversion = " << s;
+    // std::cerr << "\ns before inversion = " << s;
     s = 1.0f / s;
-    // std::cout << "\ns after inversion = " << s;
+    // std::cerr << "\ns after inversion = " << s;
     for (int x = -polyExpNbhoodSize; x <= polyExpNbhoodSize; x++)
     {
         g[x] *= s;
         xg[x] = x * g[x];
         xxg[x] = xSquare[x] * g[x];
-        // std::cout << "\n\n g, xg, xxg = " << g[x] << ", " << xg[x] << ", " << xxg[x];
+        // std::cerr << "\n\n g, xg, xxg = " << g[x] << ", " << xg[x] << ", " << xxg[x];
     }
 
     // TEMP printing g, xg, xxg
     // for (int x = 0; x < 8; x++)
     // {
-    //     std::cout << "\ng, xg, xxg = " << g[x] << ", " << xg[x] << ", " << xxg[x];
+    //     std::cerr << "\ng, xg, xxg = " << g[x] << ", " << xg[x] << ", " << xxg[x];
     // }
 
     float4 gaussian00113355_f4 = (float4) 0.0f;
@@ -911,10 +911,10 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         }
     }
 
-    // std::cout << "\ngaussian00113355_f4.x = " << gaussian00113355_f4.x;
-    // std::cout << "\ngaussian00113355_f4.y = " << gaussian00113355_f4.y;
-    // std::cout << "\ngaussian00113355_f4.z = " << gaussian00113355_f4.z;
-    // std::cout << "\ngaussian00113355_f4.w = " << gaussian00113355_f4.w;
+    // std::cerr << "\ngaussian00113355_f4.x = " << gaussian00113355_f4.x;
+    // std::cerr << "\ngaussian00113355_f4.y = " << gaussian00113355_f4.y;
+    // std::cerr << "\ngaussian00113355_f4.z = " << gaussian00113355_f4.z;
+    // std::cerr << "\ngaussian00113355_f4.w = " << gaussian00113355_f4.w;
 
     Rpp32f yw = gaussian00113355_f4.y * gaussian00113355_f4.w;
     Rpp32f yz = gaussian00113355_f4.y * gaussian00113355_f4.z;
@@ -932,10 +932,10 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     invG11033355_f4.z = (xyzw - y3w) * gaussian00113355_f4.y * oneOverDetG;
     invG11033355_f4.w = (((y3w + y3w - xyzw) * gaussian00113355_f4.y) + (((yz * yz) - (yw * yw)) * gaussian00113355_f4.x) - (y2 * y2 * gaussian00113355_f4.z)) * oneOverDetG;
 
-    // std::cout << "\nig11 (invG11033355_f4.x) = " << invG11033355_f4.x;
-    // std::cout << "\nig03 (invG11033355_f4.y) = " << invG11033355_f4.y;
-    // std::cout << "\nig33 (invG11033355_f4.z) = " << invG11033355_f4.z;
-    // std::cout << "\nig55 (invG11033355_f4.w) = " << invG11033355_f4.w;
+    // std::cerr << "\nig11 (invG11033355_f4.x) = " << invG11033355_f4.x;
+    // std::cerr << "\nig03 (invG11033355_f4.y) = " << invG11033355_f4.y;
+    // std::cerr << "\nig33 (invG11033355_f4.z) = " << invG11033355_f4.z;
+    // std::cerr << "\nig55 (invG11033355_f4.w) = " << invG11033355_f4.w;
 
     // Pinned memory allocations
     Rpp32f *stdDevPtrForGaussian, *border;
@@ -957,7 +957,7 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     for (int k = numPyramidLevelsCropped; k >= 0; k--) // original version
     // for (int k = 1; k >= 0; k -= 1) // moddified version
     {
-        std::cerr << "\n\n\n\n --------->>>> Loop calculations for iteration - " << k;
+        // std::cerr << "\n\n\n\n --------->>>> Loop calculations for iteration - " << k;
 
         // hipStreamSynchronize(streams[0]);
         hipDeviceSynchronize();
@@ -973,18 +973,18 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         Rpp64f sigma = (1.0 / scale - 1) * 0.5;   // CUDA has double ????????? >>>>>>>>>>
         Rpp32s smoothSize = ((Rpp32s)roundf(sigma * 5)) | 1;
         smoothSize = fminf(fmaxf(smoothSize, 3), 9); // cap needed since RPP supports only filter sizes 3,5,7,9
-        // std::cout << std::setprecision(12) << "\nsigma = " << sigma;
-        // std::cout << "\nsmoothSize = " << smoothSize;
+        // std::cerr << std::setprecision(12) << "\nsigma = " << sigma;
+        // std::cerr << "\nsmoothSize = " << smoothSize;
 
         pyramidImgPatchPtr->width = std::roundf(srcCompDescPtr->w * scale);
         pyramidImgPatchPtr->height = std::roundf(srcCompDescPtr->h * scale);
 
-        // std::cout << "\nnumPyramidLevelsCropped = " << numPyramidLevelsCropped;
-        // std::cout << std::setprecision(12) << "\nscale = " << scale;
-        // std::cout << "\nsrcCompDescPtr->w = " << srcCompDescPtr->w;
-        // std::cout << "\nsrcCompDescPtr->h = " << srcCompDescPtr->h;
-        // std::cout << "\npyramidImgPatchPtr->width = " << pyramidImgPatchPtr->width;
-        // std::cout << "\npyramidImgPatchPtr->height = " << pyramidImgPatchPtr->height;
+        // std::cerr << "\nnumPyramidLevelsCropped = " << numPyramidLevelsCropped;
+        // std::cerr << std::setprecision(12) << "\nscale = " << scale;
+        // std::cerr << "\nsrcCompDescPtr->w = " << srcCompDescPtr->w;
+        // std::cerr << "\nsrcCompDescPtr->h = " << srcCompDescPtr->h;
+        // std::cerr << "\npyramidImgPatchPtr->width = " << pyramidImgPatchPtr->width;
+        // std::cerr << "\npyramidImgPatchPtr->height = " << pyramidImgPatchPtr->height;
 
         // Checking previous and current flows from iteration 2
         // -------------------- stage output dump check --------------------
@@ -1168,7 +1168,7 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         hip_exec_gaussian_filter_f32_tensor(src1F32, mVecCompDescPtr, src1F32Blurred, mVecCompDescPtr, smoothSize, stdDevPtrForGaussian, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
         hip_exec_gaussian_filter_f32_tensor(src2F32, mVecCompDescPtr, src2F32Blurred, mVecCompDescPtr, smoothSize, stdDevPtrForGaussian, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
         hipDeviceSynchronize();
-        std::cerr << "\n\nGAUSSIAN FILTER PARAMS smoothSize and sigma -> " << smoothSize << ", " << stdDevPtrForGaussian[0] << "\n\n";
+        // std::cerr << "\n\nGAUSSIAN FILTER PARAMS smoothSize and sigma -> " << smoothSize << ", " << stdDevPtrForGaussian[0] << "\n\n";
 
 
         // -------------------- stage output dump check --------------------
