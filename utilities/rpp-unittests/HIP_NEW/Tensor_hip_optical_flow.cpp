@@ -297,7 +297,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     hipMalloc(&d_motionVectorsCartesianF32, FARNEBACK_OUTPUT_MOTION_VECTORS_SIZE * sizeof(Rpp32f));
     hipMalloc(&d_motionVectorsPolarF32, FARNEBACK_OUTPUT_FRAME_SIZE * 4 * sizeof(Rpp32f));
     
-    // separate out component pointers from main buffer
+    // separate out motion vector components from main buffer
     d_motionVectorsCartesianF32Comp1 = d_motionVectorsCartesianF32;
     d_motionVectorsCartesianF32Comp2 = d_motionVectorsCartesianF32Comp1 + FARNEBACK_OUTPUT_FRAME_SIZE;
     d_motionVectorsPolarF32Comp1 = d_motionVectorsPolarF32 + FARNEBACK_OUTPUT_FRAME_SIZE;
@@ -315,12 +315,10 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     hipHostMalloc(&imageMinMaxArr, imageMinMaxArrLength * sizeof(Rpp32f));
 
     // create rpp handle for hip with stream and batch size
-    rppHandle_t handle1, handle2;
-    hipStream_t stream1, stream2;
-    hipStreamCreate(&stream1);
-    hipStreamCreate(&stream2);
-    rppCreateWithStreamAndBatchSize(&handle1, stream1, srcDescPtrRGB->n);
-    rppCreateWithStreamAndBatchSize(&handle2, stream2, srcDescPtrRGB->n);
+    rppHandle_t handle;
+    hipStream_t stream;
+    hipStreamCreate(&stream);
+    rppCreateWithStreamAndBatchSize(&handle, stream, srcDescPtrRGB->n);
 
     // read the first frame
     cv::Mat frame, previousFrame;
@@ -331,11 +329,11 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     hipMemcpy(d_srcRGB, frame.data, sizeInBytesSrcRGB, hipMemcpyHostToDevice);
 
     // resize frame
-    rppt_resize_gpu(d_srcRGB, srcDescPtrRGB, d_dstRGB, dstDescPtrRGB, fbackImgPatchPtr, interpolationType, roiTensorPtrSrcRGB, roiType, handle1);
+    rppt_resize_gpu(d_srcRGB, srcDescPtrRGB, d_dstRGB, dstDescPtrRGB, fbackImgPatchPtr, interpolationType, roiTensorPtrSrcRGB, roiType, handle);
     hipDeviceSynchronize();
 
     // convert to gray
-    rppt_color_to_greyscale_gpu(d_dstRGB, dstDescPtrRGB, d_src1, srcDescPtr, subpixelLayout, handle1);
+    rppt_color_to_greyscale_gpu(d_dstRGB, dstDescPtrRGB, d_src1, srcDescPtr, subpixelLayout, handle);
     hipDeviceSynchronize();
 
     Size frameSize(960, 540);
@@ -371,11 +369,11 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         auto startPreProcessTime = high_resolution_clock::now();
 
         // resize frame
-        rppt_resize_gpu(d_srcRGB, srcDescPtrRGB, d_dstRGB, dstDescPtrRGB, fbackImgPatchPtr, interpolationType, roiTensorPtrSrcRGB, roiType, handle1);
+        rppt_resize_gpu(d_srcRGB, srcDescPtrRGB, d_dstRGB, dstDescPtrRGB, fbackImgPatchPtr, interpolationType, roiTensorPtrSrcRGB, roiType, handle);
         hipDeviceSynchronize();
 
         // convert to gray
-        rppt_color_to_greyscale_gpu(d_dstRGB, dstDescPtrRGB, d_src2, srcDescPtr, subpixelLayout, handle1);
+        rppt_color_to_greyscale_gpu(d_dstRGB, dstDescPtrRGB, d_src2, srcDescPtr, subpixelLayout, handle);
         hipDeviceSynchronize();
 
         // all ops in all streams need to complete at end of pre-processing
@@ -393,7 +391,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         auto startOpticalFlowTime = high_resolution_clock::now();
 
         // calculate optical flow
-        RppStatus fbackOptFlowReturn = rppt_farneback_optical_flow_gpu(d_src1, d_src2, srcDescPtr, d_motionVectorsCartesianF32Comp1, d_motionVectorsCartesianF32Comp2, mVecCompPlnDescPtr, 0.75f, 5, 9, 3, 5, 1.2f, handle1);
+        RppStatus fbackOptFlowReturn = rppt_farneback_optical_flow_gpu(d_src1, d_src2, srcDescPtr, d_motionVectorsCartesianF32Comp1, d_motionVectorsCartesianF32Comp2, mVecCompPlnDescPtr, 0.75f, 5, 9, 3, 5, 1.2f, handle);
         hipDeviceSynchronize();
 
         // verify successful motion vector generation
@@ -415,34 +413,31 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         auto startPostProcessTime = high_resolution_clock::now();
 
         // convert from cartesian to polar coordinates
-        rppt_cartesian_to_polar_gpu(d_motionVectorsCartesianF32, mVecCartPlnGenericDescPtr, d_motionVectorsPolarF32, mVecPolrPlnGenericDescPtr, angleType, roiTensorPtrDstRGB, roiType, handle1);
+        rppt_cartesian_to_polar_gpu(d_motionVectorsCartesianF32, mVecCartPlnGenericDescPtr, d_motionVectorsPolarF32, mVecPolrPlnGenericDescPtr, angleType, roiTensorPtrDstRGB, roiType, handle);
 
         // all ops in stream1 need to complete before rppt_multiply_scalar_gpu executes on stream1 and rppt_image_min_max executes on stream2
         // hipStreamSynchronize(stream1);
         hipDeviceSynchronize();
 
         // normalize polar angle from 0 to 1 in hip stream1
-        rppt_multiply_scalar_gpu(d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, HUE_CONVERSION_FACTOR, roiTensorPtrDstRGB, roiType, handle1);
+        rppt_multiply_scalar_gpu(d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, HUE_CONVERSION_FACTOR, roiTensorPtrDstRGB, roiType, handle);
 
         // find min and max of polar magnitude in  hip stream2
-        rppt_image_min_max_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, roiTensorPtrDstRGB, roiType, handle1); // could be handle2
+        rppt_image_min_max_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, roiTensorPtrDstRGB, roiType, handle); // could be handle2
 
         // all ops in stream2 need to complete before rppt_normalize_minmax_gpu executes on stream2
         hipDeviceSynchronize(); // could be a hipStreamSynchronize(stream2);
 
         // normalize polar magnitude from 0 to 1 in hip stream2
-        rppt_normalize_minmax_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp3, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, 0.0f, 1.0f, roiTensorPtrDstRGB, roiType, handle1); // could be handle2
+        rppt_normalize_minmax_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp3, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, 0.0f, 1.0f, roiTensorPtrDstRGB, roiType, handle); // could be handle2
 
         // all ops in all streams need to complete before rppt_hsv_to_rgbbgr_gpu executes on stream1
         // hipStreamSynchronize(stream2);
         // hipStreamSynchronize(stream1);
         hipDeviceSynchronize(); // could be a hipStreamSynchronize(stream2); followed by hipStreamSynchronize(stream1);
 
-        // move resized input RGB frame from device to host in preparation for visualization
-        hipMemcpy(dstInputRGB, d_dstRGB, sizeInBytesDstRGB, hipMemcpyDeviceToHost);
-
         // fused bitDepth + layout + colorType conversion of F32-PLN3 HSV to U8-PKD3 BGR in hip stream1
-        rppt_hsv_to_rgbbgr_gpu(d_motionVectorsPolarF32Comp1, dstDescPtrHSV, d_dstRGB, dstDescPtrRGB, subpixelLayout, handle1);
+        rppt_hsv_to_rgbbgr_gpu(d_motionVectorsPolarF32Comp1, dstDescPtrHSV, d_dstRGB, dstDescPtrRGB, subpixelLayout, handle);
 
         // all ops in all streams need to complete at end of post-processing
         hipDeviceSynchronize();
@@ -451,9 +446,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         hipMemcpy(dstRGB, d_dstRGB, sizeInBytesDstRGB, hipMemcpyDeviceToHost);
         hipDeviceSynchronize();
 
-        // update d_src1 - TO BE CHANGED TO POINTER SWAP?
-        // hipMemcpy(d_src1, d_src2, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp8u), hipMemcpyDeviceToDevice);
-        // hipDeviceSynchronize();
+        // update d_src1 optimally to d_src2 with pointer swap
         Rpp8u *temp;
         temp = d_src1;
         d_src1 = d_src2;
@@ -473,8 +466,13 @@ void rpp_optical_flow_hip(string inputVideoFileName)
 
         // ****************************************************************** visualization ******************************************************************
 
-        // visualization as video or frames
+        // visualization as video
         rpp_tensor_append_frame_to_video("dstRGB", dstRGB, dstDescPtrRGB, fbackImgPatchPtr, videoOutput);
+        
+        // optional - move resized input RGB frame from device to host in preparation for visualization as frames
+        // hipMemcpy(dstInputRGB, d_dstRGB, sizeInBytesDstRGB, hipMemcpyDeviceToHost);
+        
+        // optional - visualization as independent frames
         // rpp_tensor_write_to_images("dstInputRGB", dstInputRGB, dstDescPtrRGB, fbackImgPatchPtr, iterCount);
         // rpp_tensor_write_to_images("dstRGB", dstRGB, dstDescPtrRGB, fbackImgPatchPtr, iterCount);
     }
@@ -484,8 +482,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     destroyAllWindows();
 
     // destroy rpp handle and deallocate all buffers
-    rppDestroyGPU(handle1);
-    rppDestroyGPU(handle2);
+    rppDestroyGPU(handle);
     hipFree(&d_srcRGB);
     hipFree(&d_dstRGB);
     hipFree(&d_srcBufs);
