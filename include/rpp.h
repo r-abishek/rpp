@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -101,8 +101,9 @@ extern "C" SHARED_PUBLIC rppStatus_t rppCreate(rppHandle_t* handle);
 // Function to create a rpp handle for a batch. To be called in the beginning to initialize the rpp environment
 // *param[in] handle A pointer to rpp handle of type rppHandle_t
 // *param[in] nBatchSize Batch size
+// *param[in] numThreads number of threads to be used for OpenMP pragma
 // *returns a rppStatus_t enumeration.
-extern "C" SHARED_PUBLIC rppStatus_t rppCreateWithBatchSize(rppHandle_t* handle, size_t nBatchSize);
+extern "C" SHARED_PUBLIC rppStatus_t rppCreateWithBatchSize(rppHandle_t* handle, size_t nBatchSize, Rpp32u numThreads = 0);
 
 /******************** rppDestroy ********************/
 

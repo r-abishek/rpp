@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2019 - 2022 Advanced Micro Devices, Inc. All rights reserved.
+Copyright (c) 2019 - 2023 Advanced Micro Devices, Inc. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -40,6 +40,7 @@ THE SOFTWARE.
 #define RPP_MACHEPS     1.19209290e-7f  // define machine epsilon as per ISO C standard
 const float ONE_OVER_6 = 1.0f / 6;
 const float ONE_OVER_3 = 1.0f / 3;
+const float ONE_OVER_255 = 1.0f / 255;
 
 /******************** RPP typedefs ********************/
 
@@ -62,6 +63,7 @@ typedef enum
     RPP_ERROR                           = -1,
     RPP_ERROR_INVALID_ARGUMENTS         = -2,
     RPP_ERROR_LOW_OFFSET                = -3,
+    RPP_ERROR_ZERO_DIVISION             = -4,
     RPP_ERROR_HIGH_SRC_DIMENSION        = -5,
     RPP_ERROR_NOT_IMPLEMENTED           = -6,
     RPP_ERROR_INVALID_SRC_CHANNELS      = -7,
