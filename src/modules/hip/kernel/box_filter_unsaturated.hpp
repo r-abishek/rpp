@@ -6,138 +6,101 @@
 __device__ void box_filter_f32_3x3_row_hip_compute(d_float10 *srcPtr_f10, d_float8 *dst_f8)
 {
     d_float10 src_f10 = *srcPtr_f10;
-    // float src_f1;
-    // uint3 src_ui3;
-    // src_ui3 = *(uint3 *)srcPtr;
-    // src_f1 = rpp_hip_unpack0(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f10.f1[0], 0.1111111f, dst_f8->f1[0]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f10.f1[1], 0.1111111f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f10.f1[1], 0.1111111f, dst_f8->f1[1]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f10.f1[2], 0.1111111f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f10.f1[2], 0.1111111f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f10.f1[2], 0.1111111f, dst_f8->f1[2]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.x);
     dst_f8->f1[1] = fmaf(src_f10.f1[3], 0.1111111f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f10.f1[3], 0.1111111f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f10.f1[3], 0.1111111f, dst_f8->f1[3]);
-    // src_f1 = rpp_hip_unpack0(src_ui3.y);
     dst_f8->f1[2] = fmaf(src_f10.f1[4], 0.1111111f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f10.f1[4], 0.1111111f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f10.f1[4], 0.1111111f, dst_f8->f1[4]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.y);
     dst_f8->f1[3] = fmaf(src_f10.f1[5], 0.1111111f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f10.f1[5], 0.1111111f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f10.f1[5], 0.1111111f, dst_f8->f1[5]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.y);
     dst_f8->f1[4] = fmaf(src_f10.f1[6], 0.1111111f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f10.f1[6], 0.1111111f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f10.f1[6], 0.1111111f, dst_f8->f1[6]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.y);
     dst_f8->f1[5] = fmaf(src_f10.f1[7], 0.1111111f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f10.f1[7], 0.1111111f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f10.f1[7], 0.1111111f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui3.z);
     dst_f8->f1[6] = fmaf(src_f10.f1[8], 0.1111111f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f10.f1[8], 0.1111111f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.z);
     dst_f8->f1[7] = fmaf(src_f10.f1[9], 0.1111111f, dst_f8->f1[7]);
 }
 
 __device__ void box_filter_f32_5x5_row_hip_compute(d_float12 *srcPtr_f12, d_float8 *dst_f8)
 {
     d_float12 src_f12 = *srcPtr_f12;
-    // float src_f1;
-    // uint3 src_ui3;
-    // src_ui3 = *(uint3 *)srcPtr;
-    // src_f1 = rpp_hip_unpack0(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f12.f1[0], 0.04f, dst_f8->f1[0]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f12.f1[1], 0.04f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f12.f1[1], 0.04f, dst_f8->f1[1]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f12.f1[2], 0.04f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f12.f1[2], 0.04f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f12.f1[2], 0.04f, dst_f8->f1[2]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f12.f1[3], 0.04f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f12.f1[3], 0.04f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f12.f1[3], 0.04f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f12.f1[3], 0.04f, dst_f8->f1[3]);
-    // src_f1 = rpp_hip_unpack0(src_ui3.y);
     dst_f8->f1[0] = fmaf(src_f12.f1[4], 0.04f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f12.f1[4], 0.04f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f12.f1[4], 0.04f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f12.f1[4], 0.04f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f12.f1[4], 0.04f, dst_f8->f1[4]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.y);
     dst_f8->f1[1] = fmaf(src_f12.f1[5], 0.04f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f12.f1[5], 0.04f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f12.f1[5], 0.04f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f12.f1[5], 0.04f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f12.f1[5], 0.04f, dst_f8->f1[5]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.y);
     dst_f8->f1[2] = fmaf(src_f12.f1[6], 0.04f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f12.f1[6], 0.04f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f12.f1[6], 0.04f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f12.f1[6], 0.04f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f12.f1[6], 0.04f, dst_f8->f1[6]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.y);
     dst_f8->f1[3] = fmaf(src_f12.f1[7], 0.04f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f12.f1[7], 0.04f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f12.f1[7], 0.04f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f12.f1[7], 0.04f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f12.f1[7], 0.04f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui3.z);
     dst_f8->f1[4] = fmaf(src_f12.f1[8], 0.04f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f12.f1[8], 0.04f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f12.f1[8], 0.04f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f12.f1[8], 0.04f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.z);
     dst_f8->f1[5] = fmaf(src_f12.f1[9], 0.04f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f12.f1[9], 0.04f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f12.f1[9], 0.04f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.z);
     dst_f8->f1[6] = fmaf(src_f12.f1[10], 0.04f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f12.f1[10], 0.04f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.z);
     dst_f8->f1[7] = fmaf(src_f12.f1[11], 0.04f, dst_f8->f1[7]);
 }
 
 __device__ void box_filter_f32_7x7_row_hip_compute(d_float14 *srcPtr_f14, d_float8 *dst_f8)
 {
     d_float14 src_f14 = *srcPtr_f14;
-    // float src_f1;
-    // uint4 src_ui4 = *(uint4 *)srcPtr;
-    // src_f1 = rpp_hip_unpack0(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f14.f1[0], 0.02040816f, dst_f8->f1[0]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f14.f1[1], 0.02040816f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[1], 0.02040816f, dst_f8->f1[1]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f14.f1[2], 0.02040816f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[2], 0.02040816f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[2], 0.02040816f, dst_f8->f1[2]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f14.f1[3], 0.02040816f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[3], 0.02040816f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[3], 0.02040816f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[3], 0.02040816f, dst_f8->f1[3]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f14.f1[4], 0.02040816f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[4], 0.02040816f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[4], 0.02040816f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[4], 0.02040816f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f14.f1[4], 0.02040816f, dst_f8->f1[4]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f14.f1[5], 0.02040816f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[5], 0.02040816f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[5], 0.02040816f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[5], 0.02040816f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f14.f1[5], 0.02040816f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[5], 0.02040816f, dst_f8->f1[5]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f14.f1[6], 0.02040816f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[6], 0.02040816f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[6], 0.02040816f, dst_f8->f1[2]);
@@ -145,7 +108,6 @@ __device__ void box_filter_f32_7x7_row_hip_compute(d_float14 *srcPtr_f14, d_floa
     dst_f8->f1[4] = fmaf(src_f14.f1[6], 0.02040816f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[6], 0.02040816f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[6], 0.02040816f, dst_f8->f1[6]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.y);
     dst_f8->f1[1] = fmaf(src_f14.f1[7], 0.02040816f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[7], 0.02040816f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[7], 0.02040816f, dst_f8->f1[3]);
@@ -153,68 +115,53 @@ __device__ void box_filter_f32_7x7_row_hip_compute(d_float14 *srcPtr_f14, d_floa
     dst_f8->f1[5] = fmaf(src_f14.f1[7], 0.02040816f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[7], 0.02040816f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[7], 0.02040816f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.z);
     dst_f8->f1[2] = fmaf(src_f14.f1[8], 0.02040816f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[8], 0.02040816f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f14.f1[8], 0.02040816f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[8], 0.02040816f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[8], 0.02040816f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[8], 0.02040816f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.z);
     dst_f8->f1[3] = fmaf(src_f14.f1[9], 0.02040816f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f14.f1[9], 0.02040816f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[9], 0.02040816f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[9], 0.02040816f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[9], 0.02040816f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.z);
     dst_f8->f1[4] = fmaf(src_f14.f1[10], 0.02040816f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[10], 0.02040816f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[10], 0.02040816f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[10], 0.02040816f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.z);
     dst_f8->f1[5] = fmaf(src_f14.f1[11], 0.02040816f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[11], 0.02040816f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[11], 0.02040816f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.w);
     dst_f8->f1[6] = fmaf(src_f14.f1[12], 0.02040816f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[12], 0.02040816f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.w);
     dst_f8->f1[7] = fmaf(src_f14.f1[13], 0.02040816f, dst_f8->f1[7]);
 }
 
 __device__ void box_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d_float8 *dst_f8)
 {
     d_float16 src_f16 = *srcPtr_f16;
-    // float src_f1;
-    // uint4 src_ui4 = *(uint4 *)srcPtr;
-    // src_f1 = rpp_hip_unpack0(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f16.f1[0], 0.01234568f, dst_f8->f1[0]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f16.f1[1], 0.01234568f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[1], 0.01234568f, dst_f8->f1[1]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f16.f1[2], 0.01234568f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[2], 0.01234568f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[2], 0.01234568f, dst_f8->f1[2]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f16.f1[3], 0.01234568f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[3], 0.01234568f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[3], 0.01234568f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[3], 0.01234568f, dst_f8->f1[3]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f16.f1[4], 0.01234568f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[4], 0.01234568f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[4], 0.01234568f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[4], 0.01234568f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f16.f1[4], 0.01234568f, dst_f8->f1[4]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f16.f1[5], 0.01234568f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[5], 0.01234568f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[5], 0.01234568f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[5], 0.01234568f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f16.f1[5], 0.01234568f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[5], 0.01234568f, dst_f8->f1[5]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f16.f1[6], 0.01234568f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[6], 0.01234568f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[6], 0.01234568f, dst_f8->f1[2]);
@@ -222,7 +169,6 @@ __device__ void box_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d_floa
     dst_f8->f1[4] = fmaf(src_f16.f1[6], 0.01234568f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[6], 0.01234568f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[6], 0.01234568f, dst_f8->f1[6]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f16.f1[7], 0.01234568f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[7], 0.01234568f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[7], 0.01234568f, dst_f8->f1[2]);
@@ -231,7 +177,6 @@ __device__ void box_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d_floa
     dst_f8->f1[5] = fmaf(src_f16.f1[7], 0.01234568f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[7], 0.01234568f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[7], 0.01234568f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.z);
     dst_f8->f1[0] = fmaf(src_f16.f1[8], 0.01234568f, dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[8], 0.01234568f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[8], 0.01234568f, dst_f8->f1[2]);
@@ -240,7 +185,6 @@ __device__ void box_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d_floa
     dst_f8->f1[5] = fmaf(src_f16.f1[8], 0.01234568f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[8], 0.01234568f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[8], 0.01234568f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.z);
     dst_f8->f1[1] = fmaf(src_f16.f1[9], 0.01234568f, dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[9], 0.01234568f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[9], 0.01234568f, dst_f8->f1[3]);
@@ -248,32 +192,26 @@ __device__ void box_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d_floa
     dst_f8->f1[5] = fmaf(src_f16.f1[9], 0.01234568f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[9], 0.01234568f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[9], 0.01234568f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.z);
     dst_f8->f1[2] = fmaf(src_f16.f1[10], 0.01234568f, dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[10], 0.01234568f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f16.f1[10], 0.01234568f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[10], 0.01234568f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[10], 0.01234568f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[10], 0.01234568f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.z);
     dst_f8->f1[3] = fmaf(src_f16.f1[11], 0.01234568f, dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f16.f1[11], 0.01234568f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[11], 0.01234568f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[11], 0.01234568f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[11], 0.01234568f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.w);
     dst_f8->f1[4] = fmaf(src_f16.f1[12], 0.01234568f, dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[12], 0.01234568f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[12], 0.01234568f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[12], 0.01234568f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.w);
     dst_f8->f1[5] = fmaf(src_f16.f1[13], 0.01234568f, dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[13], 0.01234568f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[13], 0.01234568f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.w);
     dst_f8->f1[6] = fmaf(src_f16.f1[14], 0.01234568f, dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[14], 0.01234568f, dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.w);
     dst_f8->f1[7] = fmaf(src_f16.f1[15], 0.01234568f, dst_f8->f1[7]);
 }
 
@@ -298,22 +236,9 @@ __global__ void box_filter_f32_3x3_pln_tensor(float *srcPtr,
     d_float8 sum_f8;
     __shared__ float src_lds[16][128];
 
-    // OLD correct code
-    // int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    // int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
-    // sum_f8.f4[0] = (float4) 0;
-    // sum_f8.f4[1] = (float4) 0;
-    // if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-    //     (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-    //     rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(d_float8_s *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = *(d_float8_s *)&sum_f8;
-
-    // NEW experimental code
     int srcIdx = (id_z * srcStridesNCH.x) +
                  (std::min(std::max(id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y, 0), roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1) * srcStridesNCH.z) +
                  (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-                //  (std::min(std::max(id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x, 0), roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = (float4) 0;
     sum_f8.f4[1] = (float4) 0;
@@ -359,22 +284,9 @@ __global__ void box_filter_f32_5x5_pln_tensor(float *srcPtr,
     d_float8 sum_f8;
     __shared__ float src_lds[16][128];
 
-    // OLD correct code
-    // int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    // int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
-    // sum_f8.f4[0] = (float4) 0;
-    // sum_f8.f4[1] = (float4) 0;
-    // if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-    //     (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-    //     rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(d_float8_s *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = *(d_float8_s *)&sum_f8;
-
-    // NEW experimental code
     int srcIdx = (id_z * srcStridesNCH.x) +
                  (std::min(std::max(id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y, 0), roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1) * srcStridesNCH.z) +
                  (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-                //  (std::min(std::max(id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x, 0), roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = (float4) 0;
     sum_f8.f4[1] = (float4) 0;
@@ -422,23 +334,9 @@ __global__ void box_filter_f32_7x7_pln_tensor(float *srcPtr,
     d_float8 sum_f8;
     __shared__ float src_lds[16][128];
 
-    // OLD correct code
-    // int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    // int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
-    // sum_f8.f4[0] = (float4) 0;
-    // sum_f8.f4[1] = (float4) 0;
-    // if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-    //     (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-    //     rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(d_float8_s *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = *(d_float8_s *)&sum_f8;
-
-
-    // NEW experimental code
     int srcIdx = (id_z * srcStridesNCH.x) +
                  (std::min(std::max(id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y, 0), roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1) * srcStridesNCH.z) +
                  (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-                //  (std::min(std::max(id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x, 0), roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = (float4) 0;
     sum_f8.f4[1] = (float4) 0;
@@ -488,22 +386,9 @@ __global__ void box_filter_f32_9x9_pln_tensor(float *srcPtr,
     d_float8 sum_f8;
     __shared__ float src_lds[16][128];
 
-    // OLD correct code
-    // int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    // int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
-    // sum_f8.f4[0] = (float4) 0;
-    // sum_f8.f4[1] = (float4) 0;
-    // if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-    //     (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-    //     rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(d_float8_s *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = *(d_float8_s *)&sum_f8;
-
-    // NEW experimental code
     int srcIdx = (id_z * srcStridesNCH.x) +
                  (std::min(std::max(id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y, 0), roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1) * srcStridesNCH.z) +
                  (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-                //  (std::min(std::max(id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x, 0), roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = (float4) 0;
     sum_f8.f4[1] = (float4) 0;
@@ -516,17 +401,6 @@ __global__ void box_filter_f32_9x9_pln_tensor(float *srcPtr,
     if ((diff >= 0) && (diff < 8))
         for(int i = diff; i < 8; i++)
             srcPos_lds[i] = srcPos_lds[diff - 1];
-
-    // if (
-    //         (id_x_i >= -(int)padLength) &&
-    //         (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) //&&
-    //         // (id_y_i >= 0) &&
-    //         // (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight)
-    //     )
-    //     rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(d_float8_s *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = *(d_float8_s *)&sum_f8;
-
 
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -576,8 +450,6 @@ RppStatus hip_exec_box_filter_f32_tensor(Rpp32f *srcPtr,
 
     if ((srcDescPtr->c == 1) && (dstDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
     {
-        // std::cerr << "\nbox filter f32 kernelSize = " << kernelSize;
-        // std::cerr << "\nglobalThreads_x, globalThreads_y, globalThreads_z = " << globalThreads_x << ", " << globalThreads_y << ", " << globalThreads_z;
         if (kernelSize == 3)
         {
             hipLaunchKernelGGL(box_filter_f32_3x3_pln_tensor,

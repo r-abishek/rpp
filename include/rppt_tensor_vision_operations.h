@@ -50,7 +50,7 @@ extern "C" {
 // *retval RPP_ERROR : Error
 
 #ifdef GPU_SUPPORT
-RppStatus rppt_farneback_optical_flow_gpu(RppPtr_t src1Ptr, RppPtr_t src2Ptr, RppPtr_t dstPtrIntermU8, RppPtr_t dstPtrIntermF32, RppPtr_t dh_cudaResizdStrided, RpptDescPtr srcCompDescPtr, RppPtr_t mVecCompX, RppPtr_t mVecCompY, RpptDescPtr mVecCompDescPtr, Rpp32f pyramidScale, Rpp32s numPyramidLevels, Rpp32s windowSize, Rpp32s numIterations, Rpp32s polyExpNbhoodSize, Rpp32f polyExpStdDev, rppHandle_t rppHandle);
+RppStatus rppt_farneback_optical_flow_gpu(RppPtr_t src1Ptr, RppPtr_t src2Ptr, RpptDescPtr srcCompDescPtr, RppPtr_t mVecCompX, RppPtr_t mVecCompY, RpptDescPtr mVecCompDescPtr, Rpp32f pyramidScale, Rpp32s numPyramidLevels, Rpp32s windowSize, Rpp32s numIterations, Rpp32s polyExpNbhoodSize, Rpp32f polyExpStdDev, rppHandle_t rppHandle);
 #endif // GPU_SUPPORT
 
 #ifdef __cplusplus

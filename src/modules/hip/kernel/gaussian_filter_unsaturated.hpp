@@ -6,138 +6,101 @@
 __device__ void gaussian_filter_f32_3x3_row_hip_compute(d_float10 *srcPtr_f10, d_float8 *dst_f8, float *filter)
 {
     d_float10 src_f10 = *srcPtr_f10;
-    // float src_f1;
-    // uint3 src_ui3;
-    // src_ui3 = *(uint3 *)srcPtr;
-    // src_f1 = rpp_hip_unpack0(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f10.f1[0], filter[0], dst_f8->f1[0]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f10.f1[1], filter[1], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f10.f1[1], filter[0], dst_f8->f1[1]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f10.f1[2], filter[2], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f10.f1[2], filter[1], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f10.f1[2], filter[0], dst_f8->f1[2]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.x);
     dst_f8->f1[1] = fmaf(src_f10.f1[3], filter[2], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f10.f1[3], filter[1], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f10.f1[3], filter[0], dst_f8->f1[3]);
-    // src_f1 = rpp_hip_unpack0(src_ui3.y);
     dst_f8->f1[2] = fmaf(src_f10.f1[4], filter[2], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f10.f1[4], filter[1], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f10.f1[4], filter[0], dst_f8->f1[4]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.y);
     dst_f8->f1[3] = fmaf(src_f10.f1[5], filter[2], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f10.f1[5], filter[1], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f10.f1[5], filter[0], dst_f8->f1[5]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.y);
     dst_f8->f1[4] = fmaf(src_f10.f1[6], filter[2], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f10.f1[6], filter[1], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f10.f1[6], filter[0], dst_f8->f1[6]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.y);
     dst_f8->f1[5] = fmaf(src_f10.f1[7], filter[2], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f10.f1[7], filter[1], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f10.f1[7], filter[0], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui3.z);
     dst_f8->f1[6] = fmaf(src_f10.f1[8], filter[2], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f10.f1[8], filter[1], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.z);
     dst_f8->f1[7] = fmaf(src_f10.f1[9], filter[2], dst_f8->f1[7]);
 }
 
 __device__ void gaussian_filter_f32_5x5_row_hip_compute(d_float12 *srcPtr_f12, d_float8 *dst_f8, float *filter)
 {
     d_float12 src_f12 = *srcPtr_f12;
-    // float src_f1;
-    // uint3 src_ui3;
-    // src_ui3 = *(uint3 *)srcPtr;
-    // src_f1 = rpp_hip_unpack0(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f12.f1[0], filter[0], dst_f8->f1[0]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f12.f1[1], filter[1], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f12.f1[1], filter[0], dst_f8->f1[1]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f12.f1[2], filter[2], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f12.f1[2], filter[1], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f12.f1[2], filter[0], dst_f8->f1[2]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.x);
     dst_f8->f1[0] = fmaf(src_f12.f1[3], filter[3], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f12.f1[3], filter[2], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f12.f1[3], filter[1], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f12.f1[3], filter[0], dst_f8->f1[3]);
-    // src_f1 = rpp_hip_unpack0(src_ui3.y);
     dst_f8->f1[0] = fmaf(src_f12.f1[4], filter[4], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f12.f1[4], filter[3], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f12.f1[4], filter[2], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f12.f1[4], filter[1], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f12.f1[4], filter[0], dst_f8->f1[4]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.y);
     dst_f8->f1[1] = fmaf(src_f12.f1[5], filter[4], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f12.f1[5], filter[3], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f12.f1[5], filter[2], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f12.f1[5], filter[1], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f12.f1[5], filter[0], dst_f8->f1[5]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.y);
     dst_f8->f1[2] = fmaf(src_f12.f1[6], filter[4], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f12.f1[6], filter[3], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f12.f1[6], filter[2], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f12.f1[6], filter[1], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f12.f1[6], filter[0], dst_f8->f1[6]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.y);
     dst_f8->f1[3] = fmaf(src_f12.f1[7], filter[4], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f12.f1[7], filter[3], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f12.f1[7], filter[2], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f12.f1[7], filter[1], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f12.f1[7], filter[0], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui3.z);
     dst_f8->f1[4] = fmaf(src_f12.f1[8], filter[4], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f12.f1[8], filter[3], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f12.f1[8], filter[2], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f12.f1[8], filter[1], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui3.z);
     dst_f8->f1[5] = fmaf(src_f12.f1[9], filter[4], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f12.f1[9], filter[3], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f12.f1[9], filter[2], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack2(src_ui3.z);
     dst_f8->f1[6] = fmaf(src_f12.f1[10], filter[4], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f12.f1[10], filter[3], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack3(src_ui3.z);
     dst_f8->f1[7] = fmaf(src_f12.f1[11], filter[4], dst_f8->f1[7]);
 }
 
 __device__ void gaussian_filter_f32_7x7_row_hip_compute(d_float14 *srcPtr_f14, d_float8 *dst_f8, float *filter)
 {
     d_float14 src_f14 = *srcPtr_f14;
-    // float src_f1;
-    // uint4 src_ui4 = *(uint4 *)srcPtr;
-    // src_f1 = rpp_hip_unpack0(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f14.f1[0], filter[0], dst_f8->f1[0]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f14.f1[1], filter[1], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[1], filter[0], dst_f8->f1[1]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f14.f1[2], filter[2], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[2], filter[1], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[2], filter[0], dst_f8->f1[2]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f14.f1[3], filter[3], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[3], filter[2], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[3], filter[1], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[3], filter[0], dst_f8->f1[3]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f14.f1[4], filter[4], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[4], filter[3], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[4], filter[2], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[4], filter[1], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f14.f1[4], filter[0], dst_f8->f1[4]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f14.f1[5], filter[5], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[5], filter[4], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[5], filter[3], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[5], filter[2], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f14.f1[5], filter[1], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[5], filter[0], dst_f8->f1[5]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f14.f1[6], filter[6], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f14.f1[6], filter[5], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[6], filter[4], dst_f8->f1[2]);
@@ -145,7 +108,6 @@ __device__ void gaussian_filter_f32_7x7_row_hip_compute(d_float14 *srcPtr_f14, d
     dst_f8->f1[4] = fmaf(src_f14.f1[6], filter[2], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[6], filter[1], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[6], filter[0], dst_f8->f1[6]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.y);
     dst_f8->f1[1] = fmaf(src_f14.f1[7], filter[6], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f14.f1[7], filter[5], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[7], filter[4], dst_f8->f1[3]);
@@ -153,68 +115,53 @@ __device__ void gaussian_filter_f32_7x7_row_hip_compute(d_float14 *srcPtr_f14, d
     dst_f8->f1[5] = fmaf(src_f14.f1[7], filter[2], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[7], filter[1], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[7], filter[0], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.z);
     dst_f8->f1[2] = fmaf(src_f14.f1[8], filter[6], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f14.f1[8], filter[5], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f14.f1[8], filter[4], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[8], filter[3], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[8], filter[2], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[8], filter[1], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.z);
     dst_f8->f1[3] = fmaf(src_f14.f1[9], filter[6], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f14.f1[9], filter[5], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[9], filter[4], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[9], filter[3], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[9], filter[2], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.z);
     dst_f8->f1[4] = fmaf(src_f14.f1[10], filter[6], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f14.f1[10], filter[5], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[10], filter[4], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[10], filter[3], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.z);
     dst_f8->f1[5] = fmaf(src_f14.f1[11], filter[6], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f14.f1[11], filter[5], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[11], filter[4], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.w);
     dst_f8->f1[6] = fmaf(src_f14.f1[12], filter[6], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f14.f1[12], filter[5], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.w);
     dst_f8->f1[7] = fmaf(src_f14.f1[13], filter[6], dst_f8->f1[7]);
 }
 
 __device__ void gaussian_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d_float8 *dst_f8, float *filter)
 {
     d_float16 src_f16 = *srcPtr_f16;
-    // float src_f1;
-    // uint4 src_ui4 = *(uint4 *)srcPtr;
-    // src_f1 = rpp_hip_unpack0(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f16.f1[0], filter[0], dst_f8->f1[0]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f16.f1[1], filter[1], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[1], filter[0], dst_f8->f1[1]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f16.f1[2], filter[2], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[2], filter[1], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[2], filter[0], dst_f8->f1[2]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.x);
     dst_f8->f1[0] = fmaf(src_f16.f1[3], filter[3], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[3], filter[2], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[3], filter[1], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[3], filter[0], dst_f8->f1[3]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f16.f1[4], filter[4], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[4], filter[3], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[4], filter[2], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[4], filter[1], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f16.f1[4], filter[0], dst_f8->f1[4]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f16.f1[5], filter[5], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[5], filter[4], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[5], filter[3], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[5], filter[2], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f16.f1[5], filter[1], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[5], filter[0], dst_f8->f1[5]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f16.f1[6], filter[6], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[6], filter[5], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[6], filter[4], dst_f8->f1[2]);
@@ -222,7 +169,6 @@ __device__ void gaussian_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d
     dst_f8->f1[4] = fmaf(src_f16.f1[6], filter[2], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[6], filter[1], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[6], filter[0], dst_f8->f1[6]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.y);
     dst_f8->f1[0] = fmaf(src_f16.f1[7], filter[7], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[7], filter[6], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[7], filter[5], dst_f8->f1[2]);
@@ -231,7 +177,6 @@ __device__ void gaussian_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d
     dst_f8->f1[5] = fmaf(src_f16.f1[7], filter[2], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[7], filter[1], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[7], filter[0], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.z);
     dst_f8->f1[0] = fmaf(src_f16.f1[8], filter[8], dst_f8->f1[0]);
     dst_f8->f1[1] = fmaf(src_f16.f1[8], filter[7], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[8], filter[6], dst_f8->f1[2]);
@@ -240,7 +185,6 @@ __device__ void gaussian_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d
     dst_f8->f1[5] = fmaf(src_f16.f1[8], filter[3], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[8], filter[2], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[8], filter[1], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.z);
     dst_f8->f1[1] = fmaf(src_f16.f1[9], filter[8], dst_f8->f1[1]);
     dst_f8->f1[2] = fmaf(src_f16.f1[9], filter[7], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[9], filter[6], dst_f8->f1[3]);
@@ -248,32 +192,26 @@ __device__ void gaussian_filter_f32_9x9_row_hip_compute(d_float16 *srcPtr_f16, d
     dst_f8->f1[5] = fmaf(src_f16.f1[9], filter[4], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[9], filter[3], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[9], filter[2], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.z);
     dst_f8->f1[2] = fmaf(src_f16.f1[10], filter[8], dst_f8->f1[2]);
     dst_f8->f1[3] = fmaf(src_f16.f1[10], filter[7], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f16.f1[10], filter[6], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[10], filter[5], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[10], filter[4], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[10], filter[3], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.z);
     dst_f8->f1[3] = fmaf(src_f16.f1[11], filter[8], dst_f8->f1[3]);
     dst_f8->f1[4] = fmaf(src_f16.f1[11], filter[7], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[11], filter[6], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[11], filter[5], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[11], filter[4], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack0(src_ui4.w);
     dst_f8->f1[4] = fmaf(src_f16.f1[12], filter[8], dst_f8->f1[4]);
     dst_f8->f1[5] = fmaf(src_f16.f1[12], filter[7], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[12], filter[6], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[12], filter[5], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack1(src_ui4.w);
     dst_f8->f1[5] = fmaf(src_f16.f1[13], filter[8], dst_f8->f1[5]);
     dst_f8->f1[6] = fmaf(src_f16.f1[13], filter[7], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[13], filter[6], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack2(src_ui4.w);
     dst_f8->f1[6] = fmaf(src_f16.f1[14], filter[8], dst_f8->f1[6]);
     dst_f8->f1[7] = fmaf(src_f16.f1[14], filter[7], dst_f8->f1[7]);
-    // src_f1 = rpp_hip_unpack3(src_ui4.w);
     dst_f8->f1[7] = fmaf(src_f16.f1[15], filter[8], dst_f8->f1[7]);
 }
 
@@ -301,26 +239,9 @@ __global__ void gaussian_filter_3x3_pln_tensor(T *srcPtr,
     d_float8 sum_f8;
     __shared__ float src_lds[16][128];
 
-    // OLD correct code
-    // int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    // int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
-    // d_float9 filter_f9 = filterTensor[id_z];
-    // float *filter_row1 = &filter_f9.f1[0];
-    // float *filter_row2 = &filter_f9.f1[3];
-    // float *filter_row3 = &filter_f9.f1[6];
-    // sum_f8.f4[0] = (float4) 0;
-    // sum_f8.f4[1] = (float4) 0;
-    // if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-    //     (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-    //     rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(uint2 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
-
-    // NEW experimental code
     int srcIdx = (id_z * srcStridesNCH.x) +
                  (std::min(std::max(id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y, 0), roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1) * srcStridesNCH.z) +
                  (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-                //  (std::min(std::max(id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x, 0), roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     d_float9 filter_f9 = filterTensor[id_z];
     float *filter_row1 = &filter_f9.f1[0];
@@ -374,28 +295,9 @@ __global__ void gaussian_filter_5x5_pln_tensor(T *srcPtr,
     d_float8 sum_f8;
     __shared__ float src_lds[16][128];
 
-    // OLD correct code
-    // int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    // int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
-    // d_float25 filter_f25 = filterTensor[id_z];
-    // float *filter_row1 = &filter_f25.f1[0];
-    // float *filter_row2 = &filter_f25.f1[5];
-    // float *filter_row3 = &filter_f25.f1[10];
-    // float *filter_row4 = &filter_f25.f1[15];
-    // float *filter_row5 = &filter_f25.f1[20];
-    // sum_f8.f4[0] = (float4) 0;
-    // sum_f8.f4[1] = (float4) 0;
-    // if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-    //     (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-    //     rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(uint2 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
-
-    // NEW experimental code
     int srcIdx = (id_z * srcStridesNCH.x) +
                  (std::min(std::max(id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y, 0), roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1) * srcStridesNCH.z) +
                  (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-                //  (std::min(std::max(id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x, 0), roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     d_float25 filter_f25 = filterTensor[id_z];
     float *filter_row1 = &filter_f25.f1[0];
@@ -452,30 +354,9 @@ __global__ void gaussian_filter_7x7_pln_tensor(T *srcPtr,
     d_float8 sum_f8;
     __shared__ float src_lds[16][128];
 
-    // OLD correct code
-    // int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    // int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
-    // d_float49 filter_f49 = filterTensor[id_z];
-    // float *filter_row1 = &filter_f49.f1[0];
-    // float *filter_row2 = &filter_f49.f1[7];
-    // float *filter_row3 = &filter_f49.f1[14];
-    // float *filter_row4 = &filter_f49.f1[21];
-    // float *filter_row5 = &filter_f49.f1[28];
-    // float *filter_row6 = &filter_f49.f1[35];
-    // float *filter_row7 = &filter_f49.f1[42];
-    // sum_f8.f4[0] = (float4) 0;
-    // sum_f8.f4[1] = (float4) 0;
-    // if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-    //     (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-    //     rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(uint2 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
-
-    // NEW experimental code
     int srcIdx = (id_z * srcStridesNCH.x) +
                  (std::min(std::max(id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y, 0), roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1) * srcStridesNCH.z) +
                  (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-                //  (std::min(std::max(id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x, 0), roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     d_float49 filter_f49 = filterTensor[id_z];
     float *filter_row1 = &filter_f49.f1[0];
@@ -536,32 +417,9 @@ __global__ void gaussian_filter_9x9_pln_tensor(T *srcPtr,
     d_float8 sum_f8;
     __shared__ float src_lds[16][128];
 
-    // OLD correct code
-    // int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    // int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
-    // d_float81 filter_f81 = filterTensor[id_z];
-    // float *filter_row1 = &filter_f81.f1[0];
-    // float *filter_row2 = &filter_f81.f1[9];
-    // float *filter_row3 = &filter_f81.f1[18];
-    // float *filter_row4 = &filter_f81.f1[27];
-    // float *filter_row5 = &filter_f81.f1[36];
-    // float *filter_row6 = &filter_f81.f1[45];
-    // float *filter_row7 = &filter_f81.f1[54];
-    // float *filter_row8 = &filter_f81.f1[63];
-    // float *filter_row9 = &filter_f81.f1[72];
-    // sum_f8.f4[0] = (float4) 0;
-    // sum_f8.f4[1] = (float4) 0;
-    // if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-    //     (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-    //     rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_lds[hipThreadIdx_y][hipThreadIdx_x8]);
-    // else
-    //     *(uint2 *)&src_lds[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
-
-    // NEW experimental code
     int srcIdx = (id_z * srcStridesNCH.x) +
                  (std::min(std::max(id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y, 0), roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1) * srcStridesNCH.z) +
                  (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-                //  (std::min(std::max(id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x, 0), roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     d_float81 filter_f81 = filterTensor[id_z];
     float *filter_row1 = &filter_f81.f1[0];
@@ -754,18 +612,6 @@ RppStatus hip_exec_gaussian_filter_f32_tensor(T *srcPtr,
                                     kernelSize,
                                     stdDevTensor,
                                     handle);
-
-    float kernelHost[81];
-    hipMemcpy(kernelHost, filterTensor, kernelSize * kernelSize * sizeof(Rpp32f), hipMemcpyDeviceToHost);
-    // std::cerr << "\n\nPRINTING GAUSSIAN:\n";
-    // for (int i = 0; i < kernelSize; i++)
-    // {
-    //     for (int j = 0; j < kernelSize; j++)
-    //     {
-    //         std::cerr << kernelHost[i * kernelSize + j] << ", ";
-    //     }
-    //     std::cerr << "\n";
-    // }
 
     if ((srcDescPtr->c == 1) && (dstDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
     {

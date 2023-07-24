@@ -39,9 +39,6 @@ THE SOFTWARE.
 
 RppStatus rppt_farneback_optical_flow_gpu(RppPtr_t src1Ptr,
                                           RppPtr_t src2Ptr,
-                                          RppPtr_t dstPtrIntermU8, // To be removed
-                                          RppPtr_t dstPtrIntermF32, // To be removed
-                                          RppPtr_t dh_cudaResizdStrided, // To be removed
                                           RpptDescPtr srcCompDescPtr,
                                           RppPtr_t mVecCompX,
                                           RppPtr_t mVecCompY,
@@ -65,24 +62,20 @@ RppStatus rppt_farneback_optical_flow_gpu(RppPtr_t src1Ptr,
     if ((srcCompDescPtr->h) != (mVecCompDescPtr->h))            return RPP_ERROR_MISMATCH_SRC_AND_DST_HEIGHTS;  // src and dst heights must match
     if ((polyExpNbhoodSize != 5) && (polyExpNbhoodSize != 7))   return RPP_ERROR_INVALID_ARGUMENTS;     //  polyExpNbhoodSize must be 5 or 7
 
-    hip_exec_farneback_optical_flow_tensor(static_cast<Rpp8u*>(src1Ptr) + srcCompDescPtr->offsetInBytes,
-                                           static_cast<Rpp8u*>(src2Ptr) + srcCompDescPtr->offsetInBytes,
-                                           static_cast<Rpp8u*>(dstPtrIntermU8),  // To be removed
-                                           static_cast<Rpp32f*>(dstPtrIntermF32),  // To be removed
-                                           static_cast<Rpp32f*>(dh_cudaResizdStrided),  // To be removed
-                                           srcCompDescPtr,
-                                           (Rpp32f*) (static_cast<Rpp8u*>(mVecCompX) + mVecCompDescPtr->offsetInBytes),
-                                           (Rpp32f*) (static_cast<Rpp8u*>(mVecCompY) + mVecCompDescPtr->offsetInBytes),
-                                           mVecCompDescPtr,
-                                           pyramidScale,
-                                           numPyramidLevels,
-                                           windowSize,
-                                           numIterations,
-                                           polyExpNbhoodSize,
-                                           polyExpStdDev,
-                                           rpp::deref(rppHandle));
+    return hip_exec_farneback_optical_flow_tensor(static_cast<Rpp8u*>(src1Ptr) + srcCompDescPtr->offsetInBytes,
+                                                  static_cast<Rpp8u*>(src2Ptr) + srcCompDescPtr->offsetInBytes,
+                                                  srcCompDescPtr,
+                                                  (Rpp32f*) (static_cast<Rpp8u*>(mVecCompX) + mVecCompDescPtr->offsetInBytes),
+                                                  (Rpp32f*) (static_cast<Rpp8u*>(mVecCompY) + mVecCompDescPtr->offsetInBytes),
+                                                  mVecCompDescPtr,
+                                                  pyramidScale,
+                                                  numPyramidLevels,
+                                                  windowSize,
+                                                  numIterations,
+                                                  polyExpNbhoodSize,
+                                                  polyExpStdDev,
+                                                  rpp::deref(rppHandle));
 
-    return RPP_SUCCESS;
 #elif defined(OCL_COMPILE)
     return RPP_ERROR_NOT_IMPLEMENTED;
 #endif // backend
