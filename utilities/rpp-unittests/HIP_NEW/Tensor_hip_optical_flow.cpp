@@ -389,19 +389,16 @@ void rpp_optical_flow_hip(string inputVideoFileName)
 
         // ****************************************************************** motion vector generation ******************************************************************
 
-        // TEMP TO BE REMOVED Creating intermediate buffer for image outputs
-        Rpp8u *d_intermU8;
-        Rpp32f *dh_intermF32;
-
-        // TEMP TO BE REMOVED copy cuda resized strided outputs to dh_intermF32
-        Rpp32f *dh_cudaResizdStrided;
-
         // start optical flow timer
         auto startOpticalFlowTime = high_resolution_clock::now();
 
         // calculate optical flow
-        rppt_farneback_optical_flow_gpu(d_src1, d_src2, d_intermU8, dh_intermF32, dh_cudaResizdStrided, srcDescPtr, d_motionVectorsCartesianF32Comp1, d_motionVectorsCartesianF32Comp2, mVecCompPlnDescPtr, 0.75f, 5, 9, 3, 5, 1.2f, handle1);
+        RppStatus fbackOptFlowReturn = rppt_farneback_optical_flow_gpu(d_src1, d_src2, srcDescPtr, d_motionVectorsCartesianF32Comp1, d_motionVectorsCartesianF32Comp2, mVecCompPlnDescPtr, 0.75f, 5, 9, 3, 5, 1.2f, handle1);
         hipDeviceSynchronize();
+
+        // verify successful motion vector generation
+        if (fbackOptFlowReturn != RPP_SUCCESS)
+            exit(0);
 
         // all ops in all streams need to complete at end of motion vector generation
         hipDeviceSynchronize();
