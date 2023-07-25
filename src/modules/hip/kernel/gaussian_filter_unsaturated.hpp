@@ -521,12 +521,13 @@ __global__ void create_gaussian_kernel(T *filterTensor,
 static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                                                  Rpp32s kernelSize,
                                                  Rpp32f *stdDevTensor,
+                                                 Rpp32s batchSize,
                                                  rpp::Handle &handle)
 {
     int localThreads_x = 256;
     int localThreads_y = 1;
     int localThreads_z = 1;
-    int globalThreads_x = handle.GetBatchSize();
+    int globalThreads_x = batchSize;
     int globalThreads_y = 1;
     int globalThreads_z = 1;
     int numValues = kernelSize * kernelSize;
@@ -541,7 +542,7 @@ static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                            stdDevTensor,
                            kernelSize,
                            numValues,
-                           handle.GetBatchSize());
+                           batchSize);
     else if (kernelSize == 5)
         hipLaunchKernelGGL(create_gaussian_kernel,
                            dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
@@ -552,7 +553,7 @@ static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                            stdDevTensor,
                            kernelSize,
                            numValues,
-                           handle.GetBatchSize());
+                           batchSize);
     else if (kernelSize == 7)
         hipLaunchKernelGGL(create_gaussian_kernel,
                            dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
@@ -563,7 +564,7 @@ static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                            stdDevTensor,
                            kernelSize,
                            numValues,
-                           handle.GetBatchSize());
+                           batchSize);
     else if (kernelSize == 9)
         hipLaunchKernelGGL(create_gaussian_kernel,
                            dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
@@ -574,7 +575,7 @@ static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                            stdDevTensor,
                            kernelSize,
                            numValues,
-                           handle.GetBatchSize());
+                           batchSize);
 
     return RPP_SUCCESS;
 }
@@ -598,7 +599,7 @@ RppStatus hip_exec_gaussian_filter_f32_tensor(T *srcPtr,
     int localThreads_z = LOCAL_THREADS_Z;
     int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
-    int globalThreads_z = handle.GetBatchSize();
+    int globalThreads_z = dstDescPtr->n;
 
     uint padLength = kernelSize / 2;
     uint padLengthTwice = padLength * 2;
@@ -611,6 +612,7 @@ RppStatus hip_exec_gaussian_filter_f32_tensor(T *srcPtr,
     hip_exec_create_gaussian_kernel((float *)filterTensor,
                                     kernelSize,
                                     stdDevTensor,
+                                    dstDescPtr->n,
                                     handle);
 
     if ((srcDescPtr->c == 1) && (dstDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))

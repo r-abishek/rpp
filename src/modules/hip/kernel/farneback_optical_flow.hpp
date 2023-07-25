@@ -463,6 +463,7 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         }
     }
 
+    // Gauss-Jordan heavily optimized coefficient computations necessary for 4 out of 36 elements in a 6 x 6 matrix inverse
     Rpp32f yw = gaussian00113355_f4.y * gaussian00113355_f4.w;
     Rpp32f yz = gaussian00113355_f4.y * gaussian00113355_f4.z;
     Rpp32f xyzw = gaussian00113355_f4.x * yz * gaussian00113355_f4.w;
@@ -472,7 +473,7 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     Rpp32f y2zw = yz * yw;
     Rpp32f oneOverDetG = -1.0f / ((xyzw * yw) - (xyw3 * gaussian00113355_f4.y) - (xyzw * yz) + (y3w * yz));
 
-    // Gauss-Jordan simplified calculations for 4 out of 36 elements in 6 x 6 matrix inverse
+    // Gauss-Jordan simplified calculations for 4 out of 36 elements in a 6 x 6 matrix inverse
     double4 invG11033355_f4; // initialization for 4 elements from the invG matrix - (1,1), (0,3), (3,3), (5,5)
     invG11033355_f4.x = (((y3w + y3w - xyzw) * gaussian00113355_f4.w) - xyw3 + (xyzw * gaussian00113355_f4.z) - (y2zw * gaussian00113355_f4.y)) * oneOverDetG;
     invG11033355_f4.y = ((y3w * gaussian00113355_f4.w) - (y2zw * gaussian00113355_f4.y)) * oneOverDetG;
@@ -481,14 +482,14 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
 
     // Pinned memory allocations
     Rpp32f *stdDevPtrForGaussian, *border;
-    hipHostMalloc(&stdDevPtrForGaussian, mVecCompDescPtr->n * sizeof(Rpp32f));
+    hipHostMalloc(&stdDevPtrForGaussian, mVecCompBatchDescPtr->n * sizeof(Rpp32f));
     hipHostMalloc(&border, (BORDER_SIZE + 1) * sizeof(Rpp32f));
     *(d_float6_s *)border = *(d_float6_s *)borderVals;
     RpptImagePatch *pyramidImgPatchPtr;
-    hipHostMalloc(&pyramidImgPatchPtr, sizeof(RpptImagePatch));
+    hipHostMalloc(&pyramidImgPatchPtr, mVecCompBatchDescPtr->n * sizeof(RpptImagePatch));
     RpptROI *roiTensorPtrSrc, *roiTensorPtrPyramid;
-    hipHostMalloc(&roiTensorPtrSrc, mVecCompDescPtr->n * 2 * sizeof(RpptROI));
-    hipHostMalloc(&roiTensorPtrPyramid, mVecCompDescPtr->n * 5 * sizeof(RpptROI));
+    hipHostMalloc(&roiTensorPtrSrc, mVecCompBatchDescPtr->n * sizeof(RpptROI));
+    hipHostMalloc(&roiTensorPtrPyramid, mVecCompBatch5DescPtr->n * sizeof(RpptROI));
     for (int roiIdx = 0; roiIdx < 2; roiIdx++)
         roiTensorPtrSrc[roiIdx] = {0, 0, mVecCompDescPtr->w, mVecCompDescPtr->h};
 
@@ -505,8 +506,11 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         Rpp32s smoothSize = ((Rpp32s)roundf(sigma * 5)) | 1;
         smoothSize = fminf(fmaxf(smoothSize, 3), 9); // cap needed for RPP compatibility on filter sizes 3,5,7,9
 
-        pyramidImgPatchPtr->width = std::roundf(srcCompDescPtr->w * scale);
-        pyramidImgPatchPtr->height = std::roundf(srcCompDescPtr->h * scale);
+        // Set new pyramid image patch size
+        // pyramidImgPatchPtr->width = std::roundf(srcCompDescPtr->w * scale);  // for single image use
+        // pyramidImgPatchPtr->height = std::roundf(srcCompDescPtr->h * scale); // for single image use
+        for (int roiIdx = 0; roiIdx < 2; roiIdx++)
+            pyramidImgPatchPtr[roiIdx] = {static_cast<Rpp32s>(std::roundf(srcCompDescPtr->w * scale)), static_cast<Rpp32s>(std::roundf(srcCompDescPtr->h * scale))};
 
         if (k == numPyramidLevelsCropped)
         {
@@ -528,23 +532,22 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
                 return RPP_ERROR;
         }
 
-        // Gaussian filter for previous and current frames for the calculated smoothSize and sigma
+        // Batched gaussian filter for previous and current frames for iteratively calculated smoothSize and sigma
         if (sigma == 0)
             sigma = 1;
-        for (int batchCount = 0; batchCount < mVecCompDescPtr->n; batchCount++)
+        for (int batchCount = 0; batchCount < mVecCompBatchDescPtr->n; batchCount++)
             stdDevPtrForGaussian[batchCount] = sigma;
-        hip_exec_gaussian_filter_f32_tensor(src1F32, mVecCompDescPtr, src1F32Blurred, mVecCompDescPtr, smoothSize, stdDevPtrForGaussian, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
-        hip_exec_gaussian_filter_f32_tensor(src2F32, mVecCompDescPtr, src2F32Blurred, mVecCompDescPtr, smoothSize, stdDevPtrForGaussian, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
+        hip_exec_gaussian_filter_f32_tensor(src1F32, mVecCompBatchDescPtr, src1F32Blurred, mVecCompBatchDescPtr, smoothSize, stdDevPtrForGaussian, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
         hipDeviceSynchronize();
 
-        // Resize previous and current frames to pyramidLevel
+        // Run pyramidLevel resize for previous and current frames
         hip_exec_resize_tensor(src1F32Blurred, mVecCompDescPtr, pyramidLevelPrevF32, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
         hip_exec_resize_tensor(src2F32Blurred, mVecCompDescPtr, pyramidLevelCurrF32, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
         hipDeviceSynchronize();
 
         // Set new roi to be the pyramidLevel size
         for (int roiIdx = 0; roiIdx < 5; roiIdx++)
-            roiTensorPtrPyramid[roiIdx] = {0, 0, pyramidImgPatchPtr->width, pyramidImgPatchPtr->height};
+            roiTensorPtrPyramid[roiIdx] = {0, 0, pyramidImgPatchPtr[0].width, pyramidImgPatchPtr[0].height};
         
         // Run farneback polynomial expansion for previous and current frame to get 5 polyResPrev matrices and 5 polyResCurr matrices
         hip_exec_farneback_polynomial_expansion_tensor(pyramidLevelPrevF32, mVecCompDescPtr, polyResPrev, mVecCompDescPtr, polyExpNbhoodSize, g, xg, xxg, invG11033355_f4, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
