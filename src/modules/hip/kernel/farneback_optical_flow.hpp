@@ -14,7 +14,6 @@ using namespace std;
 #define FARNEBACK_FRAME_WIDTH 960                       // Farneback algorithm frame width
 #define FARNEBACK_FRAME_HEIGHT 540                      // Farneback algorithm frame height
 #define FARNEBACK_OUTPUT_FRAME_SIZE 518400              // 960 * 540
-#define FARNEBACK_OUTPUT_MVEC_SIZE 1036800              // 960 * 540 * 2
 #define FARNEBACK_FRAME_MIN_SIZE 32                     // set minimum frame size
 #define BORDER_SIZE 5                                   // set border size
 
@@ -354,37 +353,40 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
                                                  Rpp32f polyExpStdDev,
                                                  rpp::Handle& handle)
 {
+    // Precompute inverse pyramid scale
     Rpp32f oneOverPyramidScale = 1.0f / pyramidScale;
-    Rpp64f pyramidScaleDouble = (Rpp64f) pyramidScale;
+
+    // Create internal srcComp and mVecComp descriptors for batch processing
+    RpptDesc srcCompBatchDesc = *srcCompDescPtr;
+    RpptDescPtr srcCompBatchDescPtr = &srcCompBatchDesc;
+    srcCompBatchDescPtr->n = 2;
+    RpptDesc mVecCompBatchDesc = *mVecCompDescPtr;
+    RpptDescPtr mVecCompBatchDescPtr = &mVecCompBatchDesc;
+    mVecCompBatchDescPtr->n = 2;
+    RpptDesc mVecCompBatch5Desc = *mVecCompDescPtr;
+    RpptDescPtr mVecCompBatch5DescPtr = &mVecCompBatch5Desc;
+    mVecCompBatch5DescPtr->n = 5;
 
     // Use preallocated buffers for 4 960x540 frames (for previous/current motion vectors in x/y)
-    Rpp32f *preallocMem, *srcF32, *srcF32Blurred, *pyramidLevel, *polyRes, *polyMatrices, *polyMatricesBlurred;
+    Rpp32f *preallocMem, *src1F32, *src2F32, *src1F32Blurred, *src2F32Blurred, *pyramidLevelPrevF32, *pyramidLevelCurrF32, *polyResPrev, *polyResCurr, *polyMatrices, *polyMatricesBlurred;
     Rpp32f *mVecPrevCompX, *mVecPrevCompY, *mVecCurrCompX, *mVecCurrCompY;
     preallocMem = handle.GetInitHandle()->mem.mgpu.maskArr.floatmem;
     hipMemset(preallocMem, 0, FARNEBACK_OUTPUT_FRAME_SIZE * 30 * sizeof(Rpp32f));
     hipDeviceSynchronize();
-    srcF32 = preallocMem + 64;                                              // 2 frames - previous and current (after 64 byte offset)
-    srcF32Blurred = srcF32 + FARNEBACK_OUTPUT_MVEC_SIZE;                    // 2 blurred frames - previous and current
-    pyramidLevel = srcF32Blurred + FARNEBACK_OUTPUT_MVEC_SIZE;              // 2 pyramid frames - previous and current
-    polyRes = pyramidLevel + FARNEBACK_OUTPUT_MVEC_SIZE;                    // 10 polyRes frames - 5 based on previous frame and 5 based on current frame
-    polyMatrices = polyRes + (FARNEBACK_OUTPUT_FRAME_SIZE * 10);            // 5 polyMatrices frames
-    polyMatricesBlurred = polyMatrices + (FARNEBACK_OUTPUT_FRAME_SIZE * 5); // 5 blurred polyMatrices frames
-    mVecPrevCompX = polyMatricesBlurred + (FARNEBACK_OUTPUT_FRAME_SIZE * 5);// motion vector previous X component
-    mVecPrevCompY = mVecPrevCompX + FARNEBACK_OUTPUT_FRAME_SIZE;            // motion vector previous Y component
-    mVecCurrCompX = mVecPrevCompY + FARNEBACK_OUTPUT_FRAME_SIZE;            // motion vector current X component
-    mVecCurrCompY = mVecCurrCompX + FARNEBACK_OUTPUT_FRAME_SIZE;            // motion vector current Y component
-
-    // TEMP - collate pointers below with initializations above
-    
-    Rpp32f *src1F32 = srcF32;
-    Rpp32f *src2F32 = src1F32 + FARNEBACK_OUTPUT_FRAME_SIZE;
-    Rpp32f *src1F32Blurred = srcF32Blurred;
-    Rpp32f *src2F32Blurred = src1F32Blurred + FARNEBACK_OUTPUT_FRAME_SIZE;
-
-    Rpp32f *pyramidLevelPrevF32 = pyramidLevel;
-    Rpp32f *pyramidLevelCurrF32 = pyramidLevelPrevF32 + FARNEBACK_OUTPUT_FRAME_SIZE;
-    Rpp32f *polyResPrev = polyRes;
-    Rpp32f *polyResCurr = polyResPrev + (FARNEBACK_OUTPUT_FRAME_SIZE * 5);
+    src1F32 = preallocMem + 64;                                                 // previous frame (after 64 byte offset)
+    src2F32 = src1F32 + FARNEBACK_OUTPUT_FRAME_SIZE;                            // current frame
+    src1F32Blurred = src2F32 + FARNEBACK_OUTPUT_FRAME_SIZE;                     // blurred previous frame
+    src2F32Blurred = src1F32Blurred + FARNEBACK_OUTPUT_FRAME_SIZE;              // blurred current frame
+    pyramidLevelPrevF32 = src2F32Blurred + FARNEBACK_OUTPUT_FRAME_SIZE;         // pyramid level previous frame
+    pyramidLevelCurrF32 = pyramidLevelPrevF32 + FARNEBACK_OUTPUT_FRAME_SIZE;    // pyramid level current frame
+    polyResPrev = pyramidLevelCurrF32 + FARNEBACK_OUTPUT_FRAME_SIZE;            // 5 polynomial results for previous frame
+    polyResCurr = polyResPrev + (FARNEBACK_OUTPUT_FRAME_SIZE * 5);              // 5 polynomial results for current frame
+    polyMatrices = polyResCurr + (FARNEBACK_OUTPUT_FRAME_SIZE * 5);             // 5 polynomial matrices frames
+    polyMatricesBlurred = polyMatrices + (FARNEBACK_OUTPUT_FRAME_SIZE * 5);     // 5 blurred polynomial matrices frames
+    mVecPrevCompX = polyMatricesBlurred + (FARNEBACK_OUTPUT_FRAME_SIZE * 5);    // motion vector previous X component
+    mVecPrevCompY = mVecPrevCompX + FARNEBACK_OUTPUT_FRAME_SIZE;                // motion vector previous Y component
+    mVecCurrCompX = mVecPrevCompY + FARNEBACK_OUTPUT_FRAME_SIZE;                // motion vector current X component
+    mVecCurrCompY = mVecCurrCompX + FARNEBACK_OUTPUT_FRAME_SIZE;                // motion vector current Y component
 
     // Creating U8 pointer interpretations from F32 buffers
     Rpp8u *src1U8Blurred = (Rpp8u *)src1F32Blurred;
@@ -397,7 +399,7 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     for (; numPyramidLevelsCropped < numPyramidLevels; numPyramidLevelsCropped++)
     {
         scale *= pyramidScale;
-        if (srcCompDescPtr->w * scale < FARNEBACK_FRAME_MIN_SIZE || srcCompDescPtr->h * scale < FARNEBACK_FRAME_MIN_SIZE) // TODO: scale multiplier is loop independent
+        if (srcCompDescPtr->w * scale < FARNEBACK_FRAME_MIN_SIZE || srcCompDescPtr->h * scale < FARNEBACK_FRAME_MIN_SIZE)
             break;
     }
 
@@ -412,6 +414,12 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
                          src2F32,
                          mVecCompDescPtr,
                          handle);
+    
+    // hip_exec_copy_tensor(src1Ptr,
+    //                      srcCompBatchDescPtr,
+    //                      src1F32,
+    //                      mVecCompBatchDescPtr,
+    //                      handle);
     hipDeviceSynchronize();
 
     Rpp32s bufIncrement = polyExpNbhoodSize * 2 + 1;
@@ -479,9 +487,10 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     RpptImagePatch *pyramidImgPatchPtr;
     hipHostMalloc(&pyramidImgPatchPtr, sizeof(RpptImagePatch));
     RpptROI *roiTensorPtrSrc, *roiTensorPtrPyramid;
-    hipHostMalloc(&roiTensorPtrSrc, mVecCompDescPtr->n * sizeof(RpptROI));
-    hipHostMalloc(&roiTensorPtrPyramid, mVecCompDescPtr->n * sizeof(RpptROI));
-    *roiTensorPtrSrc = {0, 0, mVecCompDescPtr->w, mVecCompDescPtr->h};
+    hipHostMalloc(&roiTensorPtrSrc, mVecCompDescPtr->n * 2 * sizeof(RpptROI));
+    hipHostMalloc(&roiTensorPtrPyramid, mVecCompDescPtr->n * 5 * sizeof(RpptROI));
+    for (int roiIdx = 0; roiIdx < 2; roiIdx++)
+        roiTensorPtrSrc[roiIdx] = {0, 0, mVecCompDescPtr->w, mVecCompDescPtr->h};
 
     for (int k = numPyramidLevelsCropped; k >= 0; k--)
     {
@@ -511,10 +520,11 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
                 hipMemcpy(mVecCurrCompX, mVecCompX, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice);
                 hipMemcpy(mVecCurrCompY, mVecCompY, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice);
             }
-            RppStatus rsiReturn1 = hip_exec_resize_scale_intensity_tensor(mVecPrevCompX, mVecCompDescPtr, mVecCurrCompX, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, oneOverPyramidScale, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-            RppStatus rsiReturn2 = hip_exec_resize_scale_intensity_tensor(mVecPrevCompY, mVecCompDescPtr, mVecCurrCompY, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, oneOverPyramidScale, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
+
+            // Batched fused resize_scale_intensity for previous and current frames
+            RppStatus rsiReturn = hip_exec_resize_scale_intensity_tensor(mVecPrevCompX, mVecCompBatchDescPtr, mVecCurrCompX, mVecCompBatchDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, oneOverPyramidScale, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
             hipDeviceSynchronize();
-            if ((rsiReturn1 != RppStatus::RPP_SUCCESS) || (rsiReturn1 != RppStatus::RPP_SUCCESS))
+            if (rsiReturn != RppStatus::RPP_SUCCESS)
                 return RPP_ERROR;
         }
 
@@ -533,7 +543,8 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         hipDeviceSynchronize();
 
         // Set new roi to be the pyramidLevel size
-        *roiTensorPtrPyramid = {0, 0, pyramidImgPatchPtr->width, pyramidImgPatchPtr->height};
+        for (int roiIdx = 0; roiIdx < 5; roiIdx++)
+            roiTensorPtrPyramid[roiIdx] = {0, 0, pyramidImgPatchPtr->width, pyramidImgPatchPtr->height};
         
         // Run farneback polynomial expansion for previous and current frame to get 5 polyResPrev matrices and 5 polyResCurr matrices
         hip_exec_farneback_polynomial_expansion_tensor(pyramidLevelPrevF32, mVecCompDescPtr, polyResPrev, mVecCompDescPtr, polyExpNbhoodSize, g, xg, xxg, invG11033355_f4, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
@@ -546,12 +557,8 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         {
             hipDeviceSynchronize();
 
-            // Run box filtering with user provided windowSize for all 5 float polyMatrices
-            hip_exec_box_filter_f32_tensor(polyMatrices, mVecCompDescPtr, polyMatricesBlurred, mVecCompDescPtr, windowSize, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-            hip_exec_box_filter_f32_tensor(polyMatrices + FARNEBACK_OUTPUT_FRAME_SIZE, mVecCompDescPtr, polyMatricesBlurred + FARNEBACK_OUTPUT_FRAME_SIZE, mVecCompDescPtr, windowSize, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-            hip_exec_box_filter_f32_tensor(polyMatrices + (2 * FARNEBACK_OUTPUT_FRAME_SIZE), mVecCompDescPtr, polyMatricesBlurred + (2 * FARNEBACK_OUTPUT_FRAME_SIZE), mVecCompDescPtr, windowSize, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-            hip_exec_box_filter_f32_tensor(polyMatrices + (3 * FARNEBACK_OUTPUT_FRAME_SIZE), mVecCompDescPtr, polyMatricesBlurred + (3 * FARNEBACK_OUTPUT_FRAME_SIZE), mVecCompDescPtr, windowSize, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-            hip_exec_box_filter_f32_tensor(polyMatrices + (4 * FARNEBACK_OUTPUT_FRAME_SIZE), mVecCompDescPtr, polyMatricesBlurred + (4 * FARNEBACK_OUTPUT_FRAME_SIZE), mVecCompDescPtr, windowSize, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
+            // Run batched box filtering with user provided windowSize for all 5 float polyMatrices
+            hip_exec_box_filter_f32_tensor(polyMatrices, mVecCompBatch5DescPtr, polyMatricesBlurred, mVecCompBatch5DescPtr, windowSize, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
             hipDeviceSynchronize();
             
             // Optimal combined pointer swap for 5 polyMatrices

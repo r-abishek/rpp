@@ -112,7 +112,7 @@ RppStatus hip_exec_resize_scale_intensity_tensor(T *srcPtr,
     int localThreads_z = 1;
     int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
-    int globalThreads_z = handle.GetBatchSize();
+    int globalThreads_z = dstDescPtr->n;
 
     hipLaunchKernelGGL(resize_scale_intensity_bilinear_pln_tensor,
                        dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
