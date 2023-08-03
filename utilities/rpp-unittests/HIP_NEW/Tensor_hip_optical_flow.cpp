@@ -338,7 +338,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     hipDeviceSynchronize();
 
     Size frameSize(960, 540);
-    cv::VideoWriter videoOutput("videoOutput.mp4", VideoWriter::fourcc('M', 'J', 'P', 'G'), 15, frameSize);
+    cv::VideoWriter videoOutput("videoOutput.mp4", VideoWriter::fourcc('M', 'J', 'P', 'G'), fps, frameSize);
 
     int iterCount = 0;
     while (true)
