@@ -29,7 +29,8 @@ using namespace std::chrono;
 
 const RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_NEIGHBOR;
 const RpptSubpixelLayout subpixelLayout = RpptSubpixelLayout::BGRtype;
-const RpptRoiType roiType = RpptRoiType::XYWH;
+const RpptRoiType roiTypeXYWH = RpptRoiType::XYWH;
+const RpptRoiType roiTypeLTRB = RpptRoiType::LTRB;
 const RpptAngleType angleType = RpptAngleType::DEGREES;
 
 void rpp_tensor_initialize_descriptor(RpptDescPtr descPtr,
@@ -329,7 +330,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
     hipMemcpy(d_srcRGB, frame.data, sizeInBytesSrcRGB, hipMemcpyHostToDevice);
 
     // resize frame
-    rppt_resize_gpu(d_srcRGB, srcDescPtrRGB, d_dstRGB, dstDescPtrRGB, fbackImgPatchPtr, interpolationType, roiTensorPtrSrcRGB, roiType, handle);
+    rppt_resize_gpu(d_srcRGB, srcDescPtrRGB, d_dstRGB, dstDescPtrRGB, fbackImgPatchPtr, interpolationType, roiTensorPtrSrcRGB, roiTypeXYWH, handle);
     hipDeviceSynchronize();
 
     // convert to gray
@@ -369,7 +370,7 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         auto startPreProcessTime = high_resolution_clock::now();
 
         // resize frame
-        rppt_resize_gpu(d_srcRGB, srcDescPtrRGB, d_dstRGB, dstDescPtrRGB, fbackImgPatchPtr, interpolationType, roiTensorPtrSrcRGB, roiType, handle);
+        rppt_resize_gpu(d_srcRGB, srcDescPtrRGB, d_dstRGB, dstDescPtrRGB, fbackImgPatchPtr, interpolationType, roiTensorPtrSrcRGB, roiTypeLTRB, handle);
         hipDeviceSynchronize();
 
         // convert to gray
@@ -413,23 +414,23 @@ void rpp_optical_flow_hip(string inputVideoFileName)
         auto startPostProcessTime = high_resolution_clock::now();
 
         // convert from cartesian to polar coordinates
-        rppt_cartesian_to_polar_gpu(d_motionVectorsCartesianF32, mVecCartPlnGenericDescPtr, d_motionVectorsPolarF32, mVecPolrPlnGenericDescPtr, angleType, roiTensorPtrDstRGB, roiType, handle);
+        rppt_cartesian_to_polar_gpu(d_motionVectorsCartesianF32, mVecCartPlnGenericDescPtr, d_motionVectorsPolarF32, mVecPolrPlnGenericDescPtr, angleType, roiTensorPtrDstRGB, roiTypeXYWH, handle);
 
         // all ops in stream1 need to complete before rppt_multiply_scalar_gpu executes on stream1 and rppt_image_min_max executes on stream2
         // hipStreamSynchronize(stream1);
         hipDeviceSynchronize();
 
         // normalize polar angle from 0 to 1 in hip stream1
-        rppt_multiply_scalar_gpu(d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, HUE_CONVERSION_FACTOR, roiTensorPtrDstRGB, roiType, handle);
+        rppt_multiply_scalar_gpu(d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp1, mVecCompPlnGenericDescPtr, HUE_CONVERSION_FACTOR, roiTensorPtrDstRGB, roiTypeXYWH, handle);
 
         // find min and max of polar magnitude in  hip stream2
-        rppt_image_min_max_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, roiTensorPtrDstRGB, roiType, handle); // could be handle2
+        rppt_image_min_max_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, roiTensorPtrDstRGB, roiTypeXYWH, handle); // could be handle2
 
         // all ops in stream2 need to complete before rppt_normalize_minmax_gpu executes on stream2
         hipDeviceSynchronize(); // could be a hipStreamSynchronize(stream2);
 
         // normalize polar magnitude from 0 to 1 in hip stream2
-        rppt_normalize_minmax_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp3, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, 0.0f, 1.0f, roiTensorPtrDstRGB, roiType, handle); // could be handle2
+        rppt_normalize_minmax_gpu(d_motionVectorsPolarF32, mVecCompPlnGenericDescPtr, d_motionVectorsPolarF32Comp3, mVecCompPlnGenericDescPtr, imageMinMaxArr, imageMinMaxArrLength, 0.0f, 1.0f, roiTensorPtrDstRGB, roiTypeXYWH, handle); // could be handle2
 
         // all ops in all streams need to complete before rppt_hsv_to_rgbbgr_gpu executes on stream1
         // hipStreamSynchronize(stream2);

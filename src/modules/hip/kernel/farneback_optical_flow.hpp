@@ -487,11 +487,15 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     *(d_float6_s *)border = *(d_float6_s *)borderVals;
     RpptImagePatch *pyramidImgPatchPtr;
     hipHostMalloc(&pyramidImgPatchPtr, mVecCompBatchDescPtr->n * sizeof(RpptImagePatch));
-    RpptROI *roiTensorPtrSrc, *roiTensorPtrPyramid;
-    hipHostMalloc(&roiTensorPtrSrc, mVecCompBatchDescPtr->n * sizeof(RpptROI));
+    RpptROI *roiTensorPtrSrcXYWH, *roiTensorPtrSrcLTRB, *roiTensorPtrPyramid;
+    hipHostMalloc(&roiTensorPtrSrcXYWH, 2 * mVecCompBatchDescPtr->n * sizeof(RpptROI));
+    roiTensorPtrSrcLTRB = roiTensorPtrSrcXYWH + mVecCompBatchDescPtr->n;
     hipHostMalloc(&roiTensorPtrPyramid, mVecCompBatch5DescPtr->n * sizeof(RpptROI));
-    for (int roiIdx = 0; roiIdx < 2; roiIdx++)
-        roiTensorPtrSrc[roiIdx] = {0, 0, mVecCompDescPtr->w, mVecCompDescPtr->h};
+    for (int roiIdx = 0; roiIdx < mVecCompBatch5DescPtr->n; roiIdx++)
+    {
+        roiTensorPtrSrcXYWH[roiIdx] = {0, 0, mVecCompDescPtr->w, mVecCompDescPtr->h};
+        roiTensorPtrSrcLTRB[roiIdx] = {0, 0, mVecCompDescPtr->w - 1, mVecCompDescPtr->h - 1};
+    }
 
     for (int k = numPyramidLevelsCropped; k >= 0; k--)
     {
@@ -537,12 +541,12 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
             sigma = 1;
         for (int batchCount = 0; batchCount < mVecCompBatchDescPtr->n; batchCount++)
             stdDevPtrForGaussian[batchCount] = sigma;
-        hip_exec_gaussian_filter_f32_tensor(src1F32, mVecCompBatchDescPtr, src1F32Blurred, mVecCompBatchDescPtr, smoothSize, stdDevPtrForGaussian, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
+        hip_exec_gaussian_filter_f32_tensor(src1F32, mVecCompBatchDescPtr, src1F32Blurred, mVecCompBatchDescPtr, smoothSize, stdDevPtrForGaussian, roiTensorPtrSrcXYWH, RpptRoiType::XYWH, handle);
         hipDeviceSynchronize();
 
         // Run pyramidLevel resize for previous and current frames
-        hip_exec_resize_tensor(src1F32Blurred, mVecCompDescPtr, pyramidLevelPrevF32, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
-        hip_exec_resize_tensor(src2F32Blurred, mVecCompDescPtr, pyramidLevelCurrF32, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, roiTensorPtrSrc, RpptRoiType::XYWH, handle);
+        hip_exec_resize_tensor(src1F32Blurred, mVecCompDescPtr, pyramidLevelPrevF32, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, roiTensorPtrSrcLTRB, RpptRoiType::LTRB, handle);
+        hip_exec_resize_tensor(src2F32Blurred, mVecCompDescPtr, pyramidLevelCurrF32, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, roiTensorPtrSrcLTRB, RpptRoiType::LTRB, handle);
         hipDeviceSynchronize();
 
         // Set new roi to be the pyramidLevel size
@@ -600,7 +604,7 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     hipHostFree(&stdDevPtrForGaussian);
     hipHostFree(&border);
     hipHostFree(&pyramidImgPatchPtr);
-    hipHostFree(&roiTensorPtrSrc);
+    hipHostFree(&roiTensorPtrSrcXYWH);
     hipHostFree(&roiTensorPtrPyramid);
 
     return RPP_SUCCESS;
