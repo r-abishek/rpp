@@ -36,7 +36,8 @@ THE SOFTWARE.
 #define RPP_MAX_8U      ( 255 )
 #define RPP_MIN_16U     ( 0 )
 #define RPP_MAX_16U     ( 65535 )
-
+#define RPPT_MAX_DIMS   ( 4 )
+#define RPP_MACHEPS     1.19209290e-7f  // define machine epsilon as per ISO C standard
 const float ONE_OVER_6 = 1.0f / 6;
 const float ONE_OVER_3 = 1.0f / 3;
 const float ONE_OVER_255 = 1.0f / 255;
@@ -69,7 +70,12 @@ typedef enum
     RPP_ERROR_INVALID_DST_CHANNELS      = -8,
     RPP_ERROR_INVALID_SRC_LAYOUT        = -9,
     RPP_ERROR_INVALID_DST_LAYOUT        = -10,
-    RPP_ERROR_INVALID_SRC_DATATYPE      = -11
+    RPP_ERROR_INVALID_SRC_DATA_TYPE     = -11,
+    RPP_ERROR_INVALID_DST_DATA_TYPE     = -12,
+    RPP_ERROR_INVALID_SRC_OR_DST_DATA_TYPE      = -13,
+    RPP_ERROR_INSUFFICIENT_DST_BUFFER_LENGTH    = -14,
+    RPP_ERROR_MISMATCH_SRC_AND_DST_WIDTHS       = -15,
+    RPP_ERROR_MISMATCH_SRC_AND_DST_HEIGHTS      = -16
 } RppStatus;
 
 typedef enum
@@ -130,6 +136,11 @@ typedef struct
     Rpp32u channelParam;
     Rpp32u bufferMultiplier;
 } RppLayoutParams;
+
+typedef struct
+{
+    Rpp32f data[2];
+} Rpp32f2;
 
 typedef struct
 {
@@ -221,7 +232,7 @@ typedef enum
 
 typedef enum
 {
-    U8,
+    U8 = 0,
     F32,
     F16,
     I8
@@ -229,19 +240,19 @@ typedef enum
 
 typedef enum
 {
-    NCHW,
-    NHWC
+    NHWC = 0,
+    NCHW
 } RpptLayout;
 
 typedef enum
 {
-    LTRB,
-    XYWH
+    XYWH = 0,
+    LTRB
 } RpptRoiType;
 
 typedef enum
 {
-    RGBtype,
+    RGBtype = 0,
     BGRtype
 } RpptSubpixelLayout;
 
@@ -254,6 +265,12 @@ typedef enum
     GAUSSIAN,
     TRIANGULAR
 } RpptInterpolationType;
+
+typedef enum
+{
+    RADIANS = 0,
+    DEGREES
+} RpptAngleType;
 
 typedef struct
 {
@@ -268,6 +285,20 @@ typedef struct
 
 } RpptRoiXywh;
 
+// typedef struct
+// {
+//     RppiPoint3D xyz;
+//     int xLength, yLength, zLength;
+
+// } RpptRoiXYZ;
+
+// typedef struct
+// {
+//     int roiStart[RPP_MAX_DIMS];
+//     int roiLength[RPP_MAX_DIMS];
+
+// } RpptRoiND;
+
 typedef union
 {
     RpptRoiLtrb ltrbROI;
@@ -278,9 +309,9 @@ typedef union
 typedef struct
 {
     Rpp32u nStride;
-    Rpp32u cStride;
     Rpp32u hStride;
     Rpp32u wStride;
+    Rpp32u cStride;
 } RpptStrides;
 
 typedef struct
@@ -288,10 +319,20 @@ typedef struct
     RppSize_t numDims;
     Rpp32u offsetInBytes;
     RpptDataType dataType;
-    RpptLayout layout;
-    Rpp32u n, c, h, w;
+    Rpp32s n, h, w, c;
     RpptStrides strides;
+    RpptLayout layout;
 } RpptDesc, *RpptDescPtr;
+
+typedef struct
+{
+    RppSize_t numDims;
+    Rpp32u offsetInBytes;
+    RpptDataType dataType;
+    Rpp32u dims[RPPT_MAX_DIMS];
+    Rpp32u strides[RPPT_MAX_DIMS];
+    RpptLayout layout;
+} RpptGenericDesc, *RpptGenericDescPtr;
 
 typedef struct
 {
@@ -321,8 +362,8 @@ typedef struct
 
 typedef struct
 {
-    Rpp32u width;
-    Rpp32u height;
+    Rpp32s width;
+    Rpp32s height;
 } RpptImagePatch, *RpptImagePatchPtr;
 
 typedef struct

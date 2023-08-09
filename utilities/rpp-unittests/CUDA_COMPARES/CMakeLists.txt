@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.5)
+project(rpp_unittests/CUDA_COMPARES)
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../../cmake)
+
+# Set message options
+if(NOT WIN32)
+    string(ASCII 27 Esc)
+    set(ColourReset "${Esc}[m")
+    set(Red         "${Esc}[31m")
+    set(Green       "${Esc}[32m")
+    set(Yellow      "${Esc}[33m")
+    set(Blue        "${Esc}[34m")
+    set(BoldBlue    "${Esc}[1;34m")
+    set(Magenta     "${Esc}[35m")
+    set(Cyan        "${Esc}[36m")
+    set(White       "${Esc}[37m")
+endif()
+
+find_package(OpenCV QUIET)
+find_package(CUDA QUIET)
+
+# BOOST
+set(BOOST_COMPONENTS filesystem system)
+find_package(Boost COMPONENTS ${BOOST_COMPONENTS} REQUIRED)
+include_directories(${Boost_INCLUDE_DIRS})
+set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${Boost_FILESYSTEM_LIBRARY} ${Boost_SYSTEM_LIBRARY})
+# OpenMP
+find_package(OpenMP REQUIRED)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS} -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS} -g")
+
+if (CUDA_FOUND AND OpenCV_FOUND)
+    message("-- ${Green}${PROJECT_NAME} set to build with CUDA and OpenCV${ColourReset}")
+    include_directories(${OpenCV_INCLUDE_DIRS})
+    include_directories(${CUDA_INCLUDE_DIRS})
+    add_executable(cuda_optical_flow cuda_optical_flow.cpp)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++14")
+    message("-- ${Green}${PROJECT_NAME} set to build with flags ${CMAKE_CXX_FLAGS}${ColourReset}")
+    target_link_libraries(cuda_optical_flow ${OpenCV_LIBS} ${CUDA_LIBRARIES} pthread ${LINK_LIBRARY_LIST})
+else()
+    message("-- ${Yellow}Error: OpenCV and cuda must be installed to install ${PROJECT_NAME} successfully!${ColourReset}")
+endif()

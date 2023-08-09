@@ -254,6 +254,14 @@ RppStatus rppt_copy_gpu(RppPtr_t srcPtr,
                              dstDescPtr,
                              rpp::deref(rppHandle));
     }
+    else if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::F32))
+    {
+        hip_exec_copy_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+                             srcDescPtr,
+                             (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                             dstDescPtr,
+                             rpp::deref(rppHandle));
+    }
 
     return RPP_SUCCESS;
 #elif defined(OCL_COMPILE)
@@ -377,6 +385,41 @@ RppStatus rppt_color_to_greyscale_gpu(RppPtr_t srcPtr,
                                            dstDescPtr,
                                            channelWeights,
                                            rpp::deref(rppHandle));
+    }
+
+    return RPP_SUCCESS;
+#elif defined(OCL_COMPILE)
+    return RPP_ERROR_NOT_IMPLEMENTED;
+#endif // backend
+}
+
+/******************** hsv_to_rgbbgr ********************/
+
+RppStatus rppt_hsv_to_rgbbgr_gpu(RppPtr_t srcPtr,
+                                 RpptDescPtr srcDescPtr,
+                                 RppPtr_t dstPtr,
+                                 RpptDescPtr dstDescPtr,
+                                 RpptSubpixelLayout dstSubpixelLayout,
+                                 rppHandle_t rppHandle)
+{
+#ifdef HIP_COMPILE
+    if (srcDescPtr->c != 3)
+        return RPP_ERROR_INVALID_SRC_CHANNELS;
+    if (dstDescPtr->c != 3)
+        return RPP_ERROR_INVALID_DST_CHANNELS;
+
+    if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::U8))
+    {
+        hip_exec_hsv_to_rgbbgr_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                      srcDescPtr,
+                                      static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                      dstDescPtr,
+                                      dstSubpixelLayout,
+                                      rpp::deref(rppHandle));
+    }
+    else
+    {
+        return RPP_ERROR_INVALID_SRC_OR_DST_DATA_TYPE;
     }
 
     return RPP_SUCCESS;

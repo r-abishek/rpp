@@ -34,6 +34,9 @@ extern "C" {
 #include "rppt_tensor_filter_augmentations.h"
 #include "rppt_tensor_geometric_augmentations.h"
 #include "rppt_tensor_morphological_operations.h"
+#include "rppt_tensor_statistical_operations.h"
+#include "rppt_tensor_arithmetic_operations.h"
+#include "rppt_tensor_vision_operations.h"
 
 #ifdef __cplusplus
 }

@@ -26,5 +26,6 @@ THE SOFTWARE.
 #include "kernel/copy.hpp"
 #include "kernel/swap_channels.hpp"
 #include "kernel/color_to_greyscale.hpp"
+#include "kernel/hsv_to_rgbbgr.hpp"
 
 #endif // HIP_TENSOR_DATA_EXCHANGE_OPERATIONS_HPP

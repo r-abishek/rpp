@@ -38,6 +38,7 @@ typedef signed char schar;
 typedef struct { uint   data[ 6]; } d_uint6_s;
 typedef struct { float  data[ 6]; } d_float6_s;
 typedef struct { float  data[ 8]; } d_float8_s;
+typedef struct { float  data[16]; } d_float16_s;
 typedef struct { float  data[24]; } d_float24_s;
 typedef struct { half   data[24]; } d_half24_s;
 typedef struct { uchar  data[24]; } d_uchar24_s;
@@ -46,9 +47,15 @@ typedef struct { schar  data[24]; } d_schar24sc1s_s;
 // float
 typedef union { float f1[6];    float2 f2[3];                                                   }   d_float6;
 typedef union { float f1[8];    float2 f2[4];   float4 f4[2];                                   }   d_float8;
+typedef union { float f1[9];                                                                    }   d_float9;
+typedef union { float f1[10];                                                                   }   d_float10;
 typedef union { float f1[12];   float4 f4[3];                                                   }   d_float12;
+typedef union { float f1[14];                                                                   }   d_float14;
 typedef union { float f1[16];   float4 f4[4];   d_float8 f8[2];                                 }   d_float16;
 typedef union { float f1[24];   float2 f2[12];  float3 f3[8];   float4 f4[6];   d_float8 f8[3]; }   d_float24;
+typedef union { float f1[25];                                                                   }   d_float25;
+typedef union { float f1[49];                                                                   }   d_float49;
+typedef union { float f1[81];                                                                   }   d_float81;
 
 // uint
 typedef union { uint ui1[6];    uint2 ui2[3];                                                   }   d_uint6;
@@ -111,6 +118,7 @@ struct RPPTensorFunctionMetaData
 #define ONE_OVER_256                    0.00390625f
 #define SIX_OVER_360                    0.01666667f
 #define PI                              3.14159265
+#define ONE_EIGHTY_OVER_PI              57.2957795131f
 #define RGB_TO_GREY_WEIGHT_RED          0.299f
 #define RGB_TO_GREY_WEIGHT_GREEN        0.587f
 #define RGB_TO_GREY_WEIGHT_BLUE         0.114f
@@ -537,6 +545,15 @@ __device__ __forceinline__ void rpp_hip_load8_and_unpack_to_float8_mirror(half *
     srcPtr_f8->f4[1] = make_float4(src1_f2.y, src1_f2.x, src2_f2.y, src2_f2.x);    // write 03-00
 }
 
+// F32 loads without layout toggle PLN2 to PLN2 (16 F32 pixels)
+
+__device__ __forceinline__ void rpp_hip_load16_pln2_and_unpack_to_float16_pln2(float *srcPtr, uint increment, d_float16 *srcPtr_f16)
+{
+    *(d_float8_s *)&srcPtr_f16->f8[0] = *(d_float8_s *)srcPtr;  // write channel1 00-07
+    srcPtr += increment;
+    *(d_float8_s *)&srcPtr_f16->f8[1] = *(d_float8_s *)srcPtr;  // write channel2 00-07
+}
+
 // U8 loads without layout toggle PLN3 to PLN3 (24 U8 pixels)
 
 __device__ __forceinline__ void rpp_hip_load24_pln3_and_unpack_to_float24_pln3(uchar *srcPtr, uint increment, d_float24 *srcPtr_f24)
@@ -693,6 +710,19 @@ __device__ __forceinline__ void rpp_hip_load24_pln3_and_unpack_to_float24_pln3_m
 }
 
 // WITH LAYOUT TOGGLE
+
+// F32 loads with layout toggle PKD2 to PLN2 (16 F32 pixels)
+
+__device__ __forceinline__ void rpp_hip_load16_pkd2_and_unpack_to_float16_pln2(float *srcPtr, d_float16 *srcPtr_f16)
+{
+    d_float16 src_f16;
+    *(d_float16_s *)&src_f16 = *(d_float16_s *)srcPtr;
+
+    srcPtr_f16->f4[0] = make_float4(src_f16.f1[ 0], src_f16.f1[ 2], src_f16.f1[ 4], src_f16.f1[ 6]);    // write channel1 00-03
+    srcPtr_f16->f4[1] = make_float4(src_f16.f1[ 8], src_f16.f1[10], src_f16.f1[12], src_f16.f1[14]);    // write channel1 04-07
+    srcPtr_f16->f4[2] = make_float4(src_f16.f1[ 1], src_f16.f1[ 3], src_f16.f1[ 5], src_f16.f1[ 7]);    // write channel2 00-03
+    srcPtr_f16->f4[3] = make_float4(src_f16.f1[ 9], src_f16.f1[11], src_f16.f1[13], src_f16.f1[15]);    // write channel2 04-07
+}
 
 // U8 loads with layout toggle PKD3 to PLN3 (24 U8 pixels)
 
@@ -927,6 +957,15 @@ __device__ __forceinline__ void rpp_hip_pack_float8_and_store8(half *dstPtr, d_f
     *(d_half8 *)dstPtr = dst_h8;
 }
 
+// F32 stores without layout toggle PLN2 to PLN2 (16 F32 pixels)
+
+__device__ __forceinline__ void rpp_hip_pack_float16_pln2_and_store16_pln2(float *dstPtr, uint increment, d_float16 *dstPtr_f16)
+{
+    *(d_float8_s *)dstPtr = *(d_float8_s *)&(dstPtr_f16->f8[0]);
+    dstPtr += increment;
+    *(d_float8_s *)dstPtr = *(d_float8_s *)&(dstPtr_f16->f8[1]);
+}
+
 // U8 stores without layout toggle PKD3 to PKD3 (24 U8 pixels)
 
 __device__ __forceinline__ void rpp_hip_pack_float24_pkd3_and_store24_pkd3(uchar *dstPtr, d_float24 *dstPtr_f24)
@@ -1066,6 +1105,20 @@ __device__ __forceinline__ void rpp_hip_pack_float24_pln3_and_store24_pln3(half 
 }
 
 // WITH LAYOUT TOGGLE
+
+// F32 stores with layout toggle PLN2 to PKD2 (16 F32 pixels)
+
+__device__ __forceinline__ void rpp_hip_pack_float16_pln2_and_store16_pkd2(float *dstPtr, d_float16 *dstPtr_f16)
+{
+    d_float16 dst_f16;
+
+    dst_f16.f4[0] = make_float4(dstPtr_f16->f1[ 0], dstPtr_f16->f1[ 8], dstPtr_f16->f1[ 1], dstPtr_f16->f1[ 9]);    // write channel1-00|channel2-00|channel1-01|channel2-01
+    dst_f16.f4[1] = make_float4(dstPtr_f16->f1[ 2], dstPtr_f16->f1[10], dstPtr_f16->f1[ 3], dstPtr_f16->f1[11]);    // write channel1-02|channel2-02|channel1-03|channel2-03
+    dst_f16.f4[2] = make_float4(dstPtr_f16->f1[ 4], dstPtr_f16->f1[12], dstPtr_f16->f1[ 5], dstPtr_f16->f1[13]);    // write channel1-04|channel2-04|channel1-05|channel2-05
+    dst_f16.f4[3] = make_float4(dstPtr_f16->f1[ 6], dstPtr_f16->f1[14], dstPtr_f16->f1[ 7], dstPtr_f16->f1[15]);    // write channel1-06|channel2-06|channel1-07|channel2-07
+
+    *(d_float16_s *)dstPtr = *(d_float16_s *)&dst_f16;
+}
 
 // U8 stores with layout toggle PLN3 to PKD3 (24 U8 pixels)
 
@@ -1453,6 +1506,57 @@ __device__ __forceinline__ void rpp_hip_math_floor16(d_float16 *srcPtr_f16, d_fl
     dstPtr_f16->f1[15] = floorf(srcPtr_f16->f1[15]);
 }
 
+// d_float8 fmod
+
+__device__ __forceinline__ void rpp_hip_math_fmod8_const(d_float8 *srcPtr_f8, d_float8 *dstPtr_f8, float divisor)
+{
+    dstPtr_f8->f1[0] = fmodf(srcPtr_f8->f1[0], divisor);
+    dstPtr_f8->f1[1] = fmodf(srcPtr_f8->f1[1], divisor);
+    dstPtr_f8->f1[2] = fmodf(srcPtr_f8->f1[2], divisor);
+    dstPtr_f8->f1[3] = fmodf(srcPtr_f8->f1[3], divisor);
+    dstPtr_f8->f1[4] = fmodf(srcPtr_f8->f1[4], divisor);
+    dstPtr_f8->f1[5] = fmodf(srcPtr_f8->f1[5], divisor);
+    dstPtr_f8->f1[6] = fmodf(srcPtr_f8->f1[6], divisor);
+    dstPtr_f8->f1[7] = fmodf(srcPtr_f8->f1[7], divisor);
+}
+
+// d_float8 fmaf
+
+__device__ __forceinline__ void rpp_hip_math_fmaf8_const(d_float8 *srcPtr_f8, d_float8 *dstPtr_f8, float multiplier, float addend)
+{
+    dstPtr_f8->f1[0] = fmaf(srcPtr_f8->f1[0], multiplier, addend);
+    dstPtr_f8->f1[1] = fmaf(srcPtr_f8->f1[1], multiplier, addend);
+    dstPtr_f8->f1[2] = fmaf(srcPtr_f8->f1[2], multiplier, addend);
+    dstPtr_f8->f1[3] = fmaf(srcPtr_f8->f1[3], multiplier, addend);
+    dstPtr_f8->f1[4] = fmaf(srcPtr_f8->f1[4], multiplier, addend);
+    dstPtr_f8->f1[5] = fmaf(srcPtr_f8->f1[5], multiplier, addend);
+    dstPtr_f8->f1[6] = fmaf(srcPtr_f8->f1[6], multiplier, addend);
+    dstPtr_f8->f1[7] = fmaf(srcPtr_f8->f1[7], multiplier, addend);
+}
+
+// float2 min_max (read and write vector float2)
+
+__device__ __forceinline__ void rpp_hip_math_minmax2(float2 &src1Ptr_f2, float2 &src2Ptr_f2, float2 &dstPtr_f2)
+{
+    dstPtr_f2.x = fminf(src1Ptr_f2.x, src2Ptr_f2.x);
+    dstPtr_f2.y = fmaxf(src1Ptr_f2.y, src2Ptr_f2.y);
+}
+
+// d_float8 min_max (reduce d_float8 to float2)
+
+__device__ __forceinline__ void rpp_hip_math_minmax8(d_float8 &srcPtr_f8, float2 &dstPtr_f2)
+{
+    dstPtr_f2.x = fminf(fminf(fminf(fminf(fminf(fminf(fminf(srcPtr_f8.f1[0], srcPtr_f8.f1[1]), srcPtr_f8.f1[2]), srcPtr_f8.f1[3]), srcPtr_f8.f1[4]), srcPtr_f8.f1[5]), srcPtr_f8.f1[6]), srcPtr_f8.f1[7]);
+    dstPtr_f2.y = fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(srcPtr_f8.f1[0], srcPtr_f8.f1[1]), srcPtr_f8.f1[2]), srcPtr_f8.f1[3]), srcPtr_f8.f1[4]), srcPtr_f8.f1[5]), srcPtr_f8.f1[6]), srcPtr_f8.f1[7]);
+}
+
+// float4 add
+
+__device__ __forceinline__ void rpp_hip_math_add4(float4 &src1Ptr_f4, float4 &src2Ptr_f4, float4 &dstPtr_f4)
+{
+    dstPtr_f4 = src1Ptr_f4 + src2Ptr_f4;
+}
+
 // d_float8 add
 
 __device__ __forceinline__ void rpp_hip_math_add8(d_float8 *src1Ptr_f8, d_float8 *src2Ptr_f8, d_float8 *dstPtr_f8)
@@ -1563,6 +1667,8 @@ __device__ __forceinline__ void rpp_hip_math_multiply24_const(d_float24 *src_f24
     dst_f24->f4[5] = src_f24->f4[5] * multiplier_f4;
 }
 
+// inverse square root
+
 __device__ __forceinline__ float rpp_hip_math_inverse_sqrt1(float x)
 {
     float xHalf = 0.5f * x;
@@ -1573,6 +1679,8 @@ __device__ __forceinline__ float rpp_hip_math_inverse_sqrt1(float x)
 
     return x;
 }
+
+// float4 inverse square root
 
 __device__ __forceinline__ float4 rpp_hip_math_inverse_sqrt4(float4 x_f4)
 {
@@ -1585,6 +1693,8 @@ __device__ __forceinline__ float4 rpp_hip_math_inverse_sqrt4(float4 x_f4)
     return x_f4;
 }
 
+// d_float8 inverse square root
+
 __device__ __forceinline__ void rpp_hip_math_sqrt8(d_float8 *pix_f8, d_float8 *pixSqrt_f8)
 {
     pixSqrt_f8->f4[0] = rpp_hip_math_inverse_sqrt4(pix_f8->f4[0]);
@@ -1594,6 +1704,8 @@ __device__ __forceinline__ void rpp_hip_math_sqrt8(d_float8 *pix_f8, d_float8 *p
     pixSqrt_f8->f4[0] = one_f4 / pixSqrt_f8->f4[0];
     pixSqrt_f8->f4[1] = one_f4 / pixSqrt_f8->f4[1];
 }
+
+// d_float24 square root
 
 __device__ __forceinline__ void rpp_hip_math_sqrt24(d_float24 *pix_f24, d_float24 *pixSqrt_f24)
 {
@@ -1613,6 +1725,8 @@ __device__ __forceinline__ void rpp_hip_math_sqrt24(d_float24 *pix_f24, d_float2
     pixSqrt_f24->f4[5] = one_f4 / pixSqrt_f24->f4[5];
 }
 
+// exp(x) approximation
+
 __device__ __forceinline__ float rpp_hip_math_exp_lim256approx(float x)
 {
   x = 1.0 + x * ONE_OVER_256;
@@ -1622,10 +1736,26 @@ __device__ __forceinline__ float rpp_hip_math_exp_lim256approx(float x)
   return x;
 }
 
+// normalized sinc(x)
+
 __device__ __forceinline__ float rpp_hip_math_sinc(float x)
 {
     x *= PI;
     return (fabsf(x) < 1e-5f) ? (1.0f - x * x * ONE_OVER_6) : sinf(x) / x;
+}
+
+// d_float8 atan2(y, x)
+
+__device__ __forceinline__ void rpp_hip_math_atan2_8(d_float8 *y_f8, d_float8 *x_f8, d_float8 *dst_f8)
+{
+    dst_f8->f1[0] = atan2f(y_f8->f1[0], x_f8->f1[0]);
+    dst_f8->f1[1] = atan2f(y_f8->f1[1], x_f8->f1[1]);
+    dst_f8->f1[2] = atan2f(y_f8->f1[2], x_f8->f1[2]);
+    dst_f8->f1[3] = atan2f(y_f8->f1[3], x_f8->f1[3]);
+    dst_f8->f1[4] = atan2f(y_f8->f1[4], x_f8->f1[4]);
+    dst_f8->f1[5] = atan2f(y_f8->f1[5], x_f8->f1[5]);
+    dst_f8->f1[6] = atan2f(y_f8->f1[6], x_f8->f1[6]);
+    dst_f8->f1[7] = atan2f(y_f8->f1[7], x_f8->f1[7]);
 }
 
 // /******************** DEVICE RANDOMIZATION HELPER FUNCTIONS ********************/
