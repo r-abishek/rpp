@@ -371,8 +371,8 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     Rpp32f *preallocMem, *src1F32, *src2F32, *src1F32Blurred, *src2F32Blurred, *pyramidLevelPrevF32, *pyramidLevelCurrF32, *polyResPrev, *polyResCurr, *polyMatrices, *polyMatricesBlurred;
     Rpp32f *mVecPrevCompX, *mVecPrevCompY, *mVecCurrCompX, *mVecCurrCompY;
     preallocMem = handle.GetInitHandle()->mem.mgpu.maskArr.floatmem;
-    hipMemset(preallocMem, 0, FARNEBACK_OUTPUT_FRAME_SIZE * 30 * sizeof(Rpp32f));
-    hipDeviceSynchronize();
+    hipMemsetAsync(preallocMem, 0, FARNEBACK_OUTPUT_FRAME_SIZE * 30 * sizeof(Rpp32f), handle.GetStream());
+    // hipStreamSynchronize(handle.GetStream());
     src1F32 = preallocMem + 64;                                                 // previous frame (after 64 byte offset)
     src2F32 = src1F32 + FARNEBACK_OUTPUT_FRAME_SIZE;                            // current frame
     src1F32Blurred = src2F32 + FARNEBACK_OUTPUT_FRAME_SIZE;                     // blurred previous frame
@@ -420,7 +420,7 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     //                      src1F32,
     //                      mVecCompBatchDescPtr,
     //                      handle);
-    hipDeviceSynchronize();
+    // hipDeviceSynchronize();
 
     Rpp32s bufIncrement = polyExpNbhoodSize * 2 + 1;
     std::vector<Rpp32f> xSquareBuf(bufIncrement);
@@ -480,17 +480,17 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     invG11033355_f4.z = (xyzw - y3w) * gaussian00113355_f4.y * oneOverDetG;
     invG11033355_f4.w = (((y3w + y3w - xyzw) * gaussian00113355_f4.y) + (((yz * yz) - (yw * yw)) * gaussian00113355_f4.x) - (y2 * y2 * gaussian00113355_f4.z)) * oneOverDetG;
 
-    // Pinned memory allocations
+    // Small pinned memory for internal use
     Rpp32f *stdDevPtrForGaussian, *border;
+    RpptImagePatch *pyramidImgPatchPtr;
+    RpptROI *roiTensorPtrSrcXYWH, *roiTensorPtrSrcLTRB, *roiTensorPtrPyramid;
     hipHostMalloc(&stdDevPtrForGaussian, mVecCompBatchDescPtr->n * sizeof(Rpp32f));
     hipHostMalloc(&border, (BORDER_SIZE + 1) * sizeof(Rpp32f));
-    *(d_float6_s *)border = *(d_float6_s *)borderVals;
-    RpptImagePatch *pyramidImgPatchPtr;
     hipHostMalloc(&pyramidImgPatchPtr, mVecCompBatchDescPtr->n * sizeof(RpptImagePatch));
-    RpptROI *roiTensorPtrSrcXYWH, *roiTensorPtrSrcLTRB, *roiTensorPtrPyramid;
     hipHostMalloc(&roiTensorPtrSrcXYWH, 2 * mVecCompBatchDescPtr->n * sizeof(RpptROI));
-    roiTensorPtrSrcLTRB = roiTensorPtrSrcXYWH + mVecCompBatchDescPtr->n;
     hipHostMalloc(&roiTensorPtrPyramid, mVecCompBatch5DescPtr->n * sizeof(RpptROI));
+    *(d_float6_s *)border = *(d_float6_s *)borderVals;
+    roiTensorPtrSrcLTRB = roiTensorPtrSrcXYWH + mVecCompBatchDescPtr->n;
     for (int roiIdx = 0; roiIdx < mVecCompBatch5DescPtr->n; roiIdx++)
     {
         roiTensorPtrSrcXYWH[roiIdx] = {0, 0, mVecCompDescPtr->w, mVecCompDescPtr->h};
@@ -500,7 +500,7 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
     for (int k = numPyramidLevelsCropped; k >= 0; k--)
     {
         // hipStreamSynchronize(streams[0]);
-        hipDeviceSynchronize();
+        // hipDeviceSynchronize();
 
         scale = 1.0;
         for (int i = 0; i < k; i++)
@@ -518,20 +518,20 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
 
         if (k == numPyramidLevelsCropped)
         {
-            hipMemset(mVecCurrCompX, 0, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f));
-            hipMemset(mVecCurrCompY, 0, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f));
+            hipMemsetAsync(mVecCurrCompX, 0, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), handle.GetStream());
+            hipMemsetAsync(mVecCurrCompY, 0, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), handle.GetStream());
         }
         else
         {
             if (k == 0)
             {
-                hipMemcpy(mVecCurrCompX, mVecCompX, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice);
-                hipMemcpy(mVecCurrCompY, mVecCompY, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice);
+                hipMemcpyAsync(mVecCurrCompX, mVecCompX, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice, handle.GetStream());
+                hipMemcpyAsync(mVecCurrCompY, mVecCompY, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice, handle.GetStream());
             }
 
             // Batched fused resize_scale_intensity for previous and current frames
             RppStatus rsiReturn = hip_exec_resize_scale_intensity_tensor(mVecPrevCompX, mVecCompBatchDescPtr, mVecCurrCompX, mVecCompBatchDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, oneOverPyramidScale, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-            hipDeviceSynchronize();
+            // hipDeviceSynchronize();
             if (rsiReturn != RppStatus::RPP_SUCCESS)
                 return RPP_ERROR;
         }
@@ -542,12 +542,12 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         for (int batchCount = 0; batchCount < mVecCompBatchDescPtr->n; batchCount++)
             stdDevPtrForGaussian[batchCount] = sigma;
         hip_exec_gaussian_filter_f32_tensor(src1F32, mVecCompBatchDescPtr, src1F32Blurred, mVecCompBatchDescPtr, smoothSize, stdDevPtrForGaussian, roiTensorPtrSrcXYWH, RpptRoiType::XYWH, handle);
-        hipDeviceSynchronize();
+        // hipDeviceSynchronize();
 
         // Run pyramidLevel resize for previous and current frames
         hip_exec_resize_tensor(src1F32Blurred, mVecCompDescPtr, pyramidLevelPrevF32, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, roiTensorPtrSrcLTRB, RpptRoiType::LTRB, handle);
         hip_exec_resize_tensor(src2F32Blurred, mVecCompDescPtr, pyramidLevelCurrF32, mVecCompDescPtr, pyramidImgPatchPtr, RpptInterpolationType::BILINEAR, roiTensorPtrSrcLTRB, RpptRoiType::LTRB, handle);
-        hipDeviceSynchronize();
+        // hipDeviceSynchronize();
 
         // Set new roi to be the pyramidLevel size
         for (int roiIdx = 0; roiIdx < 5; roiIdx++)
@@ -562,11 +562,11 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
 
         for (int i = 0; i < numIterations; i++)
         {
-            hipDeviceSynchronize();
+            // hipDeviceSynchronize();
 
             // Run batched box filtering with user provided windowSize for all 5 float polyMatrices
             hip_exec_box_filter_f32_tensor(polyMatrices, mVecCompBatch5DescPtr, polyMatricesBlurred, mVecCompBatch5DescPtr, windowSize, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-            hipDeviceSynchronize();
+            hipStreamSynchronize(handle.GetStream());
             
             // Optimal combined pointer swap for 5 polyMatrices
             Rpp32f *temp;
@@ -576,15 +576,17 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
 
             // Update Farneback Motion Vectors
             hip_exec_farneback_motion_vectors_update_tensor(polyMatrices, mVecCurrCompX, mVecCurrCompY, mVecCompDescPtr, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-            hipDeviceSynchronize();
+            // hipDeviceSynchronize();
 
             if (i < numIterations - 1)
             {
                 // Run farneback matrices update to get 5 updated polyMatrices
                 hip_exec_farneback_matrices_update_tensor(mVecCurrCompX, mVecCurrCompY, polyResPrev, polyResCurr, polyMatrices, mVecCompDescPtr, border, roiTensorPtrPyramid, RpptRoiType::XYWH, handle);
-                hipDeviceSynchronize();
+                // hipDeviceSynchronize();
             }
         }
+
+        hipStreamSynchronize(handle.GetStream());
 
         // Optimal pointer swap for current motion vectors in X and Y
         Rpp32f *temp;
@@ -596,9 +598,9 @@ RppStatus hip_exec_farneback_optical_flow_tensor(Rpp8u *src1Ptr,
         mVecCurrCompY = temp;
     }
 
-    hipDeviceSynchronize();
-    hipMemcpy(mVecCompX, mVecPrevCompX, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice);
-    hipMemcpy(mVecCompY, mVecPrevCompY, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice);
+    // hipDeviceSynchronize();
+    hipMemcpyAsync(mVecCompX, mVecPrevCompX, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice, handle.GetStream());
+    hipMemcpyAsync(mVecCompY, mVecPrevCompY, FARNEBACK_OUTPUT_FRAME_SIZE * sizeof(Rpp32f), hipMemcpyDeviceToDevice, handle.GetStream());
 
     hipHostFree(&buf);
     hipHostFree(&stdDevPtrForGaussian);
