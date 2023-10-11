@@ -44,6 +44,7 @@ THE SOFTWARE.
 #define RPP_MAX_8U      ( 255 )
 #define RPP_MIN_16U     ( 0 )
 #define RPP_MAX_16U     ( 65535 )
+#define RPPT_MAX_DIMS   ( 5 )
 
 const float ONE_OVER_6 = 1.0f / 6;
 const float ONE_OVER_3 = 1.0f / 3;
@@ -80,10 +81,11 @@ typedef enum
     RPP_ERROR_INVALID_DST_CHANNELS      = -8,
     RPP_ERROR_INVALID_SRC_LAYOUT        = -9,
     RPP_ERROR_INVALID_DST_LAYOUT        = -10,
-    RPP_ERROR_INVALID_SRC_DATATYPE     = -11,
-    RPP_ERROR_INVALID_DST_DATATYPE     = -12,
-    RPP_ERROR_INVALID_SRC_OR_DST_DATATYPE      = -13,
-    RPP_ERROR_INSUFFICIENT_DST_BUFFER_LENGTH    = -14
+    RPP_ERROR_INVALID_SRC_DATATYPE      = -11,
+    RPP_ERROR_INVALID_DST_DATATYPE      = -12,
+    RPP_ERROR_INVALID_SRC_OR_DST_DATATYPE     = -13,
+    RPP_ERROR_INSUFFICIENT_DST_BUFFER_LENGTH  = -14,
+    RPP_ERROR_INVALID_ROI_TYPE          = -15
 } RppStatus;
 
 /*! \brief RPP rppStatus_t type enums
@@ -241,6 +243,13 @@ typedef struct
 {
     int x;
     int y;
+    int z;
+} RppiPoint3D;
+
+typedef struct
+{
+    int x;
+    int y;
     int width;
     int height;
 } RppiRect;
@@ -306,7 +315,9 @@ typedef enum
 typedef enum
 {
     NCHW,
-    NHWC
+    NHWC,
+    NCDHW,
+    NDHWC
 } RpptLayout;
 
 /*! \brief RPPT ROI type enum
@@ -321,6 +332,12 @@ typedef enum
 /*! \brief RPPT Subpixel Layout type enum
  * \ingroup group_rppdefs
  */
+typedef enum
+{
+    LTFRBB,
+    XYZWHD
+} RpptRoi3DType;
+
 typedef enum
 {
     RGBtype,
@@ -349,6 +366,15 @@ typedef struct
 
 } RpptRoiLtrb;
 
+/*! \brief RPPT ROI LTFRBB
+ * \ingroup group_rppdefs
+ */
+typedef struct
+{
+    RppiPoint3D ltf, rbb;
+
+} RpptRoiLtfrbb;
+
 /*! \brief RPPT ROI XYWH
  * \ingroup group_rppdefs
  */
@@ -359,6 +385,16 @@ typedef struct
 
 } RpptRoiXywh;
 
+/*! \brief RPPT ROI XYZWHD
+ * \ingroup group_rppdefs
+ */
+typedef struct
+{
+    RppiPoint3D xyz;
+    int roiWidth, roiHeight, roiDepth;
+
+} RpptRoiXyzwhd;
+
 /*! \brief RPPT ROI
  * \ingroup group_rppdefs
  */
@@ -368,6 +404,16 @@ typedef union
     RpptRoiXywh xywhROI;
 
 } RpptROI, *RpptROIPtr;
+
+/*! \brief RPPT ROI 3D
+ * \ingroup group_rppdefs
+ */
+typedef union
+{
+    RpptRoiLtfrbb ltfrbbROI;
+    RpptRoiXyzwhd xyzwhdROI;
+
+} RpptROI3D, *RpptROI3DPtr;
 
 /*! \brief RPPT Strides
  * \ingroup group_rppdefs
@@ -388,14 +434,24 @@ typedef struct
     RppSize_t numDims;
     Rpp32u offsetInBytes;
     RpptDataType dataType;
-    RpptLayout layout;
     Rpp32u n, c, h, w;
     RpptStrides strides;
+    RpptLayout layout;
 } RpptDesc, *RpptDescPtr;
 
 /*! \brief RPPT RGB
  * \ingroup group_rppdefs
  */
+typedef struct
+{
+    RppSize_t numDims;
+    Rpp32u offsetInBytes;
+    RpptDataType dataType;
+    Rpp32u dims[RPPT_MAX_DIMS];
+    Rpp32u strides[RPPT_MAX_DIMS];
+    RpptLayout layout;
+} RpptGenericDesc, *RpptGenericDescPtr;
+
 typedef struct
 {
     Rpp8u R;
