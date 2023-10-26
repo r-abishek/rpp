@@ -80,6 +80,28 @@ if( "${BACKEND}" STREQUAL "HIP")
     #add_test(NAME rpp_hip_test_u08_f32_16 COMMAND uniqueFunctionalities_hip 4 0 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/rpp_hip_test)
     #add_test(NAME rpp_hip_test_i08_17 COMMAND uniqueFunctionalities_hip 5 0 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/rpp_hip_test)
     #add_test(NAME rpp_hip_test_u08_i08_18 COMMAND uniqueFunctionalities_hip 6 0 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/rpp_hip_test)
+
+
+    set(Python3_FIND_VIRTUALENV FIRST)
+    find_package(Python3 QUIET)
+
+    # CI tests on HOST and HIP, for HIP backend
+    if(Python3_FOUND)
+      add_test(
+          NAME rpp_qa_tests_host 
+          COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/utilities/test_suite/HOST/runTests.py 
+          --qa_mode 1 --batch_size 3
+          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+          )
+      add_test(
+          NAME rpp_qa_tests_hip 
+          COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/utilities/test_suite/HIP/runTests.py 
+          --qa_mode 1 --batch_size 3
+          WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+          )
+    else()
+        message("-- ${Yellow}Warning: Python3 must be installed to run RPP tests successfully!${ColourReset}")
+    endif(Python3_FOUND)
 elseif( "${BACKEND}" STREQUAL "OCL")
     # TBD: Add OCL Tests
 endif()

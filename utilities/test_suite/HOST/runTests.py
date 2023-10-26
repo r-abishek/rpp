@@ -31,9 +31,10 @@ timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 os.environ["TIMESTAMP"] = timestamp
 
 cwd = os.getcwd()
-inFilePath1 = os.path.join(os.path.dirname(cwd), 'TEST_IMAGES', 'three_images_mixed_src1')
-inFilePath2 = os.path.join(os.path.dirname(cwd), 'TEST_IMAGES', 'three_images_mixed_src2')
-qaInputFile = os.path.join(os.path.dirname(cwd), 'TEST_IMAGES', 'three_images_mixed_src1')
+scriptPath = os.path.dirname(os.path.realpath(__file__))
+inFilePath1 = scriptPath + '/../TEST_IMAGES/three_images_mixed_src1'
+inFilePath2 = scriptPath + '/../TEST_IMAGES/three_images_mixed_src2'
+qaInputFile = scriptPath + '/../TEST_IMAGES/three_images_mixed_src1'
 
 def validate_path(input_path):
     if not os.path.exists(input_path):
@@ -159,7 +160,8 @@ elif(testType == 1):
 dstPath = outFilePath
 
 # run the shell script
-subprocess.call(["./testAllScript.sh", srcPath1, args.input_path2, str(testType), str(numRuns), str(qaMode), str(decoderType), str(preserveOutput), str(batchSize), " ".join(caseList)])  # nosec
+TestAllScript = scriptPath + '/testAllScript.sh'
+subprocess.call([TestAllScript, srcPath1, args.input_path2, str(testType), str(numRuns), str(qaMode), str(decoderType), str(preserveOutput), str(batchSize), " ".join(caseList)])  # nosec
 
 # print the results of qa tests
 supportedCaseList = ['0', '1', '2', '4', '13', '29', '31', '34', '36', '37', '38', '84', '87']

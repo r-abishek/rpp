@@ -1,5 +1,11 @@
 #!/bin/bash
 
+echo "The script Info:"
+echo "basename: [$(basename "$0")]"
+echo "dirname : [$(dirname "$0")]"
+echo "pwd     : [$(pwd)]"
+
+SCRIPT_DIR=$(dirname "$0")
 cwd=$(pwd)
 
 # <<<<<<<<<<<<<< VALIDATION CHECK FOR FOLDER PATHS >>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -41,8 +47,8 @@ function VALIDATE_FOLDERS {
 }
 
 #Input Images - Three images (mixed size)
-DEFAULT_SRC_FOLDER_1="$cwd/../TEST_IMAGES/three_images_mixed_src1"
-DEFAULT_SRC_FOLDER_2="$cwd/../TEST_IMAGES/three_images_mixed_src2"
+DEFAULT_SRC_FOLDER_1="$SCRIPT_DIR/../TEST_IMAGES/three_images_mixed_src1"
+DEFAULT_SRC_FOLDER_2="$SCRIPT_DIR/../TEST_IMAGES/three_images_mixed_src2"
 
 # <<<<<<<<<<<<<< PROCESSING OF INPUT ARGUMENTS (NEED NOT CHANGE) >>>>>>>>>>>>>>
 
@@ -192,7 +198,7 @@ shopt -s extglob
 mkdir build
 rm -rvf build/*
 cd build
-cmake ..
+cmake "$SCRIPT_DIR"
 make -j16
 
 printf "\n\n\n\n\n"
