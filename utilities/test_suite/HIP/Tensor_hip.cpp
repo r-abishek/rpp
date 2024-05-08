@@ -360,6 +360,10 @@ int main(int argc, char **argv)
     if(testCase == 46)
         CHECK_RETURN_STATUS(hipHostMalloc(&intensity, batchSize * sizeof(Rpp32f)));
 
+    void *d_interDstPtr;
+    if(testCase == 5)
+        CHECK(hipHostMalloc(&d_interDstPtr, srcDescPtr->strides.nStride * srcDescPtr->n * sizeof(Rpp32f)));
+
     // case-wise RPP API and measure time script for Unit and Performance test
     printf("\nRunning %s %d times (each time with a batch size of %d images) and computing mean statistics...", func.c_str(), numRuns, batchSize);
     for(int iterCount = 0; iterCount < noOfIterations; iterCount++)
@@ -506,6 +510,20 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
                         rppt_contrast_gpu(d_input, srcDescPtr, d_output, dstDescPtr, contrastFactor, contrastCenter, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case 5:
+                {
+                    testCaseName = "pixelate";
+
+                    Rpp32f pixelationPercentage = 87.5;
+
+                    startWallTime = omp_get_wtime();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_pixelate_host(d_input, srcDescPtr, d_output, dstDescPtr, d_interDstPtr, pixelationPercentage, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -1292,6 +1310,8 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(cropRoi));
         CHECK_RETURN_STATUS(hipHostFree(patchRoi));
     }
+    if(testCase == 5)
+        CHECK(hipFree(d_interDstPtr));
     if (reductionTypeCase)
         CHECK_RETURN_STATUS(hipHostFree(reductionFuncResultArr));
     free(input);
