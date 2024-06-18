@@ -141,6 +141,9 @@ int main(int argc, char **argv)
     // buffers used for non silent region detection
     Rpp32s detectedIndex[batchSize], detectionLength[batchSize];
 
+    // RpptResamplingWindow instance used for resample augmentation
+    RpptResamplingWindow window;
+
     // run case-wise RPP API and measure time
     rppHandle_t handle;
     rppCreateWithBatchSize(&handle, srcDescPtr->n, 3);
@@ -266,6 +269,7 @@ int main(int argc, char **argv)
                     }
 
                     set_audio_descriptor_dims_and_strides_nostriding(dstDescPtr, batchSize, maxDstHeight, maxDstWidth, maxDstChannels, offsetInBytes);
+                    dstDescPtr->numDims = 3;
 
                     // Set buffer sizes for src/dst
                     unsigned long long spectrogramBufferSize = (unsigned long long)dstDescPtr->h * (unsigned long long)dstDescPtr->w * (unsigned long long)dstDescPtr->c * (unsigned long long)dstDescPtr->n;
@@ -324,7 +328,7 @@ int main(int argc, char **argv)
                     Rpp32f quality = 50.0f;
                     Rpp32s lobes = std::round(0.007 * quality * quality - 0.09 * quality + 3);
                     Rpp32s lookupSize = lobes * 64 + 1;
-                    RpptResamplingWindow window;
+                    window.lookup = (Rpp32f *)malloc((lookupSize + 5) * sizeof(Rpp32f));
                     windowed_sinc(window, lookupSize, lobes);
 
                     dstDescPtr->w = maxDstWidth;
@@ -378,6 +382,8 @@ int main(int argc, char **argv)
                     srcDescPtr->w = maxSrcWidth;
                     dstDescPtr->h = maxDstHeight;
                     dstDescPtr->w = maxDstWidth;
+                    srcDescPtr->numDims = 3;
+                    dstDescPtr->numDims = 3;
 
                     set_audio_descriptor_dims_and_strides_nostriding(srcDescPtr, batchSize, maxSrcHeight, maxSrcWidth, maxSrcChannels, offsetInBytes);
                     set_audio_descriptor_dims_and_strides_nostriding(dstDescPtr, batchSize, maxDstHeight, maxDstWidth, maxDstChannels, offsetInBytes);
@@ -422,7 +428,7 @@ int main(int argc, char **argv)
             if (testCase == 0)
                 verify_non_silent_region_detection(detectedIndex, detectionLength, testCaseName, batchSize, audioNames, dst);
             else
-                verify_output(outputf32, dstDescPtr, dstDims, testCaseName, dst, scriptPath);
+                verify_output(outputf32, dstDescPtr, dstDims, testCaseName, dst, scriptPath, "HOST");
 
             /* Dump the outputs to csv files for debugging
             Runs only if
@@ -461,5 +467,7 @@ int main(int argc, char **argv)
     free(dstDims);
     free(inputf32);
     free(outputf32);
+    if (testCase == 6)
+        free(window.lookup);
     return 0;
 }
