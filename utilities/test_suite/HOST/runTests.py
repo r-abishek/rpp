@@ -73,7 +73,7 @@ def run_unit_test(srcPath1, srcPath2, dstPathTemp, case, numRuns, testType, layo
     print("--------------------------------")
     print("Running a New Functionality...")
     print("--------------------------------")
-    bitDepths = range(7)
+    bitDepths = [2]
     outputFormatToggles = [0, 1]
     if qaMode:
         bitDepths = [0]
@@ -86,7 +86,12 @@ def run_unit_test(srcPath1, srcPath2, dstPathTemp, case, numRuns, testType, layo
             if layout == 2 and outputFormatToggle == 1:
                 continue
 
-            if case == "8":
+            if case == "49":
+                for kernelSize in range(3, 10, 2):
+                    print(f"./Tensor_host {srcPath1} {srcPath2} {dstPathTemp} {bitDepth} {outputFormatToggle} {case} {kernelSize} 0 ")
+                    result = subprocess.run([buildFolderPath + "/build/Tensor_host", srcPath1, srcPath2, dstPathTemp, str(bitDepth), str(outputFormatToggle), str(case), str(kernelSize), str(numRuns), str(testType), str(layout), "0", str(qaMode), str(decoderType), str(batchSize)] + roiList + [scriptPath], stdout=subprocess.PIPE)    # nosec
+                    print(result.stdout.decode())
+            elif case == "8":
                 # Run all variants of noise type functions with additional argument of noiseType = gausssianNoise / shotNoise / saltandpepperNoise
                 for noiseType in range(3):
                     print(f"./Tensor_host {srcPath1} {srcPath2} {dstPathTemp} {bitDepth} {outputFormatToggle} {case} {noiseType} 0 ")
@@ -124,7 +129,7 @@ def run_performance_test(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPa
     print("--------------------------------")
     print("Running a New Functionality...")
     print("--------------------------------")
-    bitDepths = range(7)
+    bitDepths = [2]
     if qaMode:
         bitDepths = [0]
     for bitDepth in bitDepths:
@@ -134,7 +139,10 @@ def run_performance_test(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPa
             # There is no layout toggle for PLN1 case, so skip this case
             if layout == 2 and outputFormatToggle == 1:
                 continue
-            if case == "8":
+            if case == "49":
+                for kernelSize in range(3, 10, 2):
+                    run_performance_test_cmd(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPath, bitDepth, outputFormatToggle, case, kernelSize, numRuns, testType, layout, qaMode, decoderType, batchSize, roiList)
+            elif case == "8":
                 # Run all variants of noise type functions with additional argument of noiseType = gausssianNoise / shotNoise / saltandpepperNoise
                 for noiseType in range(3):
                     run_performance_test_cmd(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPath, bitDepth, outputFormatToggle, case, noiseType, numRuns, testType, layout, qaMode, decoderType, batchSize, roiList)
@@ -275,7 +283,7 @@ subprocess.run(["cmake", scriptPath], cwd=".")   # nosec
 subprocess.run(["make", "-j16"], cwd=".")    # nosec
 
 # List of cases supported
-supportedCaseList = ['0', '1', '2', '4', '8', '13', '20', '21', '23', '29', '30', '31', '32', '33', '34', '36', '37', '38', '39', '45', '46', '54', '61', '63', '65', '68', '70', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92']
+supportedCaseList = ['0', '1', '2', '4', '8', '13', '20', '21', '23', '29', '30', '31', '32', '33', '34', '36', '37', '38', '39', '45', '46', '49', '54', '61', '63', '65', '68', '70', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92']
 
 print("\n\n\n\n\n")
 print("##########################################################################################")
@@ -320,7 +328,7 @@ else:
             run_performance_test(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPath, case, numRuns, testType, layout, qaMode, decoderType, batchSize, roiList)
 
 # print the results of qa tests
-nonQACaseList = ['8', '24', '54', '84'] # Add cases present in supportedCaseList, but without QA support
+nonQACaseList = ['8', '24', '49', '54', '84'] # Add cases present in supportedCaseList, but without QA support
 
 if qaMode and testType == 0:
     qaFilePath = os.path.join(outFilePath, "QA_results.txt")
