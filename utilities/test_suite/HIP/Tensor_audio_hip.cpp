@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     if (argc < MIN_ARG_COUNT)
     {
         printf("\nImproper Usage! Needs all arguments!\n");
-        printf("\nUsage: ./Tensor_host_audio <src folder> <case number = 0:0> <test type 0/1> <numRuns> <batchSize> <dst folder>\n");
+        printf("\nUsage: ./Tensor_hip_audio <src folder> <case number = 0:0> <test type 0/1> <numRuns> <batchSize> <dst folder>\n");
         return -1;
     }
 
@@ -43,7 +43,7 @@ int main(int argc, char **argv)
     char *dst = argv[6];
     string scriptPath = argv[7];
 
-    // validation checks
+    // validation CHECK_RETURN_STATUSs
     if (testType == 0 && batchSize != 3)
     {
         cout << "Error! QA Mode only runs with batchsize 3" << endl;
@@ -113,22 +113,38 @@ int main(int argc, char **argv)
     iBufferSize = (Rpp64u)srcDescPtr->h * (Rpp64u)srcDescPtr->w * (Rpp64u)srcDescPtr->c * (Rpp64u)srcDescPtr->n;
     oBufferSize = (Rpp64u)dstDescPtr->h * (Rpp64u)dstDescPtr->w * (Rpp64u)dstDescPtr->c * (Rpp64u)dstDescPtr->n;
 
-    // allocate host buffers for input & output
+    // allocate hip buffers for input & output
     Rpp32f *inputf32 = (Rpp32f *)calloc(iBufferSize, sizeof(Rpp32f));
     Rpp32f *outputf32 = (Rpp32f *)calloc(oBufferSize, sizeof(Rpp32f));
 
+    void *d_inputf32, *d_outputf32;
+    CHECK_RETURN_STATUS(hipMalloc(&d_inputf32, iBufferSize * sizeof(Rpp32f)));
+    CHECK_RETURN_STATUS(hipMalloc(&d_outputf32, oBufferSize * sizeof(Rpp32f)));
+
     // allocate the buffers for audio length and channels
-    Rpp32s *srcLengthTensor = (Rpp32s *) calloc(batchSize, sizeof(Rpp32s));
-    Rpp32s *channelsTensor = (Rpp32s *) calloc(batchSize, sizeof(Rpp32s));
+    Rpp32s *srcLengthTensor, *channelsTensor;
+    CHECK_RETURN_STATUS(hipHostMalloc(&srcLengthTensor, batchSize * sizeof(Rpp32s)));
+    CHECK_RETURN_STATUS(hipHostMalloc(&channelsTensor, batchSize * sizeof(Rpp32s)));
 
     // allocate the buffers for src/dst dimensions for each element in batch
     RpptImagePatch *srcDims = (RpptImagePatch *) calloc(batchSize, sizeof(RpptImagePatch));
     RpptImagePatch *dstDims = (RpptImagePatch *) calloc(batchSize, sizeof(RpptImagePatch));
 
+    // allocate the buffer for srcDimsTensor
+    Rpp32s *srcDimsTensor;
+    CHECK_RETURN_STATUS(hipHostMalloc(&srcDimsTensor, batchSize * 2 * sizeof(Rpp32s)));
+
+    Rpp32f *coeff;
+    if(testCase == 2)
+        CHECK_RETURN_STATUS(hipHostMalloc(&coeff, batchSize * sizeof(Rpp32f)));
+
     // run case-wise RPP API and measure time
     rppHandle_t handle;
-    rppCreateWithBatchSize(&handle, srcDescPtr->n, 3);
-    int noOfIterations = (int)audioNames.size() / batchSize;
+    hipStream_t stream;
+    CHECK_RETURN_STATUS(hipStreamCreate(&stream));
+    rppCreateWithStreamAndBatchSize(&handle, stream, batchSize);
+
+    int noOfIterations = static_cast<int>(audioNames.size()) / batchSize;
     double maxWallTime = 0, minWallTime = 500, avgWallTime = 0;
     string testCaseName;
     printf("\nRunning %s %d times (each time with a batch size of %d images) and computing mean statistics...", func.c_str(), numRuns, batchSize);
@@ -136,53 +152,16 @@ int main(int argc, char **argv)
     {
         // read and decode audio and fill the audio dim values
         read_audio_batch_and_fill_dims(srcDescPtr, inputf32, audioFilesPath, iterCount, srcLengthTensor, channelsTensor);
+        CHECK_RETURN_STATUS(hipMemcpy(d_inputf32, inputf32, iBufferSize * sizeof(Rpp32f), hipMemcpyHostToDevice));
         for (int perfRunCount = 0; perfRunCount < numRuns; perfRunCount++)
         {
             double startWallTime, endWallTime;
             double wallTime;
             switch (testCase)
             {
-                case 0:
-                {
-                    testCaseName = "non_silent_region_detection";
-                    Rpp32f detectedIndex[batchSize];
-                    Rpp32f detectionLength[batchSize];
-                    Rpp32f cutOffDB = -60.0;
-                    Rpp32s windowLength = 2048;
-                    Rpp32f referencePower = 0.0f;
-                    Rpp32s resetInterval = 8192;
-
-                    startWallTime = omp_get_wtime();
-                    rppt_non_silent_region_detection_host(inputf32, srcDescPtr, srcLengthTensor, detectedIndex, detectionLength, cutOffDB, windowLength, referencePower, resetInterval, handle);
-
-                    // QA mode - verify outputs with golden outputs. Below code doesn’t run for performance tests
-                    if (testType == 0)
-                        verify_non_silent_region_detection(detectedIndex, detectionLength, testCaseName, batchSize, audioNames, dst);
-
-                    break;
-                }
-                case 1:
-                {
-                    testCaseName = "to_decibels";
-                    Rpp32f cutOffDB = std::log(1e-20);
-                    Rpp32f multiplier = std::log(10);
-                    Rpp32f referenceMagnitude = 1.0f;
-
-                    for (int i = 0; i < batchSize; i++)
-                    {
-                        srcDims[i].height = dstDims[i].height = srcLengthTensor[i];
-                        srcDims[i].width = dstDims[i].width = 1;
-                    }
-
-                    startWallTime = omp_get_wtime();
-                    rppt_to_decibels_host(inputf32, srcDescPtr, outputf32, dstDescPtr, srcDims, cutOffDB, multiplier, referenceMagnitude, handle);
-
-                    break;
-                }
                 case 2:
                 {
                     testCaseName = "pre_emphasis_filter";
-                    Rpp32f coeff[batchSize];
                     for (int i = 0; i < batchSize; i++)
                     {
                         coeff[i] = 0.97;
@@ -192,70 +171,7 @@ int main(int argc, char **argv)
                     RpptAudioBorderType borderType = RpptAudioBorderType::CLAMP;
 
                     startWallTime = omp_get_wtime();
-                    rppt_pre_emphasis_filter_host(inputf32, srcDescPtr, outputf32, dstDescPtr, srcLengthTensor, coeff, borderType, handle);
-
-                    break;
-                }
-                case 3:
-                {
-                    testCaseName = "down_mixing";
-                    bool normalizeWeights = false;
-                    Rpp32s srcDimsTensor[batchSize * 2];
-
-                    for (int i = 0, j = 0; i < batchSize; i++, j += 2)
-                    {
-                        srcDimsTensor[j] = srcLengthTensor[i];
-                        srcDimsTensor[j + 1] = channelsTensor[i];
-                        dstDims[i].height = srcLengthTensor[i];
-                        dstDims[i].width = 1;
-                    }
-
-                    startWallTime = omp_get_wtime();
-                    rppt_down_mixing_host(inputf32, srcDescPtr, outputf32, dstDescPtr, srcDimsTensor, normalizeWeights, handle);
-
-                    break;
-                }
-                case 6:
-                {
-                    testCaseName = "resample";
-                    Rpp32f inRateTensor[batchSize];
-                    Rpp32f outRateTensor[batchSize];
-                    Rpp32s srcDimsTensor[batchSize * 2];
-
-                    maxDstWidth = 0;
-                    for(int i = 0, j = 0; i < batchSize; i++, j += 2)
-                    {
-                        inRateTensor[i] = 16000;
-                        outRateTensor[i] = 16000 * 1.15f;
-                        Rpp32f scaleRatio = outRateTensor[i] / inRateTensor[i];
-                        srcDimsTensor[j] = srcLengthTensor[i];
-                        srcDimsTensor[j + 1] = channelsTensor[i];
-                        dstDims[i].width = static_cast<int>(std::ceil(scaleRatio * srcLengthTensor[i]));
-                        dstDims[i].height = 1;
-                        maxDstWidth = std::max(maxDstWidth, static_cast<int>(dstDims[i].width));
-                    }
-                    Rpp32f quality = 50.0f;
-                    Rpp32s lobes = std::round(0.007 * quality * quality - 0.09 * quality + 3);
-                    Rpp32s lookupSize = lobes * 64 + 1;
-                    RpptResamplingWindow window;
-                    windowed_sinc(window, lookupSize, lobes);
-
-                    dstDescPtr->w = maxDstWidth;
-                    dstDescPtr->strides.nStride = dstDescPtr->c * dstDescPtr->w * dstDescPtr->h;
-
-                    // Set buffer sizes for dst
-                    Rpp64u resampleBufferSize = (Rpp64u)dstDescPtr->h * (Rpp64u)dstDescPtr->w * (Rpp64u)dstDescPtr->c * (Rpp64u)dstDescPtr->n;
-
-                    // Reinitialize host buffers for output
-                    outputf32 = (Rpp32f *)realloc(outputf32, sizeof(Rpp32f) * resampleBufferSize);
-                    if(!outputf32)
-                    {
-                        std::cout << "Unable to reallocate memory for output" << std::endl;
-                        break;
-                    }
-
-                    startWallTime = omp_get_wtime();
-                    rppt_resample_host(inputf32, srcDescPtr, outputf32, dstDescPtr, inRateTensor, outRateTensor, srcDimsTensor, window, handle);
+                    rppt_pre_emphasis_filter_gpu(d_inputf32, srcDescPtr, d_outputf32, dstDescPtr, srcLengthTensor, coeff, borderType, handle);
 
                     break;
                 }
@@ -265,6 +181,7 @@ int main(int argc, char **argv)
                     break;
                 }
             }
+            CHECK_RETURN_STATUS(hipDeviceSynchronize());
 
             endWallTime = omp_get_wtime();
             if (missingFuncFlag == 1)
@@ -282,10 +199,12 @@ int main(int argc, char **argv)
         // QA mode - verify outputs with golden outputs. Below code doesn’t run for performance tests
         if (testType == 0)
         {
+            CHECK_RETURN_STATUS(hipMemcpy(outputf32, d_outputf32, oBufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost));
+
             /* Run only if testCase is not 0
             For testCase 0 verify_non_silent_region_detection function is used for QA testing */
             if (testCase != 0)
-                verify_output(outputf32, dstDescPtr, dstDims, testCaseName, dst, scriptPath, "HOST");
+                verify_output(outputf32, dstDescPtr, dstDims, testCaseName, dst, scriptPath, "HIP");
 
             /* Dump the outputs to csv files for debugging
             Runs only if
@@ -302,7 +221,7 @@ int main(int argc, char **argv)
             }
         }
     }
-    rppDestroyHost(handle);
+    rppDestroyGPU(handle);
 
     // performance test mode
     if (testType == 1)
@@ -318,11 +237,16 @@ int main(int argc, char **argv)
     cout << endl;
 
     // free memory
-    free(srcLengthTensor);
-    free(channelsTensor);
     free(srcDims);
     free(dstDims);
     free(inputf32);
     free(outputf32);
+    CHECK_RETURN_STATUS(hipFree(d_inputf32));
+    CHECK_RETURN_STATUS(hipFree(d_outputf32));
+    CHECK_RETURN_STATUS(hipHostFree(srcLengthTensor));
+    CHECK_RETURN_STATUS(hipHostFree(channelsTensor));
+    CHECK_RETURN_STATUS(hipHostFree(srcDimsTensor));
+    if(testCase == 2)
+        CHECK_RETURN_STATUS(hipHostFree(coeff));
     return 0;
 }
