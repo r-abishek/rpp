@@ -592,6 +592,24 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case 10:
+                {
+                    testCaseName = "fog";
+                    Rpp32f alpha[batchSize];
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        alpha[i] = 0.5;
+                    }
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_fog_host(input, srcDescPtr, output, dstDescPtr, alpha, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 case 13:
                 {
                     testCaseName = "exposure";

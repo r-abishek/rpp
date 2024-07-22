@@ -142,7 +142,7 @@ def rpp_test_suite_parser_and_validator():
     parser.add_argument('--preserve_output', type = int, default = 1, help = "preserves the output of the program - (0 = override output / 1 = preserve output )" )
     parser.add_argument('--batch_size', type = int, default = 1, help = "Specifies the batch size to use for running tests. Default is 1.")
     parser.add_argument('--roi', nargs = 4, help = "specifies the roi values", required = False)
-    print_case_list(imageAugmentationMap, "HOST", parser)
+    # print_case_list(imageAugmentationMap, "HOST", parser)
     args = parser.parse_args()
 
     # check if the folder exists
@@ -257,7 +257,7 @@ subprocess.run(["cmake", scriptPath], cwd=".")   # nosec
 subprocess.run(["make", "-j16"], cwd=".")    # nosec
 
 # List of cases supported
-supportedCaseList = ['0', '1', '2', '4', '8', '13', '20', '21', '23', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '45', '46', '54', '61', '63', '65', '68', '70', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92']
+supportedCaseList = ['0', '1', '2', '4', '8', '10', '13', '20', '21', '23', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '45', '46', '54', '61', '63', '65', '68', '70', '79', '80', '81', '82', '83', '84', '85', '86', '87', '88', '89', '90', '91', '92']
 
 print("\n\n\n\n\n")
 print("##########################################################################################")
