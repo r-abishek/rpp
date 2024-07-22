@@ -598,7 +598,7 @@ int main(int argc, char **argv)
                     Rpp32f alpha[batchSize];
                     for (i = 0; i < batchSize; i++)
                     {
-                        alpha[i] = 0.5;
+                        alpha[i] = 0.9;
                     }
 
                     startWallTime = omp_get_wtime();

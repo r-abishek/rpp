@@ -46,6 +46,10 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         Rpp32f alpha = alphaTensor[batchCount];
+        Rpp32f beta = 255.0*alpha;
+        __m256 pFogParams[2];
+        pFogParams[0] = _mm256_set1_ps(alpha);
+        pFogParams[1] = _mm256_set1_ps(beta);
 
         Rpp8u *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -84,7 +88,7 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                     __m256 p[6];
 
                     rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3_avx, srcPtrTemp, p);    // simd loads
-                    compute_fog_48_host(p, _mm256_set1_ps(alpha));    // fog adjustment
+                    compute_fog_48_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store48_f32pln3_to_u8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTemp += 48;
@@ -133,7 +137,7 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                     __m256 p[6];
 
                     rpp_simd_load(rpp_load48_u8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    compute_fog_48_host(p, _mm256_set1_ps(alpha));    // fog adjustment
+                    compute_fog_48_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrTemp, p);    // simd stores
 
                     srcPtrTempR += 16;
@@ -181,7 +185,7 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                     __m256 p[6];
 
                     rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3_avx, srcPtrTemp, p);    // simd loads
-                    compute_fog_48_host(p, _mm256_set1_ps(alpha));    // fog adjustment
+                    compute_fog_48_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrTemp, p);    // simd stores
 
                     srcPtrTemp += 48;
@@ -231,7 +235,7 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                     __m256 p[6];
 
                     rpp_simd_load(rpp_load48_u8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    compute_fog_48_host(p, _mm256_set1_ps(alpha));    // fog adjustment
+                    compute_fog_48_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store48_f32pln3_to_u8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTempR += 16;
@@ -285,6 +289,10 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         Rpp32f alpha = alphaTensor[batchCount];
+        Rpp32f beta = 1.0*alpha;
+        __m256 pFogParams[2];
+        pFogParams[0] = _mm256_set1_ps(alpha);
+        pFogParams[1] = _mm256_set1_ps(beta);
 
         Rpp32f *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -322,7 +330,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     __m256 p[3];
 
                     rpp_simd_load(rpp_load24_f32pkd3_to_f32pln3_avx, srcPtrTemp, p);    // simd loads
-                    compute_fog_24_host(p, _mm256_set1_ps(alpha));    // fog adjustment
+                    compute_fog_24_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTemp += 24;
@@ -371,7 +379,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     __m256 p[3];
 
                     rpp_simd_load(rpp_load24_f32pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    compute_fog_24_host(p, _mm256_set1_ps(alpha));    // fog adjustment
+                    compute_fog_24_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pkd3_avx, dstPtrTemp, p);    // simd stores
 
                     srcPtrTempR += 8;
@@ -419,7 +427,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     __m256 p[3];
 
                     rpp_simd_load(rpp_load24_f32pkd3_to_f32pln3_avx, srcPtrTemp, p);    // simd loads
-                    compute_fog_24_host(p, _mm256_set1_ps(alpha));    // fog adjustment
+                    compute_fog_24_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pkd3_avx, dstPtrTemp, p);    // simd stores
 
                     srcPtrTemp += 24;
@@ -469,7 +477,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     __m256 p[3];
 
                     rpp_simd_load(rpp_load24_f32pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    compute_fog_24_host(p, _mm256_set1_ps(alpha));    // fog adjustment
+                    compute_fog_24_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTempR += 8;
@@ -523,6 +531,10 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         Rpp32f alpha = alphaTensor[batchCount];
+        Rpp32f beta = 1.0*alpha;
+        __m256 pFogParams[2];
+        pFogParams[0] = _mm256_set1_ps(alpha);
+        pFogParams[1] = _mm256_set1_ps(beta);
 
         Rpp16f *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -568,7 +580,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     __m256 p[3];
 
                     rpp_simd_load(rpp_load24_f32pkd3_to_f32pln3_avx, srcPtrTemp_ps, p);    // simd loads
-                    compute_fog_24_host(p, pAdj);    // fog adjustment
+                    compute_fog_24_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pln3_avx, dstPtrTempR_ps, dstPtrTempG_ps, dstPtrTempB_ps, p);    // simd stores
 
                     for(int cnt = 0; cnt < 8; cnt++)
@@ -585,9 +597,9 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                 }
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
-                    *dstPtrTempR++ = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[0] * (1 - alpha) + 255 * alpha);
-                    *dstPtrTempG++ = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[1] * (1 - alpha) + 255 * alpha);
-                    *dstPtrTempB++ = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[2] * (1 - alpha) + 255 * alpha);
+                    *dstPtrTempR++ = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[0] * (1 - alpha) + 1 * alpha);
+                    *dstPtrTempG++ = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[1] * (1 - alpha) + 1 * alpha);
+                    *dstPtrTempB++ = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[2] * (1 - alpha) + 1 * alpha);
 
                     srcPtrTemp += 3;
                 }
@@ -634,7 +646,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     __m256 p[3];
 
                     rpp_simd_load(rpp_load24_f32pln3_to_f32pln3_avx, srcPtrTempR_ps, srcPtrTempG_ps, srcPtrTempB_ps, p);    // simd loads
-                    compute_fog_24_host(p, pAdj);    // fog adjustment
+                    compute_fog_24_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pkd3_avx, dstPtrTemp_ps, p);    // simd stores
 
                     for(int cnt = 0; cnt < 24; cnt++)
@@ -647,9 +659,9 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                 }
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    dstPtrTemp[0] = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempR * (1 - alpha) + 255 * alpha);
-                    dstPtrTemp[1] = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempG * (1 - alpha) + 255 * alpha);
-                    dstPtrTemp[2] = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempB * (1 - alpha) + 255 * alpha);
+                    dstPtrTemp[0] = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempR * (1 - alpha) + 1 * alpha);
+                    dstPtrTemp[1] = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempG * (1 - alpha) + 1 * alpha);
+                    dstPtrTemp[2] = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempB * (1 - alpha) + 1 * alpha);
 
                     dstPtrTemp += 3;
                     srcPtrTempR++;
@@ -690,7 +702,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     __m256 p[3];
 
                     rpp_simd_load(rpp_load24_f32pkd3_to_f32pln3_avx, srcPtrTemp_ps, p);    // simd loads
-                    compute_fog_24_host(p, pAdj);    // fog adjustment
+                    compute_fog_24_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pkd3_avx, dstPtrTemp_ps, p);    // simd stores
 
                     for(int cnt = 0; cnt < 24; cnt++)
@@ -701,9 +713,9 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                 }
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
-                    dstPtrTemp[0] = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[0] * (1 - alpha) + 255 * alpha);
-                    dstPtrTemp[1] = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[1] * (1 - alpha) + 255 * alpha);
-                    dstPtrTemp[2] = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[2] * (1 - alpha) + 255 * alpha);
+                    dstPtrTemp[0] = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[0] * (1 - alpha) + 1 * alpha);
+                    dstPtrTemp[1] = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[1] * (1 - alpha) + 1 * alpha);
+                    dstPtrTemp[2] = (Rpp16f) RPPPIXELCHECKF32(srcPtrTemp[2] * (1 - alpha) + 1 * alpha);
 
                     srcPtrTemp += 3;
                     dstPtrTemp += 3;
@@ -753,7 +765,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     __m256 p[3];
 
                     rpp_simd_load(rpp_load24_f32pln3_to_f32pln3_avx, srcPtrTempR_ps, srcPtrTempG_ps, srcPtrTempB_ps, p);    // simd loads
-                    compute_fog_24_host(p, pAdj);    // fog adjustment
+                    compute_fog_24_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pln3_avx, dstPtrTempR_ps, dstPtrTempG_ps, dstPtrTempB_ps, p);    // simd stores
 
                     for(int cnt = 0; cnt < 8; cnt++)
@@ -772,9 +784,9 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                 }
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    *dstPtrTempR++ = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempR * (1 - alpha) + 255 * alpha);
-                    *dstPtrTempG++ = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempG * (1 - alpha) + 255 * alpha);
-                    *dstPtrTempB++ = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempB * (1 - alpha) + 255 * alpha);
+                    *dstPtrTempR++ = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempR * (1 - alpha) + 1 * alpha);
+                    *dstPtrTempG++ = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempG * (1 - alpha) + 1 * alpha);
+                    *dstPtrTempB++ = (Rpp16f) RPPPIXELCHECKF32(*srcPtrTempB * (1 - alpha) + 1 * alpha);
 
                     srcPtrTempR++;
                     srcPtrTempG++;
@@ -814,6 +826,10 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         Rpp32f alpha = alphaTensor[batchCount];
+        Rpp32f beta = 255.0 *  alpha;
+        __m256 pFogParams[2];
+        pFogParams[0] = _mm256_set1_ps(alpha);
+        pFogParams[1] = _mm256_set1_ps(beta);
 
         Rpp8s *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -852,7 +868,7 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                     __m256 p[6];
 
                     rpp_simd_load(rpp_load48_i8pkd3_to_f32pln3_avx, srcPtrTemp, p);    // simd loads
-                    compute_fog_48_host(p, pAdj);    // fog adjustment
+                    compute_fog_48_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store48_f32pln3_to_i8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTemp += 48;
@@ -901,7 +917,7 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                     __m256 p[6];
 
                     rpp_simd_load(rpp_load48_i8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    compute_fog_48_host(p, pAdj);    // fog adjustment
+                    compute_fog_48_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store48_f32pln3_to_i8pkd3_avx, dstPtrTemp, p);    // simd stores
 
                     srcPtrTempR += 16;
@@ -949,7 +965,7 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                     __m256 p[6];
 
                     rpp_simd_load(rpp_load48_i8pkd3_to_f32pln3_avx, srcPtrTemp, p);    // simd loads
-                    compute_fog_48_host(p, pAdj);    // fog adjustment
+                    compute_fog_48_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store48_f32pln3_to_i8pkd3_avx, dstPtrTemp, p);    // simd stores
 
                     srcPtrTemp += 48;
@@ -999,7 +1015,7 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                     __m256 p[6];
 
                     rpp_simd_load(rpp_load48_i8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    compute_fog_48_host(p, pAdj);    // fog adjustment
+                    compute_fog_48_host(p, pFogParams);    // fog adjustment
                     rpp_simd_store(rpp_store48_f32pln3_to_i8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTempR += 16;

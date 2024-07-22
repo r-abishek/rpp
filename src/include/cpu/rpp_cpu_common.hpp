@@ -3135,10 +3135,10 @@ inline void compute_color_temperature_24_host(__m256 *p, __m256 pAdj)
     p[2] = _mm256_sub_ps(p[2], pAdj);    // color_temperature adjustment Bs
 }
 
-inline void compute_fog_48_host(__m256 *p, __m256 alpha)
+inline void compute_fog_48_host(__m256 *p, __m256 *pFogParams)
 {
-    __m256 one_minux_alpha=_mm256_sub_ps(_mm256_set1_ps(1.0f), alpha);
-    __m256 white_alpha =_mm256_mul_ps(_mm256_set1_ps(255.0f),alpha);
+    __m256 one_minux_alpha=_mm256_sub_ps(_mm256_set1_ps(1.0f), pFogParams[0]);
+    __m256 white_alpha = pFogParams[1];
     p[0] = _mm256_fmadd_ps(p[0], one_minux_alpha, white_alpha);    // fog adjustment
     p[1] = _mm256_fmadd_ps(p[1], one_minux_alpha, white_alpha);    // fog adjustment
     p[2] = _mm256_fmadd_ps(p[2], one_minux_alpha, white_alpha);    // fog adjustment
@@ -3147,10 +3147,10 @@ inline void compute_fog_48_host(__m256 *p, __m256 alpha)
     p[5] = _mm256_fmadd_ps(p[5], one_minux_alpha, white_alpha);    // fog adjustment
 }
 
-inline void compute_fog_48_host(__m128 *p,  __m128 alpha)
+inline void compute_fog_48_host(__m128 *p,  __m128 *pFogParams)
 {
-    __m128 one_minux_alpha =_mm_sub_ps(_mm_set1_ps(1.0f), alpha);
-    __m128 white_alpha =_mm_mul_ps(_mm_set1_ps(255.0f),alpha);
+    __m128 one_minux_alpha =_mm_sub_ps(_mm_set1_ps(1.0f), pFogParams[0]);
+    __m128 white_alpha = pFogParams[1];
     p[0] = _mm_fmadd_ps(p[0], one_minux_alpha, white_alpha);    // fog adjustment
     p[1] = _mm_fmadd_ps(p[1], one_minux_alpha, white_alpha);    // fog adjustment
     p[2] = _mm_fmadd_ps(p[2], one_minux_alpha, white_alpha);    // fog adjustment
@@ -3165,10 +3165,10 @@ inline void compute_fog_48_host(__m128 *p,  __m128 alpha)
     p[11] = _mm_fmadd_ps(p[11], one_minux_alpha, white_alpha);  // fog adjustment
 }
 
-inline void compute_fog_24_host(__m256 *p, __m256 alpha)
+inline void compute_fog_24_host(__m256 *p, __m256 *pFogParams)
 {
-    __m256 one_minux_alpha =_mm256_sub_ps(_mm256_set1_ps(1.0f), alpha);
-    __m256 white_alpha =_mm256_mul_ps(_mm256_set1_ps(255.0f),alpha);
+    __m256 one_minux_alpha =_mm256_sub_ps(_mm256_set1_ps(1.0f), pFogParams[0]);
+    __m256 white_alpha = pFogParams[1]; // _mm256_mul_ps(_mm256_set1_ps(1.0f),alpha);
     p[0] = _mm256_fmadd_ps(p[0], one_minux_alpha, white_alpha);      // fog adjustment Rs
     p[1] = _mm256_fmadd_ps(p[1], one_minux_alpha, white_alpha);       // fog adjustment Gs
     p[2] = _mm256_fmadd_ps(p[2], one_minux_alpha, white_alpha);      // fog adjustment Bs
