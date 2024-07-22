@@ -3135,6 +3135,45 @@ inline void compute_color_temperature_24_host(__m256 *p, __m256 pAdj)
     p[2] = _mm256_sub_ps(p[2], pAdj);    // color_temperature adjustment Bs
 }
 
+inline void compute_fog_48_host(__m256 *p, __m256 alpha)
+{
+    __m256 one_minux_alpha=_mm256_sub_ps(_mm256_set1_ps(1.0f), alpha);
+    __m256 white_alpha =_mm256_mul_ps(_mm256_set1_ps(255.0f),alpha);
+    p[0] = _mm256_fmadd_ps(p[0], one_minux_alpha, white_alpha);    // fog adjustment
+    p[1] = _mm256_fmadd_ps(p[1], one_minux_alpha, white_alpha);    // fog adjustment
+    p[2] = _mm256_fmadd_ps(p[2], one_minux_alpha, white_alpha);    // fog adjustment
+    p[3] = _mm256_fmadd_ps(p[3], one_minux_alpha, white_alpha);    // fog adjustment
+    p[4] = _mm256_fmadd_ps(p[4], one_minux_alpha, white_alpha);    // fog adjustment
+    p[5] = _mm256_fmadd_ps(p[5], one_minux_alpha, white_alpha);    // fog adjustment
+}
+
+inline void compute_fog_48_host(__m128 *p,  __m128 alpha)
+{
+    __m128 one_minux_alpha =_mm_sub_ps(_mm_set1_ps(1.0f), alpha);
+    __m128 white_alpha =_mm_mul_ps(_mm_set1_ps(255.0f),alpha);
+    p[0] = _mm_fmadd_ps(p[0], one_minux_alpha, white_alpha);    // fog adjustment
+    p[1] = _mm_fmadd_ps(p[1], one_minux_alpha, white_alpha);    // fog adjustment
+    p[2] = _mm_fmadd_ps(p[2], one_minux_alpha, white_alpha);    // fog adjustment
+    p[3] = _mm_fmadd_ps(p[3], one_minux_alpha, white_alpha);    // fog adjustment
+    p[4] = _mm_fmadd_ps(p[4], one_minux_alpha, white_alpha);    // fog adjustment
+    p[5] = _mm_fmadd_ps(p[5], one_minux_alpha, white_alpha);    // fog adjustment
+    p[6] = _mm_fmadd_ps(p[6], one_minux_alpha, white_alpha);    // fog adjustment
+    p[7] = _mm_fmadd_ps(p[7], one_minux_alpha, white_alpha);    // fog adjustment
+    p[8] = _mm_fmadd_ps(p[8], one_minux_alpha, white_alpha);    // fog adjustment
+    p[9] = _mm_fmadd_ps(p[9], one_minux_alpha, white_alpha);    // fog adjustment
+    p[10] = _mm_fmadd_ps(p[10], one_minux_alpha, white_alpha);  // fog adjustment
+    p[11] = _mm_fmadd_ps(p[11], one_minux_alpha, white_alpha);  // fog adjustment
+}
+
+inline void compute_fog_24_host(__m256 *p, __m256 alpha)
+{
+    __m256 one_minux_alpha =_mm256_sub_ps(_mm256_set1_ps(1.0f), alpha);
+    __m256 white_alpha =_mm256_mul_ps(_mm256_set1_ps(255.0f),alpha);
+    p[0] = _mm256_fmadd_ps(p[0], one_minux_alpha, white_alpha);      // fog adjustment Rs
+    p[1] = _mm256_fmadd_ps(p[1], one_minux_alpha, white_alpha);       // fog adjustment Gs
+    p[2] = _mm256_fmadd_ps(p[2], one_minux_alpha, white_alpha);      // fog adjustment Bs
+}
+
 inline void compute_xywh_from_ltrb_host(RpptROIPtr roiPtrInput, RpptROIPtr roiPtrImage)
 {
     roiPtrImage->xywhROI.xy.x = roiPtrInput->ltrbROI.lt.x;
