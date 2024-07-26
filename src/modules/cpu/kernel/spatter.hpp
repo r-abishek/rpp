@@ -120,30 +120,30 @@ RppStatus spatter_u8_u8_host_tensor(Rpp8u *srcPtr,
                 spatterMaskInvPtrTemp = spatterMaskInvPtrRow;
 
                 int vectorLoopCount = 0;
-                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
-                {
-#if __AVX2__
-                    __m256 pSpatterMask[2], pSpatterMaskInv[2], p[6];
-                    rpp_simd_load(rpp_load16_f32_to_f32_avx, spatterMaskPtrTemp, pSpatterMask);    // simd loads
-                    rpp_simd_load(rpp_load16_f32_to_f32_avx, spatterMaskInvPtrTemp, pSpatterMaskInv);    // simd loads
-                    rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3_avx, srcPtrTemp, p);    // simd loads
-                    compute_spatter_48_host(p, pSpatterMaskInv, pSpatterMask, pSpatterValue);    // spatter adjustment
-                    rpp_simd_store(rpp_store48_f32pln3_to_u8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
-#else
-                    __m128 pSpatterMask[4], pSpatterMaskInv[4], p[12];
-                    rpp_simd_load(rpp_load16_f32_to_f32, spatterMaskPtrTemp, pSpatterMask);    // simd loads
-                    rpp_simd_load(rpp_load16_f32_to_f32, spatterMaskInvPtrTemp, pSpatterMaskInv);    // simd loads
-                    rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3, srcPtrTemp, p);    // simd loads
-                    compute_spatter_48_host(p, pSpatterMaskInv, pSpatterMask, pSpatterValue);    // spatter adjustment
-                    rpp_simd_store(rpp_store48_f32pln3_to_u8pln3, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
-#endif
-                    srcPtrTemp += vectorIncrement;
-                    dstPtrTempR += vectorIncrementPerChannel;
-                    dstPtrTempG += vectorIncrementPerChannel;
-                    dstPtrTempB += vectorIncrementPerChannel;
-                    spatterMaskPtrTemp += vectorIncrementPerChannel;
-                    spatterMaskInvPtrTemp += vectorIncrementPerChannel;
-                }
+//                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+//                 {
+// #if __AVX2__
+//                     __m256 pSpatterMask[2], pSpatterMaskInv[2], p[6];
+//                     rpp_simd_load(rpp_load16_f32_to_f32_avx, spatterMaskPtrTemp, pSpatterMask);    // simd loads
+//                     rpp_simd_load(rpp_load16_f32_to_f32_avx, spatterMaskInvPtrTemp, pSpatterMaskInv);    // simd loads
+//                     rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3_avx, srcPtrTemp, p);    // simd loads
+//                     compute_spatter_48_host(p, pSpatterMaskInv, pSpatterMask, pSpatterValue);    // spatter adjustment
+//                     rpp_simd_store(rpp_store48_f32pln3_to_u8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
+// #else
+//                     __m128 pSpatterMask[4], pSpatterMaskInv[4], p[12];
+//                     rpp_simd_load(rpp_load16_f32_to_f32, spatterMaskPtrTemp, pSpatterMask);    // simd loads
+//                     rpp_simd_load(rpp_load16_f32_to_f32, spatterMaskInvPtrTemp, pSpatterMaskInv);    // simd loads
+//                     rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3, srcPtrTemp, p);    // simd loads
+//                     compute_spatter_48_host(p, pSpatterMaskInv, pSpatterMask, pSpatterValue);    // spatter adjustment
+//                     rpp_simd_store(rpp_store48_f32pln3_to_u8pln3, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
+// #endif
+//                     srcPtrTemp += vectorIncrement;
+//                     dstPtrTempR += vectorIncrementPerChannel;
+//                     dstPtrTempG += vectorIncrementPerChannel;
+//                     dstPtrTempB += vectorIncrementPerChannel;
+//                     spatterMaskPtrTemp += vectorIncrementPerChannel;
+//                     spatterMaskInvPtrTemp += vectorIncrementPerChannel;
+//                 }
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     *dstPtrTempR = (Rpp8u) RPPPIXELCHECK(std::nearbyintf(((Rpp32f) srcPtrTemp[0]) * *spatterMaskInvPtrTemp + spatterValue[0] * *spatterMaskPtrTemp));
