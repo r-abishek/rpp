@@ -614,11 +614,6 @@ int main(int argc, char **argv)
                 case 10:
                 {
                     testCaseName = "fog";
-                    Rpp32f alpha[batchSize];
-                    for (i = 0; i < batchSize; i++)
-                    {
-                        alpha[i] = 0.5;
-                    }
 
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();

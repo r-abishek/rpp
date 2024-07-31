@@ -56,7 +56,6 @@ def run_unit_test(srcPath1, srcPath2, dstPathTemp, case, numRuns, testType, layo
     print("Running a New Functionality...")
     print("--------------------------------")
     bitDepths = range(7)
-    # bitDepths = [0,2]
     outputFormatToggles = [0, 1]
     if qaMode:
         bitDepths = [0]
