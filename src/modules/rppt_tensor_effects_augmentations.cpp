@@ -1010,7 +1010,6 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                         RpptDescPtr srcDescPtr,
                         RppPtr_t dstPtr,
                         RpptDescPtr dstDescPtr,
-                        Rpp32f *alphaTensor,
                         RpptROIPtr roiTensorPtrSrc,
                         RpptRoiType roiType,
                         rppHandle_t rppHandle)
@@ -1022,10 +1021,10 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                               srcDescPtr,
                               static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                               dstDescPtr,
-                              alphaTensor,
                               roiTensorPtrSrc,
                               roiType,
-                              layoutParams);
+                              layoutParams,
+                              rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
     {
@@ -1033,10 +1032,10 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                                 srcDescPtr,
                                 reinterpret_cast<Rpp16f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                 dstDescPtr,
-                                alphaTensor,
                                 roiTensorPtrSrc,
                                 roiType,
-                                layoutParams);
+                                layoutParams,
+                                rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
     {
@@ -1044,10 +1043,10 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                    dstDescPtr,
-                                   alphaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
-                                   layoutParams);
+                                   layoutParams,
+                                   rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
     {
@@ -1055,10 +1054,10 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                               srcDescPtr,
                               static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                               dstDescPtr,
-                              alphaTensor,
                               roiTensorPtrSrc,
                               roiType,
-                              layoutParams);
+                              layoutParams,
+                              rpp::deref(rppHandle));
     }
 
     return RPP_SUCCESS;
