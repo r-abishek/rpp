@@ -3170,21 +3170,21 @@ inline void compute_fog_24_host(__m256 *p, __m256 *pFogAlphaMask, __m256 *pFogIn
 
 inline void compute_fog_16_host(__m256 *p, __m256 *pFogAlphaMask, __m256 *pFogIntensityMask)
 {
-    p[0] = _mm256_fmadd_ps(p[0], _mm256_sub_ps(_mm256_set1_ps(1.0f), pFogAlphaMask[0]), _mm256_mul_ps(pFogIntensityMask[0], pFogAlphaMask[0]));    // spatter adjustment
-    p[1] = _mm256_fmadd_ps(p[1], _mm256_sub_ps(_mm256_set1_ps(1.0f), pFogAlphaMask[1]), _mm256_mul_ps(pFogIntensityMask[1], pFogAlphaMask[1]));    // spatter adjustment
+    p[0] = _mm256_fmadd_ps(p[0], _mm256_sub_ps(_mm256_set1_ps(1.0f), pFogAlphaMask[0]), _mm256_mul_ps(pFogIntensityMask[0], pFogAlphaMask[0]));    // fog adjustment
+    p[1] = _mm256_fmadd_ps(p[1], _mm256_sub_ps(_mm256_set1_ps(1.0f), pFogAlphaMask[1]), _mm256_mul_ps(pFogIntensityMask[1], pFogAlphaMask[1]));    // fog adjustment
 }
 
 inline void compute_fog_16_host(__m128 *p, __m128 *pFogAlphaMask, __m128 *pFogIntensityMask)
 {
-    p[0] = _mm_fmadd_ps(p[0], _mm_sub_ps(_mm_set1_ps(1.0f), pFogAlphaMask[0]), _mm_mul_ps(pFogIntensityMask[0], pFogAlphaMask[0]));    // spatter adjustment
-    p[1] = _mm_fmadd_ps(p[1], _mm_sub_ps(_mm_set1_ps(1.0f), pFogAlphaMask[1]), _mm_mul_ps(pFogIntensityMask[1], pFogAlphaMask[1]));    // spatter adjustment
-    p[2] = _mm_fmadd_ps(p[2], _mm_sub_ps(_mm_set1_ps(1.0f), pFogAlphaMask[2]), _mm_mul_ps(pFogIntensityMask[2], pFogAlphaMask[2]));    // spatter adjustment
-    p[3] = _mm_fmadd_ps(p[3], _mm_sub_ps(_mm_set1_ps(1.0f), pFogAlphaMask[3]), _mm_mul_ps(pFogIntensityMask[3], pFogAlphaMask[3]));    // spatter adjustment
+    p[0] = _mm_fmadd_ps(p[0], _mm_sub_ps(_mm_set1_ps(1.0f), pFogAlphaMask[0]), _mm_mul_ps(pFogIntensityMask[0], pFogAlphaMask[0]));    // fog adjustment
+    p[1] = _mm_fmadd_ps(p[1], _mm_sub_ps(_mm_set1_ps(1.0f), pFogAlphaMask[1]), _mm_mul_ps(pFogIntensityMask[1], pFogAlphaMask[1]));    // fog adjustment
+    p[2] = _mm_fmadd_ps(p[2], _mm_sub_ps(_mm_set1_ps(1.0f), pFogAlphaMask[2]), _mm_mul_ps(pFogIntensityMask[2], pFogAlphaMask[2]));    // fog adjustment
+    p[3] = _mm_fmadd_ps(p[3], _mm_sub_ps(_mm_set1_ps(1.0f), pFogAlphaMask[3]), _mm_mul_ps(pFogIntensityMask[3], pFogAlphaMask[3]));    // fog adjustment
 }
 
 inline void compute_fog_8_host(__m256 *p, __m256 *pFogAlphaMask, __m256 *pFogIntensityMask)
 {
-    p[0] = _mm256_fmadd_ps(p[0], _mm256_sub_ps(_mm256_set1_ps(1.0f), pFogAlphaMask[0]), _mm256_mul_ps(pFogIntensityMask[0], pFogAlphaMask[0]));    // spatter adjustment
+    p[0] = _mm256_fmadd_ps(p[0], _mm256_sub_ps(_mm256_set1_ps(1.0f), pFogAlphaMask[0]), _mm256_mul_ps(pFogIntensityMask[0], pFogAlphaMask[0]));    // fog adjustment
 }
 
 inline void compute_xywh_from_ltrb_host(RpptROIPtr roiPtrInput, RpptROIPtr roiPtrImage)
