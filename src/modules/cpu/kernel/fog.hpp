@@ -26,6 +26,7 @@ SOFTWARE.
 #include "rpp_cpu_simd.hpp"
 #include "rpp_cpu_common.hpp"
 #include "fog_mask.hpp"
+#include <fstream>
 RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                                 RpptDescPtr srcDescPtr,
                                 Rpp8u *dstPtr,
@@ -37,6 +38,64 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
+    Rpp32f *scratchMem = handle.GetInitHandle()->mem.mcpu.scratchBufferHost;
+    std::ifstream inputFile("/media/rpp/src/include/func_specific/fog_mask.bin", std::ios::binary);
+
+    Rpp64u oBufferSize = 6705152;
+    // Rpp32f *scratchMem = static_cast<Rpp32f *>(malloc(oBufferSize * sizeof(Rpp32f)));
+    Rpp16f tmp;
+    std::fstream fin("/media/rpp/src/include/func_specific/fog_mask.bin", std::ios::in | std::ios::binary);
+    if(fin.is_open())
+    {
+        for(Rpp64u i = 0; i < oBufferSize; i++)
+        {
+            if(!fin.eof())
+            {
+                fin.read(reinterpret_cast<char*>(&tmp), sizeof(Rpp16f));
+                scratchMem[i] = static_cast<Rpp32f>(tmp);
+            }
+            else
+            {
+                std::cerr<<"\nUnable to read all data from golden outputs\n";
+            }
+        }
+    }
+    else
+    {
+        std::cerr<<"\nCould not open the reference output. Please check the path specified\n";
+    }
+    
+    // if (!inputFile) {
+    //     std::cerr << "Error [opening] file for reading: " << "../../../func_specific/fog_mask.bin" << std::endl;
+    // }
+    // inputFile.read(reinterpret_cast<char*>(&scratchMem[0]), 6705152 * sizeof(Rpp32f)); 
+    // RppSize_t numElements = 6705152;
+    // RppSize_t chunkSize=1024;
+    // std::vector<Rpp16f> buffer(chunkSize);
+    // RppSize_t totalRead = 0;
+    // while (totalRead < numElements) {
+    //     size_t elementsToRead = std::min(chunkSize, numElements - totalRead);
+    //     inputFile.read(reinterpret_cast<char*>(buffer.data()), elementsToRead * sizeof(Rpp16f));
+    //     if (!inputFile) {
+    //         std::cerr << "Error reading file!" << std::endl;
+    //         // return 1;
+    //     }
+
+    //     for (size_t i = 0; i < elementsToRead; ++i) {
+    //         scratchMem[totalRead + i] = static_cast<Rpp32f>(buffer[i]);
+    //     }
+
+    //     totalRead += elementsToRead;
+    // }
+
+    // for (int i=0;i<10;i++)
+    // {
+    //     std::cerr<<"Bef SCratch Mem "<<(int)scratchMem[i]<<" ";
+    // }
+    // for (int i=0;i<10;i++)
+    // {
+    //     std::cerr<<"Before SCratch Mem "<<(int)scratchMem[i]<<" ";
+    // }
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
@@ -72,8 +131,11 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr= &scratchMem[(fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(50176) + (fog_width * maskLoc.y) + maskLoc.x];
+
 
         }
         else if(roi.xywhROI.roiWidth <= 640 && roi.xywhROI.roiHeight <= 480)
@@ -89,8 +151,10 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(100352) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(407552) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else if(roi.xywhROI.roiWidth <= 1280 && roi.xywhROI.roiHeight <= 720)
@@ -106,8 +170,10 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(714752) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(1636352) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else
@@ -123,15 +189,16 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(2557952) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(4631552) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
 
         Rpp32u alignedLength = (bufferLength / 48) * 48;
         Rpp32u vectorIncrement = 48;
         Rpp32u vectorIncrementPerChannel = 16;
-
         // Fog without fused output-layout toggle (NHWC -> NCHW)
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
@@ -401,6 +468,12 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
+    Rpp32f *scratchMem = handle.GetInitHandle()->mem.mcpu.scratchBufferHost;
+    std::ifstream inputFile("/media/rpp/src/include/func_specific/fog_mask.bin", std::ios::binary);
+    if (!inputFile) {
+        std::cerr << "Error opening file for reading: " << "../../../func_specific/fog_mask.bin" << std::endl;
+    }
+    inputFile.read(reinterpret_cast<char*>(scratchMem), 6705152 * sizeof(Rpp32f));
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
@@ -437,8 +510,10 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr= &scratchMem[(fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(50176) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else if(roi.xywhROI.roiWidth <= 640 && roi.xywhROI.roiHeight <= 480)
@@ -454,8 +529,10 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(100352) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(407552) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else if(roi.xywhROI.roiWidth <= 1280 && roi.xywhROI.roiHeight <= 720)
@@ -471,8 +548,10 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(714752) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(1636352) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else
@@ -488,8 +567,10 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(2557952) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(4631552) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
 
@@ -804,6 +885,12 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
+    Rpp32f *scratchMem = handle.GetInitHandle()->mem.mcpu.scratchBufferHost;
+    std::ifstream inputFile("/media/rpp/src/include/func_specific/fog_mask.bin", std::ios::binary);
+    if (!inputFile) {
+        std::cerr << "Error opening file for reading: " << "../../../func_specific/fog_mask.bin" << std::endl;
+    }
+    inputFile.read(reinterpret_cast<char*>(scratchMem), 6705152 * sizeof(Rpp32f));
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
@@ -839,8 +926,10 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr= &scratchMem[(fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(50176) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else if(roi.xywhROI.roiWidth <= 640 && roi.xywhROI.roiHeight <= 480)
@@ -856,8 +945,10 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(100352) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(407552) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else if(roi.xywhROI.roiWidth <= 1280 && roi.xywhROI.roiHeight <= 720)
@@ -873,8 +964,10 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(714752) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(1636352) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else
@@ -890,8 +983,10 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(2557952) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(4631552) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
 
@@ -1171,6 +1266,12 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
+    Rpp32f *scratchMem = handle.GetInitHandle()->mem.mcpu.scratchBufferHost;
+    std::ifstream inputFile("/media/rpp/src/include/func_specific/fog_mask.bin", std::ios::binary);
+    if (!inputFile) {
+        std::cerr << "Error opening file for reading: " << "../../../func_specific/fog_mask.bin" << std::endl;
+    }
+    inputFile.read(reinterpret_cast<char*>(scratchMem), 6705152 * sizeof(Rpp32f));
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
@@ -1206,8 +1307,10 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_224_224[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr= &scratchMem[(fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(50176) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else if(roi.xywhROI.roiWidth <= 640 && roi.xywhROI.roiHeight <= 480)
@@ -1223,8 +1326,10 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_640_480[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(100352) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(407552) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else if(roi.xywhROI.roiWidth <= 1280 && roi.xywhROI.roiHeight <= 720)
@@ -1240,8 +1345,10 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_1280_720[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(714752) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(1636352) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
         else
@@ -1257,8 +1364,10 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
             maskLoc.x = distribX(gen);
             maskLoc.y = distribY(gen);
 
-            fogAlphaMaskPtr = &fogAlphaMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
-            fogIntensityMaskPtr = &fogIntensityMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogAlphaMaskPtr = &fogAlphaMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            // fogIntensityMaskPtr = &fogIntensityMask_1920_1080[(fog_width * maskLoc.y) + maskLoc.x];
+            fogAlphaMaskPtr = &scratchMem[(2557952) + (fog_width * maskLoc.y) + maskLoc.x];
+            fogIntensityMaskPtr = &scratchMem[(4631552) + (fog_width * maskLoc.y) + maskLoc.x];
 
         }
 
