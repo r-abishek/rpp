@@ -657,8 +657,6 @@ RppStatus rppt_glitch_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstP
  * \param [in] srcDescPtr source tensor descriptor (Restrictions - numDims = 4, offsetInBytes >= 0, dataType = U8/F16/F32/I8, layout = NCHW/NHWC, c = 1/3)
  * \param [out] dstPtr destination tensor in HOST memory
  * \param [in] dstDescPtr destination tensor descriptor (Restrictions - numDims = 4, offsetInBytes >= 0, dataType = U8/F16/F32/I8, layout = NCHW/NHWC, c = same as that of srcDescPtr)
- * \param [in] fogAlphaMaskPtr alpha tensor in HOST memory
- * \param [in] fogIntensityMaskPtr intensity tensor in HOST memory
  * \param [in] gammaTensor gamma values for fog calculation (1D tensor in HOST memory, of size batchSize, with 0 <= alpha <= 0.5 for each image in batch)
  * \param [in] roiTensorSrc ROI data for each image in source tensor (2D tensor of size batchSize * 4, in either format - XYWH(xy.x, xy.y, roiWidth, roiHeight) or LTRB(lt.x, lt.y, rb.x, rb.y))
  * \param [in] roiType ROI type used (RpptRoiType::XYWH or RpptRoiType::LTRB)

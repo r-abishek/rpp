@@ -1072,7 +1072,8 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
     Rpp32f *fogIntensityMaskPtr =  reinterpret_cast<Rpp32f *>(fogAlphaMaskPtr + 6705152);
     
     resize_bilinear_f32_f32_host_tensor(fogAlphaMaskPtr_1920_1080,
-                                        fogMaskSrcDescPtr,fogAlphaMaskPtr,
+                                        fogMaskSrcDescPtr,
+                                        fogAlphaMaskPtr,
                                         fogMaskDstDescPtr,
                                         internalDstImgSizes,
                                         internalRoiTensorPtrSrc,

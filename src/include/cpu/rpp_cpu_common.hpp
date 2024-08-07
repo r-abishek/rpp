@@ -3215,7 +3215,7 @@ inline void compute_fog_16_host(__m128 *p, __m128 *pFogAlphaMask, __m128 *pFogIn
 
 inline void compute_fog_8_host(__m256 *p, __m256 *pFogAlphaMask, __m256 *pFogIntensityMask, __m256 pGamma)
 {
-        __m256 pAlphaFactor, pIntensityFactor;
+    __m256 pAlphaFactor, pIntensityFactor;
     pAlphaFactor = _mm256_sub_ps(avx_p1, _mm256_add_ps(pFogAlphaMask[0], pGamma));
     pIntensityFactor = _mm256_mul_ps(pFogIntensityMask[0], _mm256_add_ps(pFogAlphaMask[0], pGamma));
     p[0] = _mm256_fmadd_ps(p[0],  pAlphaFactor, pIntensityFactor);    // fog adjustment
