@@ -614,11 +614,17 @@ int main(int argc, char **argv)
                 case 10:
                 {
                     testCaseName = "fog";
-                    cerr<<"Eroor ";
+
+                    Rpp32f gamma[batchSize];
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        gamma[i] = 0;
+                    }
+
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_fog_host(input, srcDescPtr, output, dstDescPtr, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_fog_host(input, srcDescPtr, output, dstDescPtr, gamma, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -675,7 +681,7 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_resize_host(input, srcDescPtr, output, dstDescPtr, [dstImgSizes], interpolationType, roiTensorPtrDst, roiTypeSrc, handle);
+                        rppt_resize_host(input, srcDescPtr, output, dstDescPtr, dstImgSizes, interpolationType, roiTensorPtrDst, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 

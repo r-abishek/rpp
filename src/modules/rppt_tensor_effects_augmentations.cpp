@@ -27,6 +27,7 @@ SOFTWARE.
 #include "rppi_validate.hpp"
 #include "rppt_tensor_effects_augmentations.h"
 #include "cpu/host_tensor_effects_augmentations.hpp"
+#include "fog_mask.hpp"
 
 #ifdef HIP_COMPILE
 #include <hip/hip_fp16.h>
@@ -1010,17 +1011,96 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                         RpptDescPtr srcDescPtr,
                         RppPtr_t dstPtr,
                         RpptDescPtr dstDescPtr,
+                        Rpp32f *gammaTensor,
                         RpptROIPtr roiTensorPtrSrc,
                         RpptRoiType roiType,
                         rppHandle_t rppHandle)
 {
     RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
+    Rpp32f *fogAlphaMaskPtr_1920_1080, *fogIntensityMaskPtr_1920_1080;
+    fogAlphaMaskPtr_1920_1080 = &fogAlphaMask_1920_1080[0];
+    fogIntensityMaskPtr_1920_1080 = &fogIntensityMask_1920_1080[0];
+    Rpp32u height = srcDescPtr->h;
+    Rpp32u width = srcDescPtr->w;
+
+    RpptLayout layout = NCHW;
+    RppLayoutParams srcLayoutParams = get_layout_params(layout, 1);
+    RpptDesc fogMaskSrcDesc ;
+    RpptDescPtr fogMaskSrcDescPtr = &fogMaskSrcDesc;
+    fogMaskSrcDescPtr->numDims = 3;
+    fogMaskSrcDescPtr->offsetInBytes = 0;
+    fogMaskSrcDescPtr->dataType = RpptDataType::F32;  
+    fogMaskSrcDescPtr->n = 1;
+    fogMaskSrcDescPtr->c = 1;
+    fogMaskSrcDescPtr->h = 1080;
+    fogMaskSrcDescPtr->w = 1920; 
+    fogMaskSrcDescPtr->strides.nStride = 1080*1920;
+    fogMaskSrcDescPtr->strides.hStride = 1920;
+    fogMaskSrcDescPtr->strides.wStride = 1;
+    fogMaskSrcDescPtr->strides.cStride = 1080*1920;
+    fogMaskSrcDescPtr->layout = NCHW;
+
+    RpptDesc fogMaskDstDesc ;
+    RpptDescPtr fogMaskDstDescPtr = &fogMaskDstDesc;
+    fogMaskDstDescPtr->numDims = 3;
+    fogMaskDstDescPtr->offsetInBytes = 0;
+    fogMaskDstDescPtr->dataType = RpptDataType::F32;  
+    fogMaskDstDescPtr->n = 1;
+    fogMaskDstDescPtr->c = 1;
+    fogMaskDstDescPtr->h = height;
+    fogMaskDstDescPtr->w = width;
+    fogMaskDstDescPtr->strides.nStride = height * width;
+    fogMaskDstDescPtr->strides.hStride = width;
+    fogMaskDstDescPtr->strides.wStride = 1;
+    fogMaskDstDescPtr->strides.cStride = height * width;
+    fogMaskDstDescPtr->layout = NCHW;
+
+
+    RpptImagePatchPtr internalDstImgSizes = reinterpret_cast<RpptImagePatch *> (rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.scratchBufferHost);
+    RpptROI *internalRoiTensorPtrSrc = reinterpret_cast<RpptROI *>(internalDstImgSizes + 1);
+
+
+    internalDstImgSizes[0].width = width;
+    internalDstImgSizes[0].height = height;
+    internalRoiTensorPtrSrc[0].xywhROI.xy.x = 0 ;
+    internalRoiTensorPtrSrc[0].xywhROI.xy.y = 0 ;
+    internalRoiTensorPtrSrc[0].xywhROI.roiHeight = 1080;
+    internalRoiTensorPtrSrc[0].xywhROI.roiWidth = 1920;
+
+    Rpp64u oBufferSize = 6705152;
+    Rpp32f *fogAlphaMaskPtr =  reinterpret_cast<Rpp32f *>(internalRoiTensorPtrSrc + 1);
+    Rpp32f *fogIntensityMaskPtr =  reinterpret_cast<Rpp32f *>(fogAlphaMaskPtr + 6705152);
+    
+    resize_bilinear_f32_f32_host_tensor(fogAlphaMaskPtr_1920_1080,
+                                        fogMaskSrcDescPtr,fogAlphaMaskPtr,
+                                        fogMaskDstDescPtr,
+                                        internalDstImgSizes,
+                                        internalRoiTensorPtrSrc,
+                                        roiType,srcLayoutParams,
+                                        rpp::deref(rppHandle));
+    resize_bilinear_f32_f32_host_tensor(fogIntensityMaskPtr_1920_1080,
+                                        fogMaskSrcDescPtr,
+                                        fogIntensityMaskPtr,
+                                        fogMaskDstDescPtr,
+                                        internalDstImgSizes,
+                                        internalRoiTensorPtrSrc,
+                                        roiType,srcLayoutParams,
+                                        rpp::deref(rppHandle));
+
+    std::cout<<"Mask :";
+    for(int i=0;i<10;i++)
+    {
+        std::cout<<fogAlphaMaskPtr[i]<<" "<<fogIntensityMaskPtr[i]<<" ";
+    }
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         fog_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                               srcDescPtr,
                               static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                               dstDescPtr,
+                              fogAlphaMaskPtr,
+                              fogIntensityMaskPtr,
+                              gammaTensor,
                               roiTensorPtrSrc,
                               roiType,
                               layoutParams,
@@ -1032,6 +1112,9 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                                 srcDescPtr,
                                 reinterpret_cast<Rpp16f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                 dstDescPtr,
+                                fogAlphaMaskPtr,
+                                fogIntensityMaskPtr,
+                                gammaTensor,
                                 roiTensorPtrSrc,
                                 roiType,
                                 layoutParams,
@@ -1040,13 +1123,16 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
     else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
     {
         fog_f32_f32_host_tensor(reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
-                                   srcDescPtr,
-                                   reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
-                                   dstDescPtr,
-                                   roiTensorPtrSrc,
-                                   roiType,
-                                   layoutParams,
-                                   rpp::deref(rppHandle));
+                                srcDescPtr,
+                                reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                dstDescPtr,
+                                fogAlphaMaskPtr,
+                                fogIntensityMaskPtr,
+                                gammaTensor,
+                                roiTensorPtrSrc,
+                                roiType,
+                                layoutParams,
+                                rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
     {
@@ -1054,6 +1140,9 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                               srcDescPtr,
                               static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                               dstDescPtr,
+                              fogAlphaMaskPtr,
+                              fogIntensityMaskPtr,
+                              gammaTensor,
                               roiTensorPtrSrc,
                               roiType,
                               layoutParams,

@@ -1955,7 +1955,7 @@ inline void rpp_multiply16_constant(__m128 *p, __m128 pMultiplier)
 
 inline void rpp_multiply8_constant(__m256 *p, __m256 pMultiplier)
 {
-    *p = _mm256_mul_ps(*p, pMultiplier);
+    p[0] = _mm256_mul_ps(p[0], pMultiplier);
 }
 
 
