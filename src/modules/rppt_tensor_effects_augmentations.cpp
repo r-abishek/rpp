@@ -1087,11 +1087,6 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                                         roiType,srcLayoutParams,
                                         rpp::deref(rppHandle));
 
-    std::cout<<"Mask :";
-    for(int i=0;i<10;i++)
-    {
-        std::cout<<fogAlphaMaskPtr[i]<<" "<<fogIntensityMaskPtr[i]<<" ";
-    }
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         fog_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
