@@ -31,7 +31,7 @@ int main(int argc, char **argv)
     if (argc < MIN_ARG_COUNT)
     {
         printf("\nImproper Usage! Needs all arguments!\n");
-        printf("\nUsage: ./Tensor_audio_hip <src folder> <case number = 0:0> <test type 0/1> <numRuns> <batchSize> <dst folder>\n");
+        printf("\nUsage: ./Tensor_audio_hip <src folder> <case number = 0:4> <test type 0/1> <numRuns> <batchSize> <dst folder>\n");
         return -1;
     }
 
@@ -136,14 +136,13 @@ int main(int argc, char **argv)
 
     // allocate the buffer for srcDimsTensor
     Rpp32s *srcDimsTensor;
-    if(testCase == 3)
-        CHECK_RETURN_STATUS(hipHostMalloc(&srcDimsTensor, batchSize * 2 * sizeof(Rpp32s)));
+    CHECK_RETURN_STATUS(hipHostMalloc(&srcDimsTensor, batchSize * 2 * sizeof(Rpp32s)));
 
     Rpp32s *detectedIndex = nullptr, *detectionLength = nullptr;
     if(testCase == 0)
     {
-        CHECK_RETURN_STATUS(hipHostMalloc(&detectedIndex, batchSize * sizeof(Rpp32f)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&detectionLength, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&detectedIndex, batchSize * sizeof(Rpp32s)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&detectionLength, batchSize * sizeof(Rpp32s)));
     }
 
     // run case-wise RPP API and measure time
@@ -213,6 +212,61 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     rppt_down_mixing_gpu(d_inputf32, srcDescPtr, d_outputf32, dstDescPtr, srcDimsTensor, normalizeWeights, handle);
+
+                    break;
+                }
+                case 4:
+                {
+                    testCaseName = "spectrogram";
+                    bool centerWindows = true;
+                    bool reflectPadding = true;
+                    Rpp32f *windowFn = NULL;
+                    Rpp32s power = 2;
+                    Rpp32s windowLength = 320;
+                    Rpp32s windowStep = 160;
+                    Rpp32s nfft = 512;
+                    dstDescPtr->layout = RpptLayout::NFT;
+
+                    int windowOffset = 0;
+                    if(!centerWindows)
+                        windowOffset = windowLength;
+
+                    maxDstWidth = 0;
+                    maxDstHeight = 0;
+                    if(dstDescPtr->layout == RpptLayout::NFT)
+                    {
+                        for(int i = 0; i < noOfAudioFiles; i++)
+                        {
+                            dstDims[i].height = nfft / 2 + 1;
+                            dstDims[i].width = ((srcLengthTensor[i] - windowOffset) / windowStep) + 1;
+                            maxDstHeight = std::max(maxDstHeight, (int)dstDims[i].height);
+                            maxDstWidth = std::max(maxDstWidth, (int)dstDims[i].width);
+                        }
+                    }
+                    else
+                    {
+                        for(int i = 0; i < noOfAudioFiles; i++)
+                        {
+                            dstDims[i].height = ((srcLengthTensor[i] - windowOffset) / windowStep) + 1;
+                            dstDims[i].width = nfft / 2 + 1;
+                            maxDstHeight = std::max(maxDstHeight, (int)dstDims[i].height);
+                            maxDstWidth = std::max(maxDstWidth, (int)dstDims[i].width);
+                        }
+                    }
+
+                    srcDescPtr->numDims = 2;
+                    set_audio_descriptor_dims_and_strides_nostriding(dstDescPtr, batchSize, maxDstHeight, maxDstWidth, maxDstChannels, offsetInBytes);
+                    dstDescPtr->numDims = 3;
+
+                    // Set buffer sizes for src/dst
+                    unsigned long long spectrogramBufferSize = (unsigned long long)dstDescPtr->h * (unsigned long long)dstDescPtr->w * (unsigned long long)dstDescPtr->c * (unsigned long long)dstDescPtr->n;
+                    oBufferSize = spectrogramBufferSize;
+                    outputf32 = (Rpp32f *)realloc(outputf32, spectrogramBufferSize * sizeof(Rpp32f));
+                    CHECK_RETURN_STATUS(hipFree(d_outputf32));
+                    CHECK_RETURN_STATUS(hipMalloc(&d_outputf32, spectrogramBufferSize * sizeof(Rpp32f)));
+
+                    startWallTime = omp_get_wtime();
+                    rppt_spectrogram_gpu(d_inputf32, srcDescPtr, d_outputf32, dstDescPtr, srcLengthTensor, centerWindows, reflectPadding, windowFn, nfft, power, windowLength, windowStep, handle);
 
                     break;
                 }
@@ -289,8 +343,7 @@ int main(int argc, char **argv)
     CHECK_RETURN_STATUS(hipHostFree(channelsTensor));
     CHECK_RETURN_STATUS(hipHostFree(srcDims));
     CHECK_RETURN_STATUS(hipHostFree(dstDims));
-    if(testCase == 3)
-        CHECK_RETURN_STATUS(hipHostFree(srcDimsTensor));
+    CHECK_RETURN_STATUS(hipHostFree(srcDimsTensor));
     if (detectedIndex != nullptr)
         CHECK_RETURN_STATUS(hipHostFree(detectedIndex));
     if (detectionLength != nullptr)

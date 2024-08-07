@@ -61,6 +61,12 @@ SOFTWARE.
   } \
 } while (0)
 
+#ifdef HIP_COMPILE
+#define RPP_HOST_DEVICE __host__ __device__
+#else
+#define RPP_HOST_DEVICE
+#endif
+
 const float ONE_OVER_6 = 1.0f / 6;
 const float ONE_OVER_3 = 1.0f / 3;
 const float ONE_OVER_255 = 1.0f / 255;
@@ -145,7 +151,9 @@ typedef enum
     /*! \brief Scratch memory size needed is beyond the bounds (Needs to adhere to function specification.) \ingroup group_rppdefs */
     RPP_ERROR_OUT_OF_BOUND_SCRATCH_MEMORY_SIZE    = -22,
     /*! \brief Number of src dims is invalid. (Needs to adhere to function specification.) \ingroup group_rppdefs */
-    RPP_ERROR_INVALID_SRC_DIMS          = -23
+    RPP_ERROR_INVALID_SRC_DIMS          = -23,
+    /*! \brief Number of dst dims is invalid. (Needs to adhere to function specification.) \ingroup group_rppdefs */
+    RPP_ERROR_INVALID_DST_DIMS          = -24
 } RppStatus;
 
 /*! \brief RPP rppStatus_t type enums
@@ -1055,7 +1063,7 @@ typedef struct
     Rpp64u* dstBatchIndex;
     Rpp32u* inc;
     Rpp32u* dstInc;
-    hipMemRpp32u scratchBuf;
+    hipMemRpp32f scratchBufferPinned;
 } memGPU;
 
 /*! \brief RPP HIP-HOST memory management

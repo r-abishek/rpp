@@ -398,5 +398,58 @@ RppStatus rppt_down_mixing_gpu(RppPtr_t srcPtr,
 #endif // backend
 }
 
+/******************** spectrogram ********************/
+
+RppStatus rppt_spectrogram_gpu(RppPtr_t srcPtr,
+                               RpptDescPtr srcDescPtr,
+                               RppPtr_t dstPtr,
+                               RpptDescPtr dstDescPtr,
+                               Rpp32s *srcLengthTensor,
+                               bool centerWindows,
+                               bool reflectPadding,
+                               Rpp32f *windowFunction,
+                               Rpp32s nfft,
+                               Rpp32s power,
+                               Rpp32s windowLength,
+                               Rpp32s windowStep,
+                               rppHandle_t rppHandle)
+{
+#ifdef HIP_COMPILE
+    if ((dstDescPtr->layout != RpptLayout::NFT) && (dstDescPtr->layout != RpptLayout::NTF)) return RPP_ERROR_INVALID_DST_LAYOUT;
+    Rpp32u srcTensorDims = srcDescPtr->numDims - 1; // exclude batchsize from input dims
+    Rpp32u dstTensorDims = dstDescPtr->numDims - 1; // exclude batchsize from output dims
+    if (srcTensorDims != 1)
+        return RPP_ERROR_INVALID_SRC_DIMS;
+    if (dstTensorDims != 2)
+        return RPP_ERROR_INVALID_DST_DIMS;
+
+    if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+    {
+        hip_exec_spectrogram_tensor(static_cast<Rpp32f*>(srcPtr),
+                                    srcDescPtr,
+                                    static_cast<Rpp32f*>(dstPtr),
+                                    dstDescPtr,
+                                    srcLengthTensor,
+                                    centerWindows,
+                                    reflectPadding,
+                                    windowFunction,
+                                    nfft,
+                                    power,
+                                    windowLength,
+                                    windowStep,
+                                    rpp::deref(rppHandle));
+
+        return RPP_SUCCESS;
+    }
+    else
+    {
+        return RPP_ERROR_NOT_IMPLEMENTED;
+    }
+
+#elif defined(OCL_COMPILE)
+    return RPP_ERROR_NOT_IMPLEMENTED;
+#endif // backend
+}
+
 #endif // GPU_SUPPORT
 #endif // AUDIO_SUPPORT
