@@ -1958,7 +1958,6 @@ inline void rpp_multiply8_constant(__m256 *p, __m256 pMultiplier)
     p[0] = _mm256_mul_ps(p[0], pMultiplier);
 }
 
-
 template <typename FuncType, typename... ArgTypes>
 inline void rpp_simd_load(FuncType &&rpp_simd_load_routine, ArgTypes&&... args)
 {
