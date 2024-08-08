@@ -42,8 +42,8 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
     
     Rpp32u numThreads = handle.GetNumThreads();
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
-    Rpp32u fog_width = srcDescPtr->w;
-    Rpp32u fog_height = srcDescPtr->h;
+    Rpp32u fogWidth = srcDescPtr->w;
+    Rpp32u fogHeight = srcDescPtr->h;
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
     for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
@@ -81,7 +81,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
@@ -97,7 +96,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-
                     __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);    // simd loads
@@ -133,8 +131,8 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                 dstPtrRowR += dstDescPtr->strides.hStride;
                 dstPtrRowG += dstDescPtr->strides.hStride;
                 dstPtrRowB += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -149,7 +147,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
@@ -165,7 +162,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-
                     __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);    // simd loads
@@ -198,8 +194,8 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                 srcPtrRowG += srcDescPtr->strides.hStride;
                 srcPtrRowB += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -212,7 +208,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTemp, *dstPtrTemp;
@@ -226,7 +221,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-
                     __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);    // simd loads
@@ -255,8 +249,8 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -271,7 +265,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTemp, *dstPtrTemp;
@@ -285,7 +278,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-
                     __m256 pFogAlphaMask[2], pFogIntensityMask[2];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);    // simd loads
@@ -328,8 +320,8 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
 
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
     }
@@ -351,8 +343,8 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
-    Rpp32u fog_width = srcDescPtr->w;
-    Rpp32u fog_height = srcDescPtr->h;
+    Rpp32u fogWidth = srcDescPtr->w;
+    Rpp32u fogHeight = srcDescPtr->h;
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
@@ -391,7 +383,6 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
@@ -407,7 +398,6 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-
                     __m256 pFogAlphaMask, pFogIntensityMask, p[3];
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);    // simd loads
@@ -444,8 +434,8 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrRowR += dstDescPtr->strides.hStride;
                 dstPtrRowG += dstDescPtr->strides.hStride;
                 dstPtrRowB += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -460,7 +450,6 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
@@ -476,7 +465,6 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-
                     __m256 pFogAlphaMask, pFogIntensityMask, p[3];
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);    // simd loads
@@ -513,8 +501,8 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                 srcPtrRowG += srcDescPtr->strides.hStride;
                 srcPtrRowB += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -527,7 +515,6 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTemp, *dstPtrTemp;
@@ -571,8 +558,8 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
 
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -591,7 +578,6 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTemp, *dstPtrTemp;
@@ -605,7 +591,6 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-
                     __m256 pFogAlphaMask, pFogIntensityMask;
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);    // simd loads
@@ -651,8 +636,8 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
 
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
     }
@@ -674,8 +659,8 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
-    Rpp32u fog_width = srcDescPtr->w;
-    Rpp32u fog_height = srcDescPtr->h;
+    Rpp32u fogWidth = srcDescPtr->w;
+    Rpp32u fogHeight = srcDescPtr->h;
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
@@ -714,7 +699,6 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
@@ -766,8 +750,8 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrRowR += dstDescPtr->strides.hStride;
                 dstPtrRowG += dstDescPtr->strides.hStride;
                 dstPtrRowB += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -782,7 +766,6 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
@@ -834,8 +817,8 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                 srcPtrRowG += srcDescPtr->strides.hStride;
                 srcPtrRowB += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -848,7 +831,6 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTemp, *dstPtrTemp;
@@ -862,7 +844,6 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-
                     __m256 pFogAlphaMask, pFogIntensityMask, p[3];
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);    // simd loads
@@ -893,8 +874,8 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
 
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -910,7 +891,6 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTemp, *dstPtrTemp;
@@ -933,9 +913,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     dstPtrChannel = dstPtrTemp;
                     for(int c = 0; c < srcDescPtr->c; c++)
                     {
-
-                        __m256 p;
-                        
+                        __m256 p;   
                         rpp_simd_load(rpp_load8_f32_to_f32_avx, srcPtrChannel, &p);    // simd loads
                         compute_fog_8_host(&p, &pFogAlphaMask, &pFogIntensityMask, pGamma);    // fog adjustment
                         rpp_simd_store(rpp_store8_f32_to_f32_avx, dstPtrChannel, &p);    // simd stores
@@ -968,8 +946,8 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
 
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
     }
@@ -992,8 +970,8 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
-    Rpp32u fog_width = srcDescPtr->w;
-    Rpp32u fog_height = srcDescPtr->h;
+    Rpp32u fogWidth = srcDescPtr->w;
+    Rpp32u fogHeight = srcDescPtr->h;
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
@@ -1032,7 +1010,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
@@ -1048,7 +1025,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-
                     __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);    // simd loads
@@ -1084,8 +1060,8 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                 dstPtrRowR += dstDescPtr->strides.hStride;
                 dstPtrRowG += dstDescPtr->strides.hStride;
                 dstPtrRowB += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -1100,7 +1076,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
@@ -1116,7 +1091,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-
                     __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);    // simd loads
@@ -1152,8 +1126,8 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                 srcPtrRowG += srcDescPtr->strides.hStride;
                 srcPtrRowB += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -1166,7 +1140,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTemp, *dstPtrTemp;
@@ -1180,7 +1153,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-
                     __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);    // simd loads
@@ -1210,8 +1182,8 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
 
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
 
@@ -1226,7 +1198,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
             dstPtrRow = dstPtrChannel;
             fogAlphaMaskPtrRow = fogAlphaMaskPtr;
             fogIntensityMaskPtrRow = fogIntensityMaskPtr;
-
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTemp, *dstPtrTemp;
@@ -1240,7 +1211,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-
                     __m256 pFogAlphaMask[2], pFogIntensityMask[2];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);    // simd loads
@@ -1249,7 +1219,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                     dstPtrChannel = dstPtrTemp;
                     for(int c = 0; c < srcDescPtr->c; c++)
                     {
-
                         __m256 p[2];
                         rpp_simd_load(rpp_load16_i8_to_f32_avx, srcPtrChannel, p);    // simd loads
                         compute_fog_16_host(p, pFogAlphaMask, pFogIntensityMask, pGamma);    // fog adjustment
@@ -1284,8 +1253,8 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
 
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
-                fogAlphaMaskPtrRow += fog_width;
-                fogIntensityMaskPtrRow += fog_width;
+                fogAlphaMaskPtrRow += fogWidth;
+                fogIntensityMaskPtrRow += fogWidth;
             }
         }
     }
