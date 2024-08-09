@@ -1032,12 +1032,12 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
     fogMaskSrcDescPtr->dataType = RpptDataType::F32;  
     fogMaskSrcDescPtr->n = 1;
     fogMaskSrcDescPtr->c = 1;
-    fogMaskSrcDescPtr->h = 1080;
-    fogMaskSrcDescPtr->w = 1920; 
-    fogMaskSrcDescPtr->strides.nStride = 1080*1920;
-    fogMaskSrcDescPtr->strides.hStride = 1920;
+    fogMaskSrcDescPtr->h = FOG_MAX_HEIGHT;
+    fogMaskSrcDescPtr->w = FOG_MAX_WIDTH; 
+    fogMaskSrcDescPtr->strides.nStride = FOG_MAX_WIDTH * FOG_MAX_HEIGHT;
+    fogMaskSrcDescPtr->strides.hStride = FOG_MAX_WIDTH;
     fogMaskSrcDescPtr->strides.wStride = 1;
-    fogMaskSrcDescPtr->strides.cStride = 1080*1920;
+    fogMaskSrcDescPtr->strides.cStride = FOG_MAX_WIDTH * FOG_MAX_HEIGHT;
     fogMaskSrcDescPtr->layout = NCHW;
 
     RpptDesc fogMaskDstDesc ;
