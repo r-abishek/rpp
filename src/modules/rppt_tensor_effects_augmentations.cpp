@@ -1067,9 +1067,9 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
     internalRoiTensorPtrSrc[0].xywhROI.roiHeight = 1080;
     internalRoiTensorPtrSrc[0].xywhROI.roiWidth = 1920;
 
-    Rpp64u oBufferSize = 6705152;
+    Rpp64u oBufferSize = height * width;
     Rpp32f *fogAlphaMaskPtr =  reinterpret_cast<Rpp32f *>(internalRoiTensorPtrSrc + 1);
-    Rpp32f *fogIntensityMaskPtr =  reinterpret_cast<Rpp32f *>(fogAlphaMaskPtr + 6705152);
+    Rpp32f *fogIntensityMaskPtr =  reinterpret_cast<Rpp32f *>(fogAlphaMaskPtr + oBufferSize);
     
     resize_bilinear_f32_f32_host_tensor(fogAlphaMaskPtr_1920_1080,
                                         fogMaskSrcDescPtr,
