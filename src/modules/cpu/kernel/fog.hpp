@@ -25,25 +25,25 @@ SOFTWARE.
 #include "rppdefs.h"
 #include "rpp_cpu_simd.hpp"
 #include "rpp_cpu_common.hpp"
+#include "fog_mask.hpp"
 
 RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                                 RpptDescPtr srcDescPtr,
                                 Rpp8u *dstPtr,
                                 RpptDescPtr dstDescPtr,
-                                Rpp32f *fogAlphaMaskPtr,
-                                Rpp32f *fogIntensityMaskPtr,
+                                Rpp32f *fogAlphaMask,
+                                Rpp32f *fogIntensityMask,
                                 Rpp32f *gammaTensor,
                                 RpptROIPtr roiTensorPtrSrc,
                                 RpptRoiType roiType,
                                 RppLayoutParams layoutParams,
                                 rpp::Handle& handle)
-{
-    
-    
+{   
     Rpp32u numThreads = handle.GetNumThreads();
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u fogWidth = srcDescPtr->w;
     Rpp32u fogHeight = srcDescPtr->h;
+
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
     for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
@@ -63,6 +63,19 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
         Rpp8u *srcPtrChannel, *dstPtrChannel;
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
+
+        std::random_device rd;  // Random number engine seed
+        std::mt19937 gen(rd()); // Seeding rd() to fast mersenne twister engine
+        std::uniform_int_distribution<> distribX(0, srcDescPtr->w - roi.xywhROI.roiWidth);
+        std::uniform_int_distribution<> distribY(0, srcDescPtr->h - roi.xywhROI.roiHeight);
+
+        RppiPoint maskLoc;
+        maskLoc.x = distribX(gen);
+        maskLoc.y = distribY(gen);
+
+        Rpp32f *fogAlphaMaskPtr, *fogIntensityMaskPtr;
+        fogAlphaMaskPtr = fogAlphaMask + ((srcDescPtr->w * maskLoc.y) + maskLoc.x);
+        fogIntensityMaskPtr = fogIntensityMask + ((srcDescPtr->w * maskLoc.y) + maskLoc.x);
         
         Rpp32u alignedLength = (bufferLength / 48) * 48;
         Rpp32u vectorIncrement = 48;
@@ -333,8 +346,8 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                                   RpptDescPtr srcDescPtr,
                                   Rpp16f *dstPtr,
                                   RpptDescPtr dstDescPtr,
-                                  Rpp32f* fogAlphaMaskPtr,
-                                  Rpp32f* fogIntensityMaskPtr,
+                                  Rpp32f* fogAlphaMask,
+                                  Rpp32f* fogIntensityMask,
                                   Rpp32f *gammaTensor,
                                   RpptROIPtr roiTensorPtrSrc,
                                   RpptRoiType roiType,
@@ -365,6 +378,19 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
         Rpp16f *srcPtrChannel, *dstPtrChannel;
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
+
+        std::random_device rd;  // Random number engine seed
+        std::mt19937 gen(rd()); // Seeding rd() to fast mersenne twister engine
+        std::uniform_int_distribution<> distribX(0, srcDescPtr->w - roi.xywhROI.roiWidth);
+        std::uniform_int_distribution<> distribY(0, srcDescPtr->h - roi.xywhROI.roiHeight);
+
+        RppiPoint maskLoc;
+        maskLoc.x = distribX(gen);
+        maskLoc.y = distribY(gen);
+
+        Rpp32f *fogAlphaMaskPtr, *fogIntensityMaskPtr;
+        fogAlphaMaskPtr = fogAlphaMask + ((srcDescPtr->w * maskLoc.y) + maskLoc.x);
+        fogIntensityMaskPtr = fogIntensityMask + ((srcDescPtr->w * maskLoc.y) + maskLoc.x);
 
         Rpp32u alignedLength = (bufferLength / 24) * 24;
         Rpp32u vectorIncrement = 24;
@@ -649,8 +675,8 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                                   RpptDescPtr srcDescPtr,
                                   Rpp32f *dstPtr,
                                   RpptDescPtr dstDescPtr,
-                                  Rpp32f* fogAlphaMaskPtr,
-                                  Rpp32f* fogIntensityMaskPtr,
+                                  Rpp32f* fogAlphaMask,
+                                  Rpp32f* fogIntensityMask,
                                   Rpp32f *gammaTensor,
                                   RpptROIPtr roiTensorPtrSrc,
                                   RpptRoiType roiType,
@@ -681,6 +707,19 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
         Rpp32f *srcPtrChannel, *dstPtrChannel;
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
+
+        std::random_device rd;  // Random number engine seed
+        std::mt19937 gen(rd()); // Seeding rd() to fast mersenne twister engine
+        std::uniform_int_distribution<> distribX(0, srcDescPtr->w - roi.xywhROI.roiWidth);
+        std::uniform_int_distribution<> distribY(0, srcDescPtr->h - roi.xywhROI.roiHeight);
+
+        RppiPoint maskLoc;
+        maskLoc.x = distribX(gen);
+        maskLoc.y = distribY(gen);
+
+        Rpp32f *fogAlphaMaskPtr, *fogIntensityMaskPtr;
+        fogAlphaMaskPtr = fogAlphaMask + ((srcDescPtr->w * maskLoc.y) + maskLoc.x);
+        fogIntensityMaskPtr = fogIntensityMask + ((srcDescPtr->w * maskLoc.y) + maskLoc.x);
 
         Rpp32u alignedLength = (bufferLength / 24) * 24;
         Rpp32u vectorIncrement = 24;
@@ -960,8 +999,8 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                                 RpptDescPtr srcDescPtr,
                                 Rpp8s *dstPtr,
                                 RpptDescPtr dstDescPtr,
-                                Rpp32f* fogAlphaMaskPtr,
-                                Rpp32f* fogIntensityMaskPtr,
+                                Rpp32f* fogAlphaMask,
+                                Rpp32f* fogIntensityMask,
                                 Rpp32f *gammaTensor,
                                 RpptROIPtr roiTensorPtrSrc,
                                 RpptRoiType roiType,
@@ -992,6 +1031,19 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
         Rpp8s *srcPtrChannel, *dstPtrChannel;
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
+
+        std::random_device rd;  // Random number engine seed
+        std::mt19937 gen(rd()); // Seeding rd() to fast mersenne twister engine
+        std::uniform_int_distribution<> distribX(0, srcDescPtr->w - roi.xywhROI.roiWidth);
+        std::uniform_int_distribution<> distribY(0, srcDescPtr->h - roi.xywhROI.roiHeight);
+
+        RppiPoint maskLoc;
+        maskLoc.x = distribX(gen);
+        maskLoc.y = distribY(gen);
+
+        Rpp32f *fogAlphaMaskPtr, *fogIntensityMaskPtr;
+        fogAlphaMaskPtr = fogAlphaMask + ((srcDescPtr->w * maskLoc.y) + maskLoc.x);
+        fogIntensityMaskPtr = fogIntensityMask + ((srcDescPtr->w * maskLoc.y) + maskLoc.x);
         
         Rpp32u alignedLength = (bufferLength / 48) * 48;
         Rpp32u vectorIncrement = 48;
