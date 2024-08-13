@@ -37,5 +37,6 @@ SOFTWARE.
 #include "kernel/ricap.hpp"
 #include "kernel/vignette.hpp"
 #include "kernel/erase.hpp"
+#include "kernel/fog.hpp"
 
 #endif // HIP_TENSOR_EFFECTS_AUGMENTATIONS_HPP
