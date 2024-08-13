@@ -4,30 +4,35 @@
 #include "rpp_hip_common.hpp"
 #include "fog_mask.hpp"
 
-__device__ __forceinline__ void fog_hip_compute(uchar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *mask_f8, d_float8 *maskInv_f8, float4 *pix_f4)
+__device__ __forceinline__ void fog_hip_compute(uchar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8)
 {
-    dst_f8->f4[0] = (src_f8->f4[0] * maskInv_f8->f4[0]) + (*pix_f4 * mask_f8->f4[0]);
-    dst_f8->f4[1] = (src_f8->f4[1] * maskInv_f8->f4[1]) + (*pix_f4 * mask_f8->f4[1]);
+    dst_f8->f4[0] = (src_f8->f4[0] * ((float4)1 - maskAlpha_f8->f4[0])) + (maskIntensity_f8->f4[0] * maskAlpha_f8->f4[0]);
+    dst_f8->f4[1] = (src_f8->f4[1] * ((float4)1 - maskAlpha_f8->f4[1])) + (maskIntensity_f8->f4[1] * maskAlpha_f8->f4[1]);
 }
 
-__device__ __forceinline__ void fog_hip_compute(float *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *mask_f8, d_float8 *maskInv_f8, float4 *pix_f4)
+__device__ __forceinline__ void fog_hip_compute(float *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8)
 {
-    float4 pixNorm_f4 = *pix_f4 * (float4) ONE_OVER_255;
-    dst_f8->f4[0] = (src_f8->f4[0] * maskInv_f8->f4[0]) + (pixNorm_f4 * mask_f8->f4[0]);
-    dst_f8->f4[1] = (src_f8->f4[1] * maskInv_f8->f4[1]) + (pixNorm_f4 * mask_f8->f4[1]);
+    float4 pixNorm_f4[2];
+    pixNorm_f4[0] = maskIntensity_f8->f4[0] * (float4) ONE_OVER_255;
+    pixNorm_f4[1] = maskIntensity_f8->f4[0] * (float4) ONE_OVER_255;
+    dst_f8->f4[0] = (src_f8->f4[0] * ((float4)1 - maskAlpha_f8->f4[0])) + (pixNorm_f4[0] * maskAlpha_f8->f4[0]);
+    dst_f8->f4[1] = (src_f8->f4[1] * ((float4)1 - maskAlpha_f8->f4[1])) + (pixNorm_f4[1] * maskAlpha_f8->f4[1]);
 }
 
-__device__ __forceinline__ void fog_hip_compute(schar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *mask_f8, d_float8 *maskInv_f8, float4 *pix_f4)
+__device__ __forceinline__ void fog_hip_compute(schar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8)
 {
-    dst_f8->f4[0] = ((src_f8->f4[0] + (float4)128) * maskInv_f8->f4[0]) + (*pix_f4 * mask_f8->f4[0]) - (float4)128;
-    dst_f8->f4[1] = ((src_f8->f4[1] + (float4)128) * maskInv_f8->f4[1]) + (*pix_f4 * mask_f8->f4[1]) - (float4)128;
+    dst_f8->f4[0] = ((src_f8->f4[0] + (float4)128) * ((float4)1 - maskAlpha_f8->f4[0])) + (maskIntensity_f8->f4[0] * maskAlpha_f8->f4[0]) - (float4)128;
+    dst_f8->f4[1] = ((src_f8->f4[1] + (float4)128) * ((float4)1 - maskAlpha_f8->f4[1])) + (maskIntensity_f8->f4[1] * maskAlpha_f8->f4[1]) - (float4)128;
 }
 
-__device__ __forceinline__ void fog_hip_compute(half *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *mask_f8, d_float8 *maskInv_f8, float4 *pix_f4)
+__device__ __forceinline__ void fog_hip_compute(half *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8)
 {
-    float4 pixNorm_f4 = *pix_f4 * (float4) ONE_OVER_255;
-    dst_f8->f4[0] = (src_f8->f4[0] * maskInv_f8->f4[0]) + (pixNorm_f4 * mask_f8->f4[0]);
-    dst_f8->f4[1] = (src_f8->f4[1] * maskInv_f8->f4[1]) + (pixNorm_f4 * mask_f8->f4[1]);
+    float4 pixNorm_f4[2];
+    pixNorm_f4[0] = maskIntensity_f8->f4[0] * (float4) ONE_OVER_255;
+    pixNorm_f4[1] = maskIntensity_f8->f4[0] * (float4) ONE_OVER_255;
+    // float4 pixNorm_f4 = *pix_f4 * (float4) ONE_OVER_255;
+    dst_f8->f4[0] = (src_f8->f4[0] * ((float4)1 - maskAlpha_f8->f4[0])) + (pixNorm_f4[0] * maskAlpha_f8->f4[0]);
+    dst_f8->f4[1] = (src_f8->f4[1] * ((float4)1 - maskAlpha_f8->f4[1])) + (pixNorm_f4[1] * maskAlpha_f8->f4[1]);
 }
 
 template <typename T>
@@ -54,16 +59,16 @@ __global__ void fog_pkd_hip_tensor(T *srcPtr,
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
     uint maskIdx = (FOG_MAX_WIDTH * (maskLocArrY[id_z] + id_y)) + maskLocArrX[id_z] + id_x;
 
-    d_float8 mask_f8, maskInv_f8;
-    *(d_float8_s *)&mask_f8 = *(d_float8_s *)&fogAlphaMaskPtr[maskIdx];
-    *(d_float8_s *)&maskInv_f8 = *(d_float8_s *)&fogIntensityMaskPtr[maskIdx];
+    d_float8 maskAlpha_f8, maskIntensity_f8;
+    *(d_float8_s *)&maskAlpha_f8 = *(d_float8_s *)&fogAlphaMaskPtr[maskIdx];
+    *(d_float8_s *)&maskIntensity_f8 = *(d_float8_s *)&fogIntensityMaskPtr[maskIdx];
 
     d_float24 src_f24, dst_f24;
 
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &src_f24);
-    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &mask_f8, &maskInv_f8, &r_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &mask_f8, &maskInv_f8, &g_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &mask_f8, &maskInv_f8, &b_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8);
+    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8);
+    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &dst_f24);
 }
 
@@ -90,16 +95,16 @@ __global__ void fog_pln_hip_tensor(T *srcPtr,
 
     uint srcIdx = (id_z * srcStridesNCH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
-    uint maskIdx = (SPATTER_MAX_WIDTH * (maskLocArrY[id_z] + id_y)) + maskLocArrX[id_z] + id_x;
+    uint maskIdx = (FOG_MAX_WIDTH * (maskLocArrY[id_z] + id_y)) + maskLocArrX[id_z] + id_x;
 
-    d_float8 mask_f8, maskInv_f8;
-    *(d_float8_s *)&mask_f8 = *(d_float8_s *)&fogAlphaMaskPtr[maskIdx];
-    *(d_float8_s *)&maskInv_f8 = *(d_float8_s *)&fogIntensityMaskPtr[maskIdx];
+    d_float8 maskAlpha_f8, maskIntensity_f8;
+    *(d_float8_s *)&maskAlpha_f8 = *(d_float8_s *)&fogAlphaMaskPtr[maskIdx];
+    *(d_float8_s *)&maskIntensity_f8 = *(d_float8_s *)&fogIntensityMaskPtr[maskIdx];
 
     d_float8 src_f8, dst_f8;
 
     rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);
-    fog_hip_compute(srcPtr, &src_f8, &dst_f8, &mask_f8, &maskInv_f8, &r_f4);
+    fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8);
     rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
 
     if (channelsDst == 3)
@@ -108,14 +113,14 @@ __global__ void fog_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
 
         rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);
-        fog_hip_compute(srcPtr, &src_f8, &dst_f8, &mask_f8, &maskInv_f8, &g_f4);
+        fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8);
         rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
 
         srcIdx += srcStridesNCH.y;
         dstIdx += dstStridesNCH.y;
 
         rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);
-        fog_hip_compute(srcPtr, &src_f8, &dst_f8, &mask_f8, &maskInv_f8, &b_f4);
+        fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8);
         rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
     }
 }
@@ -142,18 +147,18 @@ __global__ void fog_pkd3_pln3_hip_tensor(T *srcPtr,
 
     uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
-    uint maskIdx = (SPATTER_MAX_WIDTH * (maskLocArrY[id_z] + id_y)) + maskLocArrX[id_z] + id_x;
+    uint maskIdx = (FOG_MAX_WIDTH * (maskLocArrY[id_z] + id_y)) + maskLocArrX[id_z] + id_x;
 
-    d_float8 mask_f8, maskInv_f8;
-    *(d_float8_s *)&mask_f8 = *(d_float8_s *)&fogAlphaMaskPtr[maskIdx];
-    *(d_float8_s *)&maskInv_f8 = *(d_float8_s *)&fogIntensityMaskPtr[maskIdx];
+    d_float8 maskAlpha_f8, maskIntensity_f8;
+    *(d_float8_s *)&maskAlpha_f8 = *(d_float8_s *)&fogAlphaMaskPtr[maskIdx];
+    *(d_float8_s *)&maskIntensity_f8 = *(d_float8_s *)&fogIntensityMaskPtr[maskIdx];
 
     d_float24 src_f24, dst_f24;
 
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &src_f24);
-    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &mask_f8, &maskInv_f8, &r_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &mask_f8, &maskInv_f8, &g_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &mask_f8, &maskInv_f8, &b_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8);
+    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8);
+    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8);
     rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &dst_f24);
 }
 
@@ -179,18 +184,18 @@ __global__ void fog_pln3_pkd3_hip_tensor(T *srcPtr,
 
     uint srcIdx = (id_z * srcStridesNCH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
-    uint maskIdx = (SPATTER_MAX_WIDTH * (maskLocArrY[id_z] + id_y)) + maskLocArrX[id_z] + id_x;
+    uint maskIdx = (FOG_MAX_WIDTH * (maskLocArrY[id_z] + id_y)) + maskLocArrX[id_z] + id_x;
 
-    d_float8 mask_f8, maskInv_f8;
-    *(d_float8_s *)&mask_f8 = *(d_float8_s *)&fogAlphaMaskPtr[maskIdx];
-    *(d_float8_s *)&maskInv_f8 = *(d_float8_s *)&fogIntensityMaskPtr[maskIdx];
+    d_float8 maskAlpha_f8, maskIntensity_f8;
+    *(d_float8_s *)&maskAlpha_f8 = *(d_float8_s *)&fogAlphaMaskPtr[maskIdx];
+    *(d_float8_s *)&maskIntensity_f8 = *(d_float8_s *)&fogIntensityMaskPtr[maskIdx];
 
     d_float24 src_f24, dst_f24;
 
     rpp_hip_load24_pln3_and_unpack_to_float24_pln3(srcPtr + srcIdx, srcStridesNCH.y, &src_f24);
-    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &mask_f8, &maskInv_f8, &r_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &mask_f8, &maskInv_f8, &g_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &mask_f8, &maskInv_f8, &b_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8);
+    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8);
+    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &dst_f24);
 }
 
@@ -199,7 +204,11 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                               RpptDescPtr srcDescPtr,
                               T *dstPtr,
                               RpptDescPtr dstDescPtr,
-                              Rppt32f *gammaTensor,
+                              Rpp32f *fogAlphaMask,
+                              Rpp32f *fogIntensityMask,
+                              Rpp32u *maskLocArrHostX,
+                              Rpp32u *maskLocArrHostY,
+                              Rpp32f *gammaTensor,
                               RpptROIPtr roiTensorPtrSrc,
                               RpptRoiType roiType,
                               rpp::Handle& handle)
@@ -216,8 +225,8 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
     Rpp32f *d_fogAlphaMaskPtr, *d_fogIntensityMaskPtr;
     d_fogAlphaMaskPtr = handle.GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem;
     d_fogIntensityMaskPtr = handle.GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem + maskSize;
-    CHECK_RETURN_STATUS(hipMemcpyAsync(d_fogAlphaMaskPtr, fogAlphaMask_1920_1080, maskSizeFloat, hipMemcpyHostToDevice));
-    CHECK_RETURN_STATUS(hipMemcpyAsync(d_fogIntensityMaskPtr, fogIntensityMask_1920_1080, maskSizeFloat, hipMemcpyHostToDevice));
+    CHECK_RETURN_STATUS(hipMemcpyAsync(d_fogAlphaMaskPtr, fogAlphaMask, maskSizeFloat, hipMemcpyHostToDevice));
+    CHECK_RETURN_STATUS(hipMemcpyAsync(d_fogIntensityMaskPtr, fogIntensityMask, maskSizeFloat, hipMemcpyHostToDevice));
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
     {
@@ -231,10 +240,10 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
                            dstPtr,
                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                           fogAlphaMaskPtr,
-                           fogIntensityMaskPtr,
-                           handle.GetInitHandle()->mem.mgpu.uintArr[0].uintmem,
-                           handle.GetInitHandle()->mem.mgpu.uintArr[1].uintmem,
+                           d_fogAlphaMaskPtr,
+                           d_fogIntensityMaskPtr,
+                           maskLocArrHostX,
+                           maskLocArrHostY,
                            roiTensorPtrSrc);
     }
     else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
@@ -249,10 +258,10 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                            dstPtr,
                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                            dstDescPtr->c,
-                           fogAlphaMaskPtr,
-                           fogIntensityMaskPtr,
-                           handle.GetInitHandle()->mem.mgpu.uintArr[0].uintmem,
-                           handle.GetInitHandle()->mem.mgpu.uintArr[1].uintmem,
+                           d_fogAlphaMaskPtr,
+                           d_fogIntensityMaskPtr,
+                           maskLocArrHostX,
+                           maskLocArrHostY,
                            roiTensorPtrSrc);
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
@@ -268,10 +277,10 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                                make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
                                dstPtr,
                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                               fogAlphaMaskPtr,
-                               fogIntensityMaskPtr,
-                               handle.GetInitHandle()->mem.mgpu.uintArr[0].uintmem,
-                               handle.GetInitHandle()->mem.mgpu.uintArr[1].uintmem,
+                               d_fogAlphaMaskPtr,
+                               d_fogIntensityMaskPtr,
+                               maskLocArrHostX,
+                               maskLocArrHostY,
                                roiTensorPtrSrc);
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
@@ -286,10 +295,10 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
                                dstPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                               fogAlphaMaskPtr,
-                               fogIntensityMaskPtr,
-                               handle.GetInitHandle()->mem.mgpu.uintArr[0].uintmem,
-                               handle.GetInitHandle()->mem.mgpu.uintArr[1].uintmem,
+                               d_fogAlphaMaskPtr,
+                               d_fogIntensityMaskPtr,
+                               maskLocArrHostX,
+                               maskLocArrHostY,
                                roiTensorPtrSrc);
         }
     }

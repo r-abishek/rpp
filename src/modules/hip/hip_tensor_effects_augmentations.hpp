@@ -36,6 +36,7 @@ SOFTWARE.
 #include "kernel/water.hpp"
 #include "kernel/ricap.hpp"
 #include "kernel/vignette.hpp"
+#include "kernel/resize.hpp"  //fog dependency
 #include "kernel/erase.hpp"
 #include "kernel/fog.hpp"
 
