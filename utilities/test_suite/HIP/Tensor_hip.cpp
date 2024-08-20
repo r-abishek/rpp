@@ -1533,16 +1533,6 @@ int main(int argc, char **argv)
                 CHECK_RETURN_STATUS(hipMemcpy(output, d_output, outputBufferSize, hipMemcpyDeviceToHost));
 
                 // Reconvert other bit depths to 8u for output display purposes
-                std::cerr<<"Output \n";
-                for(int i=140;i <170;i++)
-                {
-                    std::cerr<<static_cast<float>(*(static_cast<float *>(output)+i))<<" ,";
-                    // std::ofstream refFile;
-                    // refFile.open(func + ".csv");
-                    // for (int i = 0; i < oBufferSize; i++)
-                    //     refFile << static_cast<float>(*(static_cast<float *>(output) + i)) << ",";
-                    // refFile.close();
-                }
                 convert_output_bitdepth_to_u8(output, outputu8, inputBitDepth, oBufferSize, outputBufferSize, dstDescPtr, invConversionFactor);
 
                 // if DEBUG_MODE is set to 1, the output of the first iteration will be dumped to csv files for debugging purposes.
