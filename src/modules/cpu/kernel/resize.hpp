@@ -1765,7 +1765,7 @@ inline RppStatus resize_bilinear_i8_i8_host_tensor(Rpp8s *srcPtr,
 }
 
 template <typename T>
-inline RppStatus resize_separable_host_tensor(T *srcPtr,
+RppStatus resize_separable_host_tensor(T *srcPtr,
                                        RpptDescPtr srcDescPtr,
                                        T *dstPtr,
                                        RpptDescPtr dstDescPtr,
