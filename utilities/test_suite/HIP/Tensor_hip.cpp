@@ -407,9 +407,9 @@ int main(int argc, char **argv)
     if(testCase == 46)
         CHECK_RETURN_STATUS(hipHostMalloc(&intensity, batchSize * sizeof(Rpp32f)));
 
-    Rpp32f *gamma;
+    Rpp32f *gammaTensor;
     if(testCase == 10)
-        CHECK_RETURN_STATUS(hipHostMalloc(&gamma, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&gammaTensor, batchSize * sizeof(Rpp32f)));
 
     Rpp32u *kernelSizeTensor;
     if(testCase == 6)
@@ -681,11 +681,11 @@ int main(int argc, char **argv)
                     testCaseName = "fog";
 
                     for (i = 0; i < batchSize; i++)
-                        gamma[i] = 0;
+                        gammaTensor[i] = 0;
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_fog_gpu(d_input, srcDescPtr, d_output, dstDescPtr, gamma, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_fog_gpu(d_input, srcDescPtr, d_output, dstDescPtr, gammaTensor, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
