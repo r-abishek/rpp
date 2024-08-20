@@ -2,7 +2,25 @@
 
 Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/rpp/en/latest](https://rocm.docs.amd.com/projects/rpp/en/latest)
 
-## RPP 1.8.0 (Unreleased)
+## RPP 1.9.0 (Unreleased) 
+
+### Changes
+
+* Test - Prerequisites Updates
+
+### Tested configurations
+
+* Linux distribution
+  * Ubuntu - `20.04` / `22.04`
+  * CentOS - `7`
+  * RHEL - `8`/`9`
+* ROCm: rocm-core - `6.2.0.60200-66`
+* Clang - Version `5.0.1`+
+* CMake - Version `3.16.3`+
+* IEEE 754-based half-precision floating-point library - Version `1.12.0`
+
+
+## RPP 1.8.0 for ROCm 6.3.0
 
 ### Changes
 
@@ -25,7 +43,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * CMake - Version `3.22.3`
 * IEEE 754-based half-precision floating-point library - Version `1.12.0`
 
-### RPP 1.5.0
+### RPP 1.5.0 for ROCm 6.1.1
 
 ### Changes
 
@@ -42,7 +60,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * CMake - Version `3.22.3`
 * IEEE 754-based half-precision floating-point library - Version `1.12.0`
 
-## RPP 1.4.0
+## RPP 1.4.0 for ROCm 6.0.0
 
 ### Additions
 
@@ -76,7 +94,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * CMake - Version `3.22.3`
 * IEEE 754-based half-precision floating-point library - Version `1.12.0`
 
-## RPP 1.3.0
+## RPP 1.3.0 for ROCm 5.7.1
 
 ### Additions
 
@@ -106,7 +124,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * Boost - Version `1.72`
 * IEEE 754-based half-precision floating-point library - Version `1.12.0`
 
-## RPP 1.2.0
+## RPP 1.2.0 for ROCm 5.7.1
 
 ### Additions
 
@@ -137,7 +155,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * Boost - Version `1.72`
 * IEEE 754-based half-precision floating-point library - Version `1.12.0`
 
-## RPP 1.1.0
+## RPP 1.1.0 for ROCm 5.7.0
 
 ### Additions
 
@@ -172,7 +190,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * SLES - the Clang package is missing in the latest updates, which means Clang must be manually
   installed.
 
-## RPP 1.0.0
+## RPP 1.0.0 for ROCm 5.7.0
 
 ### Additions
 
@@ -212,7 +230,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * SLES - the Clang package is missing in the latest updates, which means Clang must be manually
   installed.
 
-## RPP 0.99
+## RPP 0.99 for ROCm 5.7.0
 
 ### Additions
 
@@ -241,7 +259,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * Boost - Version `1.72`
 * IEEE 754-based half-precision floating-point library - Version `1.12.0`
 
-## RPP 0.98
+## RPP 0.98 for ROCm 5.7.0
 
 ### Additions
 * Dockers
@@ -270,7 +288,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * Boost - Version `1.72`
 * IEEE 754-based half-precision floating-point library - Version `1.12.0`
 
-## RPP 0.97
+## RPP 0.97 for ROCm 5.7.0
 
 ### Additions
 
@@ -301,7 +319,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 * Boost - Version `1.72`
 * IEEE 754-based half-precision floating-point library - Version `1.12.0`
 
-## RPP 0.96
+## RPP 0.96 for ROCm 5.7.0
 
 ### Additions
 
@@ -334,7 +352,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 
 * RPP is not supported on CentOS 7 and SLES SP2
 
-## RPP 0.95
+## RPP 0.95 for ROCm 5.7.0
 
 ### Additions
 
@@ -368,7 +386,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 
 * ROCm reorganization: install updates no longer match ROCm specifications
 
-## RPP 0.93
+## RPP 0.93 for ROCm 5.7.0
 
 ### Additions
 
