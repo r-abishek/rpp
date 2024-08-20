@@ -30,7 +30,7 @@ __device__ __forceinline__ void fog_hip_compute(schar *srcPtr, d_float8 *src_f8,
     alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *gamma_f4);
     alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *gamma_f4);
     dst_f8->f4[0] = rpp_hip_pixel_check_0to255(((src_f8->f4[0] + (float4)128) * ((float4)1 - alphaFactor_f4[0])) + (maskIntensity_f8->f4[0] * alphaFactor_f4[0]) - (float4)128);
-    dst_f8->f4[1] = rpp_hip_pixel_check_0to255(((src_f8->f4[1] + (float4)128) * ((float4)1 - alphaFactor_f4[1])) + (maskIntensity_f8->f4[1] * alphaFactor_f4[0]) - (float4)128);
+    dst_f8->f4[1] = rpp_hip_pixel_check_0to255(((src_f8->f4[1] + (float4)128) * ((float4)1 - alphaFactor_f4[1])) + (maskIntensity_f8->f4[1] * alphaFactor_f4[1]) - (float4)128);
 }
 
 __device__ __forceinline__ void fog_hip_compute(half *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *gamma_f4)

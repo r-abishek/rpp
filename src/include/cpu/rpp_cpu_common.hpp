@@ -3150,31 +3150,6 @@ inline void compute_fog_48_host(__m256 *p, __m256 *pFogAlphaMask, __m256 *pFogIn
     p[5] = _mm256_fmadd_ps(p[5],  pAlphaFactor[1], pIntensityFactor[1]);    // fog adjustment
 }
 
-inline void compute_fog_48_host(__m128 *p, __m128 *pFogAlphaMask, __m128 *pFogIntensityMask, __m128 pGamma)
-{
-    __m128 pAlphaFactor[4], pIntensityFactor[4];
-    pAlphaFactor[0] = _mm_sub_ps(_ps_1, _mm_add_ps(pFogAlphaMask[0], pGamma));
-    pAlphaFactor[1] = _mm_sub_ps(_ps_1, _mm_add_ps(pFogAlphaMask[1], pGamma));
-    pAlphaFactor[2] = _mm_sub_ps(_ps_1, _mm_add_ps(pFogAlphaMask[2], pGamma));
-    pAlphaFactor[3] = _mm_sub_ps(_ps_1, _mm_add_ps(pFogAlphaMask[3], pGamma));
-    pIntensityFactor[0] = _mm_mul_ps(pFogIntensityMask[0], _mm_add_ps(pFogAlphaMask[0], pGamma));
-    pIntensityFactor[1] = _mm_mul_ps(pFogIntensityMask[1], _mm_add_ps(pFogAlphaMask[1], pGamma));
-    pIntensityFactor[2] = _mm_mul_ps(pFogIntensityMask[2], _mm_add_ps(pFogAlphaMask[2], pGamma));
-    pIntensityFactor[3] = _mm_mul_ps(pFogIntensityMask[3], _mm_add_ps(pFogAlphaMask[3], pGamma));
-    p[0] = _mm_fmadd_ps(p[0],  pAlphaFactor[0], pIntensityFactor[0]);    // fog adjustment
-    p[1] = _mm_fmadd_ps(p[1],  pAlphaFactor[1], pIntensityFactor[1]);    // fog adjustment
-    p[2] = _mm_fmadd_ps(p[2],  pAlphaFactor[2], pIntensityFactor[2]);    // fog adjustment
-    p[3] = _mm_fmadd_ps(p[3],  pAlphaFactor[3], pIntensityFactor[3]);    // fog adjustment
-    p[4] = _mm_fmadd_ps(p[4],  pAlphaFactor[0], pIntensityFactor[0]);    // fog adjustment
-    p[5] = _mm_fmadd_ps(p[5],  pAlphaFactor[1], pIntensityFactor[1]);    // fog adjustment
-    p[6] = _mm_fmadd_ps(p[6],  pAlphaFactor[2], pIntensityFactor[2]);    // fog adjustment
-    p[7] = _mm_fmadd_ps(p[7],  pAlphaFactor[3], pIntensityFactor[3]);    // fog adjustment
-    p[8] = _mm_fmadd_ps(p[8],  pAlphaFactor[0], pIntensityFactor[0]);    // fog adjustment
-    p[9] = _mm_fmadd_ps(p[9],  pAlphaFactor[1], pIntensityFactor[1]);    // fog adjustment
-    p[10] = _mm_fmadd_ps(p[10],  pAlphaFactor[2], pIntensityFactor[2]);    // fog adjustment
-    p[11] = _mm_fmadd_ps(p[11],  pAlphaFactor[3], pIntensityFactor[3]);    // fog adjustment
-}
-
 inline void compute_fog_24_host(__m256 *p, __m256 *pFogAlphaMask, __m256 *pFogIntensityMask, __m256 pGamma)
 {
     __m256 pAlphaFactor, pIntensityFactor;
@@ -3194,23 +3169,6 @@ inline void compute_fog_16_host(__m256 *p, __m256 *pFogAlphaMask, __m256 *pFogIn
     pIntensityFactor[1] = _mm256_mul_ps(pFogIntensityMask[1], _mm256_add_ps(pFogAlphaMask[1], pGamma));
     p[0] = _mm256_fmadd_ps(p[0],  pAlphaFactor[0], pIntensityFactor[0]);    // fog adjustment
     p[1] = _mm256_fmadd_ps(p[1],  pAlphaFactor[1], pIntensityFactor[1]);    // fog adjustment
-}
-
-inline void compute_fog_16_host(__m128 *p, __m128 *pFogAlphaMask, __m128 *pFogIntensityMask , __m128 pGamma)
-{
-    __m128 pAlphaFactor[4], pIntensityFactor[4];
-    pAlphaFactor[0] = _mm_sub_ps(_ps_1, _mm_add_ps(pFogAlphaMask[0], pGamma));
-    pAlphaFactor[1] = _mm_sub_ps(_ps_1, _mm_add_ps(pFogAlphaMask[1], pGamma));
-    pAlphaFactor[2] = _mm_sub_ps(_ps_1, _mm_add_ps(pFogAlphaMask[2], pGamma));
-    pAlphaFactor[3] = _mm_sub_ps(_ps_1, _mm_add_ps(pFogAlphaMask[3], pGamma));
-    pIntensityFactor[0] = _mm_mul_ps(pFogIntensityMask[0], _mm_add_ps(pFogAlphaMask[0], pGamma));
-    pIntensityFactor[1] = _mm_mul_ps(pFogIntensityMask[1], _mm_add_ps(pFogAlphaMask[1], pGamma));
-    pIntensityFactor[2] = _mm_mul_ps(pFogIntensityMask[2], _mm_add_ps(pFogAlphaMask[2], pGamma));
-    pIntensityFactor[3] = _mm_mul_ps(pFogIntensityMask[3], _mm_add_ps(pFogAlphaMask[3], pGamma));
-    p[0] = _mm_fmadd_ps(p[0],  pAlphaFactor[0], pIntensityFactor[0]);    // fog adjustment
-    p[1] = _mm_fmadd_ps(p[1],  pAlphaFactor[1], pIntensityFactor[1]);    // fog adjustment
-    p[2] = _mm_fmadd_ps(p[2],  pAlphaFactor[2], pIntensityFactor[2]);    // fog adjustment
-    p[3] = _mm_fmadd_ps(p[3],  pAlphaFactor[3], pIntensityFactor[3]);    // fog adjustment
 }
 
 inline void compute_fog_8_host(__m256 *p, __m256 *pFogAlphaMask, __m256 *pFogIntensityMask, __m256 pGamma)

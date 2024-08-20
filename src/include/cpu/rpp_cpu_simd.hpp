@@ -1696,7 +1696,6 @@ inline void rpp_store8_f16_to_f16_avx(Rpp16f *dstPtr, __m256 *p)
     _mm_storeu_si128((__m128i *)dstPtr, px128);
 }
 
-
 inline void rpp_load8_f32_to_f64_avx(Rpp32f *srcPtr, __m256d *p)
 {
     __m128 px128[2];
