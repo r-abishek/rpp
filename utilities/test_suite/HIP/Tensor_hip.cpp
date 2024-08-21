@@ -407,7 +407,7 @@ int main(int argc, char **argv)
     if(testCase == 46)
         CHECK_RETURN_STATUS(hipHostMalloc(&intensity, batchSize * sizeof(Rpp32f)));
 
-    Rpp32f *gammaTensor;
+    Rpp32f *gammaTensor = nullptr;
     if(testCase == 10)
         CHECK_RETURN_STATUS(hipHostMalloc(&gammaTensor, batchSize * sizeof(Rpp32f)));
 
@@ -1689,6 +1689,8 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(anchorTensor));
     if(shapeTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(shapeTensor));
+    if(gammaTensor != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(gammaTensor));
     if(roiTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(roiTensor));
     if(testCase == 6)
