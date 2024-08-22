@@ -106,7 +106,10 @@ int main(int argc, char **argv)
     set_audio_descriptor_dims_and_strides(srcDescPtr, batchSize, maxSrcHeight, maxSrcWidth, maxSrcChannels, offsetInBytes);
     int maxDstChannels = maxSrcChannels;
     if(testCase == 3)
+    {
+        srcDescPtr->numDims = 3;
         maxDstChannels = 1;
+    }
     set_audio_descriptor_dims_and_strides(dstDescPtr, batchSize, maxDstHeight, maxDstWidth, maxDstChannels, offsetInBytes);
 
     // create generic descriptor in case of slice
@@ -126,6 +129,11 @@ int main(int argc, char **argv)
     iBufferSize = (Rpp64u)srcDescPtr->h * (Rpp64u)srcDescPtr->w * (Rpp64u)srcDescPtr->c * (Rpp64u)srcDescPtr->n;
     oBufferSize = (Rpp64u)dstDescPtr->h * (Rpp64u)dstDescPtr->w * (Rpp64u)dstDescPtr->c * (Rpp64u)dstDescPtr->n;
 
+    // compute maximum possible buffer size of resample
+    unsigned long long resampleMaxBufferSize = dstDescPtr->n * dstDescPtr->strides.nStride * 1.15;
+    if (testCase == 6)
+        oBufferSize = resampleMaxBufferSize;
+
     // allocate host buffers for input & output
     Rpp32f *inputf32 = (Rpp32f *)calloc(iBufferSize, sizeof(Rpp32f));
     Rpp32f *outputf32 = (Rpp32f *)calloc(oBufferSize, sizeof(Rpp32f));
@@ -140,6 +148,9 @@ int main(int argc, char **argv)
 
     // buffers used for non silent region detection
     Rpp32s detectedIndex[batchSize], detectionLength[batchSize];
+
+    // RpptResamplingWindow instance used for resample augmentation
+    RpptResamplingWindow window;
 
     // run case-wise RPP API and measure time
     rppHandle_t handle;
@@ -325,21 +336,17 @@ int main(int argc, char **argv)
                     Rpp32f quality = 50.0f;
                     Rpp32s lobes = std::round(0.007 * quality * quality - 0.09 * quality + 3);
                     Rpp32s lookupSize = lobes * 64 + 1;
-                    RpptResamplingWindow window;
                     windowed_sinc(window, lookupSize, lobes);
 
                     dstDescPtr->w = maxDstWidth;
                     dstDescPtr->strides.nStride = dstDescPtr->c * dstDescPtr->w * dstDescPtr->h;
 
-                    // Set buffer sizes for dst
-                    Rpp64u resampleBufferSize = (Rpp64u)dstDescPtr->h * (Rpp64u)dstDescPtr->w * (Rpp64u)dstDescPtr->c * (Rpp64u)dstDescPtr->n;
-
-                    // Reinitialize host buffers for output
-                    outputf32 = (Rpp32f *)realloc(outputf32, sizeof(Rpp32f) * resampleBufferSize);
-                    if(!outputf32)
+                    // check if the required output buffer size is greater than predefined resampleMaxBufferSize
+                    if (dstDescPtr->n * dstDescPtr->strides.nStride > resampleMaxBufferSize)
                     {
-                        std::cout << "Unable to reallocate memory for output" << std::endl;
-                        break;
+                        std::cout << "\nError! Requested resample output size is greater than predefined max size for resample in test suite."
+                                     "\nPlease modify resampleMaxBufferSize value in test suite as per your requirements for running resample kernel" << std::endl;
+                        exit(0);
                     }
 
                     startWallTime = omp_get_wtime();
@@ -374,12 +381,11 @@ int main(int argc, char **argv)
                         maxDstHeight = std::max(maxDstHeight, (int)dstDims[i].height);
                         maxDstWidth = std::max(maxDstWidth, (int)dstDims[i].width);
                     }
-
                     srcDescPtr->h = maxSrcHeight;
                     srcDescPtr->w = maxSrcWidth;
                     dstDescPtr->h = maxDstHeight;
                     dstDescPtr->w = maxDstWidth;
-
+                    
                     set_audio_descriptor_dims_and_strides_nostriding(srcDescPtr, batchSize, maxSrcHeight, maxSrcWidth, maxSrcChannels, offsetInBytes);
                     set_audio_descriptor_dims_and_strides_nostriding(dstDescPtr, batchSize, maxDstHeight, maxDstWidth, maxDstChannels, offsetInBytes);
                     srcDescPtr->numDims = 3;
@@ -425,7 +431,7 @@ int main(int argc, char **argv)
             if (testCase == 0)
                 verify_non_silent_region_detection(detectedIndex, detectionLength, testCaseName, batchSize, audioNames, dst);
             else
-                verify_output(outputf32, dstDescPtr, dstDims, testCaseName, dst, scriptPath);
+                verify_output(outputf32, dstDescPtr, dstDims, testCaseName, dst, scriptPath, "HOST");
 
             /* Dump the outputs to csv files for debugging
             Runs only if
@@ -464,5 +470,7 @@ int main(int argc, char **argv)
     free(dstDims);
     free(inputf32);
     free(outputf32);
+    if (window.lookup != nullptr)
+        free(window.lookup);
     return 0;
 }

@@ -1076,7 +1076,7 @@ void copy_3d_host_tensor(T *srcPtr,
 {
     if((srcGenericDescPtr->layout == RpptLayout::NDHWC) && (dstGenericDescPtr->layout == RpptLayout::NDHWC))
     {
-        T *srcPtrDepth = srcPtr + (roi->xyzwhdROI.xyz.z * srcGenericDescPtr->strides[2]) + (roi->xyzwhdROI.xyz.y * srcGenericDescPtr->strides[3]) + (roi->xyzwhdROI.xyz.x * layoutParams.bufferMultiplier);
+        T *srcPtrDepth = srcPtr + (roi->xyzwhdROI.xyz.z * srcGenericDescPtr->strides[1]) + (roi->xyzwhdROI.xyz.y * srcGenericDescPtr->strides[2]) + (roi->xyzwhdROI.xyz.x * layoutParams.bufferMultiplier);
         T *dstPtrDepth = dstPtr;
         Rpp32u width = roi->xyzwhdROI.roiWidth * srcGenericDescPtr->dims[4];
         for(int i = 0; i < roi->xyzwhdROI.roiDepth; i++)
@@ -1097,7 +1097,7 @@ void copy_3d_host_tensor(T *srcPtr,
     {
         T *srcPtrChannel = srcPtr + (roi->xyzwhdROI.xyz.z * srcGenericDescPtr->strides[2]) + (roi->xyzwhdROI.xyz.y * srcGenericDescPtr->strides[3]) + (roi->xyzwhdROI.xyz.x * layoutParams.bufferMultiplier);
         T *dstPtrChannel = dstPtr;
-        int channels = srcGenericDescPtr->dims[4];
+        int channels = srcGenericDescPtr->dims[1];
         for(int c = 0; c < channels; c++)
         {
             T *srcPtrDepth = srcPtrChannel;
@@ -5450,12 +5450,6 @@ inline void compute_bicubic_coefficient(Rpp32f weight, Rpp32f &coeff)
 {
     Rpp32f x = fabsf(weight);
     coeff = (x >= 2) ? 0 : ((x > 1) ? (x * x * (-0.5f * x + 2.5f) - 4.0f * x + 2.0f) : (x * x * (1.5f * x - 2.5f) + 1.0f));
-}
-
-inline Rpp32f sinc(Rpp32f x)
-{
-    x *= M_PI;
-    return (std::abs(x) < 1e-5f) ? (1.0f - x * x * ONE_OVER_6) : std::sin(x) / x;
 }
 
 inline void compute_lanczos3_coefficient(Rpp32f weight, Rpp32f &coeff)
