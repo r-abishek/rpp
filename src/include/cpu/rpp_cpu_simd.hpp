@@ -1690,12 +1690,6 @@ inline void rpp_store8_f32_to_f32_avx(Rpp32f *dstPtr, __m256 *p)
     _mm256_storeu_ps(dstPtr, p[0]);
 }
 
-inline void rpp_store8_f16_to_f16_avx(Rpp16f *dstPtr, __m256 *p)
-{
-    __m128i px128 = _mm256_cvtps_ph(p[0], _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
-    _mm_storeu_si128((__m128i *)dstPtr, px128);
-}
-
 inline void rpp_load8_f32_to_f64_avx(Rpp32f *srcPtr, __m256d *p)
 {
     __m128 px128[2];
@@ -1987,11 +1981,6 @@ inline void rpp_multiply16_constant(__m128 *p, __m128 pMultiplier)
     p[1] = _mm_mul_ps(p[1], pMultiplier);
     p[2] = _mm_mul_ps(p[2], pMultiplier);
     p[3] = _mm_mul_ps(p[3], pMultiplier);
-}
-
-inline void rpp_multiply8_constant(__m256 *p, __m256 pMultiplier)
-{
-    p[0] = _mm256_mul_ps(p[0], pMultiplier);
 }
 
 template <typename FuncType, typename... ArgTypes>

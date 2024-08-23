@@ -1136,4 +1136,18 @@ typedef struct
     memMgmt mem;
 } InitHandle;
 
+// sets descriptor dimensions and strides of fog mask
+inline void set_fog_mask_descriptor(RpptDescPtr descPtr, int noOfImages, int maxHeight, int maxWidth, int numChannels)
+{
+    descPtr->numDims = 3;
+    descPtr->offsetInBytes = 0;
+    descPtr->dataType = RpptDataType::F32;  
+    descPtr->layout = RpptLayout::NCHW;
+    descPtr->n = noOfImages;
+    descPtr->h = maxHeight;
+    descPtr->w = maxWidth;
+    descPtr->c = numChannels;
+    descPtr->strides = {descPtr->c * descPtr->w * descPtr->h,  1, descPtr->w, 1}
+}
+
 #endif /* RPPDEFS_H */
