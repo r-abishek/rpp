@@ -2460,6 +2460,10 @@ RppStatus rppt_fog_gpu(RppPtr_t srcPtr,
         internalDstImgSizes[i] = {srcDescPtr->w, srcDescPtr->h};
         internalRoiTensorPtrSrc[i].xywhROI = {0, 0, 1920, 1080};
     }
+    rppHandle_t rppFogHandle;
+    hipStream_t fogStream;
+    CHECK_RETURN_STATUS(hipStreamCreate(&fogStream));
+    rppCreateWithStreamAndBatchSize(&rppFogHandle, fogStream, 2);
 
     Rpp32u maskSize = FOG_MAX_HEIGHT * FOG_MAX_WIDTH;
     Rpp32u maskSizeInBytes = maskSize * sizeof(Rpp32f);
@@ -2471,8 +2475,8 @@ RppStatus rppt_fog_gpu(RppPtr_t srcPtr,
     d_resizedFogAlphaMaskPtr = reinterpret_cast<Rpp32f*>(d_fogAlphaMaskPtr + (2 * maskSize));
 
     CHECK_RETURN_STATUS(hipMemcpyAsync(d_fogAlphaMaskPtr, &fogMask_1920_1080[0], maskSizeInBytes * 2, hipMemcpyHostToDevice,rpp::deref(rppHandle).GetStream())); // Copying fog alpha mask from host to device asynchronously
-    rppt_resize_gpu(d_fogAlphaMaskPtr, fogMaskSrcDescPtr, d_resizedFogAlphaMaskPtr, fogMaskDstDescPtr, internalDstImgSizes, interpolationType, internalRoiTensorPtrSrc, roiType, rppHandle); // Performing GPU resize operation on fog alpha and intensity mask
-    hipStreamSynchronize(rpp::deref(rppHandle).GetStream());
+    rppt_resize_gpu(d_fogAlphaMaskPtr, fogMaskSrcDescPtr, d_resizedFogAlphaMaskPtr, fogMaskDstDescPtr, internalDstImgSizes, interpolationType, internalRoiTensorPtrSrc, roiType, rppFogHandle); // Performing GPU resize operation on fog alpha and intensity mask
+    hipStreamSynchronize(rpp::deref(rppFogHandle).GetStream());
     d_resizedFogIntensityMaskPtr = d_resizedFogAlphaMaskPtr + (srcDescPtr->h * srcDescPtr->w);
 
     Rpp32u *maskLocOffsetX, *maskLocOffsetY;
