@@ -1147,7 +1147,7 @@ inline void set_fog_mask_descriptor(RpptDescPtr descPtr, int noOfImages, int max
     descPtr->h = maxHeight;
     descPtr->w = maxWidth;
     descPtr->c = numChannels;
-    descPtr->strides = {descPtr->c * descPtr->w * descPtr->h,  1, descPtr->w, 1}
+    descPtr->strides = {descPtr->c * descPtr->w * descPtr->h,  1, descPtr->w, 1};
 }
 
 #endif /* RPPDEFS_H */

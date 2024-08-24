@@ -405,7 +405,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);                   // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);           // simd loads
                     rpp_simd_load(rpp_load24_f16pkd3_to_f16pln3_avx, srcPtrTemp, p);                                // simd loads
-                    _mm256_mul_ps(&pFogIntensityMask, avx_p1op255);                                                 // u8 normalization to range[0,1]
+                    pFogIntensityMask = _mm256_mul_ps(pFogIntensityMask, avx_p1op255);                              // u8 normalization to range[0,1]
                     compute_fog_24_host(p, &pFogAlphaMask, &pFogIntensityMask, pGamma);                             // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);   // simd stores
                     srcPtrTemp += vectorIncrement;
@@ -466,7 +466,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);                   // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);           // simd loads
                     rpp_simd_load(rpp_load24_f16pln3_to_f16pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);     // simd loads
-                    _mm256_mul_ps(&pFogIntensityMask, avx_p1op255);                                                 // u8 normalization to range[0,1]
+                    pFogIntensityMask = _mm256_mul_ps(pFogIntensityMask, avx_p1op255);                              // u8 normalization to range[0,1]
                     compute_fog_24_host(p, &pFogAlphaMask, &pFogIntensityMask, pGamma);                             // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pkd3_avx, dstPtrTemp, p);                              // simd stores
                     srcPtrTempR += vectorIncrementPerChannel;
@@ -523,7 +523,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);                   // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);           // simd loads
                     rpp_simd_load(rpp_load24_f16pkd3_to_f16pln3_avx, srcPtrTemp, p);                                // simd loads
-                    _mm256_mul_ps(&pFogIntensityMask, avx_p1op255);                                                 // u8 normalization to range[0,1]
+                    pFogIntensityMask = _mm256_mul_ps(pFogIntensityMask, avx_p1op255);                              // u8 normalization to range[0,1]
                     compute_fog_24_host(p, &pFogAlphaMask, &pFogIntensityMask, pGamma);                             // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pkd3_avx, dstPtrTemp, p);                              // simd stores
                     srcPtrTemp += vectorIncrement;
@@ -580,7 +580,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     __m256 pFogAlphaMask, pFogIntensityMask;
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);                   // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);           // simd loads
-                    _mm256_mul_ps(&pFogIntensityMask, avx_p1op255);                                                 // u8 normalization to range[0,1]
+                    pFogIntensityMask = _mm256_mul_ps(pFogIntensityMask, avx_p1op255);                              // u8 normalization to range[0,1]
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp;
                     for(int c = 0; c < srcDescPtr->c; c++)
@@ -708,7 +708,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);                   // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);           // simd loads
                     rpp_simd_load(rpp_load24_f32pkd3_to_f32pln3_avx, srcPtrTemp, p);                                // simd loads
-                    _mm256_mul_ps(&pFogIntensityMask, avx_p1op255);                                                 // u8 normalization to range[0,1]
+                    pFogIntensityMask = _mm256_mul_ps(pFogIntensityMask, avx_p1op255);                              // u8 normalization to range[0,1]
                     compute_fog_24_host(p, &pFogAlphaMask, &pFogIntensityMask, pGamma);                             // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);   // simd stores
                     srcPtrTemp += vectorIncrement;
@@ -769,7 +769,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);                   // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);           // simd loads
                     rpp_simd_load(rpp_load24_f32pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);     // simd loads
-                    _mm256_mul_ps(&pFogIntensityMask, avx_p1op255);                                                 // u8 normalization to range[0,1]
+                    pFogIntensityMask = _mm256_mul_ps(pFogIntensityMask, avx_p1op255);                              // u8 normalization to range[0,1]
                     compute_fog_24_host(p, &pFogAlphaMask, &pFogIntensityMask, pGamma);                             // fog adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pkd3_avx, dstPtrTemp, p);                              // simd stores
                     srcPtrTempR += vectorIncrementPerChannel;
@@ -880,7 +880,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     __m256 pFogAlphaMask, pFogIntensityMask;
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogAlphaMaskPtrTemp, &pFogAlphaMask);                   // simd loads
                     rpp_simd_load(rpp_load8_f32_to_f32_avx, fogIntensityMaskPtrTemp, &pFogIntensityMask);           // simd loads
-                    _mm256_mul_ps(&pFogIntensityMask, avx_p1op255);                                                 // u8 normalization to range[0,1]
+                    pFogIntensityMask = _mm256_mul_ps(pFogIntensityMask, avx_p1op255);                              // u8 normalization to range[0,1]
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp;
                     for(int c = 0; c < srcDescPtr->c; c++)
