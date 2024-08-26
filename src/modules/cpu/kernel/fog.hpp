@@ -165,21 +165,21 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                 fogIntensityMaskPtrTemp = fogIntensityMaskPtrRow;
                 int vectorLoopCount = 0;
 #if __AVX2__
-                // for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
-                // {
-                //     __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
-                //     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);                   // simd loads
-                //     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);           // simd loads
-                //     rpp_simd_load(rpp_load48_u8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);      // simd loads
-                //     compute_fog_48_host(p, pFogAlphaMask, pFogIntensityMask, pGamma);                               // fog adjustment
-                //     rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrTemp, p);                               // simd stores
-                //     srcPtrTempR += vectorIncrementPerChannel;
-                //     srcPtrTempG += vectorIncrementPerChannel;
-                //     srcPtrTempB += vectorIncrementPerChannel;
-                //     dstPtrTemp += vectorIncrement;
-                //     fogAlphaMaskPtrTemp += vectorIncrementPerChannel;
-                //     fogIntensityMaskPtrTemp += vectorIncrementPerChannel;
-                // }
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
+                {
+                    __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);                   // simd loads
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);           // simd loads
+                    rpp_simd_load(rpp_load48_u8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);      // simd loads
+                    compute_fog_48_host(p, pFogAlphaMask, pFogIntensityMask, pGamma);                               // fog adjustment
+                    rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrTemp, p);                               // simd stores
+                    srcPtrTempR += vectorIncrementPerChannel;
+                    srcPtrTempG += vectorIncrementPerChannel;
+                    srcPtrTempB += vectorIncrementPerChannel;
+                    dstPtrTemp += vectorIncrement;
+                    fogAlphaMaskPtrTemp += vectorIncrementPerChannel;
+                    fogIntensityMaskPtrTemp += vectorIncrementPerChannel;
+                }
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
@@ -221,19 +221,19 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                 fogIntensityMaskPtrTemp = fogIntensityMaskPtrRow;
                 int vectorLoopCount = 0;
 #if __AVX2__
-                // for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
-                // {
-                //     __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
-                //     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);                   // simd loads
-                //     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);           // simd loads
-                //     rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3_avx, srcPtrTemp, p);                                 // simd loads
-                //     compute_fog_48_host(p, pFogAlphaMask, pFogIntensityMask, pGamma);                               // fog adjustment
-                //     rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrTemp, p);                               // simd stores
-                //     srcPtrTemp += vectorIncrement;
-                //     dstPtrTemp += vectorIncrement;
-                //     fogAlphaMaskPtrTemp += vectorIncrementPerChannel;
-                //     fogIntensityMaskPtrTemp += vectorIncrementPerChannel;
-                // }
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    __m256 pFogAlphaMask[2], pFogIntensityMask[2], p[6];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);                   // simd loads
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);           // simd loads
+                    rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3_avx, srcPtrTemp, p);                                 // simd loads
+                    compute_fog_48_host(p, pFogAlphaMask, pFogIntensityMask, pGamma);                               // fog adjustment
+                    rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrTemp, p);                               // simd stores
+                    srcPtrTemp += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                    fogAlphaMaskPtrTemp += vectorIncrementPerChannel;
+                    fogIntensityMaskPtrTemp += vectorIncrementPerChannel;
+                }
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
@@ -274,27 +274,27 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                 fogIntensityMaskPtrTemp = fogIntensityMaskPtrRow;
                 int vectorLoopCount = 0;
 #if __AVX2__
-                // for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
-                // {
-                //     __m256 pFogAlphaMask[2], pFogIntensityMask[2];
-                //     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);                   // simd loads
-                //     rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);           // simd loads
-                //     srcPtrChannel = srcPtrTemp;
-                //     dstPtrChannel = dstPtrTemp;
-                //     for(int c = 0; c < srcDescPtr->c; c++)
-                //     {
-                //         __m256 p[2];
-                //         rpp_simd_load(rpp_load16_u8_to_f32_avx, srcPtrChannel, p);                                  // simd loads
-                //         compute_fog_16_host(p, pFogAlphaMask, pFogIntensityMask, pGamma);                           // fog adjustment
-                //         rpp_simd_store(rpp_store16_f32_to_u8_avx, dstPtrChannel, p);                                // simd stores
-                //         srcPtrChannel += srcDescPtr->strides.cStride;
-                //         dstPtrChannel += dstDescPtr->strides.cStride;
-                //     }
-                //     srcPtrTemp += vectorIncrementPerChannel;
-                //     dstPtrTemp += vectorIncrementPerChannel;
-                //     fogAlphaMaskPtrTemp += vectorIncrementPerChannel;
-                //     fogIntensityMaskPtrTemp += vectorIncrementPerChannel;
-                // }
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
+                {
+                    __m256 pFogAlphaMask[2], pFogIntensityMask[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, fogAlphaMaskPtrTemp, pFogAlphaMask);                   // simd loads
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, fogIntensityMaskPtrTemp, pFogIntensityMask);           // simd loads
+                    srcPtrChannel = srcPtrTemp;
+                    dstPtrChannel = dstPtrTemp;
+                    for(int c = 0; c < srcDescPtr->c; c++)
+                    {
+                        __m256 p[2];
+                        rpp_simd_load(rpp_load16_u8_to_f32_avx, srcPtrChannel, p);                                  // simd loads
+                        compute_fog_16_host(p, pFogAlphaMask, pFogIntensityMask, pGamma);                           // fog adjustment
+                        rpp_simd_store(rpp_store16_f32_to_u8_avx, dstPtrChannel, p);                                // simd stores
+                        srcPtrChannel += srcDescPtr->strides.cStride;
+                        dstPtrChannel += dstDescPtr->strides.cStride;
+                    }
+                    srcPtrTemp += vectorIncrementPerChannel;
+                    dstPtrTemp += vectorIncrementPerChannel;
+                    fogAlphaMaskPtrTemp += vectorIncrementPerChannel;
+                    fogIntensityMaskPtrTemp += vectorIncrementPerChannel;
+                }
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
