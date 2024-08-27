@@ -124,13 +124,10 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                 {   
                     Rpp32f alphaFactor = (1 - (*fogAlphaMaskPtrTemp + gammaFactor));
                     Rpp32f intensityFactor = (*fogIntensityMaskPtrTemp++ * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
-                    *dstPtrTempR = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(static_cast<Rpp32f>(srcPtrTemp[0]) * alphaFactor + intensityFactor)));
-                    *dstPtrTempG = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(static_cast<Rpp32f>(srcPtrTemp[1]) * alphaFactor + intensityFactor)));
-                    *dstPtrTempB = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(static_cast<Rpp32f>(srcPtrTemp[2]) * alphaFactor + intensityFactor)));
+                    *dstPtrTempR++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(static_cast<Rpp32f>(srcPtrTemp[0]) * alphaFactor + intensityFactor)));
+                    *dstPtrTempG++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(static_cast<Rpp32f>(srcPtrTemp[1]) * alphaFactor + intensityFactor)));
+                    *dstPtrTempB++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(static_cast<Rpp32f>(srcPtrTemp[2]) * alphaFactor + intensityFactor)));
                     srcPtrTemp += 3;
-                    dstPtrTempR++;
-                    dstPtrTempG++;
-                    dstPtrTempB++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRowR += dstDescPtr->strides.hStride;
@@ -240,9 +237,8 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                     Rpp32f intensityFactor = (*fogIntensityMaskPtrTemp++ * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
                     for (int c = 0; c < srcDescPtr->c; c++)
                     {
-                        *dstPtrTemp = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(static_cast<Rpp32f>(*srcPtrTemp) * alphaFactor + intensityFactor)));
+                        *dstPtrTemp++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(static_cast<Rpp32f>(*srcPtrTemp) * alphaFactor + intensityFactor)));
                         srcPtrTemp++;
-                        dstPtrTemp++;
                     }
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -298,7 +294,7 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp;
+                    dstPtrChannel = dstPtrTemp++;
                     Rpp32f alphaFactor = (1 - (*fogAlphaMaskPtrTemp + gammaFactor));
                     Rpp32f intensityFactor = (*fogIntensityMaskPtrTemp++ * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
                     for (int c = 0; c < srcDescPtr->c; c++)
@@ -308,7 +304,6 @@ RppStatus fog_u8_u8_host_tensor(Rpp8u *srcPtr,
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }
                     srcPtrTemp++;
-                    dstPtrTemp++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -418,13 +413,10 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                 {
                     Rpp32f alphaFactor = (1 - (*fogAlphaMaskPtrTemp + gammaFactor));
                     Rpp32f intensityFactor = (((*fogIntensityMaskPtrTemp++) * ONE_OVER_255) * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
-                    *dstPtrTempR = static_cast<Rpp16f>(RPPPIXELCHECKF32(static_cast<Rpp32f>(srcPtrTemp[0]) * alphaFactor + intensityFactor));
-                    *dstPtrTempG = static_cast<Rpp16f>(RPPPIXELCHECKF32(static_cast<Rpp32f>(srcPtrTemp[1]) * alphaFactor + intensityFactor));
-                    *dstPtrTempB = static_cast<Rpp16f>(RPPPIXELCHECKF32(static_cast<Rpp32f>(srcPtrTemp[2]) * alphaFactor + intensityFactor));
+                    *dstPtrTempR++ = static_cast<Rpp16f>(RPPPIXELCHECKF32(static_cast<Rpp32f>(srcPtrTemp[0]) * alphaFactor + intensityFactor));
+                    *dstPtrTempG++ = static_cast<Rpp16f>(RPPPIXELCHECKF32(static_cast<Rpp32f>(srcPtrTemp[1]) * alphaFactor + intensityFactor));
+                    *dstPtrTempB++ = static_cast<Rpp16f>(RPPPIXELCHECKF32(static_cast<Rpp32f>(srcPtrTemp[2]) * alphaFactor + intensityFactor));
                     srcPtrTemp += 3;
-                    dstPtrTempR++;
-                    dstPtrTempG++;
-                    dstPtrTempB++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRowR += dstDescPtr->strides.hStride;
@@ -536,9 +528,8 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                     Rpp32f intensityFactor = (((*fogIntensityMaskPtrTemp++) * ONE_OVER_255) * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
                     for (int c = 0; c < srcDescPtr->c; c++)
                     {
-                        *dstPtrTemp = static_cast<Rpp16f>(RPPPIXELCHECKF32(static_cast<Rpp32f>(*srcPtrTemp) * alphaFactor + intensityFactor));
+                        *dstPtrTemp++ = static_cast<Rpp16f>(RPPPIXELCHECKF32(static_cast<Rpp32f>(*srcPtrTemp) * alphaFactor + intensityFactor));
                         srcPtrTemp++;
-                        dstPtrTemp++;
                     }
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -600,7 +591,7 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp;
+                    dstPtrChannel = dstPtrTemp++;
                     Rpp32f alphaFactor = (1 - (*fogAlphaMaskPtrTemp + gammaFactor));
                     Rpp32f intensityFactor = (((*fogIntensityMaskPtrTemp++) * ONE_OVER_255) * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
                     for (int c = 0; c < srcDescPtr->c; c++)
@@ -610,7 +601,6 @@ RppStatus fog_f16_f16_host_tensor(Rpp16f *srcPtr,
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }
                     srcPtrTemp++;
-                    dstPtrTemp++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -720,13 +710,10 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                 {
                     Rpp32f alphaFactor = (1 - (*fogAlphaMaskPtrTemp + gammaFactor));
                     Rpp32f intensityFactor = (((*fogIntensityMaskPtrTemp++) * ONE_OVER_255) * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
-                    *dstPtrTempR = RPPPIXELCHECKF32((srcPtrTemp[0]) * alphaFactor + intensityFactor);
-                    *dstPtrTempG = RPPPIXELCHECKF32((srcPtrTemp[1]) * alphaFactor + intensityFactor);
-                    *dstPtrTempB = RPPPIXELCHECKF32((srcPtrTemp[2]) * alphaFactor + intensityFactor);
+                    *dstPtrTempR++ = RPPPIXELCHECKF32((srcPtrTemp[0]) * alphaFactor + intensityFactor);
+                    *dstPtrTempG++ = RPPPIXELCHECKF32((srcPtrTemp[1]) * alphaFactor + intensityFactor);
+                    *dstPtrTempB++ = RPPPIXELCHECKF32((srcPtrTemp[2]) * alphaFactor + intensityFactor);
                     srcPtrTemp += 3;
-                    dstPtrTempR++;
-                    dstPtrTempG++;
-                    dstPtrTempB++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRowR += dstDescPtr->strides.hStride;
@@ -838,9 +825,8 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                     Rpp32f intensityFactor = (((*fogIntensityMaskPtrTemp++) * ONE_OVER_255) * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
                     for (int c = 0; c < srcDescPtr->c; c++)
                     {
-                        *dstPtrTemp = RPPPIXELCHECKF32((*srcPtrTemp) * alphaFactor + intensityFactor);
+                        *dstPtrTemp++ = RPPPIXELCHECKF32((*srcPtrTemp) * alphaFactor + intensityFactor);
                         srcPtrTemp++;
-                        dstPtrTemp++;
                     }
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -898,7 +884,7 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp;
+                    dstPtrChannel = dstPtrTemp++;
                     Rpp32f alphaFactor = (1 - (*fogAlphaMaskPtrTemp + gammaFactor));
                     Rpp32f intensityFactor = (((*fogIntensityMaskPtrTemp++) * ONE_OVER_255) * ((*fogAlphaMaskPtrTemp++) + gammaFactor));
                     for (int c = 0; c < srcDescPtr->c; c++)
@@ -908,7 +894,6 @@ RppStatus fog_f32_f32_host_tensor(Rpp32f *srcPtr,
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }
                     srcPtrTemp++;
-                    dstPtrTemp++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
@@ -1018,13 +1003,10 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                 {
                     Rpp32f alphaFactor = (1 - (*fogAlphaMaskPtrTemp + gammaFactor));
                     Rpp32f intensityFactor = ((*fogIntensityMaskPtrTemp++) * ((*fogAlphaMaskPtrTemp++) + gammaFactor)) - 128.0f;
-                    *dstPtrTempR = static_cast<Rpp8s>(RPPPIXELCHECKI8((static_cast<Rpp32f>(srcPtrTemp[0]) + 128.0f) * alphaFactor + intensityFactor));
-                    *dstPtrTempG = static_cast<Rpp8s>(RPPPIXELCHECKI8((static_cast<Rpp32f>(srcPtrTemp[1]) + 128.0f) * alphaFactor + intensityFactor));
-                    *dstPtrTempB = static_cast<Rpp8s>(RPPPIXELCHECKI8((static_cast<Rpp32f>(srcPtrTemp[2]) + 128.0f) * alphaFactor + intensityFactor));
+                    *dstPtrTempR++ = static_cast<Rpp8s>(RPPPIXELCHECKI8((static_cast<Rpp32f>(srcPtrTemp[0]) + 128.0f) * alphaFactor + intensityFactor));
+                    *dstPtrTempG++ = static_cast<Rpp8s>(RPPPIXELCHECKI8((static_cast<Rpp32f>(srcPtrTemp[1]) + 128.0f) * alphaFactor + intensityFactor));
+                    *dstPtrTempB++ = static_cast<Rpp8s>(RPPPIXELCHECKI8((static_cast<Rpp32f>(srcPtrTemp[2]) + 128.0f) * alphaFactor + intensityFactor));
                     srcPtrTemp += 3;
-                    dstPtrTempR++;
-                    dstPtrTempG++;
-                    dstPtrTempB++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRowR += dstDescPtr->strides.hStride;
@@ -1134,9 +1116,8 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                     Rpp32f intensityFactor = ((*fogIntensityMaskPtrTemp++) * ((*fogAlphaMaskPtrTemp++) + gammaFactor)) - 128.0f;
                     for (int c = 0; c < srcDescPtr->c; c++)
                     {
-                        *dstPtrTemp = static_cast<Rpp8s>(RPPPIXELCHECKI8((static_cast<Rpp32f>(*srcPtrTemp) + 128.0f) * alphaFactor + intensityFactor));
+                        *dstPtrTemp++ = static_cast<Rpp8s>(RPPPIXELCHECKI8((static_cast<Rpp32f>(*srcPtrTemp) + 128.0f) * alphaFactor + intensityFactor));
                         srcPtrTemp++;
-                        dstPtrTemp++;
                     }
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -1192,7 +1173,7 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp;
+                    dstPtrChannel = dstPtrTemp++;
                     Rpp32f alphaFactor = (1 - (*fogAlphaMaskPtrTemp + gammaFactor));
                     Rpp32f intensityFactor = ((*fogIntensityMaskPtrTemp++) * ((*fogAlphaMaskPtrTemp++) + gammaFactor)) - 128.0f;
                     for (int c = 0; c < srcDescPtr->c; c++)
@@ -1202,7 +1183,6 @@ RppStatus fog_i8_i8_host_tensor(Rpp8s *srcPtr,
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }
                     srcPtrTemp++;
-                    dstPtrTemp++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
