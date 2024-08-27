@@ -228,7 +228,7 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
 
     std::random_device rd;  // Random number engine seed
     std::mt19937 gen(rd()); // Seeding rd() to fast mersenne twister engine
-    for(Rpp32s i = 0; i < dstDescPtr->n; i++)
+    for (Rpp32s i = 0; i < dstDescPtr->n; i++)
     {
         std::uniform_int_distribution<> distribX(0, srcDescPtr->w - roiTensorPtrSrc[i].xywhROI.roiWidth);
         std::uniform_int_distribution<> distribY(0, srcDescPtr->h - roiTensorPtrSrc[i].xywhROI.roiHeight);
