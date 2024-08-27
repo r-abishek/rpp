@@ -7,7 +7,7 @@ Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/r
 ### Changes
 
 * Test - Prerequisites Updates
-RPP Tensor Fog support on HOST and HIP
+* RPP Tensor Fog support on HOST and HIP
 
 ### Tested configurations
 
