@@ -1,42 +1,42 @@
 #include <hip/hip_runtime.h>
 #include "rpp_hip_common.hpp"
 
-__device__ __forceinline__ void fog_hip_compute(uchar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *gamma_f4)
+__device__ __forceinline__ void fog_hip_compute(uchar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *intensityFactor_f4)
 {
     float4 alphaFactor_f4[2];
-    alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *gamma_f4);
-    alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *gamma_f4);
+    alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *intensityFactor_f4);
+    alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *intensityFactor_f4);
     dst_f8->f4[0] = rpp_hip_pixel_check_0to255((src_f8->f4[0] * ((float4)1 - alphaFactor_f4[0])) + (maskIntensity_f8->f4[0] * alphaFactor_f4[0]));
     dst_f8->f4[1] = rpp_hip_pixel_check_0to255((src_f8->f4[1] * ((float4)1 - alphaFactor_f4[1])) + (maskIntensity_f8->f4[1] * alphaFactor_f4[1]));
 }
 
-__device__ __forceinline__ void fog_hip_compute(float *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *gamma_f4)
+__device__ __forceinline__ void fog_hip_compute(float *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *intensityFactor_f4)
 {
     float4 pixNorm_f4[2], alphaFactor_f4[2];
     pixNorm_f4[0] = maskIntensity_f8->f4[0] * (float4) ONE_OVER_255;
     pixNorm_f4[1] = maskIntensity_f8->f4[1] * (float4) ONE_OVER_255;
-    alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *gamma_f4);
-    alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *gamma_f4);
+    alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *intensityFactor_f4);
+    alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *intensityFactor_f4);
     dst_f8->f4[0] = (src_f8->f4[0] * ((float4)1 - alphaFactor_f4[0])) + (pixNorm_f4[0] * alphaFactor_f4[0]);
     dst_f8->f4[1] = (src_f8->f4[1] * ((float4)1 - alphaFactor_f4[1])) + (pixNorm_f4[1] * alphaFactor_f4[1]);
 }
 
-__device__ __forceinline__ void fog_hip_compute(schar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *gamma_f4)
+__device__ __forceinline__ void fog_hip_compute(schar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *intensityFactor_f4)
 {
     float4 alphaFactor_f4[2];
-    alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *gamma_f4);
-    alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *gamma_f4);
+    alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *intensityFactor_f4);
+    alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *intensityFactor_f4);
     dst_f8->f4[0] = rpp_hip_pixel_check_0to255((src_f8->f4[0] + (float4)128) * ((float4)1 - alphaFactor_f4[0]) + (maskIntensity_f8->f4[0] * alphaFactor_f4[0])) - (float4)128;
     dst_f8->f4[1] = rpp_hip_pixel_check_0to255((src_f8->f4[1] + (float4)128) * ((float4)1 - alphaFactor_f4[1]) + (maskIntensity_f8->f4[1] * alphaFactor_f4[1])) - (float4)128;
 }
 
-__device__ __forceinline__ void fog_hip_compute(half *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *gamma_f4)
+__device__ __forceinline__ void fog_hip_compute(half *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *maskAlpha_f8, d_float8 *maskIntensity_f8, float4 *intensityFactor_f4)
 {
     float4 pixNorm_f4[2], alphaFactor_f4[2];
     pixNorm_f4[0] = maskIntensity_f8->f4[0] * (float4) ONE_OVER_255;
     pixNorm_f4[1] = maskIntensity_f8->f4[1] * (float4) ONE_OVER_255;
-    alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *gamma_f4);
-    alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *gamma_f4);
+    alphaFactor_f4[0] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[0] + *intensityFactor_f4);
+    alphaFactor_f4[1] = rpp_hip_pixel_check_0to1(maskAlpha_f8->f4[1] + *intensityFactor_f4);
     dst_f8->f4[0] = (src_f8->f4[0] * ((float4)1 - alphaFactor_f4[0])) + (pixNorm_f4[0] * alphaFactor_f4[0]);
     dst_f8->f4[1] = (src_f8->f4[1] * ((float4)1 - alphaFactor_f4[1])) + (pixNorm_f4[1] * alphaFactor_f4[1]);
 }
@@ -48,7 +48,7 @@ __global__ void fog_pkd_hip_tensor(T *srcPtr,
                                    uint2 dstStridesNH,
                                    float *fogAlphaMaskPtr,
                                    float *fogIntensityMaskPtr,
-                                   float *gammaTensor,
+                                   float *intensityFactor,
                                    uint *maskLocArrX,
                                    uint *maskLocArrY,
                                    RpptROIPtr roiTensorPtrSrc)
@@ -68,13 +68,13 @@ __global__ void fog_pkd_hip_tensor(T *srcPtr,
 
     d_float24 src_f24, dst_f24;
     d_float8 maskAlpha_f8, maskIntensity_f8;
-    float4 gamma_f4 = static_cast<float4>(gammaTensor[id_z]);
+    float4 intensityFactor_f4 = static_cast<float4>(intensityFactor[id_z]);
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &src_f24);
     rpp_hip_load8_and_unpack_to_float8(fogAlphaMaskPtr + maskIdx, &maskAlpha_f8);
     rpp_hip_load8_and_unpack_to_float8(fogIntensityMaskPtr + maskIdx, &maskIntensity_f8);
-    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &dst_f24);
 }
 
@@ -86,7 +86,7 @@ __global__ void fog_pln_hip_tensor(T *srcPtr,
                                    int channelsDst,
                                    float *fogAlphaMaskPtr,
                                    float *fogIntensityMaskPtr,
-                                   float *gammaTensor,
+                                   float *intensityFactor,
                                    uint *maskLocArrX,
                                    uint *maskLocArrY,
                                    RpptROIPtr roiTensorPtrSrc)
@@ -106,11 +106,11 @@ __global__ void fog_pln_hip_tensor(T *srcPtr,
 
     d_float8 src_f8, dst_f8;
     d_float8 maskAlpha_f8, maskIntensity_f8;
-    float4 gamma_f4 = static_cast<float4>(gammaTensor[id_z]);
+    float4 intensityFactor_f4 = static_cast<float4>(intensityFactor[id_z]);
     rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);
     rpp_hip_load8_and_unpack_to_float8(fogAlphaMaskPtr + maskIdx, &maskAlpha_f8);
     rpp_hip_load8_and_unpack_to_float8(fogIntensityMaskPtr + maskIdx, &maskIntensity_f8);
-    fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
+    fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
     rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
 
     if (channelsDst == 3)
@@ -119,14 +119,14 @@ __global__ void fog_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
 
         rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);
-        fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
+        fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
         rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
 
         srcIdx += srcStridesNCH.y;
         dstIdx += dstStridesNCH.y;
 
         rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);
-        fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
+        fog_hip_compute(srcPtr, &src_f8, &dst_f8, &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
         rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
     }
 }
@@ -138,7 +138,7 @@ __global__ void fog_pkd3_pln3_hip_tensor(T *srcPtr,
                                          uint3 dstStridesNCH,
                                          float *fogAlphaMaskPtr,
                                          float *fogIntensityMaskPtr,
-                                         float *gammaTensor,
+                                         float *intensityFactor,
                                          uint *maskLocArrX,
                                          uint *maskLocArrY,
                                          RpptROIPtr roiTensorPtrSrc)
@@ -158,13 +158,13 @@ __global__ void fog_pkd3_pln3_hip_tensor(T *srcPtr,
 
     d_float24 src_f24, dst_f24;
     d_float8 maskAlpha_f8, maskIntensity_f8;
-    float4 gamma_f4 = static_cast<float4>(gammaTensor[id_z]);
+    float4 intensityFactor_f4 = static_cast<float4>(intensityFactor[id_z]);
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &src_f24);
     rpp_hip_load8_and_unpack_to_float8(fogAlphaMaskPtr + maskIdx, &maskAlpha_f8);
     rpp_hip_load8_and_unpack_to_float8(fogIntensityMaskPtr + maskIdx, &maskIntensity_f8);
-    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
     rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &dst_f24);
 }
 
@@ -175,7 +175,7 @@ __global__ void fog_pln3_pkd3_hip_tensor(T *srcPtr,
                                          uint2 dstStridesNH,
                                          float *fogAlphaMaskPtr,
                                          float *fogIntensityMaskPtr,
-                                         float *gammaTensor,
+                                         float *intensityFactor,
                                          uint *maskLocArrX,
                                          uint *maskLocArrY,
                                          RpptROIPtr roiTensorPtrSrc)
@@ -195,13 +195,13 @@ __global__ void fog_pln3_pkd3_hip_tensor(T *srcPtr,
 
     d_float24 src_f24, dst_f24;
     d_float8 maskAlpha_f8, maskIntensity_f8;
-    float4 gamma_f4 = static_cast<float4>(gammaTensor[id_z]);
+    float4 intensityFactor_f4 = static_cast<float4>(intensityFactor[id_z]);
     rpp_hip_load24_pln3_and_unpack_to_float24_pln3(srcPtr + srcIdx, srcStridesNCH.y, &src_f24);
     rpp_hip_load8_and_unpack_to_float8(fogAlphaMaskPtr + maskIdx, &maskAlpha_f8);
     rpp_hip_load8_and_unpack_to_float8(fogIntensityMaskPtr + maskIdx, &maskIntensity_f8);
-    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
-    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8, &gamma_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[0], &dst_f24.f8[0], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[1], &dst_f24.f8[1], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
+    fog_hip_compute(srcPtr, &src_f24.f8[2], &dst_f24.f8[2], &maskAlpha_f8, &maskIntensity_f8, &intensityFactor_f4);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &dst_f24);
 }
 
@@ -212,7 +212,7 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                               RpptDescPtr dstDescPtr,
                               Rpp32f *d_fogAlphaMaskPtr,
                               Rpp32f *d_fogIntensityMaskPtr,
-                              Rpp32f *gammaTensor,
+                              Rpp32f *intensityFactor,
                               Rpp32u *maskLocOffsetX,
                               Rpp32u *maskLocOffsetY,
                               RpptROIPtr roiTensorPtrSrc,
@@ -250,7 +250,7 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                            d_fogAlphaMaskPtr,
                            d_fogIntensityMaskPtr,
-                           gammaTensor,
+                           intensityFactor,
                            maskLocOffsetX,
                            maskLocOffsetY,
                            roiTensorPtrSrc);
@@ -269,7 +269,7 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                            dstDescPtr->c,
                            d_fogAlphaMaskPtr,
                            d_fogIntensityMaskPtr,
-                           gammaTensor,
+                           intensityFactor,
                            maskLocOffsetX,
                            maskLocOffsetY,
                            roiTensorPtrSrc);
@@ -289,7 +289,7 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                                d_fogAlphaMaskPtr,
                                d_fogIntensityMaskPtr,
-                               gammaTensor,
+                               intensityFactor,
                                maskLocOffsetX,
                                maskLocOffsetY,
                                roiTensorPtrSrc);
@@ -308,7 +308,7 @@ RppStatus hip_exec_fog_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                d_fogAlphaMaskPtr,
                                d_fogIntensityMaskPtr,
-                               gammaTensor,
+                               intensityFactor,
                                maskLocOffsetX,
                                maskLocOffsetY,
                                roiTensorPtrSrc);

@@ -634,14 +634,14 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "fog";
 
-                    Rpp32f gammaTensor[batchSize];
+                    Rpp32f intensityFactor[batchSize];
                     for (i = 0; i < batchSize; i++)
-                        gammaTensor[i] = 0;
+                        intensityFactor[i] = 0;
 
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_fog_host(input, srcDescPtr, output, dstDescPtr, gammaTensor, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_fog_host(input, srcDescPtr, output, dstDescPtr, intensityFactor, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
