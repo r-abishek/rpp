@@ -25,6 +25,7 @@ SOFTWARE.
 #include <random>
 #include "rppdefs.h"
 #include "rppi_validate.hpp"
+#include "rppt_api_helpers.h"
 #include "rppt_tensor_effects_augmentations.h"
 #include "cpu/host_tensor_effects_augmentations.hpp"
 
@@ -1160,11 +1161,11 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
                         rppHandle_t rppHandle)
 {
     RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
-    // Initialize and Set original fog mask source descriptor
+    // Initialize and set original fog mask source descriptor
     RpptDesc fogMaskSrcDesc; 
     RpptDescPtr fogMaskSrcDescPtr = &fogMaskSrcDesc;
     set_fog_mask_descriptor(fogMaskSrcDescPtr, 2, FOG_MAX_HEIGHT, FOG_MAX_WIDTH, 1);
-    // Initialize and Set fog resized mask destination descriptor
+    // Initialize and set fog resized mask destination descriptor
     RpptDesc fogMaskDstDesc;
     RpptDescPtr fogMaskDstDescPtr = &fogMaskDstDesc;
     set_fog_mask_descriptor(fogMaskDstDescPtr, 2, srcDescPtr->h, srcDescPtr->w, 1);
@@ -2444,11 +2445,11 @@ RppStatus rppt_fog_gpu(RppPtr_t srcPtr,
 {
 #ifdef HIP_COMPILE
     RpptInterpolationType interpolationType = RpptInterpolationType::NEAREST_NEIGHBOR;
-    // Initialize and Set original fog mask source descriptor
+    // Initialize and set original fog mask source descriptor
     RpptDesc fogMaskSrcDesc;
     RpptDescPtr fogMaskSrcDescPtr = &fogMaskSrcDesc;
     set_fog_mask_descriptor(fogMaskSrcDescPtr, 2, FOG_MAX_HEIGHT, FOG_MAX_WIDTH, 1);  
-    // Initialize and Set fog resized mask destination descriptor
+    // Initialize and set fog resized mask destination descriptor
     RpptDesc fogMaskDstDesc;
     RpptDescPtr fogMaskDstDescPtr = &fogMaskDstDesc;
     set_fog_mask_descriptor(fogMaskDstDescPtr, 2, srcDescPtr->h, srcDescPtr->w, 1);
