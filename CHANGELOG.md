@@ -1,13 +1,19 @@
 # Changelog for RPP
 
 Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/rpp/en/latest](https://rocm.docs.amd.com/projects/rpp/en/latest)
+
+## RPP 1.11.0 (Unreleased)
  
+### Changes
+ 
+* RPP Tensor Fog support on HOST and HIP
+
+
 ## RPP 1.9.1 for ROCm 6.3.0
  
 ### Changes
  
 * Test - Prerequisites Updates
-* RPP Tensor Fog support on HOST and HIP
 * RPP Glitch on HOST and HIP
 * AMD Advanced - Build Flag
 * RPP Audio Support HIP - Resample
