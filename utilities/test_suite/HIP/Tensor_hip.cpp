@@ -552,6 +552,26 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case 7:
+                {
+                    testCaseName = "snow";
+
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        brightness[i] = 1.4;
+                        contrast[i] = 0.0;
+                        hue[i] = 60.0;
+                        saturation[i] = 1.9;
+                    }
+
+                    startWallTime = omp_get_wtime();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_snow_gpu(d_input, srcDescPtr, d_output, dstDescPtr, brightness, contrast, hue, saturation, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 case 8:
                 {
                     testCaseName = "noise";
