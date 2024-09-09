@@ -609,7 +609,7 @@ int main(int argc, char **argv)
                     testCaseName = "snow";
 
                     for (i = 0; i < batchSize; i++)
-                        brightness[i] = 1;
+                        brightnessCoefficient[i] = 1;
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)

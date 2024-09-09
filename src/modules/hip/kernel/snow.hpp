@@ -2,6 +2,29 @@
 #include "rpp_hip_common.hpp"
 #include "rpp_cpu_common.hpp"
 
+__device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, float t, float *r)
+{
+    if(t < 0.0f) t += 1.0f;
+    if(t > 1.0f) t -= 1.0f;
+    if(t < 1.0f / 6.0f)
+    {
+        *r = *p + (*q - *p) * 6.0f * t;
+    }
+    else if(t < 1.0f / 2.0f)
+    {
+        *r = *q;
+    }
+    else if(t < 2.0f / 3.0f)
+    {
+        *r = *p + (*q - *p) * (2.0f / 3.0f - t) * 6.0f;
+    }
+    else
+    {
+        *r = *p;
+    }
+    *r = *r * 255;
+
+}
 __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float *brightnessCoefficient)
 {
     // RGB to HSV
@@ -37,7 +60,7 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
         //hue calculation
         if(cmax == rf)
         {
-            hue = (gf - bf) / delta + (g < b ? 6 : 0);
+            hue = (gf - bf) / delta + (gf < bf ? 6 : 0);
         }
         else if(cmax == gf)
         {
@@ -47,53 +70,32 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
         {
             hue = 4.0f + (rf - gf) / delta;
         }
+        hue = hue / 6;
     }
 
     // Modify L 
 
-    l = l * brightnessCoefficient;
+    l = l * *brightnessCoefficient;
 
     // HSV to RGB with brightness/contrast adjustment
 
     if(sat == 0.0f)
     {
-        *pixelR = l;
-        *pixelG = l;
-        *pixelB = l;
+        *pixelR = l * 255;
+        *pixelG = l * 255;
+        *pixelB = l * 255;
     }
     else
     {
         float p, q;
         q = l < 0.5f ? l * (1.0f + sat) : l + sat - l * sat;
         p = 2.0f * l - q;
-        snow_1hueToRGB_hip_compute(&p, &q, &(hue + 1/3), pixelR);
-        snow_1hueToRGB_hip_compute(&p, &q, &hue, pixelG);
-        snow_1hueToRGB_hip_compute(&p, &q, &(hue - 1/3), pixelB);
+        snow_1hueToRGB_hip_compute(&p, &q, (hue + 1.0f / 3.0f), pixelR);
+        snow_1hueToRGB_hip_compute(&p, &q, hue, pixelG);
+        snow_1hueToRGB_hip_compute(&p, &q, (hue - 1.0f / 3.0f), pixelB);
     }
 }
 
-__device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, float *t, float *r)
-{
-    if(t < 0.0f) t += 1.0f;
-    if(t > 1.0f) t -= 1.0f;
-    if(t < 1.0f / 6.0f)
-    {
-        *r = *p + (*q - *p) * 6.0f * t;
-    }
-    else if(t < 1.0f / 2.0f)
-    {
-        *r = *q;
-    }
-    else if(t < 2.0f / 3.0f)
-    {
-        *r = *p + (*q - *p) * (2.0f / 3.0f - t) * 6.0f;
-    }
-    else
-    {
-        *r = *p;
-    }
-
-}
 
 __device__ __forceinline__ void snow_8RGB_hip_compute(d_float24 *pix_f24, float *brightnessCoefficient)
 {
@@ -155,8 +157,10 @@ __global__ void snow_pkd_hip_tensor(T *srcPtr,
     uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
 
+    d_float24 pix_f24;
+
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, &brightnessCoefficient);
+    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
 }
 
@@ -183,7 +187,7 @@ __global__ void snow_pln_hip_tensor(T *srcPtr,
     d_float24 pix_f24;
 
     rpp_hip_load24_pln3_and_unpack_to_float24_pln3(srcPtr + srcIdx, srcStridesNCH.y, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, &brightnessCoefficient);
+    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient);
     rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &pix_f24);
 }
 
@@ -210,7 +214,7 @@ __global__ void snow_pkd3_pln3_hip_tensor(T *srcPtr,
     d_float24 pix_f24;
 
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, &brightnessCoefficient);
+    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient);
     rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &pix_f24);
 }
 
@@ -237,7 +241,7 @@ __global__ void snow_pln3_pkd3_hip_tensor(T *srcPtr,
     d_float24 pix_f24;
 
     rpp_hip_load24_pln3_and_unpack_to_float24_pln3(srcPtr + srcIdx, srcStridesNCH.y, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, &brightnessCoefficient);
+    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
 }
 
@@ -246,7 +250,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
                                RpptDescPtr srcDescPtr,
                                T *dstPtr,
                                RpptDescPtr dstDescPtr,
-                               Rppt32f *brightnessCoefficient,
+                               Rpp32f *brightnessCoefficient,
                                RpptROIPtr roiTensorPtrSrc,
                                RpptRoiType roiType,
                                rpp::Handle& handle)
