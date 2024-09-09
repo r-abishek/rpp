@@ -2423,10 +2423,7 @@ RppStatus rppt_snow_gpu(RppPtr_t srcPtr,
                                RpptDescPtr srcDescPtr,
                                RppPtr_t dstPtr,
                                RpptDescPtr dstDescPtr,
-                               Rpp32f *brightnessTensor,
-                               Rpp32f *contrastTensor,
-                               Rpp32f *hueTensor,
-                               Rpp32f *saturationTensor,
+                               Rpp32f *brightnessCoefficient,
                                RpptROIPtr roiTensorPtrSrc,
                                RpptRoiType roiType,
                                rppHandle_t rppHandle)
@@ -2437,18 +2434,13 @@ RppStatus rppt_snow_gpu(RppPtr_t srcPtr,
         return RPP_ERROR_INVALID_CHANNELS;
     }
 
-    Rpp32u paramIndex = 0;
-    copy_param_float(brightnessTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(contrastTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(hueTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(saturationTensor, rpp::deref(rppHandle), paramIndex++);
-
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         hip_exec_snow_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                     srcDescPtr,
                                     static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                     dstDescPtr,
+                                    brightnessCoefficient,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));

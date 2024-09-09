@@ -407,6 +407,10 @@ int main(int argc, char **argv)
     if(testCase == 46)
         CHECK_RETURN_STATUS(hipHostMalloc(&intensity, batchSize * sizeof(Rpp32f)));
 
+    Rpp32f *brightnessCoefficient = nullptr;
+    if(testCase == 7)
+        CHECK_RETURN_STATUS(hipHostMalloc(&brightnessCoefficient, batchSize * sizeof(Rpp32f)));
+
     Rpp32u *kernelSizeTensor;
     if(testCase == 6)
         CHECK_RETURN_STATUS(hipHostMalloc(&kernelSizeTensor, batchSize * sizeof(Rpp32u)));
@@ -605,16 +609,11 @@ int main(int argc, char **argv)
                     testCaseName = "snow";
 
                     for (i = 0; i < batchSize; i++)
-                    {
-                        brightness[i] = 1.4;
-                        contrast[i] = 0.0;
-                        hue[i] = 60.0;
-                        saturation[i] = 1.9;
-                    }
+                        brightness[i] = 1;
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_snow_gpu(d_input, srcDescPtr, d_output, dstDescPtr, brightness, contrast, hue, saturation, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_snow_gpu(d_input, srcDescPtr, d_output, dstDescPtr, brightnessCoefficient, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
