@@ -22,12 +22,10 @@ __device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, f
     {
         *r = *p;
     }
-    *r = *r * 255;
-
 }
 __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float *brightnessCoefficient)
 {
-    // RGB to HSV
+    // RGB to HSL
 
     float hue, sat, l, add;
     float rf, gf, bf, cmax, cmin, delta;
@@ -70,20 +68,20 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
         {
             hue = 4.0f + (rf - gf) / delta;
         }
-        hue = hue / 6;
+        hue = hue / 6.0f;
     }
 
     // Modify L 
 
-    l = l * *brightnessCoefficient;
+    l = l * (*brightnessCoefficient);
 
-    // HSV to RGB with brightness/contrast adjustment
+    // HSL to RGB with brightness/contrast adjustment
 
     if(sat == 0.0f)
     {
-        *pixelR = l * 255;
-        *pixelG = l * 255;
-        *pixelB = l * 255;
+        *pixelR = l;
+        *pixelG = l;
+        *pixelB = l;
     }
     else
     {
@@ -114,6 +112,8 @@ __device__ __forceinline__ void snow_hip_compute(uchar *srcPtr, d_float24 *pix_f
     float4 normalizer_f4 = static_cast<float4>(ONE_OVER_255);
     rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
     snow_8RGB_hip_compute(pix_f24, brightnessCoefficient);
+    normalizer_f4 = static_cast<float4>(255.0f);
+    rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
     rpp_hip_pixel_check_0to255(pix_f24);
 }
 __device__ __forceinline__ void snow_hip_compute(float *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient)
@@ -133,6 +133,8 @@ __device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float24 *pix_f
     rpp_hip_math_add24_const(pix_f24, pix_f24, i8Offset_f4);
     rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
     snow_8RGB_hip_compute(pix_f24, brightnessCoefficient);
+    normalizer_f4 = static_cast<float4>(255.0f);
+    rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
     rpp_hip_pixel_check_0to255(pix_f24);
     rpp_hip_math_subtract24_const(pix_f24, pix_f24, i8Offset_f4);
 }
