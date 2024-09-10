@@ -61,20 +61,43 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
         // {
         //     sat = delta / (2.0f - cmax - cmin);
         // }
+        
         //hue calculation
-        if(cmax == rf)
-        {
-            hue = (gf - bf) / delta + (gf < bf ? 6 : 0);
-        }
-        else if(cmax == gf)
-        {
-            hue = 2.0f + (bf - rf) / delta;
-        }
-        else
-        {
-            hue = 4.0f + (rf - gf) / delta;
-        }
-        hue = hue * ONE_OVER_6;
+        // if(cmax == rf)
+        // {
+        //     hue = (gf - bf) / delta + (gf < bf ? 6 : 0);
+        // }
+        // else if(cmax == gf)
+        // {
+        //     hue = 2.0f + (bf - rf) / delta;
+        // }
+        // else
+        // {
+        //     hue = 4.0f + (rf - gf) / delta;
+        // }
+        // hue = hue * ONE_OVER_6;
+
+         // Create a float3 to store mask values
+        float3 masks_f3 = make_float3(
+            (cmax == rf   && cmax != gf) ? 1.0f : 0.0f,
+            (cmax == gf && cmax != bf ) ? 1.0f : 0.0f,
+            (cmax == bf  && cmax != rf  ) ? 1.0f : 0.0f
+        );
+
+        // Create a float3 to store add values
+        float3 adds_f3 = make_float3(
+            ((gf - bf) / delta),
+            2.0f + ((bf  - rf)  / delta),
+            4.0f + ((rf  - gf) / delta)
+        );
+
+        // Determine if delta is greater than zero
+        float deltaGtz = (delta > 0.0f) ? 1.0f : 0.0f;
+
+        // Calculate the hue by adding values based on masks
+        hue += ((adds_f3.x * masks_f3.x) + (adds_f3.y * masks_f3.y) + (adds_f3.z * masks_f3.z));
+        hue *= deltaGtz;
+        hue *= ONE_OVER_6;
     }
 
     //Lighter the darken images
