@@ -8,7 +8,8 @@ __device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, f
     if(t > 1.0f) t -= 1.0f;
     if(t < ONE_OVER_6)
     {
-        *r = *p + (*q - *p) * 6.0f * t;
+        *r = fmaf(6.0f * t, (*q - *p), *p);
+        // *r = *p + (*q - *p) * 6.0f * t;
     }
     else if(t < 0.5f)
     {
@@ -16,7 +17,8 @@ __device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, f
     }
     else if(t < TWO_OVER_3)
     {
-        *r = *p + (*q - *p) * (TWO_OVER_3 - t) * 6.0f;
+        *r = fmaf((TWO_OVER_3 - t) * 6.0f, (*q - *p), *p);
+        // *r = *p + (*q - *p) * (TWO_OVER_3 - t) * 6.0f;
     }
     else
     {
@@ -26,8 +28,7 @@ __device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, f
 __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float *brightnessCoefficient, float *snowCoefficient)
 {
     // RGB to HSL
-
-    float hue, sat, l, add;
+    float hue, sat, l;
     float rf, gf, bf, cmax, cmin, delta;
     float lower_threshold = 0.0f;
     float upper_threshold = 0.39215686f;
@@ -41,14 +42,8 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
     delta = cmax - cmin;
     hue = 0.0f;
     sat = 0.0f;
-    add = 0.0f;
     l = (cmax + cmin) * 0.5f;
-    if(cmax == cmin)
-    {
-        hue = 0.0f;
-        sat = 0.0f;
-    }
-    else
+    if(delta != 0.0f)
     {
         //saturation calculation
         float mul = (l < 0.5) ? l : (1.0f - l);
@@ -75,14 +70,29 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
         {
             hue = 4.0f + (rf - gf) / delta;
         }
+        // switch(cmax) {
+        //     case rf :{
+        //         hue = (gf - bf) / delta + (gf < bf ? 6 : 0);
+        //         break;
+        //     }   
+        //     case gf :{
+        //         hue = 2.0f + (bf - rf) / delta;
+        //         break;
+        //     }
+        //     case bf :{
+        //         hue = 4.0f + (rf - gf) / delta;
+        //         break;
+        //     }
+                    
+        // }
         hue = hue * ONE_OVER_6;
 
     }
 
     //Lighter the darken images
-    if(l <= lower_threshold && l >= upper_threshold)
+    if(l >= lower_threshold && l <= upper_threshold)
     {
-        l = l * (1 + (brightnessFactor - 1) * (1 - (l - lower_threshold) / (upper_threshold - lower_threshold)));
+        l = l * fmaf((brightnessFactor - 1.0f), (1.0f - (l - lower_threshold) / (upper_threshold - lower_threshold)), 1.0f);
     }
 
     // Modify L 
@@ -93,21 +103,61 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
 
     // HSL to RGB with brightness/contrast adjustment
 
-    if(sat == 0.0f)
+    // if(sat == 0.0f)
+    // {
+    //     *pixelR = l;
+    //     *pixelG = l;
+    //     *pixelB = l;
+    // }
+    // else
+    // {
+    //     float p, q;
+    //     q = l < 0.5f ? l * (1.0f + sat) : l + sat - l * sat;
+    //     p = 2.0f * l - q;
+    //     snow_1hueToRGB_hip_compute(&p, &q, (hue + ONE_OVER_3), pixelR);
+    //     snow_1hueToRGB_hip_compute(&p, &q, hue, pixelG);
+    //     snow_1hueToRGB_hip_compute(&p, &q, (hue - ONE_OVER_3), pixelB);
+    // }
+    float4 xt_f4 = make_float4(
+        6.0f * (hue - TWO_OVER_3),
+        0.0f,
+        6.0f *(1.0 - hue),
+        0.0f
+    );
+    if(hue < TWO_OVER_3)
     {
-        *pixelR = l;
-        *pixelG = l;
-        *pixelB = l;
+        xt_f4.x = 0.0f;
+        xt_f4.y = 6.0f * (TWO_OVER_3 - hue);
+        xt_f4.z = 6.0f * (hue - ONE_OVER_3);
+    }
+    if(hue < ONE_OVER_3)
+    {
+        xt_f4.x = 6.0f * (ONE_OVER_3 - hue);
+        xt_f4.y = 6.0f * hue;
+        xt_f4.z = 0.0f;
+    }
+    xt_f4.x = fminf(xt_f4.x, 1.0f);
+    xt_f4.y = fminf(xt_f4.y, 1.0f);
+    xt_f4.z = fminf(xt_f4.z, 1.0f);
+
+    float sat2 = 2.0f * sat;
+    float satinv = 1.0f - sat;
+    float luminv = 1.0f - l;
+    float lum2m1 = (2.0f * l) -1.0f;
+    float4 ct_f4 = (sat2 * xt_f4) + satinv;
+
+    float4 rgb_f4;
+    if(l >= 0.5f)
+    {
+        rgb_f4 = (luminv * ct_f4) + lum2m1;
     }
     else
     {
-        float p, q;
-        q = l < 0.5f ? l * (1.0f + sat) : l + sat - l * sat;
-        p = 2.0f * l - q;
-        snow_1hueToRGB_hip_compute(&p, &q, (hue + ONE_OVER_3), pixelR);
-        snow_1hueToRGB_hip_compute(&p, &q, hue, pixelG);
-        snow_1hueToRGB_hip_compute(&p, &q, (hue - ONE_OVER_3), pixelB);
+        rgb_f4 = l * ct_f4;
     }
+    *pixelR = rgb_f4.x;
+    *pixelG = rgb_f4.y;
+    *pixelB = rgb_f4.z;
 }
 
 
@@ -283,6 +333,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
 
     if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
     {
+        // int globalThreads_x = (dstDescPtr->w);
         int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
         int globalThreads_y = dstDescPtr->h;
         int globalThreads_z = handle.GetBatchSize();
