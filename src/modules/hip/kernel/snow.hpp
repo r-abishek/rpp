@@ -205,6 +205,34 @@ __device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float24 *pix_f
     rpp_hip_math_subtract24_const(pix_f24, pix_f24, i8Offset_f4);
 }
 
+// template <typename T>
+// __global__ void snow_pkd_hip_tensor(T *srcPtr,
+//                                     uint2 srcStridesNH,
+//                                     T *dstPtr,
+//                                     uint2 dstStridesNH,
+//                                     float *brightnessCoefficient,
+//                                     float *snowCoefficient,
+//                                     RpptROIPtr roiTensorPtrSrc)
+// {
+//     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
+//     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+//     int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+//     if ((id_y >= roiTensorPtrSrc[id_z].xywhROI.roiHeight) || (id_x >= roiTensorPtrSrc[id_z].xywhROI.roiWidth))
+//     {
+//         return;
+//     }
+
+//     uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
+//     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
+
+//     d_float24 pix_f24;
+
+//     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
+//     snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowCoefficient);
+//     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
+// }
+
 template <typename T>
 __global__ void snow_pkd_hip_tensor(T *srcPtr,
                                     uint2 srcStridesNH,
@@ -214,7 +242,7 @@ __global__ void snow_pkd_hip_tensor(T *srcPtr,
                                     float *snowCoefficient,
                                     RpptROIPtr roiTensorPtrSrc)
 {
-    int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
+    int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x);
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
     int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
@@ -225,13 +253,58 @@ __global__ void snow_pkd_hip_tensor(T *srcPtr,
 
     uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
+    
+    float r = static_cast<float>(*(srcPtr + srcIdx));
+    float g = static_cast<float>(*(srcPtr + srcIdx + 1));
+    float b = static_cast<float>(*(srcPtr + srcIdx + 2));
+    r *= ONE_OVER_255;
+    g *= ONE_OVER_255;
+    b *= ONE_OVER_255;
+    // printf("SRc : %d  Dst : %d\n ",(int)*(srcPtr + srcIdx),(int)*(dstPtr + dstIdx));
+    snow_1RGB_hip_compute(&r, &b, &g, brightnessCoefficient, snowCoefficient);
+    r *= 255; 
+    g *= 255; 
+    b *= 255; 
+    rpp_hip_pixel_check_and_store(r, &dstPtr[dstIdx]);
+    rpp_hip_pixel_check_and_store(g, &dstPtr[dstIdx + 1]);
+    rpp_hip_pixel_check_and_store(b, &dstPtr[dstIdx + 2]);
 
-    d_float24 pix_f24;
+    // printf("SRc1 : %d  Dst1 : %d\n ",(int)*(srcPtr + srcIdx),(int)*(dstPtr + dstIdx));
 
-    rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowCoefficient);
-    rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
+    // d_float24 pix_f24;
+
+    // rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
+    // snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowCoefficient);
+    // rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
 }
+
+// template <typename T>
+// __global__ void snow_pkd_hip_tensor(T *srcPtr,
+//                                     uint2 srcStridesNH,
+//                                     T *dstPtr,
+//                                     uint2 dstStridesNH,
+//                                     float *brightnessCoefficient,
+//                                     float *snowCoefficient,
+//                                     RpptROIPtr roiTensorPtrSrc)
+// {
+//     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
+//     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+//     int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+//     if ((id_y >= roiTensorPtrSrc[id_z].xywhROI.roiHeight) || (id_x >= roiTensorPtrSrc[id_z].xywhROI.roiWidth))
+//     {
+//         return;
+//     }
+
+//     uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
+//     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
+
+//     d_float24 pix_f24;
+
+//     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
+//     snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowCoefficient);
+//     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
+// }
 
 template <typename T>
 __global__ void snow_pln_hip_tensor(T *srcPtr,
@@ -333,8 +406,8 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
 
     if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
     {
-        // int globalThreads_x = (dstDescPtr->w);
-        int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
+        int globalThreads_x = (dstDescPtr->w);
+        // int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
         int globalThreads_y = dstDescPtr->h;
         int globalThreads_z = handle.GetBatchSize();
         *snowCoefficient = *snowCoefficient * (255.0f / 2.0f);
@@ -342,7 +415,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
 
         if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
-            globalThreads_x = (dstDescPtr->strides.hStride / 3 + 7) >> 3;
+            // globalThreads_x = (dstDescPtr->strides.hStride / 3 + 7) >> 3;
             hipLaunchKernelGGL(snow_pkd_hip_tensor,
                                dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
