@@ -37,7 +37,6 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                                  RppLayoutParams layoutParams,
                                  rpp::Handle& handle)
 {
-    std::cerr<<"Calling Snow Kernel ";
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 

@@ -558,7 +558,6 @@ int main(int argc, char **argv)
                 case 7:
                 {
                     testCaseName = "snow";
-                    std::cerr<<"CAlling test case snow ";
                     Rpp32f brightnessCoefficient[batchSize];
                     Rpp32f snowCoefficient[batchSize];
                     for (i = 0; i < batchSize; i++)
