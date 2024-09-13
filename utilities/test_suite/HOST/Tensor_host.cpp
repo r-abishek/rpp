@@ -555,6 +555,27 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case 7:
+                {
+                    testCaseName = "snow";
+                    std::cerr<<"CAlling test case snow ";
+                    Rpp32f brightnessCoefficient[batchSize];
+                    Rpp32f snowCoefficient[batchSize];
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        brightnessCoefficient[i] = 3.5f;
+                        snowCoefficient[i] = 1.0f;
+                    }
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_snow_host(input, srcDescPtr, output, dstDescPtr, brightnessCoefficient, snowCoefficient, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 case 8:
                 {
                     testCaseName = "noise";
