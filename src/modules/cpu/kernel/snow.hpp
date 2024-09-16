@@ -295,6 +295,63 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 dstPtrRowB += dstDescPtr->strides.hStride;
             }
         }
+        // Fog without fused output-layout toggle (NCHW -> NCHW)
+        else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
+        {
+            alignedLength = (bufferLength & ~15);
+
+            Rpp8u *srcPtrRow, *dstPtrRow;
+            srcPtrRow = srcPtrChannel;
+            dstPtrRow = dstPtrChannel;
+            for (int i = 0; i < roi.xywhROI.roiHeight; i++)
+            {
+                Rpp8u *srcPtrTemp, *dstPtrTemp;
+                srcPtrTemp = srcPtrRow;
+                dstPtrTemp = dstPtrRow;
+                int vectorLoopCount = 0;
+#if __AVX2__
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
+                {
+                    srcPtrChannel = srcPtrTemp;
+                    dstPtrChannel = dstPtrTemp;
+                    for (int c = 0; c < srcDescPtr->c; c++)
+                    {
+                        __m256 p[2];
+                        rpp_simd_load(rpp_load16_u8_to_f32_avx, srcPtrChannel, p);                                  // simd loads
+                        rpp_simd_load(rpp_normalize16_avx, p); 
+                        compute_snow_8_host(p[0], pColorTwistParams);                     // fog adjustment
+                        compute_snow_8_host(p[1], pColorTwistParams);                     // fog adjustment
+                        rpp_simd_store(rpp_store16_f32_to_u8_avx, dstPtrChannel, p);                                // simd stores
+                        srcPtrChannel += srcDescPtr->strides.cStride;
+                        dstPtrChannel += dstDescPtr->strides.cStride;
+                    }
+                    srcPtrTemp += vectorIncrementPerChannel;
+                    dstPtrTemp += vectorIncrementPerChannel;
+                }
+#endif
+                for (; vectorLoopCount < bufferLength; vectorLoopCount++)
+                {
+                    srcPtrChannel = srcPtrTemp;
+                    dstPtrChannel = dstPtrTemp++;
+                    
+                    for (int c = 0; c < srcDescPtr->c; c++)
+                    {
+                        RpptFloatRGB pixel;
+                        pixel.R = (Rpp32f)*srcPtrChannel * ONE_OVER_255;
+                        pixel.G = (Rpp32f)*srcPtrChannel * ONE_OVER_255;
+                        pixel.B = (Rpp32f)*srcPtrChannel * ONE_OVER_255;
+                        compute_snow_host(&pixel, *brightnessCoefficient, *snowCoefficient);
+                        *dstPtrChannel = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.R)));
+                        srcPtrChannel += srcDescPtr->strides.cStride;
+                        dstPtrChannel += dstDescPtr->strides.cStride;
+                    }
+                    srcPtrTemp++;
+                }
+                srcPtrRow += srcDescPtr->strides.hStride;
+                dstPtrRow += dstDescPtr->strides.hStride;
+            }
+        }
+
     }
 
     return RPP_SUCCESS;

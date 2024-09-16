@@ -2419,10 +2419,10 @@ RppStatus rppt_snow_gpu(RppPtr_t srcPtr,
                                rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    if (srcDescPtr->c != 3)
-    {
-        return RPP_ERROR_INVALID_CHANNELS;
-    }
+    // if (srcDescPtr->c != 3)
+    // {
+    //     return RPP_ERROR_INVALID_CHANNELS;
+    // }
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {

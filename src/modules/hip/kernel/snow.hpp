@@ -25,6 +25,25 @@ __device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, f
         *r = *p;
     }
 }
+__device__ __forceinline__ void snow_1GRAY_hip_compute(float *pixel, float *brightnessCoefficient, float *snowCoefficient)
+{
+    float l = *pixel;
+    float lower_threshold = 0.0f;
+    float upper_threshold = 0.39215686f;
+    float brightnessFactor = 2.5f;
+    //Lighter the darken images
+    if(l >= lower_threshold && l <= upper_threshold)
+    {
+        l = l * fmaf((brightnessFactor - 1.0f), (1.0f - (l - lower_threshold) / (upper_threshold - lower_threshold)), 1.0f);
+    }
+    // Modify L 
+    if(l <= *snowCoefficient)
+    {
+        l = l * (*brightnessCoefficient);
+    }
+    *pixel = l;
+
+}
 __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float *brightnessCoefficient, float *snowCoefficient)
 {
     // RGB to HSL
@@ -173,6 +192,18 @@ __device__ __forceinline__ void snow_8RGB_hip_compute(d_float24 *pix_f24, float 
     snow_1RGB_hip_compute(&(pix_f24->f1[ 7]), &(pix_f24->f1[15]), &(pix_f24->f1[23]), brightnessCoefficient, snowCoefficient);
 }
 
+__device__ __forceinline__ void snow_8GRAY_hip_compute(d_float8 *pix_f8, float *brightnessCoefficient, float *snowCoefficient)
+{
+    snow_1GRAY_hip_compute(&(pix_f8->f1[0]), brightnessCoefficient, snowCoefficient);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[1]), brightnessCoefficient, snowCoefficient);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[2]), brightnessCoefficient, snowCoefficient);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[3]), brightnessCoefficient, snowCoefficient);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[4]), brightnessCoefficient, snowCoefficient);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[5]), brightnessCoefficient, snowCoefficient);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[6]), brightnessCoefficient, snowCoefficient);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[7]), brightnessCoefficient, snowCoefficient);
+}
+
 __device__ __forceinline__ void snow_hip_compute(uchar *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowCoefficient)
 {
     float4 normalizer_f4 = static_cast<float4>(ONE_OVER_255);
@@ -182,15 +213,34 @@ __device__ __forceinline__ void snow_hip_compute(uchar *srcPtr, d_float24 *pix_f
     rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
     rpp_hip_pixel_check_0to255(pix_f24);
 }
+__device__ __forceinline__ void snow_hip_compute(uchar *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowCoefficient)
+{
+    float4 normalizer_f4 = static_cast<float4>(ONE_OVER_255);
+    rpp_hip_math_multiply8_const(pix_f8, pix_f8, normalizer_f4);
+    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowCoefficient);
+    normalizer_f4 = static_cast<float4>(255.0f);
+    rpp_hip_math_multiply8_const(pix_f8, pix_f8, normalizer_f4);
+    rpp_hip_pixel_check_0to255(pix_f8);
+}
 __device__ __forceinline__ void snow_hip_compute(float *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowCoefficient)
 {
     snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowCoefficient);
     rpp_hip_pixel_check_0to1(pix_f24);
 }
+__device__ __forceinline__ void snow_hip_compute(float *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowCoefficient)
+{
+    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowCoefficient);
+    rpp_hip_pixel_check_0to1(pix_f8);
+}
 __device__ __forceinline__ void snow_hip_compute(half *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowCoefficient)
 {
     snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowCoefficient);
     rpp_hip_pixel_check_0to1(pix_f24);
+}
+__device__ __forceinline__ void snow_hip_compute(half *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowCoefficient)
+{
+    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowCoefficient);
+    rpp_hip_pixel_check_0to1(pix_f8);
 }
 __device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowCoefficient)
 {
@@ -203,6 +253,18 @@ __device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float24 *pix_f
     rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
     rpp_hip_pixel_check_0to255(pix_f24);
     rpp_hip_math_subtract24_const(pix_f24, pix_f24, i8Offset_f4);
+}
+__device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowCoefficient)
+{
+    float4 i8Offset_f4 = static_cast<float4>(128.0f);
+    float4 normalizer_f4 = static_cast<float4>(ONE_OVER_255);
+    rpp_hip_math_add8_const(pix_f8, pix_f8, i8Offset_f4);
+    rpp_hip_math_multiply8_const(pix_f8, pix_f8, normalizer_f4);
+    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowCoefficient);
+    normalizer_f4 = static_cast<float4>(255.0f);
+    rpp_hip_math_multiply8_const(pix_f8, pix_f8, normalizer_f4);
+    rpp_hip_pixel_check_0to255(pix_f8);
+    rpp_hip_math_subtract8_const(pix_f8, pix_f8, i8Offset_f4);
 }
 
 // template <typename T>
@@ -283,6 +345,7 @@ __global__ void snow_pln_hip_tensor(T *srcPtr,
                                     uint3 srcStridesNCH,
                                     T *dstPtr,
                                     uint3 dstStridesNCH,
+                                    int channelsDst,
                                     float *brightnessCoefficient,
                                     float *snowCoefficient,
                                     RpptROIPtr roiTensorPtrSrc)
@@ -299,11 +362,21 @@ __global__ void snow_pln_hip_tensor(T *srcPtr,
     uint srcIdx = (id_z * srcStridesNCH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
 
-    d_float24 pix_f24;
+    if (channelsDst == 3)
+    {
+        d_float24 pix_f24;
+        rpp_hip_load24_pln3_and_unpack_to_float24_pln3(srcPtr + srcIdx, srcStridesNCH.y, &pix_f24);
+        snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowCoefficient);
+        rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &pix_f24);
+    }
+    else
+    {
+        d_float8 pix_f8;
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &pix_f8);
+        snow_hip_compute(srcPtr, &pix_f8, brightnessCoefficient, snowCoefficient);
+        rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &pix_f8);
 
-    rpp_hip_load24_pln3_and_unpack_to_float24_pln3(srcPtr + srcIdx, srcStridesNCH.y, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowCoefficient);
-    rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &pix_f24);
+    }
 }
 
 template <typename T>
@@ -376,47 +449,48 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
     if (roiType == RpptRoiType::LTRB)
         hip_exec_roi_converison_ltrb_to_xywh(roiTensorPtrSrc, handle);
 
-    if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
-    {
-        int globalThreads_x = (dstDescPtr->w);
-        // int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
-        int globalThreads_y = dstDescPtr->h;
-        int globalThreads_z = handle.GetBatchSize();
-        *snowCoefficient = *snowCoefficient * (255.0f / 2.0f);
-        *snowCoefficient = *snowCoefficient + (255.0f / 3.0f);
+    
+    int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
+    int globalThreads_y = dstDescPtr->h;
+    int globalThreads_z = handle.GetBatchSize();
+    *snowCoefficient = *snowCoefficient * (255.0f / 2.0f);
+    *snowCoefficient = *snowCoefficient + (255.0f / 3.0f);
 
-        if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
-        {
-            // globalThreads_x = (dstDescPtr->strides.hStride / 3 + 7) >> 3;
-            hipLaunchKernelGGL(snow_pkd_hip_tensor,
-                               dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                               0,
-                               handle.GetStream(),
-                               srcPtr,
-                               make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                               dstPtr,
-                               make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                               brightnessCoefficient,
-                               snowCoefficient,
-                               roiTensorPtrSrc);
-        }
-        else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
-        {
-            hipLaunchKernelGGL(snow_pln_hip_tensor,
-                               dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                               0,
-                               handle.GetStream(),
-                               srcPtr,
-                               make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                               dstPtr,
-                               make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                               brightnessCoefficient,
-                               snowCoefficient,
-                               roiTensorPtrSrc);
-        }
-        else if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
+    if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
+    {
+        globalThreads_x = (dstDescPtr->strides.hStride / 3 + 7) >> 3;
+        hipLaunchKernelGGL(snow_pkd_hip_tensor,
+                            dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                            0,
+                            handle.GetStream(),
+                            srcPtr,
+                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                            dstPtr,
+                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                            brightnessCoefficient,
+                            snowCoefficient,
+                            roiTensorPtrSrc);
+    }
+    else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
+    {
+        hipLaunchKernelGGL(snow_pln_hip_tensor,
+                            dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                            0,
+                            handle.GetStream(),
+                            srcPtr,
+                            make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                            dstPtr,
+                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                            dstDescPtr->c,
+                            brightnessCoefficient,
+                            snowCoefficient,
+                            roiTensorPtrSrc);
+    }
+    else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
+    {
+        if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
             hipLaunchKernelGGL(snow_pkd3_pln3_hip_tensor,
                                dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
