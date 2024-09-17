@@ -3183,14 +3183,13 @@ inline void compute_snow_host(RpptFloatRGB *pixel, Rpp32f brightnessCoefficient,
         hue /= 6.0f; 
     }
 
-    // Modify Hue and Saturation
+    // Modify Lightness
 
     if(l >= lower_threshold && l <= upper_threshold)
     {
 	    l = l * (1 + (brightnessFactor - 1) * (1 - (l - lower_threshold) / (upper_threshold - lower_threshold)));
     }
 
-    // Modify L 
     if(l <= snowCoefficient && !((hue>=0.5 && hue <= 0.56) && (sat >= 0.196) && (l >= 0.196)))
     {
         l = l * (brightnessCoefficient);
@@ -3247,83 +3246,7 @@ inline void compute_snow_host(RpptFloatRGB *pixel, Rpp32f brightnessCoefficient,
 
 }
 
-// inline void compute_color_twist_12_host(__m128 &pVecR, __m128 &pVecG, __m128 &pVecB, __m128 *pColorTwistParams)
-// {
-//     __m128 pA, pH, pS, pV, pDelta, pAdd, pIntH;
-//     __m128 pMask[4];
-//     __m128i pxIntH;
-
-//     // RGB to HSV
-//     pV = _mm_max_ps(pVecR, _mm_max_ps(pVecG, pVecB));                                                               // cmax = RPPMAX3(rf, gf, bf);
-//     pS = _mm_min_ps(pVecR, _mm_min_ps(pVecG, pVecB));                                                               // cmin = RPPMIN3(rf, gf, bf);
-//     pDelta = _mm_sub_ps(pV, pS);                                                                                    // delta = cmax - cmin;
-//     pH = xmm_p0;                                                                                                    // hue = 0.0f;
-//     pS = xmm_p0;                                                                                                    // sat = 0.0f;
-//     pAdd = xmm_p0;                                                                                                  // add = 0.0f;
-//     pMask[0] = _mm_and_ps(_mm_cmpneq_ps(pDelta, xmm_p0), _mm_cmpneq_ps(pV, xmm_p0));                                // if ((delta != 0) && (cmax != 0)) {
-//     pS = _mm_div_ps(_mm_and_ps(pMask[0], pDelta), pV);                                                              //     sat = delta / cmax;
-//     pMask[1] = _mm_cmpeq_ps(pV, pVecR);                                                                             //     Temporarily store cmax == rf comparison
-//     pMask[2] = _mm_and_ps(pMask[0], pMask[1]);                                                                      //     if (cmax == rf)
-//     pH = _mm_and_ps(pMask[2], _mm_sub_ps(pVecG, pVecB));                                                            //         hue = gf - bf;
-//     pAdd = _mm_and_ps(pMask[2], xmm_p0);                                                                            //         add = 0.0f;
-//     pMask[3] = _mm_cmpeq_ps(pV, pVecG);                                                                             //     Temporarily store cmax == gf comparison
-//     pMask[2] = _mm_andnot_ps(pMask[1], pMask[3]);                                                                   //     else if (cmax == gf)
-//     pH = _mm_or_ps(_mm_andnot_ps(pMask[2], pH), _mm_and_ps(pMask[2], _mm_sub_ps(pVecB, pVecR)));                    //         hue = bf - rf;
-//     pAdd = _mm_or_ps(_mm_andnot_ps(pMask[2], pAdd), _mm_and_ps(pMask[2], xmm_p2));                                  //         add = 2.0f;
-//     pMask[3] = _mm_andnot_ps(pMask[3], _mm_andnot_ps(pMask[1], pMask[0]));                                          //     else
-//     pH = _mm_or_ps(_mm_andnot_ps(pMask[3], pH), _mm_and_ps(pMask[3], _mm_sub_ps(pVecR, pVecG)));                    //         hue = rf - gf;
-//     pAdd = _mm_or_ps(_mm_andnot_ps(pMask[3], pAdd), _mm_and_ps(pMask[3], xmm_p4));                                  //         add = 4.0f;
-//     pH = _mm_or_ps(_mm_andnot_ps(pMask[0], pH), _mm_and_ps(pMask[0], _mm_div_ps(pH, pDelta)));                      //     hue /= delta; }
-
-//     // Modify Hue and Saturation
-//     pH = _mm_add_ps(pH, _mm_add_ps(pColorTwistParams[2], pAdd));                                                    // hue += hueParam + add;
-//     pH = _mm_sub_ps(pH, _mm_and_ps(_mm_cmpge_ps(pH, xmm_p6), xmm_p6));                                              // if (hue >= 6.0f) hue -= 6.0f;
-//     pH = _mm_add_ps(pH, _mm_and_ps(_mm_cmplt_ps(pH, xmm_p0), xmm_p6));                                              // if (hue < 0) hue += 6.0f;
-//     pS = _mm_mul_ps(pS, pColorTwistParams[3]);                                                                      // sat *= saturationParam;
-//     pS = _mm_max_ps(xmm_p0, _mm_min_ps(xmm_p1, pS));                                                                // sat = std::max(0.0f, std::min(1.0f, sat));
-
-//     // HSV to RGB with brightness/contrast adjustment
-//     pIntH = _mm_floor_ps(pH);                                                                                       // Rpp32s hueIntegerPart = (Rpp32s) hue;
-//     pxIntH = _mm_cvtps_epi32(pIntH);                                                                                // Convert to epi32
-//     pH = _mm_sub_ps(pH, pIntH);                                                                                     // Rpp32f hueFractionPart = hue - hueIntegerPart;
-//     pS = _mm_mul_ps(pV, pS);                                                                                        // Rpp32f vsat = v * sat;
-//     pAdd = _mm_mul_ps(pS, pH);                                                                                      // Rpp32f vsatf = vsat * hueFractionPart;
-//     pA = _mm_sub_ps(pV, pS);                                                                                        // Rpp32f p = v - vsat;
-//     pH = _mm_sub_ps(pV, pAdd);                                                                                      // Rpp32f q = v - vsatf;
-//     pS = _mm_add_ps(pA, pAdd);                                                                                      // Rpp32f t = v - vsat + vsatf;
-//     pVecR = xmm_p0;                                                                                                 // Reset dstPtrR
-//     pVecG = xmm_p0;                                                                                                 // Reset dstPtrG
-//     pVecB = xmm_p0;                                                                                                 // Reset dstPtrB
-//     pMask[0] = _mm_castsi128_ps(_mm_cmpeq_epi32(pxIntH, xmm_px0));                                                  // switch (hueIntegerPart) {case 0:
-//     pVecR = _mm_and_ps(pMask[0], pV);                                                                               //     rf = v;
-//     pVecG = _mm_and_ps(pMask[0], pS);                                                                               //     gf = t;
-//     pVecB = _mm_and_ps(pMask[0], pA);                                                                               //     bf = p; break;
-//     pMask[0] = _mm_castsi128_ps(_mm_cmpeq_epi32(pxIntH, xmm_px1));                                                  // case 1:
-//     pVecR = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecR), _mm_and_ps(pMask[0], pH));                                    //     rf = q;
-//     pVecG = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecG), _mm_and_ps(pMask[0], pV));                                    //     gf = v;
-//     pVecB = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecB), _mm_and_ps(pMask[0], pA));                                    //     bf = p; break;
-//     pMask[0] = _mm_castsi128_ps(_mm_cmpeq_epi32(pxIntH, xmm_px2));                                                  // case 2:
-//     pVecR = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecR), _mm_and_ps(pMask[0], pA));                                    //     rf = p;
-//     pVecG = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecG), _mm_and_ps(pMask[0], pV));                                    //     gf = v;
-//     pVecB = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecB), _mm_and_ps(pMask[0], pS));                                    //     bf = t; break;
-//     pMask[0] = _mm_castsi128_ps(_mm_cmpeq_epi32(pxIntH, xmm_px3));                                                  // case 3:
-//     pVecR = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecR), _mm_and_ps(pMask[0], pA));                                    //     rf = p;
-//     pVecG = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecG), _mm_and_ps(pMask[0], pH));                                    //     gf = q;
-//     pVecB = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecB), _mm_and_ps(pMask[0], pV));                                    //     bf = v; break;
-//     pMask[0] = _mm_castsi128_ps(_mm_cmpeq_epi32(pxIntH, xmm_px4));                                                  // case 4:
-//     pVecR = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecR), _mm_and_ps(pMask[0], pS));                                    //     rf = t;
-//     pVecG = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecG), _mm_and_ps(pMask[0], pA));                                    //     gf = p;
-//     pVecB = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecB), _mm_and_ps(pMask[0], pV));                                    //     bf = v; break;
-//     pMask[0] = _mm_castsi128_ps(_mm_cmpeq_epi32(pxIntH, xmm_px5));                                                  // case 5:
-//     pVecR = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecR), _mm_and_ps(pMask[0], pV));                                    //     rf = v;
-//     pVecG = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecG), _mm_and_ps(pMask[0], pA));                                    //     gf = p;
-//     pVecB = _mm_or_ps(_mm_andnot_ps(pMask[0], pVecB), _mm_and_ps(pMask[0], pH));                                    //     bf = q; break;}
-//     pVecR = _mm_fmadd_ps(pVecR, pColorTwistParams[0], pColorTwistParams[1]);                                        // dstPtrR = rf * brightnessParam + contrastParam;
-//     pVecG = _mm_fmadd_ps(pVecG, pColorTwistParams[0], pColorTwistParams[1]);                                        // dstPtrG = gf * brightnessParam + contrastParam;
-//     pVecB = _mm_fmadd_ps(pVecB, pColorTwistParams[0], pColorTwistParams[1]);                                        // dstPtrB = bf * brightnessParam + contrastParam;
-// }
-
-inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __m256 *pColorTwistParams)
+inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __m256 *pSnowParams)
 {
     __m256 pA, pH, pS, pL, pCmax, pCmin, pDelta, pAdd, pIntH;
     __m256 pMask[4];
@@ -3345,11 +3268,11 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     pMask[3] = _mm256_andnot_ps(pMask[1], pMask[0]);
     pS = _mm256_or_ps(_mm256_andnot_ps(pMask[3], pS), _mm256_and_ps(pMask[3], _mm256_div_ps(pDelta , _mm256_sub_ps(_mm256_set1_ps(2.0f), _mm256_add_ps(pCmax, pCmin)))));                       // sat = delta / (2.0f - (cmax + cmin));
 
-    pMask[1] = _mm256_cmp_ps(pCmax, pVecR, _CMP_EQ_OQ);                                                                   //     Temporarily store cmax == rf comparison
+    pMask[1] = _mm256_cmp_ps(pCmax, pVecR, _CMP_EQ_OQ);                                                                //     Temporarily store cmax == rf comparison
     pMask[2] = _mm256_and_ps(pMask[0], pMask[1]);                                                                      //     if (cmax == rf)
     pH = _mm256_and_ps(pMask[2], _mm256_sub_ps(pVecG, pVecB));                                                         //         hue = gf - bf;
     pAdd = _mm256_and_ps(pMask[2], avx_p0);                                                                            //         add = 0.0f;
-    pMask[3] = _mm256_cmp_ps(pCmax, pVecG, _CMP_EQ_OQ);                                                                   //     Temporarily store cmax == gf comparison
+    pMask[3] = _mm256_cmp_ps(pCmax, pVecG, _CMP_EQ_OQ);                                                                //     Temporarily store cmax == gf comparison
     pMask[2] = _mm256_andnot_ps(pMask[1], pMask[3]);                                                                   //     else if (cmax == gf)
     pH = _mm256_or_ps(_mm256_andnot_ps(pMask[2], pH), _mm256_and_ps(pMask[2], _mm256_sub_ps(pVecB, pVecR)));           //         hue = bf - rf;
     pAdd = _mm256_or_ps(_mm256_andnot_ps(pMask[2], pAdd), _mm256_and_ps(pMask[2], avx_p2));                            //         add = 2.0f;
@@ -3364,12 +3287,12 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     __m256 pLowerThreshold, pUpperThreshold, pDiffThreshold, pBrightnessFactor;
     pLowerThreshold = avx_p0;
     pUpperThreshold = _mm256_set1_ps(0.39215686f);
-    pBrightnessFactor = _mm256_set1_ps(2.5f);
+    pBrightnessFactor = _mm256_set1_ps(3.5f);
     pDiffThreshold = _mm256_sub_ps(pUpperThreshold, pLowerThreshold);
     pMask[0] = _mm256_cmp_ps(pL, pLowerThreshold, _CMP_GE_OQ);    // l >= lower_threshold
     pMask[1] = _mm256_cmp_ps(pL, pUpperThreshold, _CMP_LE_OQ);      // l <= upper_threshold
-    pMask[3] = _mm256_add_ps(pMask[0], pMask[1]);                  //      if(l >= lower_threshold && l <= upper_threshold)
-    // pL = _mm256_or_ps(_mm256_andnot_ps(pMask[3], pL), _mm256_and_ps(pMask[3], _mm256_mul_ps(pL, _mm256_add_ps(avx_p1, _mm256_mul_ps(_mm256_sub_ps(pBrightnessFactor, avx_p1), _mm256_sub_ps(avx_p1, _mm256_div_ps(_mm256_sub_ps(pL, pLowerThreshold),pDiffThreshold)))))));   // l = l * (1 + (brightnessFactor - 1) * (1 - (l - lower_threshold) / (upper_threshold - lower_threshold)));
+    pMask[3] = _mm256_and_ps(pMask[0], pMask[1]);                  //      if(l >= lower_threshold && l <= upper_threshold)
+    pL = _mm256_or_ps(_mm256_andnot_ps(pMask[3], pL), _mm256_and_ps(pMask[3], _mm256_mul_ps(pL, _mm256_add_ps(avx_p1, _mm256_mul_ps(_mm256_sub_ps(pBrightnessFactor, avx_p1), _mm256_sub_ps(avx_p1, _mm256_div_ps(_mm256_sub_ps(pL, pLowerThreshold),pDiffThreshold)))))));   // l = l * (1 + (brightnessFactor - 1) * (1 - (l - lower_threshold) / (upper_threshold - lower_threshold)));
     pMask[0] = _mm256_cmp_ps(pH, _mm256_set1_ps(0.5f), _CMP_GE_OQ);    // hue>=0.5
     pMask[1] = _mm256_cmp_ps(pH, _mm256_set1_ps(0.56f), _CMP_LE_OQ);   // hue <= 0.56
     pMask[0] = _mm256_and_ps(pMask[0], pMask[1]);                       // (hue>=0.5 && hue <= 0.56)
@@ -3377,9 +3300,9 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     pMask[0] = _mm256_and_ps(pMask[0], pMask[1]);                       // (hue>=0.5 && hue <= 0.56) && (sat >= 0.196)
     pMask[1] = _mm256_cmp_ps(pL, _mm256_set1_ps(0.196f), _CMP_GE_OQ);   // (l >= 0.196)
     pMask[0] = _mm256_and_ps(pMask[0], pMask[1]);                       //(hue>=0.5 && hue <= 0.56) && (sat >= 0.196) && (l >= 0.196)
-    pMask[1] = _mm256_cmp_ps(pL, pColorTwistParams[1], _CMP_LE_OQ);     // (l <= *snowCoefficient)
+    pMask[1] = _mm256_cmp_ps(pL, pSnowParams[1], _CMP_LE_OQ);     // (l <= *snowCoefficient)
     pMask[0] = _mm256_andnot_ps(pMask[0], pMask[1]);                     // if(l <= *snowCoefficient && !((hue>=0.5 && hue <= 0.56) && (sat >= 0.196) && (l >= 0.196)))
-    pL = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pL), _mm256_and_ps(pMask[0], _mm256_mul_ps(pL, pColorTwistParams[0]))); // l = l * (*brightnessCoefficient);
+    pL = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pL), _mm256_and_ps(pMask[0], _mm256_mul_ps(pL, pSnowParams[0]))); // l = l * (*brightnessCoefficient);
 
 
     // HSV to RGB with brightness/contrast adjustment
@@ -3414,20 +3337,16 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     pVecR = _mm256_or_ps(_mm256_andnot_ps(pMask[0], _mm256_mul_ps(pL, pHue[0])), _mm256_and_ps(pMask[0], _mm256_add_ps(_mm256_mul_ps(pLuminv, pHue[0]), pLum2m1)));
     pVecG = _mm256_or_ps(_mm256_andnot_ps(pMask[0], _mm256_mul_ps(pL, pHue[1])), _mm256_and_ps(pMask[0], _mm256_add_ps(_mm256_mul_ps(pLuminv, pHue[1]), pLum2m1)));
     pVecB = _mm256_or_ps(_mm256_andnot_ps(pMask[0], _mm256_mul_ps(pL, pHue[2])), _mm256_and_ps(pMask[0], _mm256_add_ps(_mm256_mul_ps(pLuminv, pHue[2]), pLum2m1)));
-
-    pVecR = _mm256_mul_ps(pVecR, _mm256_set1_ps(255.0f));
-    pVecG = _mm256_mul_ps(pVecG, _mm256_set1_ps(255.0f));
-    pVecB = _mm256_mul_ps(pVecB, _mm256_set1_ps(255.0f));
     
 }
 
-inline void compute_snow_8_host(__m256 &p, __m256 *pColorTwistParams)
+inline void compute_snow_8_host(__m256 *p, __m256 *pSnowParams)
 {
-    __m256 pA, pH, pS, pL, pCmax, pCmin, pDelta, pAdd, pIntH;
+    __m256 pL;
     __m256 pMask[4];
 
     // RGB to HSV
-    pL = p;
+    pL = p[0];
 
     // Modify Hue and Saturation
     __m256 pLowerThreshold, pUpperThreshold, pDiffThreshold, pBrightnessFactor;
@@ -3437,8 +3356,8 @@ inline void compute_snow_8_host(__m256 &p, __m256 *pColorTwistParams)
     pDiffThreshold = _mm256_sub_ps(pUpperThreshold, pLowerThreshold);
     pMask[0] = _mm256_cmp_ps(pL, pLowerThreshold, _CMP_GE_OQ);    // l >= lower_threshold
     pMask[1] = _mm256_cmp_ps(pL, pUpperThreshold, _CMP_LE_OQ);      // l <= upper_threshold
-    pMask[3] = _mm256_add_ps(pMask[0], pMask[1]);                  //      if(l >= lower_threshold && l <= upper_threshold)
-    // pL = _mm256_or_ps(_mm256_andnot_ps(pMask[3], pL), _mm256_and_ps(pMask[3], _mm256_mul_ps(pL, _mm256_add_ps(avx_p1, _mm256_mul_ps(_mm256_sub_ps(pBrightnessFactor, avx_p1), _mm256_sub_ps(avx_p1, _mm256_div_ps(_mm256_sub_ps(pL, pLowerThreshold),pDiffThreshold)))))));   // l = l * (1 + (brightnessFactor - 1) * (1 - (l - lower_threshold) / (upper_threshold - lower_threshold)));
+    pMask[3] = _mm256_and_ps(pMask[0], pMask[1]);                  //      if(l >= lower_threshold && l <= upper_threshold)
+    pL = _mm256_or_ps(_mm256_andnot_ps(pMask[3], pL), _mm256_and_ps(pMask[3], _mm256_mul_ps(pL, _mm256_add_ps(avx_p1, _mm256_mul_ps(_mm256_sub_ps(pBrightnessFactor, avx_p1), _mm256_sub_ps(avx_p1, _mm256_div_ps(_mm256_sub_ps(pL, pLowerThreshold),pDiffThreshold)))))));   // l = l * (1 + (brightnessFactor - 1) * (1 - (l - lower_threshold) / (upper_threshold - lower_threshold)));
     // pMask[0] = _mm256_cmp_ps(pH, _mm256_set1_ps(0.5f), _CMP_GE_OQ);    // hue>=0.5
     // pMask[1] = _mm256_cmp_ps(pH, _mm256_set1_ps(0.56f), _CMP_LE_OQ);   // hue <= 0.56
     // pMask[0] = _mm256_and_ps(pMask[0], pMask[1]);                       // (hue>=0.5 && hue <= 0.56)
@@ -3446,11 +3365,10 @@ inline void compute_snow_8_host(__m256 &p, __m256 *pColorTwistParams)
     // pMask[0] = _mm256_and_ps(pMask[0], pMask[1]);                       // (hue>=0.5 && hue <= 0.56) && (sat >= 0.196)
     // pMask[1] = _mm256_cmp_ps(pL, _mm256_set1_ps(0.196f), _CMP_GE_OQ);   // (l >= 0.196)
     // pMask[0] = _mm256_and_ps(pMask[0], pMask[1]);                       //(hue>=0.5 && hue <= 0.56) && (sat >= 0.196) && (l >= 0.196)
-    // pMask[1] = _mm256_cmp_ps(pL, pColorTwistParams[1], _CMP_LE_OQ);     // (l <= *snowCoefficient)
+    // pMask[1] = _mm256_cmp_ps(pL, pSnowParams[1], _CMP_LE_OQ);     // (l <= *snowCoefficient)
     // pMask[0] = _mm256_andnot_ps(pMask[0], pMask[1]);                     // if(l <= *snowCoefficient && !((hue>=0.5 && hue <= 0.56) && (sat >= 0.196) && (l >= 0.196)))
-    pMask[0] = _mm256_cmp_ps(pL, pColorTwistParams[1], _CMP_LE_OQ);     // (l <= *snowCoefficient);
-    pL = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pL), _mm256_and_ps(pMask[0], _mm256_mul_ps(pL, pColorTwistParams[0]))); // l = l * (*brightnessCoefficient);
-    p = _mm256_mul_ps(pL, _mm256_set1_ps(255.0f));    
+    pMask[0] = _mm256_cmp_ps(pL, pSnowParams[1], _CMP_LE_OQ);     // (l <= *snowCoefficient);
+    p[0] = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pL), _mm256_and_ps(pMask[0], _mm256_mul_ps(pL, pSnowParams[0]))); // l = l * (*brightnessCoefficient);
 }
 
 inline void compute_xywh_from_ltrb_host(RpptROIPtr roiPtrInput, RpptROIPtr roiPtrImage)

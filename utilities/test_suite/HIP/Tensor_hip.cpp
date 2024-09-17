@@ -408,10 +408,10 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&intensity, batchSize * sizeof(Rpp32f)));
 
     Rpp32f *brightnessCoefficient = nullptr;
-    Rpp32f *snowCoefficient = nullptr;
+    Rpp32f *snowThreshold = nullptr;
     if(testCase == 7)
         CHECK_RETURN_STATUS(hipHostMalloc(&brightnessCoefficient, batchSize * sizeof(Rpp32f)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&snowCoefficient, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&snowThreshold, batchSize * sizeof(Rpp32f)));
 
     Rpp32u *kernelSizeTensor;
     if(testCase == 6)
@@ -612,13 +612,13 @@ int main(int argc, char **argv)
 
                     for (i = 0; i < batchSize; i++)
                     {
-                        brightnessCoefficient[i] = 3.5;
-                        snowCoefficient[i] = 1.0f;
+                        brightnessCoefficient[i] = 3.0;
+                        snowThreshold[i] = 1.0f;
                     }
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_snow_gpu(d_input, srcDescPtr, d_output, dstDescPtr, brightnessCoefficient, snowCoefficient, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_snow_gpu(d_input, srcDescPtr, d_output, dstDescPtr, brightnessCoefficient, snowThreshold, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -1699,8 +1699,8 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(shapeTensor));
     if(brightnessCoefficient != NULL)
         CHECK_RETURN_STATUS(hipHostFree(brightnessCoefficient));
-    if(snowCoefficient != NULL)
-        CHECK_RETURN_STATUS(hipHostFree(snowCoefficient));
+    if(snowThreshold != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(snowThreshold));
     if(roiTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(roiTensor));
     if(testCase == 6)
