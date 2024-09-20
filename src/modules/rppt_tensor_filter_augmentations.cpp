@@ -257,4 +257,88 @@ RppStatus rppt_gaussian_filter_gpu(RppPtr_t srcPtr,
 #endif // backend
 }
 
+/******************** sobel_filter ********************/
+
+RppStatus rppt_sobel_filter_gpu(RppPtr_t srcPtr,
+                                RpptDescPtr srcDescPtr,
+                                RppPtr_t dstPtr,
+                                RpptDescPtr dstDescPtr,
+                                Rpp32u sobelType,
+                                Rpp32u kernelSize,
+                                RpptROIPtr roiTensorPtrSrc,
+                                RpptRoiType roiType,
+                                rppHandle_t rppHandle)
+{
+#ifdef HIP_COMPILE
+    if ((kernelSize != 3) && (kernelSize != 5) && (kernelSize != 7))
+        return RPP_ERROR_INVALID_ARGUMENTS;
+    if ((sobelType != 0) && (sobelType != 1) && (sobelType != 2))
+        return RPP_ERROR_INVALID_ARGUMENTS;
+    if (dstDescPtr->c == 3)
+        return RPP_ERROR_INVALID_DST_CHANNELS;
+
+    // convert image to grey scale if input is RGB image
+    RppPtr_t tempPtr;
+    if (srcDescPtr->c == 3)
+    {
+        RpptSubpixelLayout srcSubpixelLayout = RpptSubpixelLayout::RGBtype;
+        tempPtr = rpp::deref(rppHandle).GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem;
+        rppt_color_to_greyscale_gpu(srcPtr, srcDescPtr, tempPtr, dstDescPtr, srcSubpixelLayout, rppHandle);
+    }
+
+    if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+    {
+        hip_exec_sobel_filter_tensor(static_cast<Rpp8u*>(tempPtr) + srcDescPtr->offsetInBytes,
+                                     dstDescPtr,
+                                     static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                     dstDescPtr,
+                                     sobelType,
+                                     kernelSize,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     rpp::deref(rppHandle));
+    }
+    else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+    {
+        hip_exec_sobel_filter_tensor(reinterpret_cast<half*>(static_cast<Rpp8u*>(tempPtr) + srcDescPtr->offsetInBytes),
+                                        srcDescPtr,
+                                        reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                        dstDescPtr,
+                                        sobelType,
+                                        kernelSize,
+                                        roiTensorPtrSrc,
+                                        roiType,
+                                        rpp::deref(rppHandle));
+    }
+    else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+    {
+        hip_exec_sobel_filter_tensor(reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(tempPtr) + srcDescPtr->offsetInBytes),
+                                        srcDescPtr,
+                                        reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                        dstDescPtr,
+                                        sobelType,
+                                        kernelSize,
+                                        roiTensorPtrSrc,
+                                        roiType,
+                                        rpp::deref(rppHandle));
+    }
+    else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+    {
+        hip_exec_sobel_filter_tensor(static_cast<Rpp8s*>(tempPtr) + srcDescPtr->offsetInBytes,
+                                     srcDescPtr,
+                                        static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                        dstDescPtr,
+                                        sobelType,
+                                        kernelSize,
+                                        roiTensorPtrSrc,
+                                        roiType,
+                                        rpp::deref(rppHandle));
+    }
+
+    return RPP_SUCCESS;
+#elif defined(OCL_COMPILE)
+    return RPP_ERROR_NOT_IMPLEMENTED;
+#endif // backend
+}
+
 #endif // GPU_SUPPORT

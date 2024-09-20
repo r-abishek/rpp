@@ -288,6 +288,27 @@ inline int set_input_channels(int layoutType)
         return 1;
 }
 
+// returns the size of binary file passed
+inline long get_bin_file_size(string refFile)
+{
+    FILE *fp;
+    fp = fopen(refFile.c_str(), "rb");
+    if(!fp)
+    {
+        std::cout << "\n unable to open file : "<<refFile;
+        exit(0);
+    }
+
+    fseek(fp, 0, SEEK_END);
+    long fsize = ftell(fp);
+    if (!fsize)
+    {
+        std::cout << "File is empty";
+        exit(0);
+    }
+    return fsize;
+}
+
 //returns function type
 inline string set_function_type(int layoutType, int pln1OutTypeCase, int outputFormatToggle, string backend)
 {
@@ -1011,27 +1032,6 @@ inline void read_bin_file(string refFile, T *binaryContent)
     fseek(fp, 0, SEEK_SET);
     fread(binaryContent, fsize, 1, fp);
     fclose(fp);
-}
-
-// returns the size of binary file passed
-inline long get_bin_file_size(string refFile)
-{
-    FILE *fp;
-    fp = fopen(refFile.c_str(), "rb");
-    if(!fp)
-    {
-        std::cout << "\n unable to open file : "<<refFile;
-        exit(0);
-    }
-
-    fseek(fp, 0, SEEK_END);
-    long fsize = ftell(fp);
-    if (!fsize)
-    {
-        std::cout << "File is empty";
-        exit(0);
-    }
-    return fsize;
 }
 
 // Write a batch of images using the OpenCV library
