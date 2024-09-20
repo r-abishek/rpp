@@ -23,14 +23,14 @@ __device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, f
         *r = *p;
     }
 }
-__device__ __forceinline__ void snow_1GRAY_hip_compute(float *pixel, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_1GRAY_hip_compute(float *pixel, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
     float l = *pixel;
     float lower_threshold = 0.0f;
     float upper_threshold = 0.39215686f;
     float brightnessFactor = 3.5f;
     //Lighter the darken images
-    if(l >= lower_threshold && l <= upper_threshold)
+    if(l >= lower_threshold && l <= upper_threshold && (*darkMode == 1))
     {
         l = l * fmaf((brightnessFactor - 1.0f), (1.0f - (l - lower_threshold) / (upper_threshold - lower_threshold)), 1.0f);
     }
@@ -42,7 +42,7 @@ __device__ __forceinline__ void snow_1GRAY_hip_compute(float *pixel, float *brig
     *pixel = l;
 
 }
-__device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
     // RGB to HSL
     float hue, sat, l;
@@ -107,13 +107,13 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
     }
 
     //Lighter the darken images
-    if(l >= lower_threshold && l <= upper_threshold)
+    if(l >= lower_threshold && l <= upper_threshold && (*darkMode == 1))
     {
         l = l * fmaf((brightnessFactor - 1.0f), (1.0f - (l - lower_threshold) / (upper_threshold - lower_threshold)), 1.0f);
     }
 
     // Modify L 
-    if(l <= *snowThreshold && !((hue>=0.5 && hue <= 0.56) && (sat >= 0.196) && (l >= 0.196)))
+    if(l <= *snowThreshold && !((hue>=0.5 && hue <= 0.61) && (sat >= 0.196) && (l >= 0.196)))
     {
         l = l * (*brightnessCoefficient);
     }
@@ -178,87 +178,87 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
 }
 
 
-__device__ __forceinline__ void snow_8RGB_hip_compute(d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_8RGB_hip_compute(d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 0]), &(pix_f24->f1[ 8]), &(pix_f24->f1[16]), brightnessCoefficient, snowThreshold);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 1]), &(pix_f24->f1[ 9]), &(pix_f24->f1[17]), brightnessCoefficient, snowThreshold);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 2]), &(pix_f24->f1[10]), &(pix_f24->f1[18]), brightnessCoefficient, snowThreshold);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 3]), &(pix_f24->f1[11]), &(pix_f24->f1[19]), brightnessCoefficient, snowThreshold);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 4]), &(pix_f24->f1[12]), &(pix_f24->f1[20]), brightnessCoefficient, snowThreshold);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 5]), &(pix_f24->f1[13]), &(pix_f24->f1[21]), brightnessCoefficient, snowThreshold);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 6]), &(pix_f24->f1[14]), &(pix_f24->f1[22]), brightnessCoefficient, snowThreshold);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 7]), &(pix_f24->f1[15]), &(pix_f24->f1[23]), brightnessCoefficient, snowThreshold);
+    snow_1RGB_hip_compute(&(pix_f24->f1[ 0]), &(pix_f24->f1[ 8]), &(pix_f24->f1[16]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[ 1]), &(pix_f24->f1[ 9]), &(pix_f24->f1[17]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[ 2]), &(pix_f24->f1[10]), &(pix_f24->f1[18]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[ 3]), &(pix_f24->f1[11]), &(pix_f24->f1[19]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[ 4]), &(pix_f24->f1[12]), &(pix_f24->f1[20]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[ 5]), &(pix_f24->f1[13]), &(pix_f24->f1[21]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[ 6]), &(pix_f24->f1[14]), &(pix_f24->f1[22]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[ 7]), &(pix_f24->f1[15]), &(pix_f24->f1[23]), brightnessCoefficient, snowThreshold, darkMode);
 }
 
-__device__ __forceinline__ void snow_8GRAY_hip_compute(d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_8GRAY_hip_compute(d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
-    snow_1GRAY_hip_compute(&(pix_f8->f1[0]), brightnessCoefficient, snowThreshold);
-    snow_1GRAY_hip_compute(&(pix_f8->f1[1]), brightnessCoefficient, snowThreshold);
-    snow_1GRAY_hip_compute(&(pix_f8->f1[2]), brightnessCoefficient, snowThreshold);
-    snow_1GRAY_hip_compute(&(pix_f8->f1[3]), brightnessCoefficient, snowThreshold);
-    snow_1GRAY_hip_compute(&(pix_f8->f1[4]), brightnessCoefficient, snowThreshold);
-    snow_1GRAY_hip_compute(&(pix_f8->f1[5]), brightnessCoefficient, snowThreshold);
-    snow_1GRAY_hip_compute(&(pix_f8->f1[6]), brightnessCoefficient, snowThreshold);
-    snow_1GRAY_hip_compute(&(pix_f8->f1[7]), brightnessCoefficient, snowThreshold);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[0]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[1]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[2]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[3]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[4]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[5]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[6]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1GRAY_hip_compute(&(pix_f8->f1[7]), brightnessCoefficient, snowThreshold, darkMode);
 }
 
-__device__ __forceinline__ void snow_hip_compute(uchar *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_hip_compute(uchar *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
     float4 normalizer_f4 = static_cast<float4>(ONE_OVER_255);
     rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
-    snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowThreshold);
+    snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowThreshold, darkMode);
     normalizer_f4 = static_cast<float4>(255.0f);
     rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
     rpp_hip_pixel_check_0to255(pix_f24);
 }
-__device__ __forceinline__ void snow_hip_compute(uchar *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_hip_compute(uchar *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
     float4 normalizer_f4 = static_cast<float4>(ONE_OVER_255);
     rpp_hip_math_multiply8_const(pix_f8, pix_f8, normalizer_f4);
-    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowThreshold);
+    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowThreshold, darkMode);
     normalizer_f4 = static_cast<float4>(255.0f);
     rpp_hip_math_multiply8_const(pix_f8, pix_f8, normalizer_f4);
     rpp_hip_pixel_check_0to255(pix_f8);
 }
-__device__ __forceinline__ void snow_hip_compute(float *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_hip_compute(float *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
-    snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowThreshold);
+    snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowThreshold, darkMode);
     rpp_hip_pixel_check_0to1(pix_f24);
 }
-__device__ __forceinline__ void snow_hip_compute(float *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_hip_compute(float *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
-    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowThreshold);
+    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowThreshold, darkMode);
     rpp_hip_pixel_check_0to1(pix_f8);
 }
-__device__ __forceinline__ void snow_hip_compute(half *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_hip_compute(half *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
-    snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowThreshold);
+    snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowThreshold, darkMode);
     rpp_hip_pixel_check_0to1(pix_f24);
 }
-__device__ __forceinline__ void snow_hip_compute(half *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_hip_compute(half *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
-    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowThreshold);
+    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowThreshold, darkMode);
     rpp_hip_pixel_check_0to1(pix_f8);
 }
-__device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
     float4 i8Offset_f4 = static_cast<float4>(128.0f);
     float4 normalizer_f4 = static_cast<float4>(ONE_OVER_255);
     rpp_hip_math_add24_const(pix_f24, pix_f24, i8Offset_f4);
     rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
-    snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowThreshold);
+    snow_8RGB_hip_compute(pix_f24, brightnessCoefficient, snowThreshold, darkMode);
     normalizer_f4 = static_cast<float4>(255.0f);
     rpp_hip_math_multiply24_const(pix_f24, pix_f24, normalizer_f4);
     rpp_hip_pixel_check_0to255(pix_f24);
     rpp_hip_math_subtract24_const(pix_f24, pix_f24, i8Offset_f4);
 }
-__device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold)
+__device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
     float4 i8Offset_f4 = static_cast<float4>(128.0f);
     float4 normalizer_f4 = static_cast<float4>(ONE_OVER_255);
     rpp_hip_math_add8_const(pix_f8, pix_f8, i8Offset_f4);
     rpp_hip_math_multiply8_const(pix_f8, pix_f8, normalizer_f4);
-    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowThreshold);
+    snow_8GRAY_hip_compute(pix_f8, brightnessCoefficient, snowThreshold, darkMode);
     normalizer_f4 = static_cast<float4>(255.0f);
     rpp_hip_math_multiply8_const(pix_f8, pix_f8, normalizer_f4);
     rpp_hip_pixel_check_0to255(pix_f8);
@@ -317,6 +317,7 @@ __global__ void snow_pkd_hip_tensor(T *srcPtr,
                                     uint2 dstStridesNH,
                                     float *brightnessCoefficient,
                                     float *snowThreshold,
+                                    Rpp8u *darkMode,
                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -334,18 +335,19 @@ __global__ void snow_pkd_hip_tensor(T *srcPtr,
     d_float24 pix_f24;
 
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold);
+    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold, darkMode);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
 }
 
 template <typename T>
-__global__ void snow_pln3_hip_tensor(T *srcPtr,
+__global__ void snow_pln_hip_tensor(T *srcPtr,
                                     uint3 srcStridesNCH,
                                     T *dstPtr,
                                     uint3 dstStridesNCH,
                                     int channelsDst,
                                     float *brightnessCoefficient,
                                     float *snowThreshold,
+                                    Rpp8u *darkMode,
                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -364,14 +366,14 @@ __global__ void snow_pln3_hip_tensor(T *srcPtr,
     {
         d_float24 pix_f24;
         rpp_hip_load24_pln3_and_unpack_to_float24_pln3(srcPtr + srcIdx, srcStridesNCH.y, &pix_f24);
-        snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold);
+        snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold, darkMode);
         rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &pix_f24);
     }
     else
     {
         d_float8 pix_f8;
         rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &pix_f8);
-        snow_hip_compute(srcPtr, &pix_f8, brightnessCoefficient, snowThreshold);
+        snow_hip_compute(srcPtr, &pix_f8, brightnessCoefficient, snowThreshold, darkMode);
         rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &pix_f8);
 
     }
@@ -384,6 +386,7 @@ __global__ void snow_pkd3_pln3_hip_tensor(T *srcPtr,
                                           uint3 dstStridesNCH,
                                           float *brightnessCoefficient,
                                           float *snowThreshold,
+                                          Rpp8u *darkMode,
                                           RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -401,7 +404,7 @@ __global__ void snow_pkd3_pln3_hip_tensor(T *srcPtr,
     d_float24 pix_f24;
 
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold);
+    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold, darkMode);
     rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &pix_f24);
 }
 
@@ -412,6 +415,7 @@ __global__ void snow_pln3_pkd3_hip_tensor(T *srcPtr,
                                           uint2 dstStridesNH,
                                           float *brightnessCoefficient,
                                           float *snowThreshold,
+                                          Rpp8u *darkMode,
                                           RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -429,7 +433,7 @@ __global__ void snow_pln3_pkd3_hip_tensor(T *srcPtr,
     d_float24 pix_f24;
 
     rpp_hip_load24_pln3_and_unpack_to_float24_pln3(srcPtr + srcIdx, srcStridesNCH.y, &pix_f24);
-    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold);
+    snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold, darkMode);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
 }
 
@@ -440,6 +444,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
                                RpptDescPtr dstDescPtr,
                                Rpp32f *brightnessCoefficient,
                                Rpp32f *snowThreshold,
+                               Rpp8u *darkMode,
                                RpptROIPtr roiTensorPtrSrc,
                                RpptRoiType roiType,
                                rpp::Handle& handle)
@@ -469,6 +474,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
                             make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                             brightnessCoefficient,
                             snowThreshold,
+                            darkMode,
                             roiTensorPtrSrc);
     }
     else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
@@ -485,6 +491,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
                             dstDescPtr->c,
                             brightnessCoefficient,
                             snowThreshold,
+                            darkMode,
                             roiTensorPtrSrc);
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
@@ -502,6 +509,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                                brightnessCoefficient,
                                snowThreshold,
+                               darkMode,
                                roiTensorPtrSrc);
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
@@ -518,6 +526,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                brightnessCoefficient,
                                snowThreshold,
+                               darkMode,
                                roiTensorPtrSrc);
         }
     }

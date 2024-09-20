@@ -409,9 +409,13 @@ int main(int argc, char **argv)
 
     Rpp32f *brightnessCoefficient = nullptr;
     Rpp32f *snowThreshold = nullptr;
+    Rpp8u *darkMode = nullptr;
     if(testCase == 7)
+    {
         CHECK_RETURN_STATUS(hipHostMalloc(&brightnessCoefficient, batchSize * sizeof(Rpp32f)));
         CHECK_RETURN_STATUS(hipHostMalloc(&snowThreshold, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&darkMode, batchSize * sizeof(Rpp8u)));
+    }
 
     Rpp32u *kernelSizeTensor;
     if(testCase == 6)
@@ -612,13 +616,14 @@ int main(int argc, char **argv)
 
                     for (i = 0; i < batchSize; i++)
                     {
-                        brightnessCoefficient[i] = 3.0;
+                        brightnessCoefficient[i] = 2.5f;
                         snowThreshold[i] = 1.0f;
+                        darkMode[i] = 1;
                     }
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_snow_gpu(d_input, srcDescPtr, d_output, dstDescPtr, brightnessCoefficient, snowThreshold, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_snow_gpu(d_input, srcDescPtr, d_output, dstDescPtr, brightnessCoefficient, snowThreshold, darkMode, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -1701,6 +1706,8 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(brightnessCoefficient));
     if(snowThreshold != NULL)
         CHECK_RETURN_STATUS(hipHostFree(snowThreshold));
+    if(darkMode != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(darkMode));
     if(roiTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(roiTensor));
     if(testCase == 6)

@@ -3294,7 +3294,7 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     pMask[3] = _mm256_and_ps(pMask[0], pMask[1]);                  //      if(l >= lower_threshold && l <= upper_threshold)
     pL = _mm256_or_ps(_mm256_andnot_ps(pMask[3], pL), _mm256_and_ps(pMask[3], _mm256_mul_ps(pL, _mm256_add_ps(avx_p1, _mm256_mul_ps(_mm256_sub_ps(pBrightnessFactor, avx_p1), _mm256_sub_ps(avx_p1, _mm256_div_ps(_mm256_sub_ps(pL, pLowerThreshold),pDiffThreshold)))))));   // l = l * (1 + (brightnessFactor - 1) * (1 - (l - lower_threshold) / (upper_threshold - lower_threshold)));
     pMask[0] = _mm256_cmp_ps(pH, _mm256_set1_ps(0.5f), _CMP_GE_OQ);    // hue>=0.5
-    pMask[1] = _mm256_cmp_ps(pH, _mm256_set1_ps(0.56f), _CMP_LE_OQ);   // hue <= 0.56
+    pMask[1] = _mm256_cmp_ps(pH, _mm256_set1_ps(0.61f), _CMP_LE_OQ);   // hue <= 0.56
     pMask[0] = _mm256_and_ps(pMask[0], pMask[1]);                       // (hue>=0.5 && hue <= 0.56)
     pMask[1] = _mm256_cmp_ps(pS, _mm256_set1_ps(0.196f), _CMP_GE_OQ);   // (sat >= 0.196)
     pMask[0] = _mm256_and_ps(pMask[0], pMask[1]);                       // (hue>=0.5 && hue <= 0.56) && (sat >= 0.196)

@@ -2409,14 +2409,15 @@ RppStatus rppt_pixelate_gpu(RppPtr_t srcPtr,
 /******************** snow ********************/
 
 RppStatus rppt_snow_gpu(RppPtr_t srcPtr,
-                               RpptDescPtr srcDescPtr,
-                               RppPtr_t dstPtr,
-                               RpptDescPtr dstDescPtr,
-                               Rpp32f *brightnessCoefficient,
-                               Rpp32f *snowThreshold,
-                               RpptROIPtr roiTensorPtrSrc,
-                               RpptRoiType roiType,
-                               rppHandle_t rppHandle)
+                        RpptDescPtr srcDescPtr,
+                        RppPtr_t dstPtr,
+                        RpptDescPtr dstDescPtr,
+                        Rpp32f *brightnessCoefficient,
+                        Rpp32f *snowThreshold,
+                        Rpp8u *darkMode,
+                        RpptROIPtr roiTensorPtrSrc,
+                        RpptRoiType roiType,
+                        rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
@@ -2427,6 +2428,7 @@ RppStatus rppt_snow_gpu(RppPtr_t srcPtr,
                                     dstDescPtr,
                                     brightnessCoefficient,
                                     snowThreshold,
+                                    darkMode,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));
@@ -2439,6 +2441,7 @@ RppStatus rppt_snow_gpu(RppPtr_t srcPtr,
                                     dstDescPtr,
                                     brightnessCoefficient,
                                     snowThreshold,
+                                    darkMode,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));
@@ -2451,6 +2454,7 @@ RppStatus rppt_snow_gpu(RppPtr_t srcPtr,
                                     dstDescPtr,
                                     brightnessCoefficient,
                                     snowThreshold,
+                                    darkMode,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));
@@ -2463,6 +2467,7 @@ RppStatus rppt_snow_gpu(RppPtr_t srcPtr,
                                     dstDescPtr,
                                     brightnessCoefficient,
                                     snowThreshold,
+                                    darkMode,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));
