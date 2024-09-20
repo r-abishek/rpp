@@ -560,16 +560,18 @@ int main(int argc, char **argv)
                     testCaseName = "snow";
                     Rpp32f brightnessCoefficient[batchSize];
                     Rpp32f snowCoefficient[batchSize];
+                    Rpp8u darkMode[batchSize];
                     for (i = 0; i < batchSize; i++)
                     {
-                        brightnessCoefficient[i] = 3.5f;
+                        brightnessCoefficient[i] = 2.5f;
                         snowCoefficient[i] = 1.0f;
+                        darkMode[i] = 0;
                     }
 
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_snow_host(input, srcDescPtr, output, dstDescPtr, brightnessCoefficient, snowCoefficient, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_snow_host(input, srcDescPtr, output, dstDescPtr, brightnessCoefficient, snowCoefficient, darkMode, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
