@@ -685,12 +685,12 @@ RppStatus rppt_pixelate_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t d
 RppStatus rppt_pixelate_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RppPtr_t intermediateScratchBufferPtr, Rpp32f pixelationPercentage, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 #endif // GPU_SUPPORT
 
-/*! \brief Color Twist augmentation on HOST backend for a NCHW/NHWC layout tensor
- * \details The color twist augmentation does a fused modification of brightness, contrast, hue and saturation on a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
+/*! \brief Snow augmentation on HOST backend for a NCHW/NHWC layout tensor
+ * \details The Snow augmentation does a  modification of brightness on a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
  * - dstPtr depth ranges - Will be same depth as srcPtr.
  * \image html img150x150.png Sample Input
- * \image html color_augmentations_color_twist_img150x150.png Sample Output
+ * \image html effects_augmentations_snow_img150x150.png Sample Output
  * \param [in] srcPtr source tensor in HOST memory
  * \param [in] srcDescPtr source tensor descriptor (Restrictions - numDims = 4, offsetInBytes >= 0, dataType = U8/F16/F32/I8, layout = NCHW/NHWC, c = 1/3)
  * \param [out] dstPtr destination tensor in HOST memory
@@ -708,17 +708,17 @@ RppStatus rppt_pixelate_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t ds
 RppStatus rppt_snow_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *brightnessCoefficient, Rpp32f *snowThreshold, Rpp8u *darkMode, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
 #ifdef GPU_SUPPORT
-/*! \brief Color Twist augmentation on HIP backend for a NCHW/NHWC layout tensor
- * \details The color twist augmentation does a fused modification of brightness, contrast, hue and saturation on a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
+/*! \brief Snow augmentation on HIP backend for a NCHW/NHWC layout tensor
+ * \details The Snow augmentation does a modification of brightness on a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
  * - dstPtr depth ranges - Will be same depth as srcPtr.
  * \image html img150x150.png Sample Input
- * \image html color_augmentations_color_twist_img150x150.png Sample Output
+ * \image html effects_augmentations_snow_img150x150.png Sample Output
  * \param [in] srcPtr source tensor in HIP memory
  * \param [in] srcDescPtr source tensor descriptor (Restrictions - numDims = 4, offsetInBytes >= 0, dataType = U8/F16/F32/I8, layout = NCHW/NHWC, c = 1/3)
  * \param [out] dstPtr destination tensor in HIP memory
  * \param [in] dstDescPtr destination tensor descriptor (Restrictions - numDims = 4, offsetInBytes >= 0, dataType = U8/F16/F32/I8, layout = NCHW/NHWC, c = same as that of srcDescPtr)
- * \param [in] brightnessCoefficient brightness modification parameter for snow calculation (1D tensor in pinned/HOST memory, of size batchSize with 1 < brightnessCoefficient[i] <= 4 for each image in batch)
+ * \param [in] brightnessCoefficient brightness modification parameter for snow calculation (1D tensor in pinned/HIP memory, of size batchSize with 1 < brightnessCoefficient[i] <= 4 for each image in batch)
  * \param [in] snowThreshold threshold parameter for snow calculation (1D tensor in pinned/HIP memory, of size batchSize with 0 < snowThreshold[i] <= 1 for each image in batch)
  * \param [in] darkMode darkMode  values to set dark mode on/off (1D tensor in pinned/HIP memory, of size batchSize, with darkModeTensor[i] = 0/1)
  * \param [in] roiTensorSrc ROI data in HIP memory, for each image in source tensor (2D tensor of size batchSize * 4, in either format - XYWH(xy.x, xy.y, roiWidth, roiHeight) or LTRB(lt.x, lt.y, rb.x, rb.y))
