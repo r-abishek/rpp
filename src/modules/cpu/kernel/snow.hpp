@@ -50,7 +50,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         Rpp32f brightnessCoefficient = brightnessCoefficientTensor[batchCount];
-        Rpp32f snowThreshold = ((snowThresholdTensor[batchCount] * (127.5)) + 85) * ONE_OVER_255;
+        Rpp32f snowThreshold = ((snowThresholdTensor[batchCount] * 127.5) + 85) * ONE_OVER_255;
         Rpp8u darkMode = darkModeTensor[batchCount];
 
         Rpp8u *srcPtrImage, *dstPtrImage;
@@ -176,6 +176,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                     pixel.G = (Rpp32f)*srcPtrTempG * ONE_OVER_255;
                     pixel.B = (Rpp32f)*srcPtrTempB * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
+                    
                     dstPtrTemp[0] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.R)));
                     dstPtrTemp[1] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.G)));
                     dstPtrTemp[2] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.B)));
@@ -325,27 +326,27 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
                 int vectorLoopCount = 0;
-#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp;
                     for (int c = 0; c < srcDescPtr->c; c++)
                     {
+#if __AVX2__
                         __m256 p[2];
                         rpp_simd_load(rpp_load16_u8_to_f32_avx, srcPtrChannel, p);                                  // simd loads
                         rpp_simd_load(rpp_normalize16_avx, p);                                                      // simd normalize
-                        compute_snow_8_host(&p[0], pSnowParams);                                                     // snow adjustment
-                        compute_snow_8_host(&p[1], pSnowParams);                                                     // snow adjustment
+                        compute_snow_8_host(&p[0], pSnowParams);                                                    // snow adjustment
+                        compute_snow_8_host(&p[1], pSnowParams);                                                    // snow adjustment
                         rpp_multiply16_constant(p, avx_p255);                                                       // simd denormalize
                         rpp_simd_store(rpp_store16_f32_to_u8_avx, dstPtrChannel, p);                                // simd stores
                         srcPtrChannel += srcDescPtr->strides.cStride;
                         dstPtrChannel += dstDescPtr->strides.cStride;
+#endif
                     }
                     srcPtrTemp += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrementPerChannel;
                 }
-#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     srcPtrChannel = srcPtrTemp;
@@ -664,9 +665,9 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                     for (int c = 0; c < srcDescPtr->c; c++)
                     {
                         __m256 p;
-                        rpp_simd_load(rpp_load8_f32_to_f32_avx, srcPtrChannel, &p);                                  // simd loads
-                        compute_snow_8_host(&p, pSnowParams);                                                     // snow adjustment
-                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrChannel, &p);                               // simd stores
+                        rpp_simd_load(rpp_load8_f32_to_f32_avx, srcPtrChannel, &p);                                 // simd loads
+                        compute_snow_8_host(&p, pSnowParams);                                                       // snow adjustment
+                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrChannel, &p);                              // simd stores
                         srcPtrChannel += srcDescPtr->strides.cStride;
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }
@@ -989,9 +990,9 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                     for (int c = 0; c < srcDescPtr->c; c++)
                     {
                         __m256 p;
-                        rpp_simd_load(rpp_load8_f16_to_f32_avx, srcPtrChannel, &p);                                  // simd loads 
-                        compute_snow_8_host(&p, pSnowParams);                                                     // snow adjustment
-                        rpp_simd_store(rpp_store8_f32_to_f16_avx, dstPtrChannel, &p);                                // simd stores
+                        rpp_simd_load(rpp_load8_f16_to_f32_avx, srcPtrChannel, &p);                                 // simd loads 
+                        compute_snow_8_host(&p, pSnowParams);                                                       // snow adjustment
+                        rpp_simd_store(rpp_store8_f32_to_f16_avx, dstPtrChannel, &p);                               // simd stores
                         srcPtrChannel += srcDescPtr->strides.cStride;
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }
@@ -1329,8 +1330,8 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                         __m256 p[2];
                         rpp_simd_load(rpp_load16_i8_to_f32_avx, srcPtrChannel, p);                                  // simd loads
                         rpp_simd_load(rpp_normalize16_avx, p);                                                      // simd normalize
-                        compute_snow_8_host(&p[0], pSnowParams);                                                     // snow adjustment
-                        compute_snow_8_host(&p[1], pSnowParams);                                                     // snow adjustment
+                        compute_snow_8_host(&p[0], pSnowParams);                                                    // snow adjustment
+                        compute_snow_8_host(&p[1], pSnowParams);                                                    // snow adjustment
                         rpp_multiply16_constant(p, avx_p255);                                                       // simd denormalize
                         rpp_simd_store(rpp_store16_f32_to_i8_avx, dstPtrChannel, p);                                // simd stores
                         srcPtrChannel += srcDescPtr->strides.cStride;

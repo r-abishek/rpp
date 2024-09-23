@@ -2,27 +2,6 @@
 #include "rpp_hip_common.hpp"
 #include "rpp_cpu_common.hpp"
 
-__device__ __forceinline__ void snow_1hueToRGB_hip_compute(float *p, float *q, float t, float *r)
-{
-    if(t < 0.0f) t += 1.0f;
-    if(t > 1.0f) t -= 1.0f;
-    if(t < ONE_OVER_6)
-    {
-        *r = fmaf(6.0f * t, (*q - *p), *p);
-    }
-    else if(t < 0.5f)
-    {
-        *r = *q;
-    }
-    else if(t < TWO_OVER_3)
-    {
-        *r = fmaf((TWO_OVER_3 - t) * 6.0f, (*q - *p), *p);
-    }
-    else
-    {
-        *r = *p;
-    }
-}
 __device__ __forceinline__ void snow_1GRAY_hip_compute(float *pixel, float *brightnessCoefficient, float *snowThreshold, Rpp8u *darkMode)
 {
     float l = *pixel;
@@ -65,14 +44,6 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
         //saturation calculation
         float mul = (l < 0.5) ? l : (1.0f - l);
         sat = delta / (mul * 2);
-        // if(l <= 0.5)
-        // {
-        //     sat = delta / (cmax + cmin);
-        // }
-        // else
-        // {
-        //     sat = delta / (2.0f - cmax - cmin);
-        // }
         
         // hue calculation
         if(cmax == rf)
@@ -87,21 +58,6 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
         {
             hue = 4.0f + (rf - gf) / delta;
         }
-        // switch(cmax) {
-        //     case rf :{
-        //         hue = (gf - bf) / delta + (gf < bf ? 6 : 0);
-        //         break;
-        //     }   
-        //     case gf :{
-        //         hue = 2.0f + (bf - rf) / delta;
-        //         break;
-        //     }
-        //     case bf :{
-        //         hue = 4.0f + (rf - gf) / delta;
-        //         break;
-        //     }
-                    
-        // }
         hue = hue * ONE_OVER_6;
 
     }
@@ -118,23 +74,6 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
         l = l * (*brightnessCoefficient);
     }
 
-    // HSL to RGB with brightness/contrast adjustment
-
-    // if(sat == 0.0f)
-    // {
-    //     *pixelR = l;
-    //     *pixelG = l;
-    //     *pixelB = l;
-    // }
-    // else
-    // {
-    //     float p, q;
-    //     q = l < 0.5f ? l * (1.0f + sat) : l + sat - l * sat;
-    //     p = 2.0f * l - q;
-    //     snow_1hueToRGB_hip_compute(&p, &q, (hue + ONE_OVER_3), pixelR);
-    //     snow_1hueToRGB_hip_compute(&p, &q, hue, pixelG);
-    //     snow_1hueToRGB_hip_compute(&p, &q, (hue - ONE_OVER_3), pixelB);
-    // }
     float4 xt_f4 = make_float4(
         6.0f * (hue - TWO_OVER_3),
         0.0f,
@@ -165,13 +104,10 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
 
     float4 rgb_f4;
     if(l >= 0.5f)
-    {
         rgb_f4 = (luminv * ct_f4) + lum2m1;
-    }
     else
-    {
         rgb_f4 = l * ct_f4;
-    }
+    
     *pixelR = rgb_f4.x;
     *pixelG = rgb_f4.y;
     *pixelB = rgb_f4.z;
@@ -264,51 +200,6 @@ __device__ __forceinline__ void snow_hip_compute(schar *srcPtr, d_float8 *pix_f8
     rpp_hip_pixel_check_0to255(pix_f8);
     rpp_hip_math_subtract8_const(pix_f8, pix_f8, i8Offset_f4);
 }
-
-// template <typename T>
-// __global__ void snow_pkd_hip_tensor(T *srcPtr,
-//                                     uint2 srcStridesNH,
-//                                     T *dstPtr,
-//                                     uint2 dstStridesNH,
-//                                     float *brightnessCoefficient,
-//                                     float *snowThreshold,
-//                                     RpptROIPtr roiTensorPtrSrc)
-// {
-//     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x);
-//     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-//     int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
-
-//     if ((id_y >= roiTensorPtrSrc[id_z].xywhROI.roiHeight) || (id_x >= roiTensorPtrSrc[id_z].xywhROI.roiWidth))
-//     {
-//         return;
-//     }
-
-//     uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
-//     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
-    
-//     float r = static_cast<float>(*(srcPtr + srcIdx));
-//     float g = static_cast<float>(*(srcPtr + srcIdx + 1));
-//     float b = static_cast<float>(*(srcPtr + srcIdx + 2));
-//     r *= ONE_OVER_255;
-//     g *= ONE_OVER_255;
-//     b *= ONE_OVER_255;
-//     // printf("SRc : %d  Dst : %d\n ",(int)*(srcPtr + srcIdx),(int)*(dstPtr + dstIdx));
-//     snow_1RGB_hip_compute(&r, &b, &g, brightnessCoefficient, snowThreshold);
-//     r *= 255; 
-//     g *= 255; 
-//     b *= 255; 
-//     rpp_hip_pixel_check_and_store(r, &dstPtr[dstIdx]);
-//     rpp_hip_pixel_check_and_store(g, &dstPtr[dstIdx + 1]);
-//     rpp_hip_pixel_check_and_store(b, &dstPtr[dstIdx + 2]);
-
-//     // printf("SRc1 : %d  Dst1 : %d\n ",(int)*(srcPtr + srcIdx),(int)*(dstPtr + dstIdx));
-
-//     // d_float24 pix_f24;
-
-//     // rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &pix_f24);
-//     // snow_hip_compute(srcPtr, &pix_f24, brightnessCoefficient, snowThreshold);
-//     // rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &pix_f24);
-// }
 
 template <typename T>
 __global__ void snow_pkd_hip_tensor(T *srcPtr,
@@ -456,43 +347,42 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
     int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = handle.GetBatchSize();
-    *snowThreshold = *snowThreshold * (255.0f / 2.0f);
-    *snowThreshold = *snowThreshold + (255.0f / 3.0f);
+    *snowThreshold = (*snowThreshold * (127.5f)) + 85.0f;
     *snowThreshold /= 255;
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
     {
         globalThreads_x = (dstDescPtr->strides.hStride / 3 + 7) >> 3;
         hipLaunchKernelGGL(snow_pkd_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                            brightnessCoefficient,
-                            snowThreshold,
-                            darkMode,
-                            roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0,
+                           handle.GetStream(),
+                           srcPtr,
+                           make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                           dstPtr,
+                           make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                           brightnessCoefficient,
+                           snowThreshold,
+                           darkMode,
+                           roiTensorPtrSrc);
     }
     else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
     {
         hipLaunchKernelGGL(snow_pln_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                            dstDescPtr->c,
-                            brightnessCoefficient,
-                            snowThreshold,
-                            darkMode,
-                            roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0,
+                           handle.GetStream(),
+                           srcPtr,
+                           make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                           dstPtr,
+                           make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                           dstDescPtr->c,
+                           brightnessCoefficient,
+                           snowThreshold,
+                           darkMode,
+                           roiTensorPtrSrc);
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
     {

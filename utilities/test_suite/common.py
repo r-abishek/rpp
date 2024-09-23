@@ -42,6 +42,7 @@ imageAugmentationMap = {
     4: ["contrast", "HOST", "HIP"],
     5: ["pixelate", "HOST", "HIP"],
     6: ["jitter", "HOST", "HIP"],
+    7: ["snow", "HOST", "HIP"],
     8: ["noise", "HOST", "HIP"],
     13: ["exposure", "HOST", "HIP"],
     20: ["flip", "HOST", "HIP"],
