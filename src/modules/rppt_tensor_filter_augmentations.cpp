@@ -32,6 +32,20 @@ SOFTWARE.
 #include "hip/hip_tensor_filter_augmentations.hpp"
 #endif // HIP_COMPILE
 
+inline size_t get_size_of_data_type(RpptDataType dataType)
+{
+    if(dataType == RpptDataType::U8)
+        return sizeof(Rpp8u);
+    else if(dataType == RpptDataType::I8)
+        return sizeof(Rpp8s);
+    else if(dataType == RpptDataType::F16)
+        return sizeof(Rpp16f);
+    else if(dataType == RpptDataType::F32)
+        return sizeof(Rpp32f);
+    else
+        return 0;
+}
+
 /******************** sobel_filter ********************/
 
 RppStatus rppt_sobel_filter_host(RppPtr_t srcPtr,
@@ -282,9 +296,11 @@ RppStatus rppt_sobel_filter_gpu(RppPtr_t srcPtr,
     if (srcDescPtr->c == 3)
     {
         RpptSubpixelLayout srcSubpixelLayout = RpptSubpixelLayout::RGBtype;
-        tempPtr = rpp::deref(rppHandle).GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem;
         rppt_color_to_greyscale_gpu(srcPtr, srcDescPtr, tempPtr, dstDescPtr, srcSubpixelLayout, rppHandle);
     }
+    else
+        CHECK_RETURN_STATUS(hipMemcpy(tempPtr, srcPtr, dstDescPtr->strides.nStride * dstDescPtr->n * get_size_of_data_type(srcDescPtr->dataType), hipMemcpyDeviceToDevice));
+    hipStreamSynchronize(rpp::deref(rppHandle).GetStream());
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -335,6 +351,7 @@ RppStatus rppt_sobel_filter_gpu(RppPtr_t srcPtr,
                                         rpp::deref(rppHandle));
     }
 
+    CHECK_RETURN_STATUS(hipFree(tempPtr));
     return RPP_SUCCESS;
 #elif defined(OCL_COMPILE)
     return RPP_ERROR_NOT_IMPLEMENTED;
