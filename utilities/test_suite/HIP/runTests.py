@@ -88,7 +88,7 @@ def run_unit_test(srcPath1, srcPath2, dstPathTemp, case, numRuns, testType, layo
                     print(stdout_data.decode())
             elif case == "50":
                 for kernelSizeAndGradient in range(9):
-                    print("./Tensor_hip " + srcPath1 + " " + srcPath2 + " " + dstPathTemp + " " + str(bitDepth) + " " + str(outputFormatToggle) + " " + str(case) + " " + str(kernelSizeAndGradient) + " 0")
+                    print("\n./Tensor_hip " + srcPath1 + " " + srcPath2 + " " + dstPathTemp + " " + str(bitDepth) + " " + str(outputFormatToggle) + " " + str(case) + " " + str(kernelSizeAndGradient) + " 0")
                     result = subprocess.Popen([buildFolderPath + "/build/Tensor_hip", srcPath1, srcPath2, dstPathTemp, str(bitDepth), str(outputFormatToggle), str(case), str(kernelSizeAndGradient), str(numRuns), str(testType), str(layout), "0", str(qaMode), str(decoderType), str(batchSize)] + roiList + [scriptPath], stdout=subprocess.PIPE)    # nosec
                     stdout_data, stderr_data = result.communicate()
                     print(stdout_data.decode())

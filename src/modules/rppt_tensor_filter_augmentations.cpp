@@ -292,7 +292,8 @@ RppStatus rppt_sobel_filter_gpu(RppPtr_t srcPtr,
         return RPP_ERROR_INVALID_DST_CHANNELS;
 
     // convert image to grey scale if input is RGB image
-    RppPtr_t tempPtr;
+    void *tempPtr;
+    CHECK_RETURN_STATUS(hipMalloc(&tempPtr, dstDescPtr->strides.nStride * dstDescPtr->n * get_size_of_data_type(srcDescPtr->dataType)));
     if (srcDescPtr->c == 3)
     {
         RpptSubpixelLayout srcSubpixelLayout = RpptSubpixelLayout::RGBtype;
@@ -317,38 +318,38 @@ RppStatus rppt_sobel_filter_gpu(RppPtr_t srcPtr,
     else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
     {
         hip_exec_sobel_filter_tensor(reinterpret_cast<half*>(static_cast<Rpp8u*>(tempPtr) + srcDescPtr->offsetInBytes),
-                                        srcDescPtr,
-                                        reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
-                                        dstDescPtr,
-                                        sobelType,
-                                        kernelSize,
-                                        roiTensorPtrSrc,
-                                        roiType,
-                                        rpp::deref(rppHandle));
+                                     dstDescPtr,
+                                     reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                     dstDescPtr,
+                                     sobelType,
+                                     kernelSize,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
     {
         hip_exec_sobel_filter_tensor(reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(tempPtr) + srcDescPtr->offsetInBytes),
-                                        srcDescPtr,
-                                        reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
-                                        dstDescPtr,
-                                        sobelType,
-                                        kernelSize,
-                                        roiTensorPtrSrc,
-                                        roiType,
-                                        rpp::deref(rppHandle));
+                                     dstDescPtr,
+                                     reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                     dstDescPtr,
+                                     sobelType,
+                                     kernelSize,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
     {
         hip_exec_sobel_filter_tensor(static_cast<Rpp8s*>(tempPtr) + srcDescPtr->offsetInBytes,
-                                     srcDescPtr,
-                                        static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
-                                        dstDescPtr,
-                                        sobelType,
-                                        kernelSize,
-                                        roiTensorPtrSrc,
-                                        roiType,
-                                        rpp::deref(rppHandle));
+                                     dstDescPtr,
+                                     static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                     dstDescPtr,
+                                     sobelType,
+                                     kernelSize,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     rpp::deref(rppHandle));
     }
 
     CHECK_RETURN_STATUS(hipFree(tempPtr));
