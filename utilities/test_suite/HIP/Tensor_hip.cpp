@@ -618,7 +618,7 @@ int main(int argc, char **argv)
                     {
                         brightnessCoefficient[i] = 2.5f;
                         snowThreshold[i] = 1.0f;
-                        darkMode[i] = 1;
+                        darkMode[i] = 0;
                     }
 
                     startWallTime = omp_get_wtime();

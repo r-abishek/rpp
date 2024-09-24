@@ -40,6 +40,9 @@ typedef halfhpp Rpp16f;
 #define PI_OVER_180                     0.0174532925
 #define ONE_OVER_255                    0.00392156862745f
 #define ONE_OVER_256                    0.00390625f
+#define ONE_OVER_3                      0.33333333333334f
+#define ONE_OVER_6                      0.16666666666667f
+#define TWO_OVER_3                      0.66666666666667f
 #define RPP_128_OVER_255                0.50196078431f
 #define RAD(deg)                        (deg * PI / 180)
 #define RPPABS(a)                       ((a < 0) ? (-a) : (a))
@@ -3179,29 +3182,28 @@ inline void compute_snow_host(RpptFloatRGB *pixel, Rpp32f brightnessCoefficient,
         hue += add;
         hue /= 6.0f; 
     }
-
     // Modify Lightness
     if(l >= lower_threshold && l <= upper_threshold && darkMode ==1)
-	    l = l * (1 + (brightnessFactor - 1) * (1 - (l - lower_threshold) / (upper_threshold - lower_threshold)));
+	    l = l * (1.0f + (brightnessFactor - 1.0f) * (1.0f - (l - lower_threshold) / (upper_threshold - lower_threshold)));
     
     if(l <= snowCoefficient && !((hue>=0.514 && hue <= 0.63) && (sat >= 0.196) && (l >= 0.196)))
         l = l * (brightnessCoefficient);
 
     // HSL to RGB with brightness/contrast adjustment
     Rpp32f hueCoefficient[3];
-    hueCoefficient[0] = 6.0f * (hue - 0.6667f);
+    hueCoefficient[0] = 6.0f * (hue - TWO_OVER_3);
     hueCoefficient[1] = 0.0f;
     hueCoefficient[2] = 6.0f * (1.0f - hue);
-    if(hue < 0.6667f)
+    if(hue < TWO_OVER_3)
     {
         hueCoefficient[0] = 0.0f;
-        hueCoefficient[1] = 6.0f * (0.6667f - hue);
-        hueCoefficient[2] = 6.0f * (hue - 0.3334f);
+        hueCoefficient[1] = 6.0f * (TWO_OVER_3 - hue);
+        hueCoefficient[2] = 6.0f * (hue - ONE_OVER_3);
 
     }
-    if(hue < 1.0f/3.0f)
+    if(hue < ONE_OVER_3)
     {
-        hueCoefficient[0] = 6.0f * (0.3334f -hue );
+        hueCoefficient[0] = 6.0f * (ONE_OVER_3 -hue );
         hueCoefficient[1] = 6.0f * hue;
         hueCoefficient[2] = 0.0f;
     }
@@ -3236,10 +3238,9 @@ inline void compute_snow_host(RpptFloatRGB *pixel, Rpp32f brightnessCoefficient,
 
 inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __m256 *pSnowParams)
 {
-    __m256 pA, pH, pS, pL, pCmax, pCmin, pDelta, pAdd, pIntH;
+    __m256 pA, pH, pS, pL, pCmax, pCmin, pDelta, pAdd;
     __m256 pMask[4];
     __m256 pHueCoefficient[3];
-    __m256i pxIntH;
 
     // RGB to HSL
     pCmax = _mm256_max_ps(pVecR, _mm256_max_ps(pVecG, pVecB));                                                              // cmax = RPPMAX3(rf, gf, bf);
@@ -3247,8 +3248,8 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     pDelta = _mm256_sub_ps(pCmax, pCmin);                                                                                   // delta = cmax - cmin;
     pH = avx_p0;                                                                                                            // hue = 0.0f;
     pS = avx_p0;                                                                                                            // sat = 0.0f;
-    pL = _mm256_mul_ps(_mm256_add_ps(pCmax, pCmin), _mm256_set1_ps(0.5));                                                   //  l = delta * 0.5
     pAdd = avx_p0;                                                                                                          // add = 0.0f;
+    pL = _mm256_mul_ps(_mm256_add_ps(pCmax, pCmin), _mm256_set1_ps(0.5f));                                                   //  l = delta * 0.5
     pMask[0] = _mm256_cmp_ps(pDelta, avx_p0, _CMP_NEQ_OQ);                                                                  // if ((delta != 0)) {
     pMask[1] = _mm256_cmp_ps(pL, _mm256_set1_ps(0.5f), _CMP_LE_OQ);                                                         //     Temporarily store l <= 0.5 comparison
     pMask[3] = _mm256_and_ps(pMask[0], pMask[1]);                                                                           //     if (l <= 0.5)  {
@@ -3274,7 +3275,7 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     __m256 pLowerThreshold, pUpperThreshold, pDiffThreshold, pBrightnessFactor;
     pLowerThreshold = avx_p0;
     pUpperThreshold = _mm256_set1_ps(0.39215686f);
-    pBrightnessFactor = _mm256_set1_ps(3.5f);
+    pBrightnessFactor = _mm256_set1_ps(2.5f);
     pDiffThreshold = _mm256_sub_ps(pUpperThreshold, pLowerThreshold);
     pMask[0] = _mm256_cmp_ps(pL, pLowerThreshold, _CMP_GE_OQ);                                                              // Temporarily store l >= lower_threshold comparison
     pMask[1] = _mm256_cmp_ps(pL, pUpperThreshold, _CMP_LE_OQ);                                                              // Temporarily store l <= upper_threshold comparison
@@ -3302,7 +3303,7 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     pHueCoefficient[1] = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pHueCoefficient[1]), _mm256_and_ps(pMask[0], _mm256_mul_ps(avx_p6, _mm256_sub_ps(avx_p2op3, pH)))); // hueCoefficient[1] = 6.0f * ((2/3) - hue);
     pHueCoefficient[2] = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pHueCoefficient[2]), _mm256_and_ps(pMask[0], _mm256_mul_ps(avx_p6, _mm256_sub_ps(pH, avx_p1op3)))); // hueCoefficient[2] = 6.0f * (hue - (1/3)); }
     pMask[0] = _mm256_cmp_ps(pH, avx_p1op3, _CMP_LT_OQ);                                                                    // if(hue < 1.0f/3.0f) {
-    pHueCoefficient[0] = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pHueCoefficient[0]), _mm256_and_ps(pMask[0], _mm256_mul_ps(avx_p6, _mm256_sub_ps(avx_p2op3, pH)))); // hueCoefficient[0] = 6.0f * ((1/3) -hue );
+    pHueCoefficient[0] = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pHueCoefficient[0]), _mm256_and_ps(pMask[0], _mm256_mul_ps(avx_p6, _mm256_sub_ps(avx_p1op3, pH)))); // hueCoefficient[0] = 6.0f * ((1/3) -hue );
     pHueCoefficient[1] = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pHueCoefficient[1]), _mm256_and_ps(pMask[0], _mm256_mul_ps(avx_p6, pH)));                           // hueCoefficient[1] = 6.0f * hue;
     pHueCoefficient[2] = _mm256_or_ps(_mm256_andnot_ps(pMask[0], pHueCoefficient[2]), _mm256_and_ps(pMask[0], avx_p0));                                              // hueCoefficient[2] = 0.0f;
 

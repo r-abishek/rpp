@@ -7,7 +7,7 @@ __device__ __forceinline__ void snow_1GRAY_hip_compute(float *pixel, float *brig
     float l = *pixel;
     float lower_threshold = 0.0f;
     float upper_threshold = 0.39215686f;
-    float brightnessFactor = 3.5f;
+    float brightnessFactor = 2.5f;
     //Lighter the darken images
     if(l >= lower_threshold && l <= upper_threshold && (*darkMode == 1))
     {
@@ -42,13 +42,13 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
     if(delta != 0.0f)
     {
         //saturation calculation
-        float mul = (l < 0.5) ? l : (1.0f - l);
-        sat = delta / (mul * 2);
+        float mul = (l <= 0.5f) ? l : (1.0f - l);
+        sat = delta / (mul * 2.0f);
         
         // hue calculation
         if(cmax == rf)
         {
-            hue = (gf - bf) / delta + (gf < bf ? 6 : 0);
+            hue = (gf - bf) / delta;
         }
         else if(cmax == gf)
         {
@@ -69,7 +69,7 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
     }
 
     // Modify L 
-    if(l <= *snowThreshold && !((hue>=0.5 && hue <= 0.61) && (sat >= 0.196) && (l >= 0.196)))
+    if(l <= *snowThreshold && !((hue >= 0.514f && hue <= 0.63f) && (sat >= 0.196f) && (l >= 0.196f)))
     {
         l = l * (*brightnessCoefficient);
     }
@@ -77,7 +77,7 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
     float4 xt_f4 = make_float4(
         6.0f * (hue - TWO_OVER_3),
         0.0f,
-        6.0f *(1.0 - hue),
+        6.0f *(1.0f - hue),
         0.0f
     );
     if(hue < TWO_OVER_3)
@@ -99,7 +99,7 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
     float sat2 = 2.0f * sat;
     float satinv = 1.0f - sat;
     float luminv = 1.0f - l;
-    float lum2m1 = (2.0f * l) -1.0f;
+    float lum2m1 = (2.0f * l) - 1.0f;
     float4 ct_f4 = (sat2 * xt_f4) + satinv;
 
     float4 rgb_f4;
@@ -347,8 +347,7 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
     int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = handle.GetBatchSize();
-    *snowThreshold = (*snowThreshold * (127.5f)) + 85.0f;
-    *snowThreshold /= 255;
+    *snowThreshold = ((*snowThreshold * (127.5f)) + 85.0f) * ONE_OVER_255;
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
     {
