@@ -1421,6 +1421,23 @@ inline void rpp_load8_u8_to_f32_avx(Rpp8u *srcPtr, __m256 *p)
     p[0] = _mm256_cvtepi32_ps(_mm256_setr_m128i(_mm_shuffle_epi8(px, xmm_pxMask00To03), _mm_shuffle_epi8(px, xmm_pxMask04To07)));    /* Contains pixels 01-08 */
 }
 
+inline void rpp_store8_f32_to_u8_avx(Rpp8u *dstPtrTemp, __m256 *pDst)
+{
+    __m256i px1 = _mm256_cvtps_epi32(pDst[0]);     // Pack int32 values to uint16
+    __m128i px2 = _mm_packus_epi32(_mm256_castsi256_si128(px1), _mm256_extracti128_si256(px1, 1));   // Pack uint16 values to uint8
+    __m128i px3 = _mm_packus_epi16(px2, _mm_setzero_si128());
+    _mm_storeu_si64((__m128i*)dstPtrTemp, px3);    // Store the result to dst
+}
+
+inline void rpp_store8_f32_to_i8_avx(Rpp8s *dstPtrTemp, __m256 *pDst)
+{
+    __m256i px1 = _mm256_cvtps_epi32(pDst[0]);
+    __m128i px2 = _mm_packus_epi32(_mm256_castsi256_si128(px1), _mm256_extracti128_si256(px1, 1));
+    __m128i px3 = _mm_packus_epi16(px2, _mm_setzero_si128());
+    px3 = _mm_sub_epi8(px3, xmm_pxConvertI8);    // convert back to i8 for px0 store //
+    _mm_storeu_si64((__m128i*)dstPtrTemp, px3);    // Store the result to dst
+}
+
 inline void rpp_load16_u8_to_f32_mirror_avx(Rpp8u *srcPtr, __m256 *p)
 {
     __m128i px;
@@ -1631,6 +1648,12 @@ inline void rpp_store16_f32_to_f32_avx(Rpp32f *dstPtr, __m256 *p)
 {
     _mm256_storeu_ps(dstPtr, p[0]);
     _mm256_storeu_ps(dstPtr + 8, p[1]);
+}
+
+inline void rpp_load16_f16_to_f32_avx(Rpp16f *srcPtr, __m256 *p)
+{
+    p[0] = _mm256_cvtph_ps(_mm_castps_si128(_mm_loadu_ps(reinterpret_cast<Rpp32f *>(srcPtr))));
+    p[1] = _mm256_cvtph_ps(_mm_castps_si128(_mm_loadu_ps(reinterpret_cast<Rpp32f *>(srcPtr + 8))));
 }
 
 inline void rpp_store16_f32_to_f16_avx(Rpp16f *dstPtr, __m256 *p)
