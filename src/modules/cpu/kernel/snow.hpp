@@ -32,7 +32,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                                  RpptDescPtr dstDescPtr,
                                  Rpp32f *brightnessCoefficientTensor,
                                  Rpp32f *snowThresholdTensor,
-                                 Rpp8u *darkModeTensor,
+                                 Rpp32s *darkModeTensor,
                                  RpptROIPtr roiTensorPtrSrc,
                                  RpptRoiType roiType,
                                  RppLayoutParams layoutParams,
@@ -43,7 +43,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(Rpp32u batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
@@ -51,7 +51,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
 
         Rpp32f brightnessCoefficient = brightnessCoefficientTensor[batchCount];
         Rpp32f snowThreshold = ((snowThresholdTensor[batchCount] * 127.5f) + 85.0f) * ONE_OVER_255;
-        Rpp8u darkMode = darkModeTensor[batchCount];
+        Rpp32s darkMode = darkModeTensor[batchCount];
 
         Rpp8u *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -83,7 +83,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTemp = srcPtrRow;
@@ -91,7 +91,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 dstPtrTempG = dstPtrRowG;
                 dstPtrTempB = dstPtrRowB;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
 #if __AVX2__
@@ -111,16 +111,16 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = (Rpp32f)srcPtrTemp[0] * ONE_OVER_255;
-                    pixel.G = (Rpp32f)srcPtrTemp[1] * ONE_OVER_255;
-                    pixel.B = (Rpp32f)srcPtrTemp[2] * ONE_OVER_255;
+                    pixel.R = static_cast<Rpp32f>(srcPtrTemp[0]) * ONE_OVER_255;
+                    pixel.G = static_cast<Rpp32f>(srcPtrTemp[1]) * ONE_OVER_255;
+                    pixel.B = static_cast<Rpp32f>(srcPtrTemp[2]) * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
                     pixel.R *= 255.0f; 
                     pixel.G *= 255.0f; 
                     pixel.B *= 255.0f; 
-                    *dstPtrTempR = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.R)));
-                    *dstPtrTempG = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.G)));
-                    *dstPtrTempB = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.B)));
+                    *dstPtrTempR = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.R)));
+                    *dstPtrTempG = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.G)));
+                    *dstPtrTempB = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.B)));
 
                     srcPtrTemp+=3;
                     dstPtrTempR++;
@@ -144,7 +144,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
             srcPtrRowB = srcPtrRowG + srcDescPtr->strides.cStride;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
                 srcPtrTempR = srcPtrRowR;
@@ -152,7 +152,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 srcPtrTempB = srcPtrRowB;
                 dstPtrTemp = dstPtrRow;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
 #if __AVX2__
@@ -172,14 +172,14 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = (Rpp32f)*srcPtrTempR * ONE_OVER_255;
-                    pixel.G = (Rpp32f)*srcPtrTempG * ONE_OVER_255;
-                    pixel.B = (Rpp32f)*srcPtrTempB * ONE_OVER_255;
+                    pixel.R = static_cast<Rpp32f>(*srcPtrTempR) * ONE_OVER_255;
+                    pixel.G = static_cast<Rpp32f>(*srcPtrTempG) * ONE_OVER_255;
+                    pixel.B = static_cast<Rpp32f>(*srcPtrTempB) * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
                     
-                    dstPtrTemp[0] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.R)));
-                    dstPtrTemp[1] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.G)));
-                    dstPtrTemp[2] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.B)));
+                    dstPtrTemp[0] = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.R)));
+                    dstPtrTemp[1] = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.G)));
+                    dstPtrTemp[2] = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.B)));
 
                     srcPtrTempR++;
                     srcPtrTempG++;
@@ -201,13 +201,13 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTemp, *dstPtrTemp;
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
 #if __AVX2__
@@ -225,16 +225,16 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = (Rpp32f)srcPtrTemp[0] * ONE_OVER_255;
-                    pixel.G = (Rpp32f)srcPtrTemp[1] * ONE_OVER_255;
-                    pixel.B = (Rpp32f)srcPtrTemp[2] * ONE_OVER_255;
+                    pixel.R = static_cast<Rpp32f>(srcPtrTemp[0]) * ONE_OVER_255;
+                    pixel.G = static_cast<Rpp32f>(srcPtrTemp[1]) * ONE_OVER_255;
+                    pixel.B = static_cast<Rpp32f>(srcPtrTemp[2]) * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
                     pixel.R *= 255.0f; 
                     pixel.G *= 255.0f; 
                     pixel.B *= 255.0f; 
-                    dstPtrTemp[0] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.R)));
-                    dstPtrTemp[1] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.G)));
-                    dstPtrTemp[2] = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.B)));
+                    dstPtrTemp[0] = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.R)));
+                    dstPtrTemp[1] = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.G)));
+                    dstPtrTemp[2] = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.B)));
 
                     srcPtrTemp += 3;
                     dstPtrTemp += 3;
@@ -256,7 +256,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTempR = srcPtrRowR;
@@ -266,7 +266,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 dstPtrTempG = dstPtrRowG;
                 dstPtrTempB = dstPtrRowB;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
 #if __AVX2__
@@ -288,16 +288,16 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = (Rpp32f)*srcPtrTempR * ONE_OVER_255;
-                    pixel.G = (Rpp32f)*srcPtrTempG * ONE_OVER_255;
-                    pixel.B = (Rpp32f)*srcPtrTempB * ONE_OVER_255;
+                    pixel.R = static_cast<Rpp32f>(*srcPtrTempR) * ONE_OVER_255;
+                    pixel.G = static_cast<Rpp32f>(*srcPtrTempG) * ONE_OVER_255;
+                    pixel.B = static_cast<Rpp32f>(*srcPtrTempB) * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
                     pixel.R *= 255.0f;
                     pixel.G *= 255.0f;
                     pixel.B *= 255.0f;
-                    *dstPtrTempR = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.R)));
-                    *dstPtrTempG = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.G)));
-                    *dstPtrTempB = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.B)));
+                    *dstPtrTempR = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.R)));
+                    *dstPtrTempG = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.G)));
+                    *dstPtrTempB = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.B)));
 
                     srcPtrTempR++;
                     srcPtrTempG++;
@@ -323,17 +323,17 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
             Rpp8u *srcPtrRow, *dstPtrRow;
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
-            for (int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for (Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8u *srcPtrTemp, *dstPtrTemp;
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp;
-                    for (int c = 0; c < srcDescPtr->c; c++)
+                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
                     {
 #if __AVX2__
                         __m256 p[2];
@@ -355,15 +355,15 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp++;
                     
-                    for (int c = 0; c < srcDescPtr->c; c++)
+                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
                     {
                         RpptFloatRGB pixel;
-                        pixel.R = (Rpp32f)*srcPtrChannel * ONE_OVER_255;
-                        pixel.G = (Rpp32f)*srcPtrChannel * ONE_OVER_255;
-                        pixel.B = (Rpp32f)*srcPtrChannel * ONE_OVER_255;
+                        pixel.R = static_cast<Rpp32f>(*srcPtrChannel) * ONE_OVER_255;
+                        pixel.G = static_cast<Rpp32f>(*srcPtrChannel) * ONE_OVER_255;
+                        pixel.B = static_cast<Rpp32f>(*srcPtrChannel) * ONE_OVER_255;
                         compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
                         pixel.R *= 255.0f; 
-                        *dstPtrChannel = (Rpp8u) RPPPIXELCHECK(std::nearbyintf((pixel.R)));
+                        *dstPtrChannel = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.R)));
                         srcPtrChannel += srcDescPtr->strides.cStride;
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }
@@ -385,7 +385,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                                    RpptDescPtr dstDescPtr,
                                    Rpp32f *brightnessCoefficientTensor,
                                    Rpp32f *snowThresholdTensor,
-                                   Rpp8u *darkModeTensor,
+                                   Rpp32s *darkModeTensor,
                                    RpptROIPtr roiTensorPtrSrc,
                                    RpptRoiType roiType,
                                    RppLayoutParams layoutParams,
@@ -396,7 +396,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(Rpp32u batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
@@ -404,7 +404,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
 
         Rpp32f brightnessCoefficient = brightnessCoefficientTensor[batchCount];
         Rpp32f snowThreshold = ((snowThresholdTensor[batchCount] * (127.5)) + 85) * ONE_OVER_255;
-        Rpp8u darkMode = darkModeTensor[batchCount];
+        Rpp32s darkMode = darkModeTensor[batchCount];
 
         Rpp32f *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -436,7 +436,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTemp = srcPtrRow;
@@ -444,7 +444,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrTempG = dstPtrRowG;
                 dstPtrTempB = dstPtrRowB;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
 #if __AVX2__
@@ -491,7 +491,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
             srcPtrRowB = srcPtrRowG + srcDescPtr->strides.cStride;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
                 srcPtrTempR = srcPtrRowR;
@@ -499,7 +499,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                 srcPtrTempB = srcPtrRowB;
                 dstPtrTemp = dstPtrRow;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
 #if __AVX2__
@@ -544,13 +544,13 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTemp, *dstPtrTemp;
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
 #if __AVX2__
@@ -593,7 +593,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTempR = srcPtrRowR;
@@ -603,7 +603,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrTempG = dstPtrRowG;
                 dstPtrTempB = dstPtrRowB;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
 #if __AVX2__
@@ -654,17 +654,17 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
             Rpp32f *srcPtrRow, *dstPtrRow;
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
-            for (int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for (Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp32f *srcPtrTemp, *dstPtrTemp;
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp;
-                    for (int c = 0; c < srcDescPtr->c; c++)
+                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
                     {
 #if __AVX2__
                         __m256 p;
@@ -683,12 +683,12 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp++;
                     
-                    for (int c = 0; c < srcDescPtr->c; c++)
+                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
                     {
                         RpptFloatRGB pixel;
-                        pixel.R = (Rpp32f)*srcPtrChannel;
-                        pixel.G = (Rpp32f)*srcPtrChannel;
-                        pixel.B = (Rpp32f)*srcPtrChannel;
+                        pixel.R = *srcPtrChannel;
+                        pixel.G = *srcPtrChannel;
+                        pixel.B = *srcPtrChannel;
                         compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
                         *dstPtrChannel = RPPPIXELCHECK(pixel.R);
                         srcPtrChannel += srcDescPtr->strides.cStride;
@@ -711,7 +711,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                                    RpptDescPtr dstDescPtr,
                                    Rpp32f *brightnessCoefficientTensor,
                                    Rpp32f *snowThresholdTensor,
-                                   Rpp8u *darkModeTensor,
+                                   Rpp32s *darkModeTensor,
                                    RpptROIPtr roiTensorPtrSrc,
                                    RpptRoiType roiType,
                                    RppLayoutParams layoutParams,
@@ -722,7 +722,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(Rpp32u batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
@@ -730,7 +730,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
 
         Rpp32f brightnessCoefficient = brightnessCoefficientTensor[batchCount];
         Rpp32f snowThreshold = ((snowThresholdTensor[batchCount] * (127.5)) + 85) * ONE_OVER_255;
-        Rpp8u darkMode = darkModeTensor[batchCount];
+        Rpp32s darkMode = darkModeTensor[batchCount];
 
         Rpp16f *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -761,7 +761,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTemp = srcPtrRow;
@@ -769,7 +769,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTempG = dstPtrRowG;
                 dstPtrTempB = dstPtrRowB;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
 #if __AVX2__
@@ -786,13 +786,13 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = (Rpp32f) srcPtrTemp[0];
-                    pixel.G = (Rpp32f) srcPtrTemp[1];
-                    pixel.B = (Rpp32f) srcPtrTemp[2];
+                    pixel.R = static_cast<Rpp32f>(srcPtrTemp[0]);
+                    pixel.G = static_cast<Rpp32f>(srcPtrTemp[1]);
+                    pixel.B = static_cast<Rpp32f>(srcPtrTemp[2]);
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                    *dstPtrTempR = (Rpp16f) RPPPIXELCHECKF32(pixel.R);
-                    *dstPtrTempG = (Rpp16f) RPPPIXELCHECKF32(pixel.G);
-                    *dstPtrTempB = (Rpp16f) RPPPIXELCHECKF32(pixel.B);
+                    *dstPtrTempR = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.R));
+                    *dstPtrTempG = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.G));
+                    *dstPtrTempB = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.B));
 
                     srcPtrTemp+=3;
                     dstPtrTempR++;
@@ -816,7 +816,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
             srcPtrRowB = srcPtrRowG + srcDescPtr->strides.cStride;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
                 srcPtrTempR = srcPtrRowR;
@@ -824,7 +824,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 srcPtrTempB = srcPtrRowB;
                 dstPtrTemp = dstPtrRow;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
 #if __AVX2__
@@ -841,13 +841,13 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = (Rpp32f) *srcPtrTempR;
-                    pixel.G = (Rpp32f) *srcPtrTempG;
-                    pixel.B = (Rpp32f) *srcPtrTempB;
+                    pixel.R = static_cast<Rpp32f>(*srcPtrTempR);
+                    pixel.G = static_cast<Rpp32f>(*srcPtrTempG);
+                    pixel.B = static_cast<Rpp32f>(*srcPtrTempB);
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                    dstPtrTemp[0] = (Rpp16f) RPPPIXELCHECKF32(pixel.R);
-                    dstPtrTemp[1] = (Rpp16f) RPPPIXELCHECKF32(pixel.G);
-                    dstPtrTemp[2] = (Rpp16f) RPPPIXELCHECKF32(pixel.B);
+                    dstPtrTemp[0] = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.R));
+                    dstPtrTemp[1] = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.G));
+                    dstPtrTemp[2] = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.B));
 
                     srcPtrTempR++;
                     srcPtrTempG++;
@@ -869,13 +869,13 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTemp, *dstPtrTemp;
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
 #if __AVX2__
@@ -890,13 +890,13 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = (Rpp32f) srcPtrTemp[0];
-                    pixel.G = (Rpp32f) srcPtrTemp[1];
-                    pixel.B = (Rpp32f) srcPtrTemp[2];
+                    pixel.R = static_cast<Rpp32f>(srcPtrTemp[0]);
+                    pixel.G = static_cast<Rpp32f>(srcPtrTemp[1]);
+                    pixel.B = static_cast<Rpp32f>(srcPtrTemp[2]);
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                    dstPtrTemp[0] = (Rpp16f) RPPPIXELCHECKF32(pixel.R);
-                    dstPtrTemp[1] = (Rpp16f) RPPPIXELCHECKF32(pixel.G);
-                    dstPtrTemp[2] = (Rpp16f) RPPPIXELCHECKF32(pixel.B);
+                    dstPtrTemp[0] = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.R));
+                    dstPtrTemp[1] = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.G));
+                    dstPtrTemp[2] = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.B));
 
                     srcPtrTemp += 3;
                     dstPtrTemp += 3;
@@ -918,7 +918,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTempR = srcPtrRowR;
@@ -928,7 +928,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTempG = dstPtrRowG;
                 dstPtrTempB = dstPtrRowB;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
 #if __AVX2__
@@ -947,13 +947,13 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = (Rpp32f) *srcPtrTempR;
-                    pixel.G = (Rpp32f) *srcPtrTempG;
-                    pixel.B = (Rpp32f) *srcPtrTempB;
+                    pixel.R = static_cast<Rpp32f>(*srcPtrTempR);
+                    pixel.G = static_cast<Rpp32f>(*srcPtrTempG);
+                    pixel.B = static_cast<Rpp32f>(*srcPtrTempB);
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                    *dstPtrTempR = (Rpp16f) RPPPIXELCHECKF32(pixel.R);
-                    *dstPtrTempG = (Rpp16f) RPPPIXELCHECKF32(pixel.G);
-                    *dstPtrTempB = (Rpp16f) RPPPIXELCHECKF32(pixel.B);
+                    *dstPtrTempR = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.R));
+                    *dstPtrTempG = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.G));
+                    *dstPtrTempB = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.B));
 
                     srcPtrTempR++;
                     srcPtrTempG++;
@@ -979,18 +979,18 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
             Rpp16f *srcPtrRow, *dstPtrRow;
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
-            for (int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for (Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTemp, *dstPtrTemp;
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp;
-                    for (int c = 0; c < srcDescPtr->c; c++)
+                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
                     {
                         __m256 p;
                         rpp_simd_load(rpp_load8_f16_to_f32_avx, srcPtrChannel, &p);                                 // simd loads 
@@ -1008,14 +1008,14 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp++;
                     
-                    for (int c = 0; c < srcDescPtr->c; c++)
+                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
                     {
                         RpptFloatRGB pixel;
-                        pixel.R = (Rpp32f)*srcPtrChannel;
-                        pixel.G = (Rpp32f)*srcPtrChannel;
-                        pixel.B = (Rpp32f)*srcPtrChannel;
+                        pixel.R = static_cast<Rpp32f>(*srcPtrChannel);
+                        pixel.G = static_cast<Rpp32f>(*srcPtrChannel);
+                        pixel.B = static_cast<Rpp32f>(*srcPtrChannel);
                         compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                        *dstPtrChannel = (Rpp16f) RPPPIXELCHECKF32(pixel.R);
+                        *dstPtrChannel = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.R));
                         srcPtrChannel += srcDescPtr->strides.cStride;
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }
@@ -1036,7 +1036,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                                  RpptDescPtr dstDescPtr,
                                  Rpp32f *brightnessCoefficientTensor,
                                  Rpp32f *snowThresholdTensor,
-                                 Rpp8u *darkModeTensor,
+                                 Rpp32s *darkModeTensor,
                                  RpptROIPtr roiTensorPtrSrc,
                                  RpptRoiType roiType,
                                  RppLayoutParams layoutParams,
@@ -1047,7 +1047,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(Rpp32u batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
@@ -1055,7 +1055,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
 
         Rpp32f brightnessCoefficient = brightnessCoefficientTensor[batchCount];
         Rpp32f snowThreshold = ((snowThresholdTensor[batchCount] * (127.5)) + 85) * ONE_OVER_255;
-        Rpp8u darkMode = darkModeTensor[batchCount];
+        Rpp32s darkMode = darkModeTensor[batchCount];
 
         Rpp8s *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -1087,7 +1087,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTemp = srcPtrRow;
@@ -1095,7 +1095,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 dstPtrTempG = dstPtrRowG;
                 dstPtrTempB = dstPtrRowB;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
 #if __AVX2__
@@ -1115,13 +1115,13 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = ((Rpp32f)srcPtrTemp[0] + 128.0f) * ONE_OVER_255;
-                    pixel.G = ((Rpp32f)srcPtrTemp[1] + 128.0f) * ONE_OVER_255;
-                    pixel.B = ((Rpp32f)srcPtrTemp[2] + 128.0f) * ONE_OVER_255;
+                    pixel.R = (static_cast<Rpp32f>(srcPtrTemp[0]) + 128.0f) * ONE_OVER_255;
+                    pixel.G = (static_cast<Rpp32f>(srcPtrTemp[1]) + 128.0f) * ONE_OVER_255;
+                    pixel.B = (static_cast<Rpp32f>(srcPtrTemp[2]) + 128.0f) * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                    *dstPtrTempR = (Rpp8s) RPPPIXELCHECKI8(pixel.R - 128.0f);
-                    *dstPtrTempG = (Rpp8s) RPPPIXELCHECKI8(pixel.G - 128.0f);
-                    *dstPtrTempB = (Rpp8s) RPPPIXELCHECKI8(pixel.B - 128.0f);
+                    *dstPtrTempR = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.R - 128.0f));
+                    *dstPtrTempG = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.G - 128.0f));
+                    *dstPtrTempB = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.B - 128.0f));
 
                     srcPtrTemp+=3;
                     dstPtrTempR++;
@@ -1145,7 +1145,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
             srcPtrRowB = srcPtrRowG + srcDescPtr->strides.cStride;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
                 srcPtrTempR = srcPtrRowR;
@@ -1153,7 +1153,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 srcPtrTempB = srcPtrRowB;
                 dstPtrTemp = dstPtrRow;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
 #if __AVX2__
@@ -1173,13 +1173,13 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = ((Rpp32f)*srcPtrTempR + 128.0f) * ONE_OVER_255;
-                    pixel.G = ((Rpp32f)*srcPtrTempG + 128.0f) * ONE_OVER_255;
-                    pixel.B = ((Rpp32f)*srcPtrTempB + 128.0f) * ONE_OVER_255;
+                    pixel.R = (static_cast<Rpp32f>(*srcPtrTempR) + 128.0f) * ONE_OVER_255;
+                    pixel.G = (static_cast<Rpp32f>(*srcPtrTempG) + 128.0f) * ONE_OVER_255;
+                    pixel.B = (static_cast<Rpp32f>(*srcPtrTempB) + 128.0f) * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                    dstPtrTemp[0] = (Rpp8s) RPPPIXELCHECKI8(pixel.R - 128.0f);
-                    dstPtrTemp[1] = (Rpp8s) RPPPIXELCHECKI8(pixel.G - 128.0f);
-                    dstPtrTemp[2] = (Rpp8s) RPPPIXELCHECKI8(pixel.B - 128.0f);
+                    dstPtrTemp[0] = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.R - 128.0f));
+                    dstPtrTemp[1] = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.G - 128.0f));
+                    dstPtrTemp[2] = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.B - 128.0f));
 
                     srcPtrTempR++;
                     srcPtrTempG++;
@@ -1201,13 +1201,13 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTemp, *dstPtrTemp;
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
 #if __AVX2__
@@ -1225,13 +1225,13 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = ((Rpp32f)srcPtrTemp[0] + 128.0f) * ONE_OVER_255;
-                    pixel.G = ((Rpp32f)srcPtrTemp[1] + 128.0f) * ONE_OVER_255;
-                    pixel.B = ((Rpp32f)srcPtrTemp[2] + 128.0f) * ONE_OVER_255;
+                    pixel.R = (static_cast<Rpp32f>(srcPtrTemp[0]) + 128.0f) * ONE_OVER_255;
+                    pixel.G = (static_cast<Rpp32f>(srcPtrTemp[1]) + 128.0f) * ONE_OVER_255;
+                    pixel.B = (static_cast<Rpp32f>(srcPtrTemp[2]) + 128.0f) * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                    dstPtrTemp[0] = (Rpp8s) RPPPIXELCHECKI8(pixel.R - 128.0f);
-                    dstPtrTemp[1] = (Rpp8s) RPPPIXELCHECKI8(pixel.G - 128.0f);
-                    dstPtrTemp[2] = (Rpp8s) RPPPIXELCHECKI8(pixel.B - 128.0f);
+                    dstPtrTemp[0] = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.R - 128.0f));
+                    dstPtrTemp[1] = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.G - 128.0f));
+                    dstPtrTemp[2] = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.B - 128.0f));
 
                     srcPtrTemp += 3;
                     dstPtrTemp += 3;
@@ -1253,7 +1253,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTempR = srcPtrRowR;
@@ -1263,7 +1263,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 dstPtrTempG = dstPtrRowG;
                 dstPtrTempB = dstPtrRowB;
 
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
 #if __AVX2__
@@ -1285,13 +1285,13 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
-                    pixel.R = ((Rpp32f)*srcPtrTempR + 128.0f) * ONE_OVER_255;
-                    pixel.G = ((Rpp32f)*srcPtrTempG + 128.0f) * ONE_OVER_255;
-                    pixel.B = ((Rpp32f)*srcPtrTempB + 128.0f) * ONE_OVER_255;
+                    pixel.R = (static_cast<Rpp32f>(*srcPtrTempR) + 128.0f) * ONE_OVER_255;
+                    pixel.G = (static_cast<Rpp32f>(*srcPtrTempG) + 128.0f) * ONE_OVER_255;
+                    pixel.B = (static_cast<Rpp32f>(*srcPtrTempB) + 128.0f) * ONE_OVER_255;
                     compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                    *dstPtrTempR = (Rpp8s) RPPPIXELCHECKI8(pixel.R - 128.0f);
-                    *dstPtrTempG = (Rpp8s) RPPPIXELCHECKI8(pixel.G - 128.0f);
-                    *dstPtrTempB = (Rpp8s) RPPPIXELCHECKI8(pixel.B - 128.0f);
+                    *dstPtrTempR = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.R - 128.0f));
+                    *dstPtrTempG = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.G - 128.0f));
+                    *dstPtrTempB = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.B - 128.0f));
 
                     srcPtrTempR++;
                     srcPtrTempG++;
@@ -1317,18 +1317,18 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
             Rpp8s *srcPtrRow, *dstPtrRow;
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
-            for (int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for (Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp8s *srcPtrTemp, *dstPtrTemp;
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
-                int vectorLoopCount = 0;
+                Rpp32u vectorLoopCount = 0;
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp;
-                    for (int c = 0; c < srcDescPtr->c; c++)
+                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
                     {
                         __m256 p[2];
                         rpp_simd_load(rpp_load16_i8_to_f32_avx, srcPtrChannel, p);                                  // simd loads
@@ -1349,15 +1349,15 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                     srcPtrChannel = srcPtrTemp;
                     dstPtrChannel = dstPtrTemp++;
                     
-                    for (int c = 0; c < srcDescPtr->c; c++)
+                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
                     {
                         RpptFloatRGB pixel;
-                        pixel.R = (Rpp32f)((*srcPtrChannel + 128.0f) * ONE_OVER_255);
-                        pixel.G = (Rpp32f)((*srcPtrChannel + 128.0f) * ONE_OVER_255);
-                        pixel.B = (Rpp32f)((*srcPtrChannel + 128.0f) * ONE_OVER_255);
+                        pixel.R = static_cast<Rpp32f>((*srcPtrChannel + 128.0f) * ONE_OVER_255);
+                        pixel.G = static_cast<Rpp32f>((*srcPtrChannel + 128.0f) * ONE_OVER_255);
+                        pixel.B = static_cast<Rpp32f>((*srcPtrChannel + 128.0f) * ONE_OVER_255);
                         compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
                         pixel.R *= 255.0f;
-                        *dstPtrChannel = (Rpp8s) RPPPIXELCHECKI8(pixel.R - 128.0f);
+                        *dstPtrChannel = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.R - 128.0f));
                         srcPtrChannel += srcDescPtr->strides.cStride;
                         dstPtrChannel += dstDescPtr->strides.cStride;
                     }

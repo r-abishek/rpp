@@ -560,7 +560,7 @@ int main(int argc, char **argv)
                     testCaseName = "snow";
                     Rpp32f brightnessCoefficient[batchSize];
                     Rpp32f snowCoefficient[batchSize];
-                    Rpp8u darkMode[batchSize];
+                    Rpp32s darkMode[batchSize];
                     for (i = 0; i < batchSize; i++)
                     {
                         brightnessCoefficient[i] = 2.5f;

@@ -409,12 +409,12 @@ int main(int argc, char **argv)
 
     Rpp32f *brightnessCoefficient = nullptr;
     Rpp32f *snowThreshold = nullptr;
-    Rpp8u *darkMode = nullptr;
+    Rpp32s *darkMode = nullptr;
     if(testCase == 7)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&brightnessCoefficient, batchSize * sizeof(Rpp32f)));
         CHECK_RETURN_STATUS(hipHostMalloc(&snowThreshold, batchSize * sizeof(Rpp32f)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&darkMode, batchSize * sizeof(Rpp8u)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&darkMode, batchSize * sizeof(Rpp32s)));
     }
 
     Rpp32u *kernelSizeTensor;
