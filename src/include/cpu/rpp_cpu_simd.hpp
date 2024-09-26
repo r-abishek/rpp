@@ -123,6 +123,8 @@ const __m256 avx_p255 = _mm256_set1_ps(255.0f);
 const __m256 avx_p1op255 = _mm256_set1_ps(1.0f / 255.0f);
 const __m256 avx_p1op3 = _mm256_set1_ps(1.0f / 3.0f);
 const __m256 avx_p2op3 = _mm256_set1_ps(2.0f / 3.0f);
+const __m256 avx_pMinus1 = _mm256_set1_ps(-1);
+const __m256 avx_p1op2 = _mm256_set1_ps(0.5f);
 
 const __m256i avx_cephesSQRTHF = _mm256_set1_ps(0.707106781186547524);
 const __m256i avx_cephesLogP0 = _mm256_set1_ps(7.0376836292E-2);
@@ -2940,6 +2942,24 @@ inline void rpp_generic_nn_load_f32pkd3_to_f32pln3_avx(Rpp32f *srcPtrChannel, Rp
                           (!invalidLoad[6]) ? srcPtrChannel[srcLoc[6] + 2]: 0, (!invalidLoad[7]) ? srcPtrChannel[srcLoc[7] + 2]: 0);
 }
 
+inline void rpp_generic_nn_load_f16pkd3_to_f32pln3_avx(Rpp16f *srcRowPtrsForInterp, Rpp32s *loc, Rpp32s *invalidLoad, __m256 *p)
+{
+    p[0] = _mm256_setr_ps((!invalidLoad[0]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[0]) : 0, (!invalidLoad[1]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[1]) : 0,
+                          (!invalidLoad[2]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[2]) : 0, (!invalidLoad[3]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[3]) : 0,
+                          (!invalidLoad[4]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[4]) : 0, (!invalidLoad[5]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[5]) : 0,
+                          (!invalidLoad[6]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[6]) : 0, (!invalidLoad[7]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[7]) : 0);
+
+    p[1] = _mm256_setr_ps((!invalidLoad[0]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[0] + 1) : 0, (!invalidLoad[1]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[1] + 1) : 0,
+                          (!invalidLoad[2]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[2] + 1) : 0, (!invalidLoad[3]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[3] + 1) : 0,
+                          (!invalidLoad[4]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[4] + 1) : 0, (!invalidLoad[5]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[5] + 1) : 0,
+                          (!invalidLoad[6]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[6] + 1) : 0, (!invalidLoad[7]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[7] + 1) : 0);
+
+    p[2] = _mm256_setr_ps((!invalidLoad[0]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[0] + 2) : 0, (!invalidLoad[1]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[1] + 2) : 0,
+                          (!invalidLoad[2]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[2] + 2) : 0, (!invalidLoad[3]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[3] + 2) : 0,
+                          (!invalidLoad[4]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[4] + 2) : 0, (!invalidLoad[5]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[5] + 2) : 0,
+                          (!invalidLoad[6]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[6] + 2) : 0, (!invalidLoad[7]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[7] + 2) : 0);
+}
+
 inline void rpp_generic_nn_load_f32pkd3_to_f32pkd3(Rpp32f *srcPtrChannel, Rpp32s *srcLoc, Rpp32s *invalidLoad, __m128 *p)
 {
     p[0] = invalidLoad[0] ? xmm_p0 : _mm_loadu_ps(srcPtrChannel + srcLoc[0]);  // LOC0 load [R01|G01|B01|R02] - Need RGB 01
@@ -2964,6 +2984,22 @@ inline void rpp_generic_nn_load_f32pkd3_to_f32pkd3_avx(Rpp32f *srcPtrChannel, Rp
                           (!invalidLoad[7]) ? srcPtrChannel[srcLoc[7] + 1]: 0, (!invalidLoad[7]) ? srcPtrChannel[srcLoc[7] + 2]: 0);
 }
 
+inline void rpp_generic_nn_load_f16pkd3_to_f32pkd3_avx(Rpp16f *srcRowPtrsForInterp, Rpp32s *loc, Rpp32s *invalidLoad, __m256 *p)
+{
+    p[0] = _mm256_setr_ps((!invalidLoad[0]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[0]): 0, (!invalidLoad[0]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[0] + 1): 0,        // Get R01|G01|B01|R02|B02|G02|R03|G03
+                          (!invalidLoad[0]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[0] + 2): 0, (!invalidLoad[1]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[1]): 0,        // load the values from input using srcLoc buffer if invalidLoad is 0, else set the values to 0
+                          (!invalidLoad[1]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[1] + 1): 0, (!invalidLoad[1]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[1] + 2): 0,
+                          (!invalidLoad[2]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[2]): 0, (!invalidLoad[2]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[2] + 1): 0);
+    p[1] = _mm256_setr_ps((!invalidLoad[2]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[2] + 2): 0, (!invalidLoad[3]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[3]): 0,        // Get B03|R04|G04|B04|R05|G05|B05|R06
+                          (!invalidLoad[3]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[3] + 1): 0, (!invalidLoad[3]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[3] + 2): 0,    // load the values from input using srcLoc buffer if invalidLoad is 0, else set the values to 0
+                          (!invalidLoad[4]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[4]): 0, (!invalidLoad[4]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[4] + 1): 0,
+                          (!invalidLoad[4]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[4] + 2): 0, (!invalidLoad[5]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[5]): 0);
+    p[2] = _mm256_setr_ps((!invalidLoad[5]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[5] + 1): 0, (!invalidLoad[5]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[5] + 2): 0,    // Get G06|B06|R07|G07|B07|R08|G08|B08
+                          (!invalidLoad[6]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[6]): 0, (!invalidLoad[6]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[6] + 1): 0,        // load the values from input using srcLoc buffer if invalidLoad is 0, else set the values to 0
+                          (!invalidLoad[6]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[6] + 2): 0, (!invalidLoad[7]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[7]): 0,
+                          (!invalidLoad[7]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[7] + 1): 0, (!invalidLoad[7]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[7] + 2): 0);
+}
+
 inline void rpp_generic_nn_load_f32pln1(Rpp32f *srcPtrChanel, Rpp32s *srcLoc, Rpp32s *invalidLoad, __m128 &p)
 {
     __m128 pTemp[4];
@@ -2985,6 +3021,14 @@ inline void rpp_generic_nn_load_f32pln1_avx(Rpp32f *srcPtrChannel, Rpp32s *srcLo
     __m256i pxSrcLoc = _mm256_loadu_si256((__m256i *)srcLoc);   // Load the source location values passed
     __m256 pSrcLoc = _mm256_castsi256_ps(pxSrcLoc);   // cast to float
     p = _mm256_mask_i32gather_ps(avx_p0, srcPtrChannel, pSrcLoc, pxLoadMask, 4);   // if the MSB of 32 bit value is set, then load from corresponding location value in pSrcLoc. Otherwise set the 32 bit value to 0
+}
+
+inline void rpp_generic_nn_load_f16pln1_avx(Rpp16f *srcRowPtrsForInterp, Rpp32s *loc, Rpp32s *invalidLoad, __m256 &p)
+{
+    p = _mm256_setr_ps((!invalidLoad[0]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[0]) : 0, (!invalidLoad[1]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[1]) : 0,
+                       (!invalidLoad[2]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[2]) : 0, (!invalidLoad[3]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[3]) : 0,
+                       (!invalidLoad[4]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[4]) : 0, (!invalidLoad[5]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[5]) : 0,
+                       (!invalidLoad[6]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[6]) : 0, (!invalidLoad[7]) ? (Rpp32f)*(srcRowPtrsForInterp + loc[7]) : 0);
 }
 
 inline void rpp_generic_nn_load_i8pkd3(Rpp8s *srcPtrChannel, Rpp32s *srcLoc, Rpp32s *invalidLoad, __m128i &p)
@@ -4134,6 +4178,17 @@ inline void rpp_store24_f32pkd3_to_f32pkd3_avx(Rpp32f* dstPtr, __m256 *p)
     _mm256_storeu_ps(dstPtr, p[0]); /* Store RGB set 1 */
     _mm256_storeu_ps(dstPtr + 8, p[1]); /* Store RGB set 2 */
     _mm256_storeu_ps(dstPtr + 16, p[2]); /* Store RGB set 3 */
+}
+
+inline void rpp_store24_f32pkd3_to_f16pkd3_avx(Rpp16f* dstPtr, __m256* p)
+{
+    __m128i px128[3];
+    px128[0] = _mm256_cvtps_ph(p[0], _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+    px128[1] = _mm256_cvtps_ph(p[1], _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+    px128[2] = _mm256_cvtps_ph(p[2], _MM_FROUND_TO_ZERO | _MM_FROUND_NO_EXC);
+    _mm_storeu_si128((__m128i *)dstPtr, px128[0]);
+    _mm_storeu_si128((__m128i *)(dstPtr + 8), px128[1]);
+    _mm_storeu_si128((__m128i *)(dstPtr + 16), px128[2]);
 }
 
 #endif //AMD_RPP_RPP_CPU_SIMD_HPP
