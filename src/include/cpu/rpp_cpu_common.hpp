@@ -3249,7 +3249,7 @@ inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __
     pH = avx_p0;                                                                                                            // hue = 0.0f;
     pS = avx_p0;                                                                                                            // sat = 0.0f;
     pAdd = avx_p0;                                                                                                          // add = 0.0f;
-    pL = _mm256_mul_ps(_mm256_add_ps(pCmax, pCmin), _mm256_set1_ps(0.5f));                                                   //  l = delta * 0.5
+    pL = _mm256_mul_ps(_mm256_add_ps(pCmax, pCmin), _mm256_set1_ps(0.5f));                                                  // l = (cmax + cmin) * 0.5;
     pMask[0] = _mm256_cmp_ps(pDelta, avx_p0, _CMP_NEQ_OQ);                                                                  // if ((delta != 0)) {
     pMask[1] = _mm256_cmp_ps(pL, _mm256_set1_ps(0.5f), _CMP_LE_OQ);                                                         //     Temporarily store l <= 0.5 comparison
     pMask[3] = _mm256_and_ps(pMask[0], pMask[1]);                                                                           //     if (l <= 0.5)  {

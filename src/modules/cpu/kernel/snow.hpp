@@ -92,9 +92,9 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-#if __AVX2__
                     __m256 p[6];
                     rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3_avx, srcPtrTemp, p);                                 // simd loads
                     rpp_simd_load(rpp_normalize48_avx, p);                                                          // simd normalize
@@ -102,12 +102,12 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                     compute_snow_24_host(p[1], p[3], p[5], pSnowParams);                                            // snow adjustment
                     rpp_multiply48_constant(p, avx_p255);                                                           // simd denormalize
                     rpp_simd_store(rpp_store48_f32pln3_to_u8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
-#endif
                     srcPtrTemp += vectorIncrement;
                     dstPtrTempR += vectorIncrementPerChannel;
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
@@ -122,7 +122,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                     *dstPtrTempG = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.G)));
                     *dstPtrTempB = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.B)));
 
-                    srcPtrTemp+=3;
+                    srcPtrTemp += 3;
                     dstPtrTempR++;
                     dstPtrTempG++;
                     dstPtrTempB++;
@@ -153,9 +153,9 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-#if __AVX2__
                     __m256 p[6];
                     rpp_simd_load(rpp_load48_u8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);      // simd loads
                     rpp_simd_load(rpp_normalize48_avx, p);                                                          // simd normalize
@@ -163,12 +163,12 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                     compute_snow_24_host(p[1], p[3], p[5], pSnowParams);                                            // snow adjustment
                     rpp_multiply48_constant(p, avx_p255);                                                           // simd denormalize
                     rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrTemp, p);                               // simd stores
-#endif
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
                     srcPtrTempB += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
@@ -208,9 +208,9 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-#if __AVX2__
                     __m256 p[6];
                     rpp_simd_load(rpp_load48_u8pkd3_to_f32pln3_avx, srcPtrTemp, p);                                 // simd loads
                     rpp_simd_load(rpp_normalize48_avx, p);                                                          // simd normalize
@@ -218,10 +218,10 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                     compute_snow_24_host(p[1], p[3], p[5], pSnowParams);                                            // snow adjustment
                     rpp_multiply48_constant(p, avx_p255);                                                           // simd denormalize
                     rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrTemp, p);                               // simd stores
-#endif
                     srcPtrTemp += vectorIncrement;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
@@ -267,9 +267,9 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-#if __AVX2__
                     __m256 p[6];
                     rpp_simd_load(rpp_load48_u8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);      // simd loads
                     rpp_simd_load(rpp_normalize48_avx, p);                                                          // simd normalize
@@ -277,7 +277,6 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                     compute_snow_24_host(p[1], p[3], p[5], pSnowParams);                                            // snow adjustment
                     rpp_multiply48_constant(p, avx_p255);                                                           // simd denormalize
                     rpp_simd_store(rpp_store48_f32pln3_to_u8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
-#endif
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
                     srcPtrTempB += vectorIncrementPerChannel;
@@ -285,6 +284,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
@@ -316,7 +316,7 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
             }
         }
         // Snow without fused output-layout toggle (NCHW -> NCHW)
-        else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
+        else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
             alignedLength = (bufferLength & ~15);
 
@@ -329,44 +329,29 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-                    srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp;
-                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
-                    {
-#if __AVX2__
-                        __m256 p[2];
-                        rpp_simd_load(rpp_load16_u8_to_f32_avx, srcPtrChannel, p);                                  // simd loads
-                        rpp_simd_load(rpp_normalize16_avx, p);                                                      // simd normalize
-                        compute_snow_8_host(&p[0], pSnowParams);                                                    // snow adjustment
-                        compute_snow_8_host(&p[1], pSnowParams);                                                    // snow adjustment
-                        rpp_multiply16_constant(p, avx_p255);                                                       // simd denormalize
-                        rpp_simd_store(rpp_store16_f32_to_u8_avx, dstPtrChannel, p);                                // simd stores
-                        srcPtrChannel += srcDescPtr->strides.cStride;
-                        dstPtrChannel += dstDescPtr->strides.cStride;
-#endif
-                    }
+                    __m256 p[2];
+                    rpp_simd_load(rpp_load16_u8_to_f32_avx, srcPtrTemp, p);                                         // simd loads
+                    rpp_simd_load(rpp_normalize16_avx, p);                                                          // simd normalize
+                    compute_snow_8_host(&p[0], pSnowParams);                                                        // snow adjustment
+                    compute_snow_8_host(&p[1], pSnowParams);                                                        // snow adjustment
+                    rpp_multiply16_constant(p, avx_p255);                                                           // simd denormalize
+                    rpp_simd_store(rpp_store16_f32_to_u8_avx, dstPtrTemp, p);                                    // simd stores
                     srcPtrTemp += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp++;
-                    
-                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
-                    {
-                        RpptFloatRGB pixel;
-                        pixel.R = static_cast<Rpp32f>(*srcPtrChannel) * ONE_OVER_255;
-                        pixel.G = static_cast<Rpp32f>(*srcPtrChannel) * ONE_OVER_255;
-                        pixel.B = static_cast<Rpp32f>(*srcPtrChannel) * ONE_OVER_255;
-                        compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                        pixel.R *= 255.0f; 
-                        *dstPtrChannel = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.R)));
-                        srcPtrChannel += srcDescPtr->strides.cStride;
-                        dstPtrChannel += dstDescPtr->strides.cStride;
-                    }
+                    RpptFloatRGB pixel;
+                    pixel.R = static_cast<Rpp32f>(*srcPtrTemp) * ONE_OVER_255;
+                    pixel.G = static_cast<Rpp32f>(*srcPtrTemp) * ONE_OVER_255;
+                    pixel.B = static_cast<Rpp32f>(*srcPtrTemp) * ONE_OVER_255;
+                    compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
+                    pixel.R *= 255.0f; 
+                    *dstPtrTemp++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(pixel.R)));
                     srcPtrTemp++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -445,19 +430,19 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-#if __AVX2__
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f32pkd3_to_f32pln3_avx, srcPtrTemp, p);                                // simd loads
                     compute_snow_24_host(p[0], p[1], p[2], pSnowParams);                                            // snow adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);   // simd stores
-#endif
                     srcPtrTemp += vectorIncrement;
                     dstPtrTempR += vectorIncrementPerChannel;
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
@@ -469,7 +454,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                     *dstPtrTempG = RPPPIXELCHECKF32(pixel.G);
                     *dstPtrTempB = RPPPIXELCHECKF32(pixel.B);
 
-                    srcPtrTemp+=3;
+                    srcPtrTemp += 3;
                     dstPtrTempR++;
                     dstPtrTempG++;
                     dstPtrTempB++;
@@ -500,19 +485,19 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-#if __AVX2__
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f32pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);     // simd loads
                     compute_snow_24_host(p[0], p[1], p[2], pSnowParams);                                            // snow adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pkd3_avx, dstPtrTemp, p);                              // simd stores
-#endif
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
                     srcPtrTempB += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
@@ -551,17 +536,17 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-#if __AVX2__
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f32pkd3_to_f32pln3_avx, srcPtrTemp, p);                                // simd loads
                     compute_snow_24_host(p[0], p[1], p[2], pSnowParams);                                            // snow adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pkd3_avx, dstPtrTemp, p);                              // simd stores
-#endif
                     srcPtrTemp += vectorIncrement;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
@@ -604,14 +589,13 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-#if __AVX2__
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f32pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);     // simd loads
                     compute_snow_24_host(p[0], p[1], p[2], pSnowParams);                                            // snow adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f32pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);   // simd stores
-#endif
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
                     srcPtrTempB += vectorIncrementPerChannel;
@@ -619,6 +603,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
@@ -647,7 +632,7 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
             }
         }
         // Snow without fused output-layout toggle (NCHW -> NCHW)
-        else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
+        else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
             alignedLength = (bufferLength & ~15);
 
@@ -660,40 +645,25 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
                 srcPtrTemp = srcPtrRow;
                 dstPtrTemp = dstPtrRow;
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-                    srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp;
-                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
-                    {
-#if __AVX2__
-                        __m256 p;
-                        rpp_simd_load(rpp_load8_f32_to_f32_avx, srcPtrChannel, &p);                                 // simd loads
-                        compute_snow_8_host(&p, pSnowParams);                                                       // snow adjustment
-                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrChannel, &p);                              // simd stores
-#endif
-                        srcPtrChannel += srcDescPtr->strides.cStride;
-                        dstPtrChannel += dstDescPtr->strides.cStride;
-                    }
+                    __m256 p;
+                    rpp_simd_load(rpp_load8_f32_to_f32_avx, srcPtrTemp, &p);                                 // simd loads
+                    compute_snow_8_host(&p, pSnowParams);                                                       // snow adjustment
+                    rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTemp, &p);                              // simd stores
                     srcPtrTemp += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp++;
-                    
-                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
-                    {
-                        RpptFloatRGB pixel;
-                        pixel.R = *srcPtrChannel;
-                        pixel.G = *srcPtrChannel;
-                        pixel.B = *srcPtrChannel;
-                        compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                        *dstPtrChannel = RPPPIXELCHECK(pixel.R);
-                        srcPtrChannel += srcDescPtr->strides.cStride;
-                        dstPtrChannel += dstDescPtr->strides.cStride;
-                    }
+                    RpptFloatRGB pixel;
+                    pixel.R = *srcPtrTemp;
+                    pixel.G = *srcPtrTemp;
+                    pixel.B = *srcPtrTemp;
+                    compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
+                    *dstPtrTemp++ = RPPPIXELCHECK(pixel.R);
                     srcPtrTemp++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -760,7 +730,6 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
             dstPtrRowR = dstPtrChannel;
             dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
             dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
-
             for(Rpp32u i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
@@ -770,19 +739,19 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-#if __AVX2__
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f16pkd3_to_f32pln3_avx, srcPtrTemp, p);                                // simd loads
                     compute_snow_24_host(p[0], p[1], p[2], pSnowParams);                                            // snow adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);   // simd stores
-#endif
                     srcPtrTemp += vectorIncrement;
                     dstPtrTempR += vectorIncrementPerChannel;
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
@@ -794,7 +763,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                     *dstPtrTempG = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.G));
                     *dstPtrTempB = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.B));
 
-                    srcPtrTemp+=3;
+                    srcPtrTemp += 3;
                     dstPtrTempR++;
                     dstPtrTempG++;
                     dstPtrTempB++;
@@ -825,19 +794,19 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-#if __AVX2__
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f16pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);     // simd loads
                     compute_snow_24_host(p[0], p[1], p[2], pSnowParams);                                            // snow adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pkd3_avx, dstPtrTemp, p);                              // simd stores
-#endif
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
                     srcPtrTempB += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
@@ -876,17 +845,17 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-#if __AVX2__
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f16pkd3_to_f32pln3_avx, srcPtrTemp, p);                                // simd loads
                     compute_snow_24_host(p[0], p[1], p[2], pSnowParams);                                            // snow adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pkd3_avx, dstPtrTemp, p);                              // simd stores
-#endif
                     srcPtrTemp += vectorIncrement;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
@@ -929,14 +898,13 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-#if __AVX2__
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f16pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);     // simd loads
                     compute_snow_24_host(p[0], p[1], p[2], pSnowParams);                                            // snow adjustment
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);   // simd stores
-#endif
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
                     srcPtrTempB += vectorIncrementPerChannel;
@@ -944,6 +912,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
@@ -972,7 +941,7 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
             }
         }
         // Snow without fused output-layout toggle (NCHW -> NCHW)
-        else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
+        else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
             alignedLength = (bufferLength & ~15);
 
@@ -988,37 +957,22 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-                    srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp;
-                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
-                    {
-                        __m256 p;
-                        rpp_simd_load(rpp_load8_f16_to_f32_avx, srcPtrChannel, &p);                                 // simd loads 
-                        compute_snow_8_host(&p, pSnowParams);                                                       // snow adjustment
-                        rpp_simd_store(rpp_store8_f32_to_f16_avx, dstPtrChannel, &p);                               // simd stores
-                        srcPtrChannel += srcDescPtr->strides.cStride;
-                        dstPtrChannel += dstDescPtr->strides.cStride;
-                    }
+                    __m256 p;
+                    rpp_simd_load(rpp_load8_f16_to_f32_avx, srcPtrTemp, &p);                                 // simd loads 
+                    compute_snow_8_host(&p, pSnowParams);                                                    // snow adjustment
+                    rpp_simd_store(rpp_store8_f32_to_f16_avx, dstPtrTemp, &p);                               // simd stores
                     srcPtrTemp += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrementPerChannel;
                 }
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp++;
-                    
-                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
-                    {
-                        RpptFloatRGB pixel;
-                        pixel.R = static_cast<Rpp32f>(*srcPtrChannel);
-                        pixel.G = static_cast<Rpp32f>(*srcPtrChannel);
-                        pixel.B = static_cast<Rpp32f>(*srcPtrChannel);
-                        compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                        *dstPtrChannel = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.R));
-                        srcPtrChannel += srcDescPtr->strides.cStride;
-                        dstPtrChannel += dstDescPtr->strides.cStride;
-                    }
+                    RpptFloatRGB pixel;
+                    pixel.R = static_cast<Rpp32f>(*srcPtrChannel);
+                    pixel.G = static_cast<Rpp32f>(*srcPtrChannel);
+                    pixel.B = static_cast<Rpp32f>(*srcPtrChannel);
+                    compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
+                    *dstPtrTemp++ = static_cast<Rpp16f>(RPPPIXELCHECKF32(pixel.R));
                     srcPtrTemp++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -1096,9 +1050,9 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-#if __AVX2__
                     __m256 p[6];
                     rpp_simd_load(rpp_load48_i8pkd3_to_f32pln3_avx, srcPtrTemp, p);                                 // simd loads
                     rpp_simd_load(rpp_normalize48_avx, p);                                                          // simd normalize
@@ -1106,12 +1060,12 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                     compute_snow_24_host(p[1], p[3], p[5], pSnowParams);                                            // snow adjustment
                     rpp_multiply48_constant(p, avx_p255);                                                           // simd denormalize
                     rpp_simd_store(rpp_store48_f32pln3_to_i8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
-#endif
                     srcPtrTemp += vectorIncrement;
                     dstPtrTempR += vectorIncrementPerChannel;
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
@@ -1123,7 +1077,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                     *dstPtrTempG = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.G - 128.0f));
                     *dstPtrTempB = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.B - 128.0f));
 
-                    srcPtrTemp+=3;
+                    srcPtrTemp += 3;
                     dstPtrTempR++;
                     dstPtrTempG++;
                     dstPtrTempB++;
@@ -1154,9 +1108,9 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-#if __AVX2__
                     __m256 p[6];
                     rpp_simd_load(rpp_load48_i8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);      // simd loads
                     rpp_simd_load(rpp_normalize48_avx, p);                                                          // simd normalize
@@ -1164,12 +1118,12 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                     compute_snow_24_host(p[1], p[3], p[5], pSnowParams);                                            // snow adjustment
                     rpp_multiply48_constant(p, avx_p255);                                                           // simd denormalize
                     rpp_simd_store(rpp_store48_f32pln3_to_i8pkd3_avx, dstPtrTemp, p);                               // simd stores
-#endif
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
                     srcPtrTempB += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
@@ -1208,9 +1162,9 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-#if __AVX2__
                     __m256 p[6];
                     rpp_simd_load(rpp_load48_i8pkd3_to_f32pln3_avx, srcPtrTemp, p);                                 // simd loads
                     rpp_simd_load(rpp_normalize48_avx, p);                                                          // simd normalize
@@ -1218,10 +1172,10 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                     compute_snow_24_host(p[1], p[3], p[5], pSnowParams);                                            // snow adjustment
                     rpp_multiply48_constant(p, avx_p255);                                                           // simd denormalize
                     rpp_simd_store(rpp_store48_f32pln3_to_i8pkd3_avx, dstPtrTemp, p);                               // simd stores
-#endif
                     srcPtrTemp += vectorIncrement;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     RpptFloatRGB pixel;
@@ -1236,7 +1190,6 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                     srcPtrTemp += 3;
                     dstPtrTemp += 3;
                 }
-
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
             }
@@ -1264,9 +1217,9 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 Rpp32u vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-#if __AVX2__
                     __m256 p[6];
                     rpp_simd_load(rpp_load48_i8pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);      // simd loads
                     rpp_simd_load(rpp_normalize48_avx, p);                                                          // simd normalize
@@ -1274,7 +1227,6 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                     compute_snow_24_host(p[1], p[3], p[5], pSnowParams);                                            // snow adjustment
                     rpp_multiply48_constant(p, avx_p255);                                                           // simd denormalize
                     rpp_simd_store(rpp_store48_f32pln3_to_i8pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
-#endif
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
                     srcPtrTempB += vectorIncrementPerChannel;
@@ -1282,6 +1234,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     RpptFloatRGB pixel;
@@ -1310,7 +1263,7 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
             }
         }
         // Snow without fused output-layout toggle (NCHW -> NCHW)
-        else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
+        else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
             alignedLength = (bufferLength & ~15);
 
@@ -1326,41 +1279,26 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-                    srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp;
-                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
-                    {
-                        __m256 p[2];
-                        rpp_simd_load(rpp_load16_i8_to_f32_avx, srcPtrChannel, p);                                  // simd loads
-                        rpp_simd_load(rpp_normalize16_avx, p);                                                      // simd normalize
-                        compute_snow_8_host(&p[0], pSnowParams);                                                    // snow adjustment
-                        compute_snow_8_host(&p[1], pSnowParams);                                                    // snow adjustment
-                        rpp_multiply16_constant(p, avx_p255);                                                       // simd denormalize
-                        rpp_simd_store(rpp_store16_f32_to_i8_avx, dstPtrChannel, p);                                // simd stores
-                        srcPtrChannel += srcDescPtr->strides.cStride;
-                        dstPtrChannel += dstDescPtr->strides.cStride;
-                    }
+                    __m256 p[2];
+                    rpp_simd_load(rpp_load16_i8_to_f32_avx, srcPtrTemp, p);                                         // simd loads
+                    rpp_simd_load(rpp_normalize16_avx, p);                                                          // simd normalize
+                    compute_snow_8_host(&p[0], pSnowParams);                                                        // snow adjustment
+                    compute_snow_8_host(&p[1], pSnowParams);                                                        // snow adjustment
+                    rpp_multiply16_constant(p, avx_p255);                                                           // simd denormalize
+                    rpp_simd_store(rpp_store16_f32_to_i8_avx, dstPtrTemp, p);                                       // simd stores
                     srcPtrTemp += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrementPerChannel;
                 }
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    srcPtrChannel = srcPtrTemp;
-                    dstPtrChannel = dstPtrTemp++;
-                    
-                    for (Rpp32u c = 0; c < srcDescPtr->c; c++)
-                    {
-                        RpptFloatRGB pixel;
-                        pixel.R = static_cast<Rpp32f>((*srcPtrChannel + 128.0f) * ONE_OVER_255);
-                        pixel.G = static_cast<Rpp32f>((*srcPtrChannel + 128.0f) * ONE_OVER_255);
-                        pixel.B = static_cast<Rpp32f>((*srcPtrChannel + 128.0f) * ONE_OVER_255);
-                        compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
-                        pixel.R *= 255.0f;
-                        *dstPtrChannel = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.R - 128.0f));
-                        srcPtrChannel += srcDescPtr->strides.cStride;
-                        dstPtrChannel += dstDescPtr->strides.cStride;
-                    }
+                    RpptFloatRGB pixel;
+                    pixel.R = static_cast<Rpp32f>((*srcPtrTemp + 128.0f) * ONE_OVER_255);
+                    pixel.G = static_cast<Rpp32f>((*srcPtrTemp + 128.0f) * ONE_OVER_255);
+                    pixel.B = static_cast<Rpp32f>((*srcPtrTemp + 128.0f) * ONE_OVER_255);
+                    compute_snow_host(&pixel, brightnessCoefficient, snowThreshold, darkMode);
+                    pixel.R *= 255.0f;
+                    *dstPtrTemp++ = static_cast<Rpp8s>(RPPPIXELCHECKI8(pixel.R - 128.0f));
                     srcPtrTemp++;
                 }
                 srcPtrRow += srcDescPtr->strides.hStride;
