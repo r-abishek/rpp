@@ -63,11 +63,10 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
 
+#if __AVX2__
         Rpp32u alignedLength = (bufferLength / 48) * 48;
         Rpp32u vectorIncrement = 48;
         Rpp32u vectorIncrementPerChannel = 16;
-
-#if __AVX2__
         __m256 pSnowParams[3];
         pSnowParams[0] = _mm256_set1_ps(brightnessCoefficient);
         pSnowParams[1] = _mm256_set1_ps(snowThreshold);
@@ -318,8 +317,9 @@ RppStatus snow_u8_u8_host_tensor(Rpp8u *srcPtr,
         // Snow without fused output-layout toggle (NCHW -> NCHW)
         else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
+#if __AVX2__ 
             alignedLength = (bufferLength & ~15);
-
+#endif
             Rpp8u *srcPtrRow, *dstPtrRow;
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
@@ -401,11 +401,10 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
 
+#if __AVX2__
         Rpp32u alignedLength = (bufferLength / 24) * 24;
         Rpp32u vectorIncrement = 24;
         Rpp32u vectorIncrementPerChannel = 8;
-
-#if __AVX2__
         __m256 pSnowParams[3];
         pSnowParams[0] = _mm256_set1_ps(brightnessCoefficient);
         pSnowParams[1] = _mm256_set1_ps(snowThreshold);
@@ -634,8 +633,9 @@ RppStatus snow_f32_f32_host_tensor(Rpp32f *srcPtr,
         // Snow without fused output-layout toggle (NCHW -> NCHW)
         else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
+#if __AVX2__
             alignedLength = (bufferLength & ~15);
-
+#endif
             Rpp32f *srcPtrRow, *dstPtrRow;
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
@@ -712,10 +712,10 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
 
+#if __AVX2__
         Rpp32u alignedLength = (bufferLength / 24) * 24;
         Rpp32u vectorIncrement = 24;
         Rpp32u vectorIncrementPerChannel = 8;
-#if __AVX2__
         __m256 pSnowParams[3];
         pSnowParams[0] = _mm256_set1_ps(brightnessCoefficient);
         pSnowParams[1] = _mm256_set1_ps(snowThreshold);
@@ -943,8 +943,9 @@ RppStatus snow_f16_f16_host_tensor(Rpp16f *srcPtr,
         // Snow without fused output-layout toggle (NCHW -> NCHW)
         else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
+#if __AVX2__
             alignedLength = (bufferLength & ~15);
-
+#endif 
             Rpp16f *srcPtrRow, *dstPtrRow;
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
@@ -1021,11 +1022,10 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
 
+#if __AVX2__
         Rpp32u alignedLength = (bufferLength / 48) * 48;
         Rpp32u vectorIncrement = 48;
         Rpp32u vectorIncrementPerChannel = 16;
-
-#if __AVX2__
         __m256 pSnowParams[3];
         pSnowParams[0] = _mm256_set1_ps(brightnessCoefficient);
         pSnowParams[1] = _mm256_set1_ps(snowThreshold);
@@ -1265,8 +1265,9 @@ RppStatus snow_i8_i8_host_tensor(Rpp8s *srcPtr,
         // Snow without fused output-layout toggle (NCHW -> NCHW)
         else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
+#if __AVX2__
             alignedLength = (bufferLength & ~15);
-
+#endif
             Rpp8s *srcPtrRow, *dstPtrRow;
             srcPtrRow = srcPtrChannel;
             dstPtrRow = dstPtrChannel;
