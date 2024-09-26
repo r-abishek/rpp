@@ -3233,7 +3233,6 @@ inline void compute_snow_host(RpptFloatRGB *pixel, Rpp32f brightnessCoefficient,
     pixel->R = hueCoefficient[0];
     pixel->G = hueCoefficient[1];
     pixel->B = hueCoefficient[2];
-
 }
 
 inline void compute_snow_24_host(__m256 &pVecR, __m256 &pVecG, __m256 &pVecB, __m256 *pSnowParams)

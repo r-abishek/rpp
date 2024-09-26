@@ -4,30 +4,28 @@
 
 __device__ __forceinline__ void snow_1GRAY_hip_compute(float *pixel, float *brightnessCoefficient, float *snowThreshold, int *darkMode)
 {
-    float l = *pixel;
-    float lower_threshold = 0.0f;
-    float upper_threshold = 0.39215686f;
+    float lightness = *pixel;
+    float lowerThreshold = 0.0f;
+    float upperThreshold = 0.39215686f;
     float brightnessFactor = 2.5f;
     //Lighter the darken images
-    if(l >= lower_threshold && l <= upper_threshold && (*darkMode == 1))
-    {
-        l = l * fmaf((brightnessFactor - 1.0f), (1.0f - (l - lower_threshold) / (upper_threshold - lower_threshold)), 1.0f);
-    }
+    if(lightness >= lowerThreshold && lightness <= upperThreshold && (*darkMode == 1))
+        lightness = lightness * fmaf((brightnessFactor - 1.0f), (1.0f - (l - lowerThreshold) / (upperThreshold - lowerThreshold)), 1.0f);
+
     // Modify L 
     if(l <= *snowThreshold)
-    {
-        l = l * (*brightnessCoefficient);
-    }
-    *pixel = l;
+        lightness = lightness * (*brightnessCoefficient);
+
+    *pixel = lightness;
 
 }
 __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float *brightnessCoefficient, float *snowThreshold, int *darkMode)
 {
     // RGB to HSL
-    float hue, sat, l;
+    float hue, sat, lightness;
     float rf, gf, bf, cmax, cmin, delta;
-    float lower_threshold = 0.0f;
-    float upper_threshold = 0.39215686f;
+    float lowerThreshold = 0.0f;
+    float upperThreshold = 0.39215686f;
     float brightnessFactor = 2.5f;
 
     rf = *pixelR;
@@ -38,41 +36,31 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
     delta = cmax - cmin;
     hue = 0.0f;
     sat = 0.0f;
-    l = (cmax + cmin) * 0.5f;
+    lightness = (cmax + cmin) * 0.5f;
     if(delta != 0.0f)
     {
         //saturation calculation
-        float mul = (l <= 0.5f) ? l : (1.0f - l);
+        float mul = (lightness <= 0.5f) ? lightness : (1.0f - lightness);
         sat = delta / (mul * 2.0f);
         
         // hue calculation
         if(cmax == rf)
-        {
             hue = (gf - bf) / delta;
-        }
         else if(cmax == gf)
-        {
             hue = 2.0f + (bf - rf) / delta;
-        }
         else
-        {
             hue = 4.0f + (rf - gf) / delta;
-        }
-        hue = hue * ONE_OVER_6;
 
+        hue = hue * ONE_OVER_6;
     }
 
     //Lighter the darken images
-    if(l >= lower_threshold && l <= upper_threshold && (*darkMode == 1))
-    {
-        l = l * fmaf((brightnessFactor - 1.0f), (1.0f - (l - lower_threshold) / (upper_threshold - lower_threshold)), 1.0f);
-    }
+    if(lightness >= lowerThreshold && lightness <= upperThreshold && (*darkMode == 1))
+        lightness = lightness * fmaf((brightnessFactor - 1.0f), (1.0f - (lightness - lowerThreshold) / (upperThreshold - lowerThreshold)), 1.0f);
 
     // Modify L 
-    if(l <= *snowThreshold && !((hue >= 0.514f && hue <= 0.63f) && (sat >= 0.196f) && (l >= 0.196f)))
-    {
-        l = l * (*brightnessCoefficient);
-    }
+    if(lightness <= *snowThreshold && !((hue >= 0.514f && hue <= 0.63f) && (sat >= 0.196f) && (lightness >= 0.196f)))
+        lightness = lightness * (*brightnessCoefficient);
 
     float4 xt_f4 = make_float4(
         6.0f * (hue - TWO_OVER_3),
@@ -98,32 +86,31 @@ __device__ __forceinline__ void snow_1RGB_hip_compute(float *pixelR, float *pixe
 
     float sat2 = 2.0f * sat;
     float satinv = 1.0f - sat;
-    float luminv = 1.0f - l;
-    float lum2m1 = (2.0f * l) - 1.0f;
+    float luminv = 1.0f - lightness;
+    float lum2m1 = (2.0f * lightness) - 1.0f;
     float4 ct_f4 = (sat2 * xt_f4) + satinv;
 
     float4 rgb_f4;
-    if(l >= 0.5f)
+    if(lightness >= 0.5f)
         rgb_f4 = (luminv * ct_f4) + lum2m1;
     else
-        rgb_f4 = l * ct_f4;
+        rgb_f4 = lightness * ct_f4;
     
     *pixelR = rgb_f4.x;
     *pixelG = rgb_f4.y;
     *pixelB = rgb_f4.z;
 }
 
-
 __device__ __forceinline__ void snow_8RGB_hip_compute(d_float24 *pix_f24, float *brightnessCoefficient, float *snowThreshold, int *darkMode)
 {
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 0]), &(pix_f24->f1[ 8]), &(pix_f24->f1[16]), brightnessCoefficient, snowThreshold, darkMode);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 1]), &(pix_f24->f1[ 9]), &(pix_f24->f1[17]), brightnessCoefficient, snowThreshold, darkMode);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 2]), &(pix_f24->f1[10]), &(pix_f24->f1[18]), brightnessCoefficient, snowThreshold, darkMode);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 3]), &(pix_f24->f1[11]), &(pix_f24->f1[19]), brightnessCoefficient, snowThreshold, darkMode);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 4]), &(pix_f24->f1[12]), &(pix_f24->f1[20]), brightnessCoefficient, snowThreshold, darkMode);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 5]), &(pix_f24->f1[13]), &(pix_f24->f1[21]), brightnessCoefficient, snowThreshold, darkMode);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 6]), &(pix_f24->f1[14]), &(pix_f24->f1[22]), brightnessCoefficient, snowThreshold, darkMode);
-    snow_1RGB_hip_compute(&(pix_f24->f1[ 7]), &(pix_f24->f1[15]), &(pix_f24->f1[23]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[0]), &(pix_f24->f1[ 8]), &(pix_f24->f1[16]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[1]), &(pix_f24->f1[ 9]), &(pix_f24->f1[17]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[2]), &(pix_f24->f1[10]), &(pix_f24->f1[18]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[3]), &(pix_f24->f1[11]), &(pix_f24->f1[19]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[4]), &(pix_f24->f1[12]), &(pix_f24->f1[20]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[5]), &(pix_f24->f1[13]), &(pix_f24->f1[21]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[6]), &(pix_f24->f1[14]), &(pix_f24->f1[22]), brightnessCoefficient, snowThreshold, darkMode);
+    snow_1RGB_hip_compute(&(pix_f24->f1[7]), &(pix_f24->f1[15]), &(pix_f24->f1[23]), brightnessCoefficient, snowThreshold, darkMode);
 }
 
 __device__ __forceinline__ void snow_8GRAY_hip_compute(d_float8 *pix_f8, float *brightnessCoefficient, float *snowThreshold, int *darkMode)
@@ -266,7 +253,6 @@ __global__ void snow_pln_hip_tensor(T *srcPtr,
         rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &pix_f8);
         snow_hip_compute(srcPtr, &pix_f8, brightnessCoefficient, snowThreshold, darkMode);
         rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &pix_f8);
-
     }
 }
 
@@ -343,7 +329,6 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
     if (roiType == RpptRoiType::LTRB)
         hip_exec_roi_converison_ltrb_to_xywh(roiTensorPtrSrc, handle);
 
-    
     int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = dstDescPtr->n;
@@ -403,7 +388,6 @@ RppStatus hip_exec_snow_tensor(T *srcPtr,
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
-            globalThreads_x = (srcDescPtr->strides.hStride + 7) >> 3;
             hipLaunchKernelGGL(snow_pln3_pkd3_hip_tensor,
                                dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
