@@ -57,38 +57,43 @@ def func_group_finder(case_number):
         return "miscellaneous"
 
 def run_unit_test_cmd(headerPath, dataPath, dstPathTemp, layout, case, numRuns, testType, qaMode, batchSize):
-    print(f"./Tensor_voxel_hip {headerPath} {dataPath} {dstPathTemp} {layout} {case} {numRuns} {testType} {qaMode} {batchSize} {bitDepth}")
-    result = subprocess.run([buildFolderPath + "/build/Tensor_voxel_hip", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE) # nosec
-    print(result.stdout.decode())
-    print("------------------------------------------------------------------------------------------")
+    print("\n./Tensor_voxel_hip " + headerPath + " " + dataPath + " " + dstPathTemp + " " + str(layout) + " " + str(case) + " " + str(numRuns) + " " + str(testType) + " " + str(qaMode) + " " + str(batchSize) + " " + str(bitDepth))
+    result = subprocess.Popen([buildFolderPath + "/build/Tensor_voxel_hip", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE) # nosec
+    stdout_data, stderr_data = result.communicate()
+    print(stdout_data.decode())
+    print("\n------------------------------------------------------------------------------------------")
 
 def run_performance_test_cmd(loggingFolder, logFileLayout, headerPath, dataPath, dstPathTemp, layout, case, numRuns, testType, qaMode, batchSize):
-    with open(f"{loggingFolder}/Tensor_voxel_hip_{logFileLayout}_raw_performance_log.txt", "a") as logFile:
-        print(f"./Tensor_voxel_hip {headerPath} {dataPath} {dstPathTemp} {layout} {case} {numRuns} {testType} {qaMode} {batchSize} {bitDepth}")
-        process = subprocess.Popen([buildFolderPath + "/build/Tensor_voxel_hip", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True) # nosec
+   with open(loggingFolder + "/Tensor_voxel_hip_" + logFileLayout + "_raw_performance_log.txt", "a") as logFile:
+        logFile.write("./Tensor_voxel_hip " + headerPath + " " + dataPath + " " + dstPathTemp + " " + str(layout) + " " + str(case) + " " + str(numRuns) + " " + str(testType) + " " + str(qaMode) + " " + str(batchSize) + " " + str(bitDepth) + "\n")
+        process = subprocess.Popen([buildFolderPath + "/build/Tensor_voxel_hip", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) # nosec
         while True:
             output = process.stdout.readline()
             if not output and process.poll() is not None:
                 break
-            print(output.strip())
+            output = output.decode('utf-8')
+            if output:
+                print(output, end='')
+                logFile.write(output)
             if "Running" in output or "max,min,avg wall times" in output:
                 cleanedOutput = ''.join(char for char in output if 32 <= ord(char) <= 126)  # Remove control characters
                 cleanedOutput = cleanedOutput.strip()  # Remove leading/trailing whitespace
                 logFile.write(cleanedOutput + '\n')
                 if "max,min,avg wall times" in output:
                     logFile.write("\n")
-        print("------------------------------------------------------------------------------------------")
+        print("\n------------------------------------------------------------------------------------------")
 
 def run_performance_test_with_profiler_cmd(loggingFolder, logFileLayout, headerPath, dataPath, dstPathTemp, layout, case, numRuns, testType, qaMode, batchSize):
     layoutName = get_layout_name(layout)
-    if not os.path.exists(f"{loggingFolder}/Tensor_{layoutName}/case_{case}"):
-        os.mkdir(f"{loggingFolder}/Tensor_{layoutName}/case_{case}")
+    directory_path = os.path.join(loggingFolder, "Tensor_" + layoutName, "case_" + str(case))
+    if not os.path.exists(directory_path):
+        os.mkdir(directory_path)
 
     bitDepths = [0, 2]
     for bitDepth in bitDepths:
-        with open(f"{loggingFolder}/Tensor_voxel_hip_{logFileLayout}_raw_performance_log.txt", "a") as logFile:
-            print(f"\nrocprof --basenames on --timestamp on --stats -o {dstPathTemp}/Tensor_{layoutName}/case_{case}/output_case{case}.csv ./Tensor_voxel_hip {headerPath} {dataPath} {dstPathTemp}  {layout} {case}{numRuns} {testType} {qaMode} {batchSize} {bitDepth}")
-            process = subprocess.Popen([ 'rocprof', '--basenames', 'on', '--timestamp', 'on', '--stats', '-o', f"{dstPath}/Tensor_{layoutName}/case_{case}/output_case{case}.csv", buildFolderPath + "/build/Tensor_voxel_hip", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) # nosec
+        with open(loggingFolder + "/Tensor_voxel_hip_" + logFileLayout + "_raw_performance_log.txt", "a") as logFile:
+            logFile.write("\nrocprof --basenames on --timestamp on --stats -o " + dstPathTemp + "/Tensor_" + layoutName + "/case_" + str(case) + "/output_case" + str(case) + ".csv ./Tensor_voxel_hip " + headerPath + " " + dataPath + " " + dstPathTemp + " " + str(layout) + " " + str(case) + " " + str(numRuns) + " " + str(testType) + " " + str(qaMode) + " " + str(batchSize) + " " + str(bitDepth) + "\n")
+            process = subprocess.Popen(['rocprof', '--basenames', 'on', '--timestamp', 'on', '--stats', '-o', dstPath + "/Tensor_" + layoutName + "/case_" + str(case) + "/output_case" + str(case) + ".csv", buildFolderPath + "/build/Tensor_voxel_hip", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)  # nosec
             while True:
                 output = process.stdout.readline()
                 if not output and process.poll() is not None:
@@ -227,32 +232,27 @@ os.makedirs(buildFolderPath + "/build")
 os.chdir(buildFolderPath + "/build")
 
 # Run cmake and make commands
-subprocess.run(["cmake", scriptPath], cwd=".")   # nosec
-subprocess.run(["make", "-j16"], cwd=".")  # nosec
+subprocess.call(["cmake", scriptPath], cwd=".")   # nosec
+subprocess.call(["make", "-j16"], cwd=".")  # nosec
 
 # List of cases supported
 supportedCaseList = ['0', '1', '2', '3', '4', '5', '6']
 
 # Create folders based on testType and profilingOption
 if testType == 1 and profilingOption == "YES":
-    os.makedirs(f"{dstPath}/Tensor_PKD3")
-    os.makedirs(f"{dstPath}/Tensor_PLN1")
-    os.makedirs(f"{dstPath}/Tensor_PLN3")
-
-print("\n\n\n\n\n")
-print("##########################################################################################")
-print("Running all layout Inputs...")
-print("##########################################################################################")
+    os.makedirs(dstPath + "/Tensor_PKD3")
+    os.makedirs(dstPath + "/Tensor_PLN1")
+    os.makedirs(dstPath + "/Tensor_PLN3")
 
 bitDepths = [0, 2]
 if (testType == 0 or (testType == 1 and profilingOption == "NO")):
+    noCaseSupported = all(case not in supportedCaseList for case in caseList)
+    if noCaseSupported:
+        print("\ncase numbers %s are not supported" % caseList)
+        exit(0)
     for case in caseList:
         if case not in supportedCaseList:
             continue
-        print("\n\n\n\n")
-        print("--------------------------------")
-        print("Running a New Functionality...")
-        print("--------------------------------")
         for layout in range(3):
             dstPathTemp, logFileLayout = process_layout(layout, qaMode, case, dstPath, "hip", func_group_finder)
             if testType == 0 and qaMode == 0:
@@ -263,11 +263,13 @@ if (testType == 0 or (testType == 1 and profilingOption == "NO")):
             if testType == 0 and qaMode:
                 bitDepths = [2]
             for bitDepth in bitDepths:
-                print("\n\n\nRunning New Bit Depth...\n-------------------------\n\n")
-                print("\n\n\n\n")
                 run_test(loggingFolder, logFileLayout, headerPath, dataPath, dstPathTemp, layout, case, numRuns, testType, qaMode, batchSize)
 elif (testType == 1 and profilingOption == "YES"):
     NEW_FUNC_GROUP_LIST = [0, 1]
+    noCaseSupported = all(case not in supportedCaseList for case in caseList)
+    if noCaseSupported:
+        print("\ncase numbers %s are not supported" % caseList)
+        exit(0)
     for case in caseList:
         if case not in supportedCaseList:
             continue
@@ -322,7 +324,7 @@ elif (testType == 1 and profilingOption == "YES"):
                             continue
 
             new_file.close()
-            subprocess.call(['chown', '{}:{}'.format(os.getuid(), os.getgid()), RESULTS_DIR + "/consolidated_results_" + TYPE + ".stats.csv"])  # nosec
+            subprocess.call(['chown', str(os.getuid()) + ':' + str(os.getgid()), RESULTS_DIR + "/consolidated_results_" + TYPE + ".stats.csv"])  # nosec
         try:
             generate_performance_reports(d_counter, TYPE_LIST, RESULTS_DIR)
 
@@ -343,7 +345,7 @@ if qaMode and testType == 0:
     checkFile = os.path.isfile(qaFilePath)
     if checkFile:
         print("---------------------------------- Results of QA Test - Tensor_voxel_hip ----------------------------------\n")
-        print_qa_tests_summary(qaFilePath, supportedCaseList, nonQACaseList)
+        print_qa_tests_summary(qaFilePath, supportedCaseList, nonQACaseList, "Tensor_voxel_hip")
 
 layoutDict = {0:"PKD3", 1:"PLN3", 2:"PLN1"}
 if (testType == 0 and qaMode == 0): # Unit tests

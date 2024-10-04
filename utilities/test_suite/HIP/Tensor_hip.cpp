@@ -66,7 +66,8 @@ int main(int argc, char **argv)
     bool additionalParamCase = (testCase == 8 || testCase == 21 || testCase == 23|| testCase == 24 || testCase == 40 || testCase == 41 || testCase == 49 || testCase == 54 || testCase == 79);
     bool kernelSizeCase = (testCase == 40 || testCase == 41 || testCase == 49 || testCase == 54);
     bool dualInputCase = (testCase == 2 || testCase == 30 || testCase == 33 || testCase == 61 || testCase == 63 || testCase == 65 || testCase == 68);
-    bool randomOutputCase = (testCase == 8 || testCase == 84 || testCase == 49 || testCase == 54);
+    bool randomOutputCase = (testCase == 6 || testCase == 8 || testCase == 84 || testCase == 49 || testCase == 54);
+    bool nonQACase = (testCase == 24);
     bool interpolationTypeCase = (testCase == 21 || testCase == 23 || testCase == 24 || testCase == 79);
     bool reductionTypeCase = (testCase == 87 || testCase == 88 || testCase == 89 || testCase == 90 || testCase == 91);
     bool noiseTypeCase = (testCase == 8);
@@ -79,26 +80,26 @@ int main(int argc, char **argv)
 
     if (verbosity == 1)
     {
-        printf("\nInputs for this test case are:");
-        printf("\nsrc1 = %s", argv[1]);
-        printf("\nsrc2 = %s", argv[2]);
+        cout << "\nInputs for this test case are:";
+        cout << "\nsrc1 = " << argv[1];
+        cout << "\nsrc2 = " << argv[2];
         if (testType == 0)
-            printf("\ndst = %s", argv[3]);
-        printf("\nu8 / f16 / f32 / u8->f16 / u8->f32 / i8 / u8->i8 (0/1/2/3/4/5/6) = %s", argv[4]);
-        printf("\noutputFormatToggle (pkd->pkd = 0 / pkd->pln = 1) = %s", argv[5]);
-        printf("\ncase number (0:91) = %s", argv[6]);
-        printf("\nnumber of times to run = %s", argv[8]);
-        printf("\ntest type - (0 = unit tests / 1 = performance tests) = %s", argv[9]);
-        printf("\nlayout type - (0 = PKD3/ 1 = PLN3/ 2 = PLN1) = %s", argv[10]);
-        printf("\nqa mode - 0/1 = %s", argv[12]);
-        printf("\ndecoder type - (0 = TurboJPEG / 1 = OpenCV) = %s", argv[13]);
-        printf("\nbatch size = %s", argv[14]);
+            cout << "\ndst = " << argv[3];
+        cout << "\nu8 / f16 / f32 / u8->f16 / u8->f32 / i8 / u8->i8 (0/1/2/3/4/5/6) = " << argv[4];
+        cout << "\noutputFormatToggle (pkd->pkd = 0 / pkd->pln = 1) = " << argv[5];
+        cout << "\ncase number (0:91) = " << argv[6];
+        cout << "\nnumber of times to run = " << argv[8];
+        cout << "\ntest type - (0 = unit tests / 1 = performance tests) = " << argv[9];
+        cout << "\nlayout type - (0 = PKD3/ 1 = PLN3/ 2 = PLN1) = " << argv[10];
+        cout << "\nqa mode - 0/1 = " << argv[12];
+        cout << "\ndecoder type - (0 = TurboJPEG / 1 = OpenCV) = " << argv[13];
+        cout << "\nbatch size = " << argv[14];
     }
 
     if (argc < MIN_ARG_COUNT)
     {
-        printf("\nImproper Usage! Needs all arguments!\n");
-        printf("\nUsage: <src1 folder> <src2 folder (place same as src1 folder for single image functionalities)> <dst folder> <u8 = 0 / f16 = 1 / f32 = 2 / u8->f16 = 3 / u8->f32 = 4 / i8 = 5 / u8->i8 = 6> <outputFormatToggle (pkd->pkd = 0 / pkd->pln = 1)> <case number = 0:87> <number of runs > 0> <layout type (layout type - (0 = PKD3/ 1 = PLN3/ 2 = PLN1)> < qa mode (0/1)> <decoder type (0/1)> <batch size > 1> <roiList> <verbosity = 0/1>>\n");
+        cout << "\nImproper Usage! Needs all arguments!\n";
+        cout << "\nUsage: <src1 folder> <src2 folder (place same as src1 folder for single image functionalities)> <dst folder> <u8 = 0 / f16 = 1 / f32 = 2 / u8->f16 = 3 / u8->f32 = 4 / i8 = 5 / u8->i8 = 6> <outputFormatToggle (pkd->pkd = 0 / pkd->pln = 1)> <case number = 0:87> <number of runs > 0> <layout type (0 = PKD3/ 1 = PLN3/ 2 = PLN1)> <qa mode (0/1)> <decoder type (0/1)> <batch size > 1> <roiList> <verbosity = 0/1>>\n";
         return -1;
     }
 
@@ -106,24 +107,24 @@ int main(int argc, char **argv)
     {
         if(testCase == 36 || testCase == 31 || testCase == 35 || testCase == 45 || testCase == 86)
         {
-            printf("\ncase %d does not exist for PLN1 layout\n", testCase);
+            cout << "\ncase " << testCase << " does not exist for PLN1 layout\n";
             return -1;
         }
         else if (outputFormatToggle != 0)
         {
-            printf("\nPLN1 cases don't have outputFormatToggle! Please input outputFormatToggle = 0\n");
+            cout << "\nPLN1 cases don't have outputFormatToggle! Please input outputFormatToggle = 0\n";
             return -1;
         }
     }
 
     if(pln1OutTypeCase && outputFormatToggle != 0)
     {
-        printf("\ntest case %d don't have outputFormatToggle! Please input outputFormatToggle = 0\n", testCase);
+        cout << "\ntest case " << testCase << " don't have outputFormatToggle! Please input outputFormatToggle = 0\n";
         return -1;
     }
     else if (reductionTypeCase && outputFormatToggle != 0)
     {
-        printf("\nReduction Kernels don't have outputFormatToggle! Please input outputFormatToggle = 0\n");
+        cout << "\nReduction Kernels don't have outputFormatToggle! Please input outputFormatToggle = 0\n";
         return -1;
     }
     else if(batchSize > MAX_BATCH_SIZE)
@@ -142,7 +143,7 @@ int main(int argc, char **argv)
     if (funcName.empty())
     {
         if (testType == 0)
-            printf("\ncase %d is not supported\n", testCase);
+            cout << "\ncase " << testCase << " is not supported\n";
 
         return -1;
     }
@@ -366,10 +367,19 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&roiPtrInputCropRegion, 4 * sizeof(RpptROI)));
 
     void *d_rowRemapTable, *d_colRemapTable;
-    if(testCase == 79)
+    if(testCase == 26 || testCase == 79)
     {
         CHECK_RETURN_STATUS(hipMalloc(&d_rowRemapTable, ioBufferSize * sizeof(Rpp32u)));
         CHECK_RETURN_STATUS(hipMalloc(&d_colRemapTable, ioBufferSize * sizeof(Rpp32u)));
+        CHECK_RETURN_STATUS(hipMemset(d_rowRemapTable, 0, ioBufferSize * sizeof(Rpp32u)));
+        CHECK_RETURN_STATUS(hipMemset(d_colRemapTable, 0, ioBufferSize * sizeof(Rpp32u)));
+    }
+
+    Rpp32f *cameraMatrix, *distortionCoeffs;
+    if(testCase == 26)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&cameraMatrix, batchSize * 9 * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&distortionCoeffs, batchSize * 8 * sizeof(Rpp32f)));
     }
 
     Rpp32u boxesInEachImage = 3;
@@ -397,12 +407,20 @@ int main(int argc, char **argv)
     if(testCase == 46)
         CHECK_RETURN_STATUS(hipHostMalloc(&intensity, batchSize * sizeof(Rpp32f)));
 
+    Rpp32u *kernelSizeTensor;
+    if(testCase == 6)
+        CHECK_RETURN_STATUS(hipHostMalloc(&kernelSizeTensor, batchSize * sizeof(Rpp32u)));
+
     RpptChannelOffsets *rgbOffsets;
     if(testCase == 35)
         CHECK_RETURN_STATUS(hipHostMalloc(&rgbOffsets, batchSize * sizeof(RpptChannelOffsets)));
 
+    void *d_interDstPtr;
+    if(testCase == 5)
+        CHECK_RETURN_STATUS(hipHostMalloc(&d_interDstPtr, srcDescPtr->strides.nStride * srcDescPtr->n * sizeof(Rpp32f)));
+
     // case-wise RPP API and measure time script for Unit and Performance test
-    printf("\nRunning %s %d times (each time with a batch size of %d images) and computing mean statistics...", func.c_str(), numRuns, batchSize);
+    cout << "\nRunning " << func << " " << numRuns << " times (each time with a batch size of " << batchSize << " images) and computing mean statistics...";
     for(int iterCount = 0; iterCount < noOfIterations; iterCount++)
     {
         vector<string>::const_iterator imagesPathStart = imageNamesPath.begin() + (iterCount * batchSize);
@@ -552,6 +570,36 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case 5:
+                {
+                    testCaseName = "pixelate";
+
+                    Rpp32f pixelationPercentage = 87.5;
+
+                    startWallTime = omp_get_wtime();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_pixelate_gpu(d_input, srcDescPtr, d_output, dstDescPtr, d_interDstPtr, pixelationPercentage, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case 6:
+                {
+                    testCaseName = "jitter";
+
+                    Rpp32u seed = 1255459;
+                    for (i = 0; i < batchSize; i++)
+                        kernelSizeTensor[i] = 5;
+
+                    startWallTime = omp_get_wtime();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_jitter_gpu(d_input, srcDescPtr, d_output, dstDescPtr, kernelSizeTensor, seed, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 case 8:
                 {
                     testCaseName = "noise";
@@ -695,6 +743,52 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
                         rppt_rotate_gpu(d_input, srcDescPtr, d_output, dstDescPtr, angle, interpolationType, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case 24:
+                {
+                    testCaseName = "warp_affine";
+
+                    if ((interpolationType != RpptInterpolationType::BILINEAR) && (interpolationType != RpptInterpolationType::NEAREST_NEIGHBOR))
+                    {
+                        missingFuncFlag = 1;
+                        break;
+                    }
+
+                    Rpp32f6 affineTensor_f6[batchSize];
+                    Rpp32f *affineTensor = (Rpp32f *)affineTensor_f6;
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        affineTensor_f6[i].data[0] = 1.23;
+                        affineTensor_f6[i].data[1] = 0.5;
+                        affineTensor_f6[i].data[2] = 0;
+                        affineTensor_f6[i].data[3] = -0.8;
+                        affineTensor_f6[i].data[4] = 0.83;
+                        affineTensor_f6[i].data[5] = 0;
+                    }
+
+                    startWallTime = omp_get_wtime();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_warp_affine_gpu(d_input, srcDescPtr, d_output, dstDescPtr, affineTensor, interpolationType, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case 26:
+                {
+                    testCaseName = "lens_correction";
+
+                    RpptDesc tableDesc = srcDesc;
+                    RpptDescPtr tableDescPtr = &tableDesc;
+                    init_lens_correction(batchSize, srcDescPtr, cameraMatrix, distortionCoeffs, tableDescPtr);
+
+                    startWallTime = omp_get_wtime();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_lens_correction_gpu(d_input, srcDescPtr, d_output, dstDescPtr, static_cast<Rpp32f *>(d_rowRemapTable), static_cast<Rpp32f *>(d_colRemapTable), tableDescPtr, cameraMatrix, distortionCoeffs, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -1368,7 +1462,7 @@ int main(int argc, char **argv)
             wallTime = endWallTime - startWallTime;
             if (missingFuncFlag == 1)
             {
-                printf("\nThe functionality %s doesn't yet exist in RPP\n", func.c_str());
+                cout << "\nThe functionality " << func << " doesn't yet exist in RPP\n";
                 return -1;
             }
 
@@ -1380,15 +1474,18 @@ int main(int argc, char **argv)
 
         if (testType == 0)
         {
-            cout << "\n\nGPU Backend Wall Time: " << wallTime <<" ms/batch"<< endl;
+            cout <<"\n\n";
+            if(noOfIterations > 1)
+                cout <<"Execution Timings for Iteration "<< iterCount+1 <<":"<<endl;
+            cout << "GPU Backend Wall Time: " << wallTime <<" ms/batch";
             // Display results for reduction functions
             if (reductionTypeCase)
             {
                 if(srcDescPtr->c == 3)
-                    printf("\nReduction result (Batch of 3 channel images produces 4 results per image in batch): ");
+                    cout << "\nReduction result (Batch of 3 channel images produces 4 results per image in batch): ";
                 else if(srcDescPtr->c == 1)
                 {
-                    printf("\nReduction result (Batch of 1 channel images produces 1 result per image in batch): ");
+                    cout << "\nReduction result (Batch of 1 channel images produces 1 result per image in batch): ";
                     reductionFuncResultArrLength = srcDescPtr->n;
                 }
 
@@ -1417,13 +1514,13 @@ int main(int argc, char **argv)
                     else
                         print_array(static_cast<Rpp8s *>(reductionFuncResultArr), reductionFuncResultArrLength, precision);
                 }
-                printf("\n");
+                cout << "\n";
 
                 /*Compare the output of the function with golden outputs only if
                 1.QA Flag is set
                 2.input bit depth 0 (U8)
                 3.source and destination layout are the same*/
-                if(qaFlag && inputBitDepth == 0 && (srcDescPtr->layout == dstDescPtr->layout) && !(randomOutputCase))
+                if(qaFlag && inputBitDepth == 0 && (srcDescPtr->layout == dstDescPtr->layout) && !(randomOutputCase) && !(nonQACase))
                 {
                     if (testCase == 87)
                         compare_reduction_output(static_cast<uint64_t *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
@@ -1491,7 +1588,7 @@ int main(int argc, char **argv)
                 2.input bit depth 0 (Input U8 && Output U8)
                 3.source and destination layout are the same
                 4.augmentation case does not generate random output*/
-                if(qaFlag && inputBitDepth == 0 && ((srcDescPtr->layout == dstDescPtr->layout) || pln1OutTypeCase) && !(randomOutputCase))
+                if(qaFlag && inputBitDepth == 0 && ((srcDescPtr->layout == dstDescPtr->layout) || pln1OutTypeCase) && !(randomOutputCase) && !(nonQACase))
                     compare_output<Rpp8u>(outputu8, testCaseName, srcDescPtr, dstDescPtr, dstImgSizes, batchSize, interpolationTypeName, noiseTypeName, testCase, dst, scriptPath);
 
                 // Calculate exact dstROI in XYWH format for OpenCV dump
@@ -1546,6 +1643,18 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(cropRoi));
         CHECK_RETURN_STATUS(hipHostFree(patchRoi));
     }
+    if(testCase == 26)
+    {
+        CHECK_RETURN_STATUS(hipHostFree(cameraMatrix));
+        CHECK_RETURN_STATUS(hipHostFree(distortionCoeffs));
+    }
+    if(testCase == 79)
+    {
+        free(rowRemapTable);
+        free(colRemapTable);
+        CHECK_RETURN_STATUS(hipFree(d_rowRemapTable));
+        CHECK_RETURN_STATUS(hipFree(d_colRemapTable));
+    }
     if(testCase == 35)
         CHECK_RETURN_STATUS(hipHostFree(rgbOffsets));
     if (reductionTypeCase)
@@ -1566,22 +1675,19 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(shapeTensor));
     if(roiTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(roiTensor));
+    if(testCase == 6)
+        CHECK_RETURN_STATUS(hipHostFree(kernelSizeTensor));
     free(input);
     free(input_second);
     free(output);
     free(inputu8);
     free(inputu8Second);
     free(outputu8);
-    if(testCase == 79)
-    {
-        free(rowRemapTable);
-        free(colRemapTable);
-        CHECK_RETURN_STATUS(hipFree(d_rowRemapTable));
-        CHECK_RETURN_STATUS(hipFree(d_colRemapTable));
-    }
     CHECK_RETURN_STATUS(hipFree(d_input));
     if(dualInputCase)
         CHECK_RETURN_STATUS(hipFree(d_input_second));
     CHECK_RETURN_STATUS(hipFree(d_output));
+    if(testCase == 5)
+        CHECK_RETURN_STATUS(hipFree(d_interDstPtr));
     return 0;
 }
