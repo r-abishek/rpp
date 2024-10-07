@@ -39,6 +39,7 @@ outFolderPath = os.getcwd()
 buildFolderPath = os.getcwd()
 caseMin = 0
 caseMax = 6
+errorLog = []
 
 # Get a list of log files based on a flag for preserving output
 def get_log_file_list():
@@ -59,22 +60,26 @@ def func_group_finder(case_number):
 
 def run_unit_test_cmd(headerPath, dataPath, dstPathTemp, layout, case, numRuns, testType, qaMode, batchSize):
     print("\n./Tensor_voxel_host " + headerPath + " " + dataPath + " " + dstPathTemp + " " + str(layout) + " " + str(case) + " " + str(numRuns) + " " + str(testType) + " " + str(qaMode) + " " + str(batchSize) + " " + str(bitDepth))
-    result = subprocess.Popen([buildFolderPath + "/build/Tensor_voxel_host", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE) # nosec
-    stdout_data, stderr_data = result.communicate()
-    print(stdout_data.decode())
+    result = subprocess.Popen([buildFolderPath + "/build/Tensor_voxel_host", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE) # nosec
+    stdoutData, stderrData = result.communicate()
+    print(stdoutData.decode())
+    exitCode = result.returncode
+    if(exitCode != 0):
+        log_detected_errors("Returned non-zero exit status : "+ str(exitCode) + " " + stderrData.decode(), errorLog, voxelAugmentationMap[int(case)][0], get_bit_depth(int(bitDepth)), get_voxel_layout_type(layout, "HOST"), get_signal_name_from_return_code(exitCode))
+    
     print("\n------------------------------------------------------------------------------------------")
 
 def run_performance_test_cmd(loggingFolder, logFileLayout, headerPath, dataPath, dstPathTemp, layout, case, numRuns, testType, qaMode, batchSize):
     with open(loggingFolder + "/Tensor_voxel_host_" + logFileLayout + "_raw_performance_log.txt", "a") as logFile:
         logFile.write("./Tensor_voxel_host " + headerPath + " " + dataPath + " " + dstPathTemp + " " + str(layout) + " " + str(case) + " " + str(numRuns) + " " + str(testType) + " " + str(qaMode) + " " + str(batchSize) + " " + str(bitDepth) + "\n")
-        process = subprocess.Popen([buildFolderPath + "/build/Tensor_voxel_host", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE, stderr=subprocess.STDOUT) # nosec
+        process = subprocess.Popen([buildFolderPath + "/build/Tensor_voxel_host", headerPath, dataPath, dstPathTemp, str(layout), str(case), str(numRuns), str(testType), str(qaMode), str(batchSize), str(bitDepth), scriptPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE) # nosec
         while True:
             output = process.stdout.readline()
             if not output and process.poll() is not None:
                 break
             output = output.decode('utf-8')
             if output:
-                print(output, end='')
+                print(output)
                 logFile.write(output)
             if "Running" in output or "max,min,avg wall times" in output:
                 cleanedOutput = ''.join(char for char in output if 32 <= ord(char) <= 126)  # Remove control characters
@@ -82,6 +87,11 @@ def run_performance_test_cmd(loggingFolder, logFileLayout, headerPath, dataPath,
                 logFile.write(cleanedOutput + '\n')
                 if "max,min,avg wall times" in output:
                     logFile.write("\n")
+
+        stdoutData, stderrData = process.communicate()
+        exitCode = process.returncode
+        if(exitCode != 0):
+            log_detected_errors("Returned non-zero exit status : "+ str(exitCode) + " " + stderrData.decode(), errorLog, voxelAugmentationMap[int(case)][0], get_bit_depth(int(bitDepth)), get_voxel_layout_type(layout, "HOST"), get_signal_name_from_return_code(exitCode))
         print("\n------------------------------------------------------------------------------------------")
 
 def run_test(loggingFolder, logFileLayout, headerPath, dataPath, dstPathTemp, layout, case, numRuns, testType, qaMode, batchSize):
@@ -251,3 +261,9 @@ elif (testType == 1):   # Performance tests
 
     for logFile in logFileList:
         print_performance_tests_summary(logFile, functionalityGroupList, numRuns)
+
+if errorLog:
+    print("\n---------------------------------- Error log - Tensor_voxel_host ----------------------------------\n")
+    for error in errorLog:
+        print(error)
+    print("-----------------------------------------------------------------------------------------------")
