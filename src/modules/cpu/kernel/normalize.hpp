@@ -469,6 +469,77 @@ void normalize_2D_tensor(Rpp32f *srcPtr, RpptGenericDescPtr srcDescPtr, Rpp32f *
     }
 }
 
+// Computes normalize for 1D
+void normalize_1D_tensor(Rpp32f *srcPtr, RpptGenericDescPtr srcDescPtr, Rpp32f *dstPtr, RpptGenericDescPtr dstDescPtr,
+                         Rpp32f *meanPtr, Rpp32f *invStdDevPtr, Rpp32f shift, Rpp32u *dims)
+{
+    
+    Rpp32u vectorIncrement = 8;
+    Rpp32u bufferLength = dims[0];
+    Rpp32u alignedLength = (bufferLength / 8) * 8;
+    __m256 pShift = _mm256_set1_ps(shift);
+
+    // set mean and stddev
+    Rpp32f mean = meanPtr[0];
+    Rpp32f invStdDev = invStdDevPtr[0];
+    __m256 pMean, pInvStdDev;
+    pMean = _mm256_set1_ps(mean);
+    pInvStdDev = _mm256_set1_ps(invStdDev);
+
+    Rpp32u vectorLoopCount = 0;
+    for(; vectorLoopCount < alignedLength ; vectorLoopCount += vectorIncrement)
+    {
+        __m256 pSrc = _mm256_loadu_ps(srcPtr);
+        __m256 pDst = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc, pMean), pInvStdDev), pShift);
+        _mm256_storeu_ps(dstPtr, pDst);
+        srcPtr += vectorIncrement;
+        dstPtr += vectorIncrement;
+    }
+    for(; vectorLoopCount < dims[0] ; vectorLoopCount ++)
+    {
+        *dstPtr++ = (*srcPtr++ - mean) * invStdDev + shift;
+    }
+    
+    
+}
+
+void normalize_1D_tensor(Rpp8u *srcPtr, RpptGenericDescPtr srcDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstDescPtr,
+                         Rpp32f *meanPtr, Rpp32f *invStdDevPtr, Rpp32f shift, Rpp32u *dims)
+{
+    Rpp32u vectorIncrement = 8;
+    Rpp32u bufferLength = dims[0];
+    Rpp32u alignedLength = (bufferLength / 8) * 8;
+
+    __m256 pShift = _mm256_set1_ps(shift);
+
+    // set mean and stddev
+    Rpp32f mean = meanPtr[0];
+    Rpp32f invStdDev = invStdDevPtr[0];
+    __m256 pMean, pInvStdDev;
+    pMean = _mm256_set1_ps(mean);
+    pInvStdDev = _mm256_set1_ps(invStdDev);
+
+    Rpp32u vectorLoopCount = 0;
+    for(; vectorLoopCount < alignedLength ; vectorLoopCount += vectorIncrement)
+    {
+        __m256 p;
+        rpp_simd_load(rpp_load8_u8_to_f32_avx, srcPtr, &p); 
+        __m256 pDst = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(p, pMean), pInvStdDev), pShift);
+        rpp_simd_store(rpp_store8_f32_to_u8_avx, dstPtr, &pDst);  
+        srcPtr += vectorIncrement;
+        dstPtr += vectorIncrement;
+    }
+    for(; vectorLoopCount < dims[0] ; vectorLoopCount++)
+    {
+        // std::cerr<<"RPP8U Input : "<<static_cast<Rpp32f>(*srcPtr)<<" Mean : "<<mean<<" DEviation : "<<invStdDev<<" ";
+        *dstPtr = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf((static_cast<Rpp32f>(*srcPtr) - mean) * invStdDev + shift)));
+        srcPtr++;
+        dstPtr++;
+    }
+    
+    
+}
+
 // Performs collapse axis operation wherein continuous axis that require normalization are combined together
 void collapse_axis(Rpp32u *tensorDim, Rpp32u *axis, Rpp32u *length, Rpp32u *newAxis, Rpp32u *newDims, Rpp32u *lastNormAxis)
 {
@@ -503,6 +574,139 @@ void collapse_axis(Rpp32u *tensorDim, Rpp32u *axis, Rpp32u *length, Rpp32u *newA
         if(newAxis[i])
             *lastNormAxis = i;
     }
+}
+
+RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
+                                      RpptGenericDescPtr srcGenericDescPtr,
+                                      Rpp8u *dstPtr,
+                                      RpptGenericDescPtr dstGenericDescPtr,
+                                      Rpp32u axisMask,
+                                      Rpp32f *meanTensorPtr,
+                                      Rpp32f *stdDevTensorPtr,
+                                      Rpp8u computeMeanStddev,
+                                      Rpp32f scale,
+                                      Rpp32f shift,
+                                      Rpp32u *roiTensor,
+                                      RppLayoutParams layoutParams,
+                                      rpp::Handle& handle)
+{
+    Rpp32u numThreads = handle.GetNumThreads();
+    Rpp32u tensorDims = srcGenericDescPtr->numDims - 1;
+    Rpp32u batchSize = dstGenericDescPtr->dims[0];
+
+    Rpp32u maxSize = 1;
+    // Compute maxSize as length of input tensors differ based on axisMask and tensorDims
+    for(int batch = 0; batch < batchSize; batch++)
+    {
+        Rpp32u size = 1;
+        for(int i = 0; i < tensorDims; i++)
+            size *= ((axisMask & (int)(pow(2, i))) >= 1) ? 1 : roiTensor[(tensorDims * 2 * batch) + tensorDims + i];
+        maxSize = std::max(maxSize, size);
+    }
+
+    if(!computeMeanStddev)
+    {
+        for(Rpp32u i = 0; i < maxSize; i++)
+            stdDevTensorPtr[i] = (!stdDevTensorPtr[i])? 1.0f : scale / stdDevTensorPtr[i];
+        maxSize = 0;
+    }
+
+        omp_set_dynamic(0);
+#pragma omp parallel for num_threads(numThreads)
+    for(int batchCount = 0; batchCount < batchSize; batchCount++)
+	{
+        Rpp32u *roi = roiTensor + batchCount * tensorDims * 2;
+        Rpp32u *begin = roi;
+        Rpp32u *length = &roi[tensorDims];
+        Rpp8u *srcPtrTemp, *dstPtrTemp; 
+        Rpp32f *meanTensor, *stdDevTensor;
+        srcPtrTemp = srcPtr + batchCount * srcGenericDescPtr->strides[0];
+        dstPtrTemp = dstPtr + batchCount * dstGenericDescPtr->strides[0];
+        meanTensor = meanTensorPtr + batchCount * maxSize;
+        stdDevTensor = stdDevTensorPtr + batchCount * maxSize;
+        // Set all values in dst buffer to 0.0
+        for(int cnt = 0; cnt < dstGenericDescPtr->strides[0]; cnt++)
+            dstPtrTemp[cnt] = 0;
+
+        Rpp8u *srcPtrChannel = srcPtrTemp;
+
+        if(tensorDims == 1)
+        {
+            Rpp32u srcReductionDims, srcStride;
+            srcReductionDims = length[0];
+            srcStride = srcGenericDescPtr->strides[1];
+            std::cerr<<"\n Length : "<<length[0]<<" "<<srcStride<<" \n";
+            Rpp32f normFactor = (Rpp32f)(1.0 / srcReductionDims);
+            Rpp32f *meanPtr = meanTensor;
+            Rpp32f *stdDevPtr = stdDevTensor;
+            if(computeMeanStddev & 1) // Check if mean is to be computed internally
+            {
+                meanPtr[0] = 0;
+                compute_sum(meanPtr[0], srcPtrTemp, srcStride, srcReductionDims);
+                std::cerr<<"\n Mean "<<meanPtr[0]<<" ";
+                meanPtr[0] *= normFactor;
+                std::cerr<<meanPtr[0]<<" ";
+            }
+            if(computeMeanStddev & 2) // Check if stddev is to be computed internally
+            {    
+                stdDevPtr[0] = 0;
+                compute_diff_square_sum(stdDevPtr[0], srcPtrTemp, srcStride, srcReductionDims, meanPtr[0]);
+                std::cerr<<" Dev : "<<stdDevPtr[0]<<" "; 
+                rpp_rsqrt_sse(stdDevPtr, 1, 0, normFactor, scale);
+                std::cerr<<" Dev : "<<stdDevPtr[0]<<" "; 
+            }
+            normalize_1D_tensor(srcPtrTemp, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, length);
+
+        }
+        else
+        {
+            int size = 1;
+            for(int i = 0; i < tensorDims; i++)
+                size *= ((axisMask & (int)(pow(2, i))) >= 1) ? 1 : length[i];
+            
+            Rpp32u totalElements = 1;
+            Rpp32u lastNormAxis = 0;
+            Rpp32u axis[tensorDims], newAxis[tensorDims], newDims[tensorDims];
+            // Initialize newAxis and newDims used to store final Axis and Dims after removing redundant axis
+            memset(newAxis, 0, sizeof(newAxis));
+            memset(newDims, 0, sizeof(newDims));
+
+            for(Rpp32u i = 0; i < tensorDims; i++)
+            {
+                axis[i] = ((axisMask & (int)(pow(2, i))) >= 1) ? 1 : 0;
+                totalElements *= axis[i] ? length[i] : 1;
+                srcPtrChannel += begin[i] * srcGenericDescPtr->strides[i + 1];
+            }
+
+            Rpp32u paramStride[tensorDims], srcStride[tensorDims];
+            Rpp32u newTensorDims = tensorDims;
+            collapse_axis(&newTensorDims, axis, length, newAxis, newDims, &lastNormAxis);
+            compute_strides(srcStride, newDims, newTensorDims);
+
+            if(computeMeanStddev & 1) // Check if mean is to be computed internally
+            {
+                compute_ND_mean(srcPtrChannel, meanTensor, newDims, srcStride, newAxis, newTensorDims, 0, 0, size, 0, lastNormAxis);
+                Rpp32f normFactor = 1.0 / totalElements;
+                for(Rpp32u i = 0; i < size; i++)
+                    meanTensor[i] *= normFactor;
+            }
+            if(computeMeanStddev & 2) // Check if stddev is to be computed internally
+            {
+                compute_ND_stddev(srcPtrChannel, meanTensor, stdDevTensor, newDims, srcStride, newAxis, newTensorDims, 0, 0, size, 0, lastNormAxis);
+                Rpp32f normFactor = (Rpp32f)(1.0 / totalElements);
+                rpp_rsqrt_avx(stdDevTensor, (Rpp32s)size, 0, normFactor, scale);
+            }
+
+            for(Rpp32u i = 0; i < newTensorDims; i++)
+                paramStride[i] = !newAxis[i];
+
+            Rpp32u idx = 0;
+            normalize_ND_tensor_nontoggle(srcPtrChannel, srcStride, dstPtrTemp, meanTensor, stdDevTensor, shift, paramStride, newDims, newTensorDims, 0, idx);
+        }
+    }
+
+    return RPP_SUCCESS;
+
 }
 
 RppStatus normalize_f32_f32_host_tensor(Rpp32f *srcPtr,
@@ -714,6 +918,28 @@ RppStatus normalize_f32_f32_host_tensor(Rpp32f *srcPtr,
                 normalize_3D_tensor_nontoggle(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
             else if((axisMask == 3) && (srcGenericDescPtr->layout == RpptLayout::NHWC) && (dstGenericDescPtr->layout == RpptLayout::NCHW))
                 normalize_3D_tensor_axis3_toggle(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
+        }
+        else if(tensorDims == 1) // Called for audio testcase and for any other 1D case
+        {
+            Rpp32u srcReductionDims, srcStride;
+            srcReductionDims = length[0];
+            srcStride = srcGenericDescPtr->strides[1];
+            Rpp32f normFactor = (Rpp32f)(1.0 / srcReductionDims);
+            Rpp32f *meanPtr = meanTensor;
+            Rpp32f *stdDevPtr = stdDevTensor;
+            if(computeMeanStddev & 1) // Check if mean is to be computed internally
+            {
+                meanPtr[0] = 0;
+                compute_sum(meanPtr[0], srcPtrTemp, srcStride, srcReductionDims);
+                meanPtr[0] *= normFactor;
+            }
+            if(computeMeanStddev & 2) // Check if stddev is to be computed internally
+            {    
+                stdDevPtr[0] = 0;
+                compute_diff_square_sum(stdDevPtr[0], srcPtrTemp, srcStride, srcReductionDims, meanPtr[0]);
+                rpp_rsqrt_sse(stdDevPtr, 1, 0, normFactor, scale);
+            }
+            normalize_1D_tensor(srcPtrTemp, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, length);
         }
         else // Handle any other ND tensor is passed to kernel
         {

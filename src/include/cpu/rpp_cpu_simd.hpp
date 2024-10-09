@@ -1441,6 +1441,15 @@ inline void rpp_store16_f32_to_u8_avx(Rpp8u *dstPtr, __m256 *p)
     _mm_storeu_si128((__m128i *)dstPtr, px[0]);
 }
 
+inline void rpp_store8_f32_to_u8_avx(Rpp8u *dstPtr, __m256 *p)
+{
+    __m256i pxCvt;
+    __m128i px;
+    pxCvt = _mm256_cvtps_epi32(p[0]);
+    px = _mm_packus_epi32(_mm256_extracti128_si256(pxCvt, 0), _mm256_extracti128_si256(pxCvt, 1));    /* pack pixels 0-7 for R */
+    _mm_storeu_si128((__m128i *)dstPtr, px);
+}
+
 inline void rpp_load8_u8_to_f64_avx(Rpp8u *srcPtr, __m256d *p)
 {
     __m128i px;

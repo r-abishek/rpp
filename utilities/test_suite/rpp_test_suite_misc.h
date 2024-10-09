@@ -72,9 +72,9 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
 // Read data from Bin file
 void read_data(Rpp32f *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, bool isMeanStd = false)
 {
-    if(nDim != 2 && nDim != 3)
+    if(nDim > 3)
     {
-        std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
+        std::cout<<"\nGolden Inputs / Outputs are generated only for 1D/2D/3D data"<<std::endl;
         exit(0);
     }
     string dataPath = get_path(nDim, readType, scriptPath, testCase, isMeanStd);
@@ -88,6 +88,13 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
     {
         switch(nDim)
         {
+            case 1:
+            {
+                std::array<Rpp32u, 2> roi = {0, 10000}; // Example: start at 0, length 100
+                for(int i = 0, j = 0; i < batchSize; i++, j += 2)
+                    std::copy(roi.begin(), roi.end(), &roiTensor[j]);
+                break;
+            }
             case 2:
             {
                 std::array<Rpp32u, 4> roi = {0, 0, 100, 100};
@@ -109,6 +116,13 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
     {
         switch(nDim)
         {
+            case 1:
+            {
+                std::array<Rpp32u, 2> roi = {0, 1080}; // Example: start at 0, length 100
+                for(int i = 0, j = 0; i < batchSize; i++, j += 2)
+                    std::copy(roi.begin(), roi.end(), &roiTensor[j]);
+                break;
+            }
             case 2:
             {
                 std::array<Rpp32u, 4> roi = {0, 0, 1920, 1080};
@@ -156,6 +170,12 @@ void set_generic_descriptor_layout(RpptGenericDescPtr srcDescriptorPtrND, RpptGe
     {
         switch(nDim)
         {
+            case 1:
+            {
+                srcDescriptorPtrND->layout = RpptLayout::NDHWC;
+                dstDescriptorPtrND->layout = RpptLayout::NDHWC;
+                break;
+            }
             case 2:
             {
                 srcDescriptorPtrND->layout = RpptLayout::NHWC;
@@ -244,6 +264,12 @@ void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
         Rpp32u numValues, paramStride;
         switch(nDim)
         {
+            case 1:
+            {
+                numValues = 100 + 100 + 1;
+                paramStride = 0;
+                break;
+            }
             case 2:
             {
                 numValues = 100 + 100 + 1;
@@ -285,6 +311,10 @@ void fill_perm_values(Rpp32u nDim, Rpp32u *permTensor, bool qaMode, int permOrde
     {
         switch(nDim)
         {
+            case 1:
+            {
+                permTensor[0] = 0;
+            }
             case 2:
             {
                 // HW->WH
