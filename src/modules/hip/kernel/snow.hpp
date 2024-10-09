@@ -10,10 +10,10 @@ __device__ __forceinline__ void snow_1GRAY_hip_compute(float *pixel, float *brig
     float brightnessFactor = 2.5f;
     //Lighter the darken images
     if(lightness >= lowerThreshold && lightness <= upperThreshold && (*darkMode == 1))
-        lightness = lightness * fmaf((brightnessFactor - 1.0f), (1.0f - (l - lowerThreshold) / (upperThreshold - lowerThreshold)), 1.0f);
+        lightness = lightness * fmaf((brightnessFactor - 1.0f), (1.0f - (lightness - lowerThreshold) / (upperThreshold - lowerThreshold)), 1.0f);
 
-    // Modify L 
-    if(l <= *snowThreshold)
+    // Modify Lightness 
+    if(lightness <= *snowThreshold)
         lightness = lightness * (*brightnessCoefficient);
 
     *pixel = lightness;
