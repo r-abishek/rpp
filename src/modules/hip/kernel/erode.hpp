@@ -1700,9 +1700,9 @@ RppStatus hip_exec_erode_tensor(T *srcPtr,
     if (roiType == RpptRoiType::LTRB)
         hip_exec_roi_converison_ltrb_to_xywh(roiTensorPtrSrc, handle);
 
-    int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
+    int globalThreads_x = (dstDescPtr->w + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
-    int globalThreads_z = handle.GetBatchSize();
+    int globalThreads_z = dstDescPtr->n;
 
     uint padLength = kernelSize / 2;
     uint padLengthTwice = padLength * 2;
@@ -1909,7 +1909,6 @@ RppStatus hip_exec_erode_tensor(T *srcPtr,
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
-            globalThreads_x = (srcDescPtr->strides.hStride + 7) >> 3;
 
             if (kernelSize == 3)
             {
