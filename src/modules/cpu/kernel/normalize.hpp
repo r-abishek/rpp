@@ -525,19 +525,16 @@ void normalize_1D_tensor(Rpp8u *srcPtr, RpptGenericDescPtr srcDescPtr, Rpp8u *ds
         __m256 p;
         rpp_simd_load(rpp_load8_u8_to_f32_avx, srcPtr, &p); 
         __m256 pDst = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(p, pMean), pInvStdDev), pShift);
-        rpp_simd_store(rpp_store8_f32_to_u8_avx, dstPtr, &pDst);  
+        rpp_simd_store(rpp_store8_f32pln1_to_u8pln1_avx, dstPtr, pDst);  
         srcPtr += vectorIncrement;
         dstPtr += vectorIncrement;
     }
     for(; vectorLoopCount < dims[0] ; vectorLoopCount++)
     {
-        // std::cerr<<"RPP8U Input : "<<static_cast<Rpp32f>(*srcPtr)<<" Mean : "<<mean<<" DEviation : "<<invStdDev<<" ";
         *dstPtr = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf((static_cast<Rpp32f>(*srcPtr) - mean) * invStdDev + shift)));
         srcPtr++;
         dstPtr++;
     }
-    
-    
 }
 
 // Performs collapse axis operation wherein continuous axis that require normalization are combined together
@@ -635,7 +632,6 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
             Rpp32u srcReductionDims, srcStride;
             srcReductionDims = length[0];
             srcStride = srcGenericDescPtr->strides[1];
-            std::cerr<<"\n Length : "<<length[0]<<" "<<srcStride<<" \n";
             Rpp32f normFactor = (Rpp32f)(1.0 / srcReductionDims);
             Rpp32f *meanPtr = meanTensor;
             Rpp32f *stdDevPtr = stdDevTensor;
@@ -643,19 +639,15 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
             {
                 meanPtr[0] = 0;
                 compute_sum(meanPtr[0], srcPtrTemp, srcStride, srcReductionDims);
-                std::cerr<<"\n Mean "<<meanPtr[0]<<" ";
                 meanPtr[0] *= normFactor;
-                std::cerr<<meanPtr[0]<<" ";
             }
             if(computeMeanStddev & 2) // Check if stddev is to be computed internally
             {    
                 stdDevPtr[0] = 0;
                 compute_diff_square_sum(stdDevPtr[0], srcPtrTemp, srcStride, srcReductionDims, meanPtr[0]);
-                std::cerr<<" Dev : "<<stdDevPtr[0]<<" "; 
                 rpp_rsqrt_sse(stdDevPtr, 1, 0, normFactor, scale);
-                std::cerr<<" Dev : "<<stdDevPtr[0]<<" "; 
             }
-            normalize_1D_tensor(srcPtrTemp, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, length);
+            normalize_1D_tensor(srcPtrTemp, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanPtr, stdDevPtr, shift, length);
 
         }
         else
