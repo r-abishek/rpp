@@ -1,7 +1,14 @@
 # Changelog for RPP
 
 Full documentation for RPP is available at [https://rocm.docs.amd.com/projects/rpp/en/latest](https://rocm.docs.amd.com/projects/rpp/en/latest)
- 
+
+## RPP 1.10.0 (unreleased)
+
+### Changes
+
+* RPP Tensor Sobel Filter support on HOST
+
+
 ## RPP 1.9.1 for ROCm 6.3.0
  
 ### Changes
