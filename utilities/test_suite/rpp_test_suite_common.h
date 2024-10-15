@@ -78,6 +78,7 @@ std::map<int, string> augmentationMap =
     {4, "contrast"},
     {5, "pixelate"},
     {6, "jitter"},
+    {7, "snow"},
     {8, "noise"},
     {13, "exposure"},
     {20, "flip"},
