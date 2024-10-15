@@ -369,7 +369,7 @@ void normalize_3D_tensor_axis3_toggle(Rpp32f *srcPtr, RpptGenericDescPtr srcGene
                 dstPtrRowTemp[l] = dstPtrRow[l];
             for(Rpp32u k = 0; k < length[2]; k++)
             {
-                *dstPtrRowTemp[k]++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(((*srcPtrRowTemp++ - meanPtr[paramIdx]) * multiplierPtr[paramIdx]) + shift)));
+                *dstPtrRowTemp[k]++ = ((*srcPtrRowTemp++ - meanPtr[paramIdx]) * multiplierPtr[paramIdx]) + shift;
                 paramIdx += paramStride[2];
             }
             paramIdx = (!paramStride[1]) ? 0 : paramIdx + paramStride[1];
