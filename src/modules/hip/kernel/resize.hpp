@@ -729,9 +729,9 @@ inline RppStatus hip_exec_resize_tensor(T *srcPtr,
 
     if (interpolationType == RpptInterpolationType::NEAREST_NEIGHBOR)
     {
-        int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
+        int globalThreads_x = (dstDescPtr->w + 7) >> 3;
         int globalThreads_y = dstDescPtr->h;
-        int globalThreads_z = handle.GetBatchSize();
+        int globalThreads_z = dstDescPtr->n;
         if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
             hipLaunchKernelGGL(resize_nearest_neighbor_pkd_hip_tensor,
@@ -779,7 +779,6 @@ inline RppStatus hip_exec_resize_tensor(T *srcPtr,
             }
             else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
             {
-                globalThreads_x = (srcDescPtr->strides.hStride + 7) >> 3;
                 hipLaunchKernelGGL(resize_nearest_neighbor_pln3_pkd3_hip_tensor,
                                 dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
                                 dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
@@ -796,9 +795,9 @@ inline RppStatus hip_exec_resize_tensor(T *srcPtr,
     }
     else if (interpolationType == RpptInterpolationType::BILINEAR)
     {
-        int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
+        int globalThreads_x = (dstDescPtr->w + 7) >> 3;
         int globalThreads_y = dstDescPtr->h;
-        int globalThreads_z = handle.GetBatchSize();
+        int globalThreads_z = dstDescPtr->n;
         if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
             hipLaunchKernelGGL(resize_bilinear_pkd_hip_tensor,
@@ -864,7 +863,7 @@ inline RppStatus hip_exec_resize_tensor(T *srcPtr,
     {
         int globalThreads_x = dstDescPtr->w;
         int globalThreads_y = dstDescPtr->h;
-        int globalThreads_z = handle.GetBatchSize();
+        int globalThreads_z = dstDescPtr->n;
 
         if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
