@@ -1187,7 +1187,7 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
             }
             else if((axisMask == 3) && (srcGenericDescPtr->layout == RpptLayout::NHWC) && (dstGenericDescPtr->layout == RpptLayout::NCHW))
             {
-                if((srcGenericDescPtr->dims[3] == 3))
+                if(srcGenericDescPtr->dims[3] == 3)
                     normalize_3D_tensor_axis3_toggle_3channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
                 else
                     normalize_3D_tensor_axis3_toggle(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
