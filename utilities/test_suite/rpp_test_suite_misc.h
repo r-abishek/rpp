@@ -405,12 +405,8 @@ void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u buf
         for(int j = 0; j < sampleLength; j++)
         {
             bool invalid_comparision = ((out[j] == 0.0f) && (ref[j] != 0.0f));
-            if(!invalid_comparision && abs(out[j] - ref[j]) < 2)
+            if(!invalid_comparision && abs(out[j] - ref[j]) <= 1)
                 cnt++;
-            else
-            {
-                printf("\n %f %f ",out[j],ref[j]);
-            }
         }
         if (cnt == sampleLength)
             fileMatch++;
