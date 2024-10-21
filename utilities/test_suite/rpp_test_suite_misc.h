@@ -36,6 +36,15 @@ std::map<int, string> augmentationMiscMap =
 // Compute strides given Generic Tensor
 void compute_strides(RpptGenericDescPtr descriptorPtr)
 {
+    if(descriptorPtr->layout == RpptLayout::NCHW)
+    {
+        Rpp32u h = descriptorPtr->dims[1];
+        Rpp32u w = descriptorPtr->dims[2];
+        Rpp32u c = descriptorPtr->dims[3];
+        descriptorPtr->dims[1] = c;
+        descriptorPtr->dims[2] = h;
+        descriptorPtr->dims[3] = w;
+    }
     if (descriptorPtr->numDims > 0)
     {
         uint64_t v = 1;
@@ -104,7 +113,7 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             }
             case 3:
             {
-                std::array<Rpp32u, 6> roi = {0, 0, 0, 8, 50, 50};
+                std::array<Rpp32u, 6> roi = {0, 0, 0, 100, 100, 3};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 6)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -132,7 +141,7 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             }
             case 3:
             {
-                std::array<Rpp32u, 6> roi = {0, 0, 0, 10, 10, 32};
+                std::array<Rpp32u, 6> roi = {0, 0, 0, 1920, 1080, 3};
                 // std::array<Rpp32u, 6> roi = {0, 0, 0, 50, 50, 8};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 6)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
@@ -167,7 +176,7 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
 // Set layout for generic descriptor
 void set_generic_descriptor_layout(RpptGenericDescPtr srcDescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND, Rpp32u nDim, int toggle, int qaMode)
 {
-    if(qaMode && !toggle)
+    if(!toggle)
     {
         switch(nDim)
         {

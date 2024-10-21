@@ -1497,6 +1497,37 @@ inline void rpp_load24_f32pkd3_to_f32pln3_avx(Rpp32f *srcPtr, __m256 *p)
     p[2] = _mm256_setr_m128(p128[2], p128[6]);
 }
 
+inline void rpp_load48_f32pkd3_to_f32pln3_avx(Rpp32f *srcPtr, __m256 *p)
+{
+    __m128 p128[8];
+    p128[0] = _mm_loadu_ps(srcPtr);
+    p128[1] = _mm_loadu_ps(srcPtr + 3);
+    p128[2] = _mm_loadu_ps(srcPtr + 6);
+    p128[3] = _mm_loadu_ps(srcPtr + 9);
+    _MM_TRANSPOSE4_PS(p128[0], p128[1], p128[2], p128[3]);
+    p128[4] = _mm_loadu_ps(srcPtr + 12);
+    p128[5] = _mm_loadu_ps(srcPtr + 15);
+    p128[6] = _mm_loadu_ps(srcPtr + 18);
+    p128[7] = _mm_loadu_ps(srcPtr + 21);
+    _MM_TRANSPOSE4_PS(p128[4], p128[5], p128[6], p128[7]);
+    p[0] = _mm256_setr_m128(p128[0], p128[4]);
+    p[2] = _mm256_setr_m128(p128[1], p128[5]);
+    p[4] = _mm256_setr_m128(p128[2], p128[6]);
+    p128[0] = _mm_loadu_ps(srcPtr + 24);
+    p128[1] = _mm_loadu_ps(srcPtr + 27);
+    p128[2] = _mm_loadu_ps(srcPtr + 30);
+    p128[3] = _mm_loadu_ps(srcPtr + 33);
+    _MM_TRANSPOSE4_PS(p128[0], p128[1], p128[2], p128[3]);
+    p128[4] = _mm_loadu_ps(srcPtr + 36);
+    p128[5] = _mm_loadu_ps(srcPtr + 39);
+    p128[6] = _mm_loadu_ps(srcPtr + 42);
+    p128[7] = _mm_loadu_ps(srcPtr + 45);
+    _MM_TRANSPOSE4_PS(p128[4], p128[5], p128[6], p128[7]);
+    p[1] = _mm256_setr_m128(p128[0], p128[4]);
+    p[3] = _mm256_setr_m128(p128[1], p128[5]);
+    p[5] = _mm256_setr_m128(p128[2], p128[6]);
+}
+
 inline void rpp_load24_f32pkd3_to_f32pln3_mirror_avx(Rpp32f *srcPtr, __m256 *p)
 {
     __m128 p128[8];
@@ -1553,6 +1584,16 @@ inline void rpp_load24_f32pln3_to_f32pln3_avx(Rpp32f *srcPtrR, Rpp32f *srcPtrG, 
     p[0] = _mm256_loadu_ps(srcPtrR);
     p[1] = _mm256_loadu_ps(srcPtrG);
     p[2] = _mm256_loadu_ps(srcPtrB);
+}
+
+inline void rpp_load48_f32pln3_to_f32pln3_avx(Rpp32f *srcPtrR, Rpp32f *srcPtrG, Rpp32f *srcPtrB, __m256 *p)
+{
+    p[0] = _mm256_loadu_ps(srcPtrR);
+    p[1] = _mm256_loadu_ps(srcPtrR + 8);
+    p[2] = _mm256_loadu_ps(srcPtrG);
+    p[3] = _mm256_loadu_ps(srcPtrG + 8);
+    p[4] = _mm256_loadu_ps(srcPtrB);
+    p[5] = _mm256_loadu_ps(srcPtrB + 8);
 }
 
 inline void rpp_load24_f32pln3_to_f32pln3_mirror_avx(Rpp32f *srcPtrR, Rpp32f *srcPtrG, Rpp32f *srcPtrB, __m256 *p)

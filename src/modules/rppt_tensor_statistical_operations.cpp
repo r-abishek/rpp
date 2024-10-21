@@ -270,18 +270,18 @@ RppStatus rppt_normalize_host(RppPtr_t srcPtr,
     if ((srcGenericDescPtr->dataType == RpptDataType::U8) && (dstGenericDescPtr->dataType == RpptDataType::U8))
     {
         normalize_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcGenericDescPtr->offsetInBytes,
-                                      srcGenericDescPtr,
-                                      static_cast<Rpp8u*>(dstPtr) + dstGenericDescPtr->offsetInBytes,
-                                      dstGenericDescPtr,
-                                      axisMask,
-                                      meanTensor,
-                                      stdDevTensor,
-                                      computeMeanStddev,
-                                      scale,
-                                      shift,
-                                      roiTensor,
-                                      layoutParams,
-                                      rpp::deref(rppHandle));
+                                    srcGenericDescPtr,
+                                    static_cast<Rpp8u*>(dstPtr) + dstGenericDescPtr->offsetInBytes,
+                                    dstGenericDescPtr,
+                                    axisMask,
+                                    meanTensor,
+                                    stdDevTensor,
+                                    computeMeanStddev,
+                                    scale,
+                                    shift,
+                                    roiTensor,
+                                    layoutParams,
+                                    rpp::deref(rppHandle));
     }
     else if ((srcGenericDescPtr->dataType == RpptDataType::F16) && (dstGenericDescPtr->dataType == RpptDataType::F16))
     {
