@@ -89,10 +89,10 @@ int main(int argc, char **argv)
     RpptGenericDescPtr srcDescriptorPtrND, dstDescriptorPtrND;
     srcDescriptorPtrND = &srcDescriptor;
     dstDescriptorPtrND = &dstDescriptor;
-    int bitDepth = 2, offSetInBytes = 0;
+    int bitDepth = 0, offSetInBytes = 0;
+    set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
     set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
     set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
-    set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
     Rpp32u bufferSize = 1;
     for(int i = 0; i <= nDim; i++)
@@ -171,8 +171,8 @@ int main(int argc, char **argv)
                 float shift = 0.0;
                 if(bitDepth == 0)
                 {
-                    float scale = 50;
-                    float shift = 127.5;
+                    scale = 50;
+                    shift = 127.5;
                 }
                 // computeMeanStddev set to 3 means both mean and stddev should be computed internally.
                 // Wherein 0th bit used to represent computeMean and 1st bit for computeStddev.
@@ -231,6 +231,15 @@ int main(int argc, char **argv)
         avgWallTime += wallTime;
     }
 
+    if(bitDepth == 0)
+    {
+        Rpp64u bufferLength = bufferSize * sizeof(Rpp8u);
+        // Copy U8 buffer to F32 buffer for display purposes
+        for(int i = 0; i < bufferLength; i++)
+        {
+            outputF32[i] = static_cast<float>(outputU8[i]);
+        }
+    }
     if(DEBUG_MODE)
     {
         std::ofstream refFile;
@@ -249,16 +258,6 @@ int main(int argc, char **argv)
             }
         }
         refFile.close();
-    }
-    if(bitDepth == 0)
-    {
-        Rpp64u bufferLength = bufferSize * sizeof(Rpp8u);
-
-        // Copy U8 buffer to F32 buffer for display purposes
-        for(int i = 0; i < bufferLength; i++)
-        {
-            outputF32[i] = static_cast<float>(outputU8[i]);
-        }
     }
     if(qaMode)
     {

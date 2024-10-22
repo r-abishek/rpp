@@ -336,38 +336,27 @@ void normalize_3D_tensor_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr sr
         __m256 pMean[6], pMultiplier[6];
         if(paramStride[1] == 0 && paramStride[2] == 0)
         {
-            pMean[0] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[2] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[4] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMultiplier[0] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[2] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[4] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
+            pMean[0] = pMean[1] = pMean[2] = pMean[3] = pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx));
+            pMultiplier[0] = pMultiplier[1] = pMultiplier[2] = pMultiplier[3] = pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
         }
         else if(paramStride[1] == 0 && paramStride[2] == 1)
         {
-            pMean[0] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[2] = _mm256_set1_ps(*(meanPtr + paramIdx + 1));
-            pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx + 1));
-            pMean[4] = _mm256_set1_ps(*(meanPtr + paramIdx + 2));
-            pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx + 2));
-            pMultiplier[0] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[2] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 1));
-            pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 1));
-            pMultiplier[4] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 2));
-            pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 2));
+            pMean[0] = pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
+            pMean[2] = pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx + 1));
+            pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx + 2));
+            pMultiplier[0] = pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
+            pMultiplier[2] = pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 1));
+            pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 2));
         }
         else if(paramStride[1] == 1 && paramStride[2] == 0)
         {
-            rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx), (meanPtr + paramIdx), pMean);
-            rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (multiplierPtr + paramIdx), (multiplierPtr + paramIdx), (multiplierPtr + paramIdx), pMultiplier);
+            // rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx), (meanPtr + paramIdx), pMean);
+            rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
+            pMean[2] = pMean[4] = pMean[0];
+            pMean[3] = pMean[5] = pMean[1];
+            rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
+            pMultiplier[2] = pMultiplier[4] = pMultiplier[0];
+            pMultiplier[3] = pMultiplier[5] = pMultiplier[1];
 
         }
         else
@@ -399,8 +388,12 @@ void normalize_3D_tensor_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr sr
             {
                 if(paramStride[2] == 0)
                 {
-                    rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx), (meanPtr + paramIdx), pMean);
-                    rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (multiplierPtr + paramIdx), (multiplierPtr + paramIdx), (multiplierPtr + paramIdx), pMultiplier);
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
+                    pMean[2] = pMean[4] = pMean[0];
+                    pMean[3] = pMean[5] = pMean[1];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
+                    pMultiplier[2] = pMultiplier[4] = pMultiplier[0];
+                    pMultiplier[3] = pMultiplier[5] = pMultiplier[1];
                 }
                 else
                 {
@@ -602,39 +595,26 @@ void normalize_3D_tensor_axis3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr
         __m256 pMean[6], pMultiplier[6];
         if(paramStride[1] == 0 && paramStride[2] == 0)
         {
-            pMean[0] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[2] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[4] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMultiplier[0] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[2] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[4] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
+            pMean[0] = pMean[1] = pMean[2] = pMean[3] = pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx));
+            pMultiplier[0] = pMultiplier[1] = pMultiplier[2] = pMultiplier[3] = pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
         }
         else if(paramStride[1] == 0 && paramStride[2] == 1)
         {
-            pMean[0] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[2] = _mm256_set1_ps(*(meanPtr + paramIdx + 1));
-            pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx + 1));
-            pMean[4] = _mm256_set1_ps(*(meanPtr + paramIdx + 2));
-            pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx + 2));
-            pMultiplier[0] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[2] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 1));
-            pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 1));
-            pMultiplier[4] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 2));
-            pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 2));
+            pMean[0] = pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
+            pMean[2] = pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx + 1));
+            pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx + 2));
+            pMultiplier[0] = pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
+            pMultiplier[2] = pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 1));
+            pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx + 2));
         }
         else if(paramStride[1] == 1 && paramStride[2] == 0)
         {
-            rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx), (meanPtr + paramIdx), pMean);
-            rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (multiplierPtr + paramIdx), (multiplierPtr + paramIdx), (multiplierPtr + paramIdx), pMultiplier);
-
+            rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
+            pMean[2] = pMean[4] = pMean[0];
+            pMean[3] = pMean[5] = pMean[1];
+            rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
+            pMultiplier[2] = pMultiplier[4] = pMultiplier[0];
+            pMultiplier[3] = pMultiplier[5] = pMultiplier[1];
         }
         else
         {
@@ -665,8 +645,12 @@ void normalize_3D_tensor_axis3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr
             {
                 if(paramStride[2] == 0)
                 {
-                    rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx), (meanPtr + paramIdx), pMean);
-                    rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (multiplierPtr + paramIdx), (multiplierPtr + paramIdx), (multiplierPtr + paramIdx), pMultiplier);
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
+                    pMean[2] = pMean[4] = pMean[0];
+                    pMean[3] = pMean[5] = pMean[1];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
+                    pMultiplier[2] = pMultiplier[4] = pMultiplier[0];
+                    pMultiplier[3] = pMultiplier[5] = pMultiplier[1];
                 }
                 else
                 {
