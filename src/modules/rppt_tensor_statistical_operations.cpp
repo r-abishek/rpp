@@ -269,7 +269,7 @@ RppStatus rppt_normalize_host(RppPtr_t srcPtr,
 
     if ((srcGenericDescPtr->dataType == RpptDataType::U8) && (dstGenericDescPtr->dataType == RpptDataType::U8))
     {
-        normalize_generic_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcGenericDescPtr->offsetInBytes,
+        normalize_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcGenericDescPtr->offsetInBytes,
                                       srcGenericDescPtr,
                                       static_cast<Rpp8u*>(dstPtr) + dstGenericDescPtr->offsetInBytes,
                                       dstGenericDescPtr,

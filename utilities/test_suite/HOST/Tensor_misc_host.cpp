@@ -103,6 +103,15 @@ int main(int argc, char **argv)
     inputF32 = static_cast<Rpp32f *>(calloc(bufferSize, sizeof(Rpp32f)));
     outputF32 = static_cast<Rpp32f *>(calloc(bufferSize, sizeof(Rpp32f)));
 
+    Rpp8u *inputU8 = NULL;
+    Rpp8u *outputU8 = NULL;
+    Rpp64u bufferSizeU8 = bufferSize * sizeof(Rpp8u) ;
+    if(bitDepth == 0)
+    {
+        inputU8 = static_cast<Rpp8u *>(calloc(bufferSize, sizeof(Rpp8u)));
+        outputU8 = static_cast<Rpp8u *>(calloc(bufferSize, sizeof(Rpp8u)));
+    }
+
     // read input data
     if(qaMode)
         read_data(inputF32, nDim, 0, scriptPath, funcName);
@@ -111,6 +120,14 @@ int main(int argc, char **argv)
         std::srand(0);
         for(int i = 0; i < bufferSize; i++)
             inputF32[i] = static_cast<float>(std::rand() % 255);
+    }
+    if (bitDepth == 0)
+    {
+
+        for(int i = 0; i < bufferSizeU8; i++)
+        {
+            inputU8[i] = std::min(std::max(static_cast<unsigned char>(inputF32[i]), static_cast<unsigned char>(0)), static_cast<unsigned char>(255));
+        }
     }
 
     // Set the number of threads to be used by OpenMP pragma for RPP batch processing on host.
@@ -152,6 +169,11 @@ int main(int argc, char **argv)
                 testCaseName  = "normalize";
                 float scale = 1.0;
                 float shift = 0.0;
+                if(bitDepth == 0)
+                {
+                    float scale = 50;
+                    float shift = 127.5;
+                }
                 // computeMeanStddev set to 3 means both mean and stddev should be computed internally.
                 // Wherein 0th bit used to represent computeMean and 1st bit for computeStddev.
                 Rpp8u computeMeanStddev = 3;
@@ -178,7 +200,11 @@ int main(int argc, char **argv)
                     fill_mean_stddev_values(nDim, maxSize, meanTensor, stdDevTensor, qaMode, axisMask, scriptPath);
 
                 startWallTime = omp_get_wtime();
-                rppt_normalize_host(inputF32, srcDescriptorPtrND, outputF32, dstDescriptorPtrND, axisMask, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, roiTensor, handle);
+
+                if(bitDepth == 0)
+                    rppt_normalize_host(inputU8, srcDescriptorPtrND, outputU8, dstDescriptorPtrND, axisMask, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, roiTensor, handle);
+                else 
+                    rppt_normalize_host(inputF32, srcDescriptorPtrND, outputF32, dstDescriptorPtrND, axisMask, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, roiTensor, handle);
 
                 break;
             }
@@ -205,6 +231,35 @@ int main(int argc, char **argv)
         avgWallTime += wallTime;
     }
 
+    if(DEBUG_MODE)
+    {
+        std::ofstream refFile;
+        std::string refFileName;
+        refFileName = func + "_host.csv";
+        refFile.open(refFileName);
+        for (int i = 0; i < bufferSize; i++)
+        {
+            if(bitDepth == 0)
+            {
+                refFile << static_cast<Rpp32f>(*(outputU8 + i)) << ",";
+            }
+            else
+            {
+                refFile << *(outputF32 + i) << ",";
+            }
+        }
+        refFile.close();
+    }
+    if(bitDepth == 0)
+    {
+        Rpp64u bufferLength = bufferSize * sizeof(Rpp8u);
+
+        // Copy U8 buffer to F32 buffer for display purposes
+        for(int i = 0; i < bufferLength; i++)
+        {
+            outputF32[i] = static_cast<float>(outputU8[i]);
+        }
+    }
     if(qaMode)
     {
         compare_output(outputF32, nDim, batchSize, bufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
@@ -220,6 +275,12 @@ int main(int argc, char **argv)
 
     free(inputF32);
     free(outputF32);
+    if(bitDepth == 0)
+    {
+        free(inputU8);
+        free(outputU8);
+    }
+
     free(roiTensor);
     if(meanTensor != nullptr)
         free(meanTensor);
