@@ -86,6 +86,7 @@ def run_unit_test(srcPath1, srcPath2, dstPathTemp, case, numRuns, testType, layo
                     print("./Tensor_host " + srcPath1 + " " + srcPath2 + " " + dstPathTemp + " " + str(bitDepth) + " " + str(outputFormatToggle) + " " + str(case) + " " + str(axisMask) + " 0")
                     result = subprocess.Popen([buildFolderPath + "/build/Tensor_host", srcPath1, srcPath2, dstPathTemp, str(bitDepth), str(outputFormatToggle), str(case), str(axisMask), str(numRuns), str(testType), str(layout), "0", str(qaMode), str(decoderType), str(batchSize)] + roiList + [scriptPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)    # nosec
                     stdout_data, stderr_data = result.communicate()
+                    print(stdout_data.decode())
             else:
                 print("\n./Tensor_host " + srcPath1 + " " + srcPath2 + " " + dstPathTemp + " " + str(bitDepth) + " " + str(outputFormatToggle) + " " + str(case) + " 0 " + str(numRuns) + " " + str(testType) + " " + str(layout) + " 0")
                 result = subprocess.Popen([buildFolderPath + "/build/Tensor_host", srcPath1, srcPath2, dstPathTemp, str(bitDepth), str(outputFormatToggle), str(case), "0", str(numRuns), str(testType), str(layout), "0", str(qaMode), str(decoderType), str(batchSize)] + roiList + [scriptPath], stdout=subprocess.PIPE)    # nosec
@@ -126,7 +127,8 @@ def run_performance_test(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPa
                     run_performance_test_cmd(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPath, bitDepth, outputFormatToggle, case, interpolationType, numRuns, testType, layout, qaMode, decoderType, batchSize, roiList)
                     print("")
             elif case == "93":
-                # Run all variants of axis mask with additional argument of axis mask from range ( 1 to 7)               for axisMask in range(1, 8):
+                # Run all variants of axis mask with additional argument of axis mask from range ( 1 to 7)               
+                for axisMask in range(1, 8):
                     run_performance_test_cmd(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPath, bitDepth, outputFormatToggle, case, axisMask, numRuns, testType, layout, qaMode, decoderType, batchSize, roiList)
                     print("")
             else:
