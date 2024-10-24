@@ -64,7 +64,7 @@ int main(int argc, char **argv)
     int decoderType = atoi(argv[13]);
     int batchSize = atoi(argv[14]);
 
-    bool additionalParamCase = (testCase == 8 || testCase == 21 || testCase == 23 || testCase == 24 || testCase == 79);
+    bool additionalParamCase = (testCase == 8 || testCase == 21 || testCase == 23 || testCase == 24 || testCase == 79 || testCase == 93);
     bool dualInputCase = (testCase == 2 || testCase == 30 || testCase == 33 || testCase == 61 || testCase == 63 || testCase == 65 || testCase == 68);
     bool randomOutputCase = (testCase == 6 || testCase == 8 || testCase == 84);
     bool nonQACase = (testCase == 24);
@@ -211,6 +211,11 @@ int main(int argc, char **argv)
         func += "_noiseType";
         func += noiseTypeName.c_str();
     }
+    if(testCase == 93)
+    {
+        func +="_axisMask";
+        func += std::to_string(additionalParam);        
+    }
 
     if(!qaFlag)
     {
@@ -343,12 +348,22 @@ int main(int argc, char **argv)
     }
 
     // create generic descriptor and params in case of slice
-    RpptGenericDesc descriptor3D;
-    RpptGenericDescPtr descriptorPtr3D = &descriptor3D;
+    RpptGenericDesc srcDescriptor3D, dstDescriptor3D;
+    RpptGenericDescPtr srcDescriptorPtr3D = &srcDescriptor3D;
+    RpptGenericDescPtr dstDescriptorPtr3D = &dstDescriptor3D;
     Rpp32s *anchorTensor = NULL, *shapeTensor = NULL;
+    Rpp32f *meanTensor = nullptr, *stdDevTensor = nullptr;
+    bool externalMeanStd = true;
     Rpp32u *roiTensor = NULL;
     if(testCase == 92)
-        set_generic_descriptor_slice(srcDescPtr, descriptorPtr3D, batchSize);
+        set_generic_descriptor_slice(srcDescPtr, srcDescriptorPtr3D, batchSize);
+
+    Rpp32u *normalizeRoiTensor = static_cast<Rpp32u *>(calloc(3 * 2 * batchSize, sizeof(Rpp32u)));
+    if(testCase == 93)
+    {
+        set_generic_descriptor_slice(srcDescPtr, srcDescriptorPtr3D, batchSize);
+        set_generic_descriptor_slice(dstDescPtr, dstDescriptorPtr3D, batchSize);
+    }
 
     // create cropRoi and patchRoi in case of crop_and_patch
     RpptROI *cropRoi, *patchRoi;
@@ -1439,7 +1454,7 @@ int main(int argc, char **argv)
                 case 92:
                 {
                     testCaseName = "slice";
-                    Rpp32u numDims = descriptorPtr3D->numDims - 1; // exclude batchSize from input dims
+                    Rpp32u numDims = srcDescriptorPtr3D->numDims - 1; // exclude batchSize from input dims
                     if(anchorTensor == NULL)
                         anchorTensor = static_cast<Rpp32s*>(calloc(batchSize * numDims, sizeof(Rpp32s)));;
                     if(shapeTensor == NULL)
@@ -1448,16 +1463,69 @@ int main(int argc, char **argv)
                         roiTensor = static_cast<Rpp32u*>(calloc(batchSize * numDims * 2, sizeof(Rpp32u)));;
                     bool enablePadding = false;
                     auto fillValue = 0;
-                    init_slice(descriptorPtr3D, roiTensorPtrSrc, roiTensor, anchorTensor, shapeTensor);
+                    init_slice(srcDescriptorPtr3D, roiTensorPtrSrc, roiTensor, anchorTensor, shapeTensor);
 
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
 
                     if((inputBitDepth == 0 || inputBitDepth == 2) && srcDescPtr->layout == dstDescPtr->layout)
-                        rppt_slice_host(input, descriptorPtr3D, output, descriptorPtr3D, anchorTensor, shapeTensor, &fillValue, enablePadding, roiTensor, handle);
+                        rppt_slice_host(input, srcDescriptorPtr3D, output, srcDescriptorPtr3D, anchorTensor, shapeTensor, &fillValue, enablePadding, roiTensor, handle);
                     else
                         missingFuncFlag = 1;
 
+                    break;
+                }
+                case 93:
+                {
+                    testCaseName  = "normalize";
+                    Rpp32u numDim = srcDescriptorPtr3D->numDims - 1;
+                    float scale = 1.0;
+                    float shift = 0.0;
+                    if(inputBitDepth == 0)
+                    {
+                        scale = 50;
+                        shift = 127.5;
+                    }
+                    init_normalize(srcDescriptorPtr3D, roiTensorPtrSrc, normalizeRoiTensor);
+                    // computeMeanStddev set to 3 means both mean and stddev should be computed internally.
+                    // Wherein 0th bit used to represent computeMean and 1st bit for computeStddev.
+                    Rpp8u computeMeanStddev = 3;
+                    externalMeanStd = !computeMeanStddev; // when mean and stddev is passed from user
+
+                    Rpp32u size = 1; // length of mean and stddev tensors differ based on axisMask and nDim
+                    Rpp32u maxSize = 1;
+                    for(int batch = 0; batch < batchSize; batch++)
+                    {
+                        size = 1;
+                        for(int i = 0; i < numDim; i++)
+                            size *= ((additionalParam & (int)(pow(2,i))) >= 1) ? 1 : normalizeRoiTensor[(numDim * 2 * batch) + numDim + i];
+                        maxSize = max(maxSize, size);
+                    }
+
+                    // allocate memory if no memory is allocated
+                    if(meanTensor == nullptr)
+                        meanTensor = static_cast<Rpp32f *>(calloc(maxSize * batchSize, sizeof(Rpp32f)));
+
+                    if(stdDevTensor == nullptr)
+                        stdDevTensor = static_cast<Rpp32f *>(calloc(maxSize * batchSize, sizeof(Rpp32f)));
+
+                    startWallTime = omp_get_wtime();
+                    if(srcDescPtr->layout == RpptLayout::NHWC)
+                    {
+                        if((inputBitDepth == 0) && dstDescPtr->layout == RpptLayout::NHWC)
+                        {
+                            rppt_normalize_host(input, srcDescriptorPtr3D, output, dstDescriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
+                        }
+                        else if((inputBitDepth == 0) && dstDescPtr->layout == RpptLayout::NCHW && additionalParam == 3)
+                            rppt_normalize_host(input, srcDescriptorPtr3D, output, dstDescriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
+                        else
+                            missingFuncFlag = 1;
+                    }
+                    else
+                    {
+                        missingFuncFlag = 1;
+
+                    }
                     break;
                 }
                 default:
