@@ -119,7 +119,8 @@ std::map<int, string> augmentationMap =
     {89, "tensor_max"},
     {90, "tensor_mean"},
     {91, "tensor_stddev"},
-    {92, "slice"}
+    {92, "slice"},
+    {93, "normalize"}
 };
 
 // Golden outputs for Tensor min Kernel
@@ -493,6 +494,7 @@ inline void set_generic_descriptor_slice(RpptDescPtr srcDescPtr, RpptGenericDesc
         descriptorPtr3D->strides[0] = descriptorPtr3D->dims[1] * descriptorPtr3D->dims[2] * descriptorPtr3D->dims[3];
         descriptorPtr3D->strides[1] = descriptorPtr3D->dims[2] * descriptorPtr3D->dims[3];
         descriptorPtr3D->strides[2] = descriptorPtr3D->dims[3];
+        descriptorPtr3D->strides[3] = 1;
     }
     else
     {
@@ -1344,6 +1346,54 @@ void init_slice(RpptGenericDescPtr descriptorPtr3D, RpptROIPtr roiPtrSrc, Rpp32u
             roiTensor[idx2 + 3] = roiPtrSrc[i].xywhROI.roiWidth;
             shapeTensor[idx1] = roiTensor[idx2 + 2] / 2;
             shapeTensor[idx1 + 1] = roiTensor[idx2 + 3] / 2;
+        }
+    }
+}
+
+// initialize the roi values required for normalize
+void init_normalize(RpptGenericDescPtr descriptorPtr3D, RpptROIPtr roiPtrSrc, Rpp32u *roiTensor)
+{
+    if(descriptorPtr3D->numDims == 4)
+    {
+        if (descriptorPtr3D->layout == RpptLayout::NCHW)
+        {
+            for(int i = 0; i < descriptorPtr3D->dims[0]; i++)
+            {
+                int idx1 = i * 3;
+                int idx2 = i * 6;
+                roiTensor[idx2] = 0;
+                roiTensor[idx2 + 1] = roiPtrSrc[i].xywhROI.xy.y;
+                roiTensor[idx2 + 2] = roiPtrSrc[i].xywhROI.xy.x;
+                roiTensor[idx2 + 3] = descriptorPtr3D->dims[1];
+                roiTensor[idx2 + 4] = roiPtrSrc[i].xywhROI.roiHeight;
+                roiTensor[idx2 + 5] = roiPtrSrc[i].xywhROI.roiWidth;
+            }
+        }
+        else if(descriptorPtr3D->layout == RpptLayout::NHWC)
+        {
+            for(int i = 0; i < descriptorPtr3D->dims[0]; i++)
+            {
+                int idx1 = i * 3;
+                int idx2 = i * 6;
+                roiTensor[idx2] = roiPtrSrc[i].xywhROI.xy.y;
+                roiTensor[idx2 + 1] = roiPtrSrc[i].xywhROI.xy.x;
+                roiTensor[idx2 + 2] = 0;
+                roiTensor[idx2 + 3] = roiPtrSrc[i].xywhROI.roiHeight;
+                roiTensor[idx2 + 4] = roiPtrSrc[i].xywhROI.roiWidth;
+                roiTensor[idx2 + 5] = descriptorPtr3D->dims[3];
+            }
+        }
+    }
+    if(descriptorPtr3D->numDims == 3)
+    {
+        for(int i = 0; i < descriptorPtr3D->dims[0]; i++)
+        {
+            int idx1 = i * 2;
+            int idx2 = i * 4;
+            roiTensor[idx2] = roiPtrSrc[i].xywhROI.xy.y;
+            roiTensor[idx2 + 1] = roiPtrSrc[i].xywhROI.xy.x;
+            roiTensor[idx2 + 2] = roiPtrSrc[i].xywhROI.roiHeight;
+            roiTensor[idx2 + 3] = roiPtrSrc[i].xywhROI.roiWidth;
         }
     }
 }
