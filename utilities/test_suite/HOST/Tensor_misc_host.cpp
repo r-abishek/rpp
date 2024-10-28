@@ -171,8 +171,8 @@ int main(int argc, char **argv)
                 float shift = 0.0;
                 if(bitDepth == 0)
                 {
-                    float scale = 50;
-                    float shift = 127.5;
+                    scale = 50;
+                    shift = 127.5;
                 }
                 // computeMeanStddev set to 3 means both mean and stddev should be computed internally.
                 // Wherein 0th bit used to represent computeMean and 1st bit for computeStddev.
