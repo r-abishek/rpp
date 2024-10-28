@@ -976,7 +976,7 @@ void compare_outputs_pln3(Rpp8u* output, Rpp8u* refOutput, RpptDescPtr dstDescPt
 }
 
 template <typename T>
-inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int noOfImages, string interpolationTypeName, string noiseTypeName, int testCase, string dst, string scriptPath)
+inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int noOfImages, string interpolationTypeName, string noiseTypeName, string axisMaskName, int testCase, string dst, string scriptPath)
 {
     string func = funcName;
     string refFile = "";
@@ -1036,6 +1036,11 @@ inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, R
     {
         func += "_noiseType" + noiseTypeName;
         binFile += "_noiseType" + noiseTypeName;
+    }
+    else if(testCase == 93)
+    {
+        func += "_axisMask" + axisMaskName;
+        binFile += "_axisMask" + axisMaskName;
     }
     refFile = scriptPath + "/../REFERENCE_OUTPUT/" + funcName + "/"+ binFile + ".bin";
     int fileMatch = 0;

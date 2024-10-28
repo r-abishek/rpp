@@ -198,6 +198,7 @@ int main(int argc, char **argv)
     RpptInterpolationType interpolationType = RpptInterpolationType::BILINEAR;
     std::string interpolationTypeName = "";
     std::string noiseTypeName = "";
+    std::string axisMaskName = "";
 
     if (interpolationTypeCase)
     {
@@ -213,6 +214,7 @@ int main(int argc, char **argv)
     }
     if(testCase == 93)
     {
+        axisMaskName = std::to_string(additionalParam);
         func +="_axisMask";
         func += std::to_string(additionalParam);        
     }
@@ -1510,6 +1512,8 @@ int main(int argc, char **argv)
                         stdDevTensor = static_cast<Rpp32f *>(calloc(maxSize * batchSize, sizeof(Rpp32f)));
 
                     startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    
                     if(srcDescPtr->layout == RpptLayout::NHWC)
                     {
                         if((inputBitDepth == 0) && dstDescPtr->layout == RpptLayout::NHWC)
@@ -1668,7 +1672,7 @@ int main(int argc, char **argv)
                 3.source and destination layout are the same
                 4.augmentation case does not generate random output*/
                 if(qaFlag && inputBitDepth == 0 && ((srcDescPtr->layout == dstDescPtr->layout) || pln1OutTypeCase) && !(randomOutputCase) && !(nonQACase))
-                    compare_output<Rpp8u>(outputu8, testCaseName, srcDescPtr, dstDescPtr, dstImgSizes, batchSize, interpolationTypeName, noiseTypeName, testCase, dst, scriptPath);
+                    compare_output<Rpp8u>(outputu8, testCaseName, srcDescPtr, dstDescPtr, dstImgSizes, batchSize, interpolationTypeName, noiseTypeName, axisMaskName, testCase, dst, scriptPath);
 
                 // Calculate exact dstROI in XYWH format for OpenCV dump
                 if (roiTypeSrc == RpptRoiType::LTRB)
