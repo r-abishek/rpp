@@ -316,7 +316,7 @@ void normalize_3D_tensor_nontoggle(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericD
 }
 
 // Computes normalize for 3D non toggle variants
-void normalize_3D_tensor_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
+void normalize_3D_tensor_pkd3_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
                          Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp32s paramIdx = 0;
@@ -422,6 +422,129 @@ void normalize_3D_tensor_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr sr
             paramIdx = (!paramStride[0]) ? 0 : paramIdx + paramStride[0];
         srcPtrRow += srcGenericDescPtr->strides[1];
         dstPtrRow += dstGenericDescPtr->strides[1];
+    }
+}
+
+// Computes normalize for 3D non toggle variants
+void normalize_3D_tensor_pln3_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
+                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+{
+    Rpp32s paramIdx = 0;
+    Rpp32s idx1 = 0;
+    __m256 pShift = _mm256_set1_ps(shift);
+    Rpp8u *srcPtrTemp[length[0]];
+    Rpp8u *dstPtrTemp[length[0]];
+    srcPtrTemp[0] = srcPtr;
+    dstPtrTemp[0] = dstPtr;
+    for(Rpp32u i = 1; i < length[0]; i++)
+    {
+        srcPtrTemp[i] = srcPtrTemp[i-1] + srcGenericDescPtr->strides[1];
+        dstPtrTemp[i] = dstPtrTemp[i-1] + dstGenericDescPtr->strides[1];
+    }
+    for(Rpp32u i = 0; i < length[1]; i++)
+    {
+        Rpp8u *srcPtrRowTemp[length[0]];
+        Rpp8u *dstPtrRowTemp[length[0]];
+        for(Rpp32u l = 0; l < length[0]; l++)
+        {
+            srcPtrRowTemp[l] = srcPtrTemp[l];
+            dstPtrRowTemp[l] = dstPtrTemp[l];
+        }
+        Rpp32u vectorIncrement = 48;
+        Rpp32u vectorIncrementPerChannel = 16;
+        Rpp32u alignedLength = ((length[2] - 1) / vectorIncrementPerChannel) * vectorIncrementPerChannel;
+        Rpp32u vectorLoopCount = 0;
+        __m256 pMean[6], pMultiplier[6];
+        if(paramStride[0] == 0 && paramStride[2] == 0)
+        {
+            pMean[0] = pMean[1] = pMean[2] = pMean[3] = pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx));
+            pMultiplier[0] = pMultiplier[1] = pMultiplier[2] = pMultiplier[3] = pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
+        }
+        else if(paramStride[0] == 1 && paramStride[2] == 0)
+        {
+            pMean[0] = pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
+            pMean[2] = pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx + (length[1] * paramStride[1])));
+            pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx + (length[1] * paramStride[1]) * 2));
+            pMultiplier[0] = pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
+            pMultiplier[2] = pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx + (length[1] * paramStride[1])));
+            pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx + (length[1] * paramStride[1]) * 2));
+        }
+        else if(paramStride[0] == 0 && paramStride[2] == 1)
+        {
+            rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
+            pMean[2] = pMean[4] = pMean[0];
+            pMean[3] = pMean[5] = pMean[1];
+            rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
+            pMultiplier[2] = pMultiplier[4] = pMultiplier[0];
+            pMultiplier[3] = pMultiplier[5] = pMultiplier[1];
+
+        }
+        else
+        {
+            rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx + (paramStride[2] * length[2] + paramStride[1] * length[1])), (meanPtr + paramIdx + 2 * (paramStride[2] * length[2] + paramStride[1] * length[1])), pMean);
+            rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (multiplierPtr + paramIdx), (multiplierPtr + paramIdx + (paramStride[2] * length[2] + paramStride[1] * length[1])), (multiplierPtr + paramIdx + 2 * (paramStride[2] * length[2] + paramStride[1] * length[1])), pMultiplier);
+        }
+
+        for(; vectorLoopCount < alignedLength ; vectorLoopCount += vectorIncrementPerChannel)
+        {
+            __m256 pSrc[6],pDst[6];
+            rpp_simd_load(rpp_load48_u8pln3_to_f32pln3_avx, srcPtrRowTemp[0], srcPtrRowTemp[1], srcPtrRowTemp[2], pSrc);
+            pDst[0] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[0], pMean[0]), pMultiplier[0]), pShift);
+            pDst[1] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[1], pMean[1]), pMultiplier[1]), pShift);
+            pDst[2] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[2], pMean[2]), pMultiplier[2]), pShift);
+            pDst[3] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[3], pMean[3]), pMultiplier[3]), pShift);
+            pDst[4] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[4], pMean[4]), pMultiplier[4]), pShift);
+            pDst[5] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[5], pMean[5]), pMultiplier[5]), pShift);
+            rpp_simd_store(rpp_store48_f32pln3_to_u8pln3_avx, dstPtrRowTemp[0], dstPtrRowTemp[1], dstPtrRowTemp[2], pDst);
+
+            if(paramStride[2] == 1)
+            {
+                paramIdx += vectorIncrementPerChannel;
+            }
+            if(paramStride[2] == 1 && vectorLoopCount < alignedLength - vectorIncrementPerChannel)
+            {
+                if(paramStride[0] == 0)
+                {
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
+                    pMean[2] = pMean[4] = pMean[0];
+                    pMean[3] = pMean[5] = pMean[1];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
+                    pMultiplier[2] = pMultiplier[4] = pMultiplier[0];
+                    pMultiplier[3] = pMultiplier[5] = pMultiplier[1];
+                }
+                else
+                {
+                    rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx + (paramStride[2] * length[2] + paramStride[1] * length[1])), (meanPtr + paramIdx + 2 * (paramStride[2] * length[2] + paramStride[1] * length[1])), pMean);
+                    rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (multiplierPtr + paramIdx), (multiplierPtr + paramIdx + (paramStride[2] * length[2] + paramStride[1] * length[1])), (multiplierPtr + paramIdx + 2 * (paramStride[2] * length[2] + paramStride[1] * length[1])), pMultiplier);
+                }
+            }
+            for(Rpp32u l = 0; l < length[0]; l++)
+            {
+                srcPtrRowTemp[l] += vectorIncrementPerChannel;
+                dstPtrRowTemp[l] += vectorIncrementPerChannel;
+            }
+
+        }
+        for(; vectorLoopCount < length[2]; vectorLoopCount++)
+        {
+            idx1 = paramIdx;
+            for(Rpp32u k = 0; k < length[0]; k++)
+            {
+                *dstPtrRowTemp[k]++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(((static_cast<Rpp32f>(*srcPtrRowTemp[k]) - meanPtr[paramIdx + paramStride[0] * k * (paramStride[2] * length[2] + paramStride[1] * length[1])]) * multiplierPtr[paramIdx + paramStride[0] * k * (paramStride[2] * length[2] + paramStride[1] * length[1])]) + shift)));
+                srcPtrRowTemp[k]++;
+                if(k < length[0] - 1 && paramStride[1] == 0 && paramStride[2] == 0)
+                    paramIdx += paramStride[0];
+            }
+            if(vectorLoopCount < length[2] - 1)
+                paramIdx = (!paramStride[2]) ? idx1 : paramIdx + paramStride[2];
+        }
+        if(i < length[1] - 1)
+            paramIdx = (!paramStride[1]) ? 0 : paramIdx + paramStride[1];
+        for(Rpp32u l = 0; l < length[0]; l++)
+        {
+            srcPtrTemp[l] += srcGenericDescPtr->strides[2];
+            dstPtrTemp[l] += dstGenericDescPtr->strides[2];
+        }
     }
 }
 
@@ -570,7 +693,7 @@ void normalize_3D_tensor_axis3_toggle(Rpp8u *srcPtr, RpptGenericDescPtr srcGener
 }
 
 // Computes normalize for 3D toggle variants when axis mask is set to 3
-void normalize_3D_tensor_axis3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
+void normalize_3D_tensor_pkd3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
                          Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
 
@@ -679,8 +802,126 @@ void normalize_3D_tensor_axis3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr
         srcPtrTemp += srcGenericDescPtr->strides[1];
         for(Rpp32u l = 0; l < length[2]; l++)
             dstPtrTemp[l] += dstGenericDescPtr->strides[2];
-            if(i < length[0] - 1)
+        if(i < length[0] - 1)
             paramIdx = (!paramStride[0]) ? 0 : paramIdx + paramStride[0];
+    }
+}
+
+// Computes normalize for 3D non toggle variants
+void normalize_3D_tensor_pln3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
+                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+{
+    Rpp32s paramIdx = 0;
+    Rpp32s idx1 = 0;
+    __m256 pShift = _mm256_set1_ps(shift);
+    Rpp8u *srcPtrTemp[length[0]];
+    Rpp8u *dstPtrTemp = dstPtr;
+    srcPtrTemp[0] = srcPtr;
+    for(Rpp32u i = 1; i < length[0]; i++)
+    {
+        srcPtrTemp[i] = srcPtrTemp[i-1] + srcGenericDescPtr->strides[1];
+    }
+    for(Rpp32u i = 0; i < length[1]; i++)
+    {
+        Rpp8u *srcPtrRowTemp[length[0]];
+        Rpp8u *dstPtrRowTemp = dstPtrTemp;
+        for(Rpp32u l = 0; l < length[0]; l++)
+        {
+            srcPtrRowTemp[l] = srcPtrTemp[l];
+        }
+        Rpp32u vectorIncrement = 48;
+        Rpp32u vectorIncrementPerChannel = 16;
+        Rpp32u alignedLength = ((length[2] - 1) / vectorIncrementPerChannel) * vectorIncrementPerChannel;
+        Rpp32u vectorLoopCount = 0;
+        __m256 pMean[6], pMultiplier[6];
+        if(paramStride[0] == 0 && paramStride[2] == 0)
+        {
+            pMean[0] = pMean[1] = pMean[2] = pMean[3] = pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx));
+            pMultiplier[0] = pMultiplier[1] = pMultiplier[2] = pMultiplier[3] = pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
+        }
+        else if(paramStride[0] == 1 && paramStride[2] == 0)
+        {
+            pMean[0] = pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
+            pMean[2] = pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx + (length[1] * paramStride[1])));
+            pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx + (length[1] * paramStride[1]) * 2));
+            pMultiplier[0] = pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
+            pMultiplier[2] = pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx + (length[1] * paramStride[1])));
+            pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx + (length[1] * paramStride[1]) * 2));
+        }
+        else if(paramStride[0] == 0 && paramStride[2] == 1)
+        {
+            rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
+            pMean[2] = pMean[4] = pMean[0];
+            pMean[3] = pMean[5] = pMean[1];
+            rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
+            pMultiplier[2] = pMultiplier[4] = pMultiplier[0];
+            pMultiplier[3] = pMultiplier[5] = pMultiplier[1];
+
+        }
+        else
+        {
+            rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx + (paramStride[2] * length[2] + paramStride[1] * length[1])), (meanPtr + paramIdx + 2 * (paramStride[2] * length[2] + paramStride[1] * length[1])), pMean);
+            rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (multiplierPtr + paramIdx), (multiplierPtr + paramIdx + (paramStride[2] * length[2] + paramStride[1] * length[1])), (multiplierPtr + paramIdx + 2 * (paramStride[2] * length[2] + paramStride[1] * length[1])), pMultiplier);
+        }
+
+        for(; vectorLoopCount < alignedLength ; vectorLoopCount += vectorIncrementPerChannel)
+        {
+            __m256 pSrc[6],pDst[6];
+            rpp_simd_load(rpp_load48_u8pln3_to_f32pln3_avx, srcPtrRowTemp[0], srcPtrRowTemp[1], srcPtrRowTemp[2], pSrc);
+            pDst[0] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[0], pMean[0]), pMultiplier[0]), pShift);
+            pDst[1] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[1], pMean[1]), pMultiplier[1]), pShift);
+            pDst[2] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[2], pMean[2]), pMultiplier[2]), pShift);
+            pDst[3] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[3], pMean[3]), pMultiplier[3]), pShift);
+            pDst[4] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[4], pMean[4]), pMultiplier[4]), pShift);
+            pDst[5] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[5], pMean[5]), pMultiplier[5]), pShift);
+            rpp_simd_store(rpp_store48_f32pln3_to_u8pkd3_avx, dstPtrRowTemp, pDst);
+
+            if(paramStride[2] == 1)
+            {
+                paramIdx += vectorIncrementPerChannel;
+            }
+            if(paramStride[2] == 1 && vectorLoopCount < alignedLength - vectorIncrementPerChannel)
+            {
+                if(paramStride[0] == 0)
+                {
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
+                    pMean[2] = pMean[4] = pMean[0];
+                    pMean[3] = pMean[5] = pMean[1];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
+                    pMultiplier[2] = pMultiplier[4] = pMultiplier[0];
+                    pMultiplier[3] = pMultiplier[5] = pMultiplier[1];
+                }
+                else
+                {
+                    rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (meanPtr + paramIdx), (meanPtr + paramIdx + (paramStride[2] * length[2] + paramStride[1] * length[1])), (meanPtr + paramIdx + 2 * (paramStride[2] * length[2] + paramStride[1] * length[1])), pMean);
+                    rpp_simd_load(rpp_load48_f32pln3_to_f32pln3_avx, (multiplierPtr + paramIdx), (multiplierPtr + paramIdx + (paramStride[2] * length[2] + paramStride[1] * length[1])), (multiplierPtr + paramIdx + 2 * (paramStride[2] * length[2] + paramStride[1] * length[1])), pMultiplier);
+                }
+            }
+            for(Rpp32u l = 0; l < length[0]; l++)
+                srcPtrRowTemp[l] += vectorIncrementPerChannel;
+            
+            dstPtrRowTemp += vectorIncrement;
+        }
+        for(; vectorLoopCount < length[2]; vectorLoopCount++)
+        {
+            idx1 = paramIdx;
+            for(Rpp32u k = 0; k < length[0]; k++)
+            {
+                *dstPtrRowTemp++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(((static_cast<Rpp32f>(*srcPtrRowTemp[k]) - meanPtr[paramIdx + paramStride[0] * k * (paramStride[2] * length[2] + paramStride[1] * length[1])]) * multiplierPtr[paramIdx + paramStride[0] * k * (paramStride[2] * length[2] + paramStride[1] * length[1])]) + shift)));
+                srcPtrRowTemp[k]++;
+                if(k < length[0] - 1 && paramStride[1] == 0 && paramStride[2] == 0)
+                    paramIdx += paramStride[0];
+            }
+            if(vectorLoopCount < length[2] - 1)
+                paramIdx = (!paramStride[2]) ? idx1 : paramIdx + paramStride[2];
+        }
+        if(i < length[1] - 1)
+            paramIdx = (!paramStride[1]) ? 0 : paramIdx + paramStride[1];
+
+        for(Rpp32u l = 0; l < length[0]; l++)
+            srcPtrTemp[l] += srcGenericDescPtr->strides[2];
+        
+        dstPtrTemp += dstGenericDescPtr->strides[1];
     }
 }
 
@@ -1158,22 +1399,24 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
 
             if((axisMask == 3) && (srcGenericDescPtr->layout == RpptLayout::NHWC) && (dstGenericDescPtr->layout == RpptLayout::NHWC) && (srcGenericDescPtr->dims[3] == 16))
                 normalize_3D_tensor_avx_axis3(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length[1] * layoutParams.bufferMultiplier, length);
-            else if((srcGenericDescPtr->layout == RpptLayout::NHWC) && (dstGenericDescPtr->layout == RpptLayout::NHWC) && (srcGenericDescPtr->dims[3] == 3))
-                normalize_3D_tensor_nontoggle_3channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
             else if((srcGenericDescPtr->layout == RpptLayout::NHWC) && (srcGenericDescPtr->dims[3] == 1))
                 normalize_3D_tensor_1channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
-            else if((srcGenericDescPtr->layout == RpptLayout::NHWC) && (dstGenericDescPtr->layout == RpptLayout::NHWC))
+            else if(srcGenericDescPtr->layout == dstGenericDescPtr->layout)
             {
-                if(srcGenericDescPtr->dims[3] == 3)
-                    normalize_3D_tensor_nontoggle_3channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
+                if(srcGenericDescPtr->layout == RpptLayout::NHWC && srcGenericDescPtr->dims[3] == 3)
+                    normalize_3D_tensor_pkd3_nontoggle_3channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
+                else if(srcGenericDescPtr->layout == RpptLayout::NCHW && srcGenericDescPtr->dims[1] == 3)
+                    normalize_3D_tensor_pln3_nontoggle_3channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
                 else
                     normalize_3D_tensor_nontoggle(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
             }
-            else if((axisMask == 3) && (srcGenericDescPtr->layout == RpptLayout::NHWC) && (dstGenericDescPtr->layout == RpptLayout::NCHW))
+            else if(srcGenericDescPtr->layout != dstGenericDescPtr->layout )
             {
-                if(srcGenericDescPtr->dims[3] == 3)
-                    normalize_3D_tensor_axis3_toggle_3channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
-                else
+                if(srcGenericDescPtr->layout == RpptLayout::NHWC && srcGenericDescPtr->dims[3] == 3)
+                    normalize_3D_tensor_pkd3_toggle_3channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
+                else if(srcGenericDescPtr->layout == RpptLayout::NCHW && srcGenericDescPtr->dims[1] == 3)
+                    normalize_3D_tensor_pln3_toggle_3channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
+                else if(srcGenericDescPtr->layout == RpptLayout::NHWC && axisMask == 3)
                     normalize_3D_tensor_axis3_toggle(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
 
             }

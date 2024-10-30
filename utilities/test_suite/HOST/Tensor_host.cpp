@@ -1514,22 +1514,15 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
                     
-                    if(srcDescPtr->layout == RpptLayout::NHWC)
+                    if(inputBitDepth == 0)
                     {
-                        if((inputBitDepth == 0) && dstDescPtr->layout == RpptLayout::NHWC)
-                        {
-                            rppt_normalize_host(input, srcDescriptorPtr3D, output, dstDescriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
-                        }
-                        else if((inputBitDepth == 0) && dstDescPtr->layout == RpptLayout::NCHW && additionalParam == 3)
-                            rppt_normalize_host(input, srcDescriptorPtr3D, output, dstDescriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
-                        else
-                            missingFuncFlag = 1;
+                        rppt_normalize_host(input, srcDescriptorPtr3D, output, dstDescriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
                     }
+                    else if((inputBitDepth == 0) && dstDescPtr->layout == RpptLayout::NCHW && additionalParam == 3)
+                        rppt_normalize_host(input, srcDescriptorPtr3D, output, dstDescriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
                     else
-                    {
                         missingFuncFlag = 1;
-
-                    }
+                   
                     break;
                 }
                 default:

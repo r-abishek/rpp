@@ -260,6 +260,8 @@ RppStatus rppt_normalize_host(RppPtr_t srcPtr,
     Rpp32u tensorDim = srcGenericDescPtr->numDims - 1;
     if (tensorDim == 3 && (srcGenericDescPtr->layout == RpptLayout::NHWC))
         layoutParams = get_layout_params(srcGenericDescPtr->layout, srcGenericDescPtr->dims[3]);
+    else if (tensorDim == 3 && (srcGenericDescPtr->layout == RpptLayout::NCHW))
+        layoutParams = get_layout_params(srcGenericDescPtr->layout, srcGenericDescPtr->dims[1]);
     else if ((srcGenericDescPtr->layout == RpptLayout::NCDHW) && (dstGenericDescPtr->layout == RpptLayout::NCDHW))
         layoutParams = get_layout_params(srcGenericDescPtr->layout, srcGenericDescPtr->dims[1]);
     else if ((srcGenericDescPtr->layout == RpptLayout::NDHWC) && (dstGenericDescPtr->layout == RpptLayout::NDHWC))
