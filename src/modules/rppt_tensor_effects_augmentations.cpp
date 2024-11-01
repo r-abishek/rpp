@@ -1495,27 +1495,13 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
     copy_param_float(meanTensor, rpp::deref(rppHandle), paramIndex++);
     copy_param_float(stdDevTensor, rpp::deref(rppHandle), paramIndex++);
 
-    RpptXorwowStateBoxMuller xorwowInitialState;
-    xorwowInitialState.x[0] = 0x75BCD15 + seed;
-    xorwowInitialState.x[1] = 0x159A55E5 + seed;
-    xorwowInitialState.x[2] = 0x1F123BB5 + seed;
-    xorwowInitialState.x[3] = 0x5491333 + seed;
-    xorwowInitialState.x[4] = 0x583F19 + seed;
-    xorwowInitialState.counter = 0x64F0C9 + seed;
-    xorwowInitialState.boxMullerFlag = 0;
-    xorwowInitialState.boxMullerExtra = 0.0f;
-
-    RpptXorwowStateBoxMuller *d_xorwowInitialStatePtr;
-    d_xorwowInitialStatePtr = (RpptXorwowStateBoxMuller *) rpp::deref(rppHandle).GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem;
-    CHECK_RETURN_STATUS(hipMemcpy(d_xorwowInitialStatePtr, &xorwowInitialState, sizeof(RpptXorwowStateBoxMuller), hipMemcpyHostToDevice));
-
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         hip_exec_gaussian_noise_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                        srcDescPtr,
                                        static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                        dstDescPtr,
-                                       d_xorwowInitialStatePtr,
+                                       seed,
                                        roiTensorPtrSrc,
                                        roiType,
                                        rpp::deref(rppHandle));
@@ -1526,7 +1512,7 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
                                        srcDescPtr,
                                        (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                        dstDescPtr,
-                                       d_xorwowInitialStatePtr,
+                                       seed,
                                        roiTensorPtrSrc,
                                        roiType,
                                        rpp::deref(rppHandle));
@@ -1537,7 +1523,7 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
                                        srcDescPtr,
                                        (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                        dstDescPtr,
-                                       d_xorwowInitialStatePtr,
+                                       seed,
                                        roiTensorPtrSrc,
                                        roiType,
                                        rpp::deref(rppHandle));
@@ -1548,7 +1534,7 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
                                        srcDescPtr,
                                        static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                        dstDescPtr,
-                                       d_xorwowInitialStatePtr,
+                                       seed,
                                        roiTensorPtrSrc,
                                        roiType,
                                        rpp::deref(rppHandle));
