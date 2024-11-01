@@ -251,12 +251,12 @@ int main(int argc, char **argv)
 
     // Initialize ROI tensors for src/dst
     RpptROI *roiTensorPtrSrc, *roiTensorPtrDst;
-    CHECK_RETURN_STATUS(hipHostMalloc(&roiTensorPtrSrc, batchSize * sizeof(RpptROI)));
-    CHECK_RETURN_STATUS(hipHostMalloc(&roiTensorPtrDst, batchSize * sizeof(RpptROI)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&roiTensorPtrSrc, batchSize * sizeof(RpptROI)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&roiTensorPtrDst, batchSize * sizeof(RpptROI)));
 
     // Initialize the ImagePatch for dst
     RpptImagePatch *dstImgSizes;
-    CHECK_RETURN_STATUS(hipHostMalloc(&dstImgSizes, batchSize * sizeof(RpptImagePatch)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&dstImgSizes, batchSize * sizeof(RpptImagePatch)));
 
     // Set ROI tensors types for src/dst
     RpptRoiType roiTypeSrc, roiTypeDst;
@@ -347,9 +347,9 @@ int main(int argc, char **argv)
         else if ((dstDescPtr->dataType == RpptDataType::U8) || (dstDescPtr->dataType == RpptDataType::I8))
             bitDepthByteSize = (testCase == 87) ? sizeof(Rpp64u) : sizeof(Rpp8u);
 
-        CHECK_RETURN_STATUS(hipHostMalloc(&reductionFuncResultArr, reductionFuncResultArrLength * bitDepthByteSize));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&reductionFuncResultArr, reductionFuncResultArrLength * bitDepthByteSize));
         if(testCase == 91)
-            CHECK_RETURN_STATUS(hipHostMalloc(&mean, reductionFuncResultArrLength * bitDepthByteSize));
+            CHECK_RETURN_STATUS(hipExtHostAlloc(&mean, reductionFuncResultArrLength * bitDepthByteSize));
     }
 
     // create generic descriptor and params in case of slice
@@ -368,7 +368,7 @@ int main(int argc, char **argv)
 
     RpptROI *roiPtrInputCropRegion;
     if(testCase == 82)
-        CHECK_RETURN_STATUS(hipHostMalloc(&roiPtrInputCropRegion, 4 * sizeof(RpptROI)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&roiPtrInputCropRegion, 4 * sizeof(RpptROI)));
 
     void *d_rowRemapTable, *d_colRemapTable;
     if(testCase == 26 || testCase == 79)
@@ -382,8 +382,8 @@ int main(int argc, char **argv)
     Rpp32f *cameraMatrix, *distortionCoeffs;
     if(testCase == 26)
     {
-        CHECK_RETURN_STATUS(hipHostMalloc(&cameraMatrix, batchSize * 9 * sizeof(Rpp32f)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&distortionCoeffs, batchSize * 8 * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&cameraMatrix, batchSize * 9 * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&distortionCoeffs, batchSize * 8 * sizeof(Rpp32f)));
     }
 
     Rpp32u boxesInEachImage = 3;
@@ -392,36 +392,36 @@ int main(int argc, char **argv)
     Rpp32u *numOfBoxes;
     if(testCase == 32)
     {
-        CHECK_RETURN_STATUS(hipHostMalloc(&colorBuffer, batchSize * boxesInEachImage * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&colorBuffer, batchSize * boxesInEachImage * sizeof(Rpp32f)));
         CHECK_RETURN_STATUS(hipMemset(colorBuffer, 0, batchSize * boxesInEachImage * sizeof(Rpp32f)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&anchorBoxInfoTensor, batchSize * boxesInEachImage * sizeof(RpptRoiLtrb)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&numOfBoxes, batchSize * sizeof(Rpp32u)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&anchorBoxInfoTensor, batchSize * boxesInEachImage * sizeof(RpptRoiLtrb)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&numOfBoxes, batchSize * sizeof(Rpp32u)));
     }
 
     // create cropRoi and patchRoi in case of crop_and_patch
     RpptROI *cropRoi, *patchRoi;
     if(testCase == 33)
     {
-        CHECK_RETURN_STATUS(hipHostMalloc(&cropRoi, batchSize * sizeof(RpptROI)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&patchRoi, batchSize * sizeof(RpptROI)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&cropRoi, batchSize * sizeof(RpptROI)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&patchRoi, batchSize * sizeof(RpptROI)));
     }
     bool invalidROI = (roiList[0] == 0 && roiList[1] == 0 && roiList[2] == 0 && roiList[3] == 0);
 
     Rpp32f *intensity;
     if(testCase == 46)
-        CHECK_RETURN_STATUS(hipHostMalloc(&intensity, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&intensity, batchSize * sizeof(Rpp32f)));
 
     Rpp32u *kernelSizeTensor;
     if(testCase == 6)
-        CHECK_RETURN_STATUS(hipHostMalloc(&kernelSizeTensor, batchSize * sizeof(Rpp32u)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&kernelSizeTensor, batchSize * sizeof(Rpp32u)));
 
     RpptChannelOffsets *rgbOffsets;
     if(testCase == 35)
-        CHECK_RETURN_STATUS(hipHostMalloc(&rgbOffsets, batchSize * sizeof(RpptChannelOffsets)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&rgbOffsets, batchSize * sizeof(RpptChannelOffsets)));
 
     void *d_interDstPtr;
     if(testCase == 5)
-        CHECK_RETURN_STATUS(hipHostMalloc(&d_interDstPtr, srcDescPtr->strides.nStride * srcDescPtr->n * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&d_interDstPtr, srcDescPtr->strides.nStride * srcDescPtr->n * sizeof(Rpp32f)));
 
     // case-wise RPP API and measure time script for Unit and Performance test
     cout << "\nRunning " << func << " " << numRuns << " times (each time with a batch size of " << batchSize << " images) and computing mean statistics...";
@@ -903,7 +903,7 @@ int main(int argc, char **argv)
                     testCaseName = "lut";
 
                     Rpp32f *lutBuffer;
-                    CHECK_RETURN_STATUS(hipHostMalloc(&lutBuffer, 65536 * sizeof(Rpp32f)));
+                    CHECK_RETURN_STATUS(hipExtHostAlloc(&lutBuffer, 65536 * sizeof(Rpp32f)));
                     CHECK_RETURN_STATUS(hipMemset(lutBuffer, 0, 65536 * sizeof(Rpp32f)));
                     Rpp8u *lut8u = reinterpret_cast<Rpp8u *>(lutBuffer);
                     Rpp16f *lut16f = reinterpret_cast<Rpp16f *>(lutBuffer);
@@ -1437,11 +1437,11 @@ int main(int argc, char **argv)
                     testCaseName = "slice";
                     Rpp32u numDims = descriptorPtr3D->numDims - 1; // exclude batchSize from input dims
                     if(anchorTensor == NULL)
-                        CHECK_RETURN_STATUS(hipHostMalloc(&anchorTensor, batchSize * numDims * sizeof(Rpp32s)));
+                        CHECK_RETURN_STATUS(hipExtHostAlloc(&anchorTensor, batchSize * numDims * sizeof(Rpp32s)));
                     if(shapeTensor == NULL)
-                        CHECK_RETURN_STATUS(hipHostMalloc(&shapeTensor, batchSize * numDims * sizeof(Rpp32s)));
+                        CHECK_RETURN_STATUS(hipExtHostAlloc(&shapeTensor, batchSize * numDims * sizeof(Rpp32s)));
                     if(roiTensor == NULL)
-                        CHECK_RETURN_STATUS(hipHostMalloc(&roiTensor, batchSize * numDims * 2 * sizeof(Rpp32u)));
+                        CHECK_RETURN_STATUS(hipExtHostAlloc(&roiTensor, batchSize * numDims * 2 * sizeof(Rpp32u)));
                     bool enablePadding = false;
                     auto fillValue = 0;
                     init_slice(descriptorPtr3D, roiTensorPtrSrc, roiTensor, anchorTensor, shapeTensor);
@@ -1598,7 +1598,7 @@ int main(int argc, char **argv)
                 // Calculate exact dstROI in XYWH format for OpenCV dump
                 if (roiTypeSrc == RpptRoiType::LTRB)
                     convert_roi(roiTensorPtrDst, RpptRoiType::XYWH, dstDescPtr->n);
-                    
+
                 // Check if the ROI values for each input is within the bounds of the max buffer allocated
                 RpptROI roiDefault;
                 RpptROIPtr roiPtrDefault = &roiDefault;

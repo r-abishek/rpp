@@ -145,12 +145,12 @@ int main(int argc, char **argv)
 
     // Initialize ROI tensors for src/dst
     RpptROI *roiTensorPtrSrc, *roiTensorPtrDst;
-    hipHostMalloc(&roiTensorPtrSrc, noOfImages * sizeof(RpptROI));
-    hipHostMalloc(&roiTensorPtrDst, noOfImages * sizeof(RpptROI));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&roiTensorPtrSrc, noOfImages * sizeof(RpptROI)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&roiTensorPtrDst, noOfImages * sizeof(RpptROI)));
 
     // Initialize the ImagePatch for dst
     RpptImagePatch *dstImgSizes;
-    hipHostMalloc(&dstImgSizes, noOfImages * sizeof(RpptImagePatch));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&dstImgSizes, noOfImages * sizeof(RpptImagePatch)));
 
     // Set ROI tensors types for src/dst
     RpptRoiType roiTypeSrc, roiTypeDst;

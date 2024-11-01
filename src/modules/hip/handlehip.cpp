@@ -65,7 +65,7 @@ void* default_allocator(void*, size_t sz)
     auto status = hipMalloc(&result, sz);
     if(status != hipSuccess)
     {
-        status = hipHostMalloc(&result, sz);
+        status = hipExtHostAlloc(&result, sz);
         if(status != hipSuccess)
             RPP_THROW_HIP_STATUS(status, "Hip error creating buffer " + std::to_string(sz) + ": ");
     }
@@ -257,7 +257,7 @@ struct HandleImpl
 #else
         CHECK_RETURN_STATUS(hipMalloc(&(this->initHandle->mem.mgpu.scratchBufferHip.floatmem), sizeof(Rpp32f) * 8294400));   // 3840 x 2160
 #endif
-        CHECK_RETURN_STATUS(hipHostMalloc(&(this->initHandle->mem.mgpu.scratchBufferPinned.floatmem), sizeof(Rpp32f) * 8294400));    // 3840 x 2160
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&(this->initHandle->mem.mgpu.scratchBufferPinned.floatmem), sizeof(Rpp32f) * 8294400));    // 3840 x 2160
     }
 };
 

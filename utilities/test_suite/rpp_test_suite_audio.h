@@ -392,7 +392,7 @@ inline void windowed_sinc(RpptResamplingWindow &window, Rpp32s coeffs, Rpp32s lo
     Rpp32s center = (coeffs - 1) * 0.5f;
     Rpp32f *lookupPtr = nullptr;
 #ifdef GPU_SUPPORT
-    CHECK_RETURN_STATUS(hipHostMalloc(&(window.lookupPinned), window.lookupSize * sizeof(Rpp32f)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&(window.lookupPinned), window.lookupSize * sizeof(Rpp32f)));
     lookupPtr = window.lookupPinned;
 #else
     window.lookup.clear();

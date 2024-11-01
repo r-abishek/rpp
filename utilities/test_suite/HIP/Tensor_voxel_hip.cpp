@@ -122,7 +122,7 @@ int main(int argc, char * argv[])
 
     // set src/dst xyzwhd ROI tensors
     void *pinnedMemROI;
-    CHECK_RETURN_STATUS(hipHostMalloc(&pinnedMemROI, noOfFiles * sizeof(RpptROI3D)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&pinnedMemROI, noOfFiles * sizeof(RpptROI3D)));
     RpptROI3D *roiGenericSrcPtr = reinterpret_cast<RpptROI3D *>(pinnedMemROI);
 
     // Set buffer sizes in pixels for src/dst
@@ -144,7 +144,7 @@ int main(int argc, char * argv[])
 
     // set argument tensors
     void *pinnedMemArgs;
-    CHECK_RETURN_STATUS(hipHostMalloc(&pinnedMemArgs, 2 * noOfFiles * sizeof(Rpp32f)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&pinnedMemArgs, 2 * noOfFiles * sizeof(Rpp32f)));
 
     // arguments required for slice
     Rpp32s *anchorTensor = NULL, *shapeTensor = NULL;
@@ -259,11 +259,11 @@ int main(int argc, char * argv[])
                 {
                     testCaseName = "slice";
                     if(anchorTensor == NULL)
-                        CHECK_RETURN_STATUS(hipHostMalloc(&anchorTensor, batchSize * 4 * sizeof(Rpp32s)));
+                        CHECK_RETURN_STATUS(hipExtHostAlloc(&anchorTensor, batchSize * 4 * sizeof(Rpp32s)));
                     if(shapeTensor == NULL)
-                        CHECK_RETURN_STATUS(hipHostMalloc(&shapeTensor, batchSize * 4 * sizeof(Rpp32s)));
+                        CHECK_RETURN_STATUS(hipExtHostAlloc(&shapeTensor, batchSize * 4 * sizeof(Rpp32s)));
                     if(roiTensor == NULL)
-                        CHECK_RETURN_STATUS(hipHostMalloc(&roiTensor, batchSize * 8 * sizeof(Rpp32u)));
+                        CHECK_RETURN_STATUS(hipExtHostAlloc(&roiTensor, batchSize * 8 * sizeof(Rpp32u)));
                     bool enablePadding = false;
                     auto fillValue = 0;
                     init_slice_voxel(descriptorPtr3D, roiGenericSrcPtr, roiTensor, anchorTensor, shapeTensor);

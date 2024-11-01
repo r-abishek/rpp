@@ -82,13 +82,13 @@ int main(int argc, char **argv)
 
     // fill roi based on mode and number of dimensions
     Rpp32u *roiTensor;
-    CHECK_RETURN_STATUS(hipHostMalloc(&roiTensor, nDim * 2 * batchSize, sizeof(Rpp32u)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&roiTensor, nDim * 2 * batchSize, sizeof(Rpp32u)));
     fill_roi_values(nDim, batchSize, roiTensor, qaMode);
 
     // set src/dst generic tensor descriptors
     RpptGenericDescPtr srcDescriptorPtrND, dstDescriptorPtrND;
-    CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrND, sizeof(RpptGenericDesc)));
-    CHECK_RETURN_STATUS(hipHostMalloc(&dstDescriptorPtrND, sizeof(RpptGenericDesc)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&srcDescriptorPtrND, sizeof(RpptGenericDesc)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&dstDescriptorPtrND, sizeof(RpptGenericDesc)));
 
     // set dims and compute strides
     int bitDepth = 2, offSetInBytes = 0;
@@ -125,7 +125,7 @@ int main(int argc, char **argv)
 
     Rpp32u *permTensor = nullptr;
     if (testCase == 0)
-        CHECK_RETURN_STATUS(hipHostMalloc(&permTensor, nDim * sizeof(Rpp32u)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&permTensor, nDim * sizeof(Rpp32u)));
 
     rppHandle_t handle;
     hipStream_t stream;

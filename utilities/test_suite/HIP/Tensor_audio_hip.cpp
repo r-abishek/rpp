@@ -143,23 +143,23 @@ int main(int argc, char **argv)
 
     // allocate the buffers for audio length and channels
     Rpp32s *srcLengthTensor, *channelsTensor;
-    CHECK_RETURN_STATUS(hipHostMalloc(&srcLengthTensor, batchSize * sizeof(Rpp32s)));
-    CHECK_RETURN_STATUS(hipHostMalloc(&channelsTensor, batchSize * sizeof(Rpp32s)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&srcLengthTensor, batchSize * sizeof(Rpp32s)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&channelsTensor, batchSize * sizeof(Rpp32s)));
 
     // allocate the buffers for src/dst dimensions for each element in batch
     RpptImagePatch *srcDims, *dstDims;
-    CHECK_RETURN_STATUS(hipHostMalloc(&srcDims, batchSize * sizeof(RpptImagePatch)));
-    CHECK_RETURN_STATUS(hipHostMalloc(&dstDims, batchSize * sizeof(RpptImagePatch)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&srcDims, batchSize * sizeof(RpptImagePatch)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&dstDims, batchSize * sizeof(RpptImagePatch)));
 
     // allocate the buffer for srcDimsTensor
     Rpp32s *srcDimsTensor;
-    CHECK_RETURN_STATUS(hipHostMalloc(&srcDimsTensor, batchSize * 2 * sizeof(Rpp32s)));
+    CHECK_RETURN_STATUS(hipExtHostAlloc(&srcDimsTensor, batchSize * 2 * sizeof(Rpp32s)));
 
     Rpp32s *detectedIndex = nullptr, *detectionLength = nullptr;
     if(testCase == 0)
     {
-        CHECK_RETURN_STATUS(hipHostMalloc(&detectedIndex, batchSize * sizeof(Rpp32s)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&detectionLength, batchSize * sizeof(Rpp32s)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&detectedIndex, batchSize * sizeof(Rpp32s)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&detectionLength, batchSize * sizeof(Rpp32s)));
     }
 
     // declare pointer of type RpptResamplingWindow used for resample augmentation
@@ -167,13 +167,13 @@ int main(int argc, char **argv)
     RpptResamplingWindow *window = nullptr;
     if (testCase == 6)
     {
-        CHECK_RETURN_STATUS(hipHostMalloc(&inRateTensor, batchSize * sizeof(Rpp32f)));
-        CHECK_RETURN_STATUS(hipHostMalloc(&outRateTensor, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&inRateTensor, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&outRateTensor, batchSize * sizeof(Rpp32f)));
     }
 
     Rpp32f *coeff = nullptr;
     if(testCase == 2)
-        CHECK_RETURN_STATUS(hipHostMalloc(&coeff, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipExtHostAlloc(&coeff, batchSize * sizeof(Rpp32f)));
 
     // run case-wise RPP API and measure time
     rppHandle_t handle;
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
 
                     maxDstWidth = 0;
                     maxDstHeight = 0;
-                    init_spectrogram(srcDescPtr, dstDescPtr, dstDims, srcLengthTensor, windowLength, 
+                    init_spectrogram(srcDescPtr, dstDescPtr, dstDims, srcLengthTensor, windowLength,
                                      windowStep, windowOffset, nfft, maxDstHeight, maxDstWidth);
 
                     // check if the output buffer size is greater than predefined spectrogramMaxBufferSize
@@ -316,7 +316,7 @@ int main(int argc, char **argv)
                     Rpp32s lookupSize = lobes * 64 + 1;
                     if (window == nullptr)
                     {
-                        CHECK_RETURN_STATUS(hipHostMalloc(&window, sizeof(RpptResamplingWindow)));
+                        CHECK_RETURN_STATUS(hipExtHostAlloc(&window, sizeof(RpptResamplingWindow)));
                         windowed_sinc(*window, lookupSize, lobes);
                     }
 
@@ -452,6 +452,6 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(inRateTensor));
     if (outRateTensor != nullptr)
         CHECK_RETURN_STATUS(hipHostFree(outRateTensor));
-        
+
     return 0;
 }
