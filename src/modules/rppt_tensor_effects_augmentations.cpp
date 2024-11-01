@@ -1020,7 +1020,7 @@ RppStatus rppt_pixelate_host(RppPtr_t srcPtr,
     // This function performs pixelation through a two-step resizing process:
     // 1. The image is first resized to a smaller intermediate size using bilinear interpolation.
     // 2. The intermediate image is then resized back to the original size using nearest neighbor interpolation.
-    // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back, 
+    // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back,
     // resulting in a pixelated effect as the intermediate pixels are repeated in the final image.
 
     if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
@@ -1355,25 +1355,13 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
     copy_param_float(saltValueTensor, rpp::deref(rppHandle), paramIndex++);
     copy_param_float(pepperValueTensor, rpp::deref(rppHandle), paramIndex++);
 
-    RpptXorwowState xorwowInitialState;
-    xorwowInitialState.x[0] = 0x75BCD15 + seed;
-    xorwowInitialState.x[1] = 0x159A55E5 + seed;
-    xorwowInitialState.x[2] = 0x1F123BB5 + seed;
-    xorwowInitialState.x[3] = 0x5491333 + seed;
-    xorwowInitialState.x[4] = 0x583F19 + seed;
-    xorwowInitialState.counter = 0x64F0C9 + seed;
-
-    RpptXorwowState *d_xorwowInitialStatePtr;
-    d_xorwowInitialStatePtr = (RpptXorwowState *) rpp::deref(rppHandle).GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem;
-    CHECK_RETURN_STATUS(hipMemcpy(d_xorwowInitialStatePtr, &xorwowInitialState, sizeof(RpptXorwowState), hipMemcpyHostToDevice));
-
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         hip_exec_salt_and_pepper_noise_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                               srcDescPtr,
                                               static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                               dstDescPtr,
-                                              d_xorwowInitialStatePtr,
+                                              seed,
                                               roiTensorPtrSrc,
                                               roiType,
                                               rpp::deref(rppHandle));
@@ -1384,7 +1372,7 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
                                               srcDescPtr,
                                               (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                               dstDescPtr,
-                                              d_xorwowInitialStatePtr,
+                                              seed,
                                               roiTensorPtrSrc,
                                               roiType,
                                               rpp::deref(rppHandle));
@@ -1395,7 +1383,7 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
                                               srcDescPtr,
                                               (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                               dstDescPtr,
-                                              d_xorwowInitialStatePtr,
+                                              seed,
                                               roiTensorPtrSrc,
                                               roiType,
                                               rpp::deref(rppHandle));
@@ -1406,7 +1394,7 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
                                               srcDescPtr,
                                               static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                               dstDescPtr,
-                                              d_xorwowInitialStatePtr,
+                                              seed,
                                               roiTensorPtrSrc,
                                               roiType,
                                               rpp::deref(rppHandle));
@@ -2168,7 +2156,7 @@ RppStatus rppt_pixelate_gpu(RppPtr_t srcPtr,
     // This function performs pixelation through a two-step resizing process:
     // 1. The image is first resized to a smaller intermediate size using bilinear interpolation.
     // 2. The intermediate image is then resized back to the original size using nearest neighbor interpolation.
-    // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back, 
+    // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back,
     // resulting in a pixelated effect as the intermediate pixels are repeated in the final image.
 
     if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;

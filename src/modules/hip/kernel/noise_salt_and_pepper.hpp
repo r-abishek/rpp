@@ -265,7 +265,7 @@ RppStatus hip_exec_salt_and_pepper_noise_tensor(T *srcPtr,
                                                 RpptDescPtr srcDescPtr,
                                                 T *dstPtr,
                                                 RpptDescPtr dstDescPtr,
-                                                RpptXorwowState *xorwowInitialStatePtr,
+                                                Rpp32u seed,
                                                 RpptROIPtr roiTensorPtrSrc,
                                                 RpptRoiType roiType,
                                                 rpp::Handle& handle)
@@ -277,8 +277,20 @@ RppStatus hip_exec_salt_and_pepper_noise_tensor(T *srcPtr,
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = handle.GetBatchSize();
 
+    RpptXorwowState xorwowInitialStateHost;
+    xorwowInitialStateHost.x[0] = 0x75BCD15 + seed;
+    xorwowInitialStateHost.x[1] = 0x159A55E5 + seed;
+    xorwowInitialStateHost.x[2] = 0x1F123BB5 + seed;
+    xorwowInitialStateHost.x[3] = 0x5491333 + seed;
+    xorwowInitialStateHost.x[4] = 0x583F19 + seed;
+    xorwowInitialStateHost.counter = 0x64F0C9 + seed;
+
+    RpptXorwowState *xorwowInitialState;
+    xorwowInitialState = (RpptXorwowState *) handle.GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem;
+    CHECK_RETURN_STATUS(hipMemcpy(xorwowInitialState, &xorwowInitialStateHost, sizeof(RpptXorwowState), hipMemcpyHostToDevice));
+
     Rpp32u *xorwowSeedStream;
-    xorwowSeedStream = (Rpp32u *)&xorwowInitialStatePtr[1];
+    xorwowSeedStream = (Rpp32u *)&xorwowInitialState[1];
     CHECK_RETURN_STATUS(hipMemcpy(xorwowSeedStream, rngSeedStream4050, SEED_STREAM_MAX_SIZE * sizeof(Rpp32u), hipMemcpyHostToDevice));
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
@@ -297,7 +309,7 @@ RppStatus hip_exec_salt_and_pepper_noise_tensor(T *srcPtr,
                            handle.GetInitHandle()->mem.mgpu.floatArr[1].floatmem,
                            handle.GetInitHandle()->mem.mgpu.floatArr[2].floatmem,
                            handle.GetInitHandle()->mem.mgpu.floatArr[3].floatmem,
-                           xorwowInitialStatePtr,
+                           xorwowInitialState,
                            xorwowSeedStream,
                            roiTensorPtrSrc);
     }
@@ -317,7 +329,7 @@ RppStatus hip_exec_salt_and_pepper_noise_tensor(T *srcPtr,
                            handle.GetInitHandle()->mem.mgpu.floatArr[1].floatmem,
                            handle.GetInitHandle()->mem.mgpu.floatArr[2].floatmem,
                            handle.GetInitHandle()->mem.mgpu.floatArr[3].floatmem,
-                           xorwowInitialStatePtr,
+                           xorwowInitialState,
                            xorwowSeedStream,
                            roiTensorPtrSrc);
     }
@@ -338,7 +350,7 @@ RppStatus hip_exec_salt_and_pepper_noise_tensor(T *srcPtr,
                                handle.GetInitHandle()->mem.mgpu.floatArr[1].floatmem,
                                handle.GetInitHandle()->mem.mgpu.floatArr[2].floatmem,
                                handle.GetInitHandle()->mem.mgpu.floatArr[3].floatmem,
-                               xorwowInitialStatePtr,
+                               xorwowInitialState,
                                xorwowSeedStream,
                                roiTensorPtrSrc);
         }
@@ -358,7 +370,7 @@ RppStatus hip_exec_salt_and_pepper_noise_tensor(T *srcPtr,
                                handle.GetInitHandle()->mem.mgpu.floatArr[1].floatmem,
                                handle.GetInitHandle()->mem.mgpu.floatArr[2].floatmem,
                                handle.GetInitHandle()->mem.mgpu.floatArr[3].floatmem,
-                               xorwowInitialStatePtr,
+                               xorwowInitialState,
                                xorwowSeedStream,
                                roiTensorPtrSrc);
         }
