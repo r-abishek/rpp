@@ -477,14 +477,28 @@ RppStatus hip_exec_gaussian_noise_voxel_tensor(T *srcPtr,
                                                RpptGenericDescPtr srcGenericDescPtr,
                                                T *dstPtr,
                                                RpptGenericDescPtr dstGenericDescPtr,
-                                               RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
+                                               Rpp32u seed,
                                                Rpp32f *meanTensor,
                                                Rpp32f *stdDevTensor,
                                                RpptROI3DPtr roiGenericPtrSrc,
                                                rpp::Handle& handle)
 {
+    RpptXorwowStateBoxMuller xorwowInitialStateHost;
+    xorwowInitialStateHost.x[0] = 0x75BCD15 + seed;
+    xorwowInitialStateHost.x[1] = 0x159A55E5 + seed;
+    xorwowInitialStateHost.x[2] = 0x1F123BB5 + seed;
+    xorwowInitialStateHost.x[3] = 0x5491333 + seed;
+    xorwowInitialStateHost.x[4] = 0x583F19 + seed;
+    xorwowInitialStateHost.counter = 0x64F0C9 + seed;
+    xorwowInitialStateHost.boxMullerFlag = 0;
+    xorwowInitialStateHost.boxMullerExtra = 0.0f;
+
+    RpptXorwowStateBoxMuller *xorwowInitialState;
+    xorwowInitialState = (RpptXorwowStateBoxMuller *) handle.GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem;
+    CHECK_RETURN_STATUS(hipMemcpy(xorwowInitialState, &xorwowInitialStateHost, sizeof(RpptXorwowStateBoxMuller), hipMemcpyHostToDevice));
+
     Rpp32u *xorwowSeedStream;
-    xorwowSeedStream = (Rpp32u *)&xorwowInitialStatePtr[1];
+    xorwowSeedStream = (Rpp32u *)&xorwowInitialState[1];
     CHECK_RETURN_STATUS(hipMemcpy(xorwowSeedStream, rngSeedStream4050, SEED_STREAM_MAX_SIZE * sizeof(Rpp32u), hipMemcpyHostToDevice));
 
     if (dstGenericDescPtr->layout == RpptLayout::NCDHW)
@@ -524,7 +538,7 @@ RppStatus hip_exec_gaussian_noise_voxel_tensor(T *srcPtr,
                                    make_uint3(dstGenericDescPtr->strides[1], dstGenericDescPtr->strides[2], dstGenericDescPtr->strides[3]),
                                    dstGenericDescPtr->dims[1],
                                    make_float2(meanTensor[batchCount], stdDevTensor[batchCount]),
-                                   xorwowInitialStatePtr,
+                                   xorwowInitialState,
                                    xorwowSeedStream,
                                    &roiGenericPtrSrc[batchCount]);
             }
@@ -565,7 +579,7 @@ RppStatus hip_exec_gaussian_noise_voxel_tensor(T *srcPtr,
                                    dstPtr + (batchCount * dstGenericDescPtr->strides[0]),
                                    make_uint2(dstGenericDescPtr->strides[1], dstGenericDescPtr->strides[2]),
                                    make_float2(meanTensor[batchCount], stdDevTensor[batchCount]),
-                                   xorwowInitialStatePtr,
+                                   xorwowInitialState,
                                    xorwowSeedStream,
                                    &roiGenericPtrSrc[batchCount]);
             }

@@ -1562,27 +1562,13 @@ RppStatus rppt_gaussian_noise_voxel_gpu(RppPtr_t srcPtr,
     if ((dstGenericDescPtr->layout != RpptLayout::NCDHW) && (dstGenericDescPtr->layout != RpptLayout::NDHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
     if (srcGenericDescPtr->layout != dstGenericDescPtr->layout) return RPP_ERROR_INVALID_ARGUMENTS;
 
-    RpptXorwowStateBoxMuller xorwowInitialState;
-    xorwowInitialState.x[0] = 0x75BCD15 + seed;
-    xorwowInitialState.x[1] = 0x159A55E5 + seed;
-    xorwowInitialState.x[2] = 0x1F123BB5 + seed;
-    xorwowInitialState.x[3] = 0x5491333 + seed;
-    xorwowInitialState.x[4] = 0x583F19 + seed;
-    xorwowInitialState.counter = 0x64F0C9 + seed;
-    xorwowInitialState.boxMullerFlag = 0;
-    xorwowInitialState.boxMullerExtra = 0.0f;
-
-    RpptXorwowStateBoxMuller *d_xorwowInitialStatePtr;
-    d_xorwowInitialStatePtr = (RpptXorwowStateBoxMuller *) rpp::deref(rppHandle).GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem;
-    CHECK_RETURN_STATUS(hipMemcpy(d_xorwowInitialStatePtr, &xorwowInitialState, sizeof(RpptXorwowStateBoxMuller), hipMemcpyHostToDevice));
-
     if ((srcGenericDescPtr->dataType == RpptDataType::U8) && (dstGenericDescPtr->dataType == RpptDataType::U8))
     {
         hip_exec_gaussian_noise_voxel_tensor(static_cast<Rpp8u*>(srcPtr) + srcGenericDescPtr->offsetInBytes,
                                              srcGenericDescPtr,
                                              static_cast<Rpp8u*>(dstPtr) + dstGenericDescPtr->offsetInBytes,
                                              dstGenericDescPtr,
-                                             d_xorwowInitialStatePtr,
+                                             seed,
                                              meanTensor,
                                              stdDevTensor,
                                              roiGenericPtrSrc,
@@ -1594,7 +1580,7 @@ RppStatus rppt_gaussian_noise_voxel_gpu(RppPtr_t srcPtr,
                                              srcGenericDescPtr,
                                              reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstGenericDescPtr->offsetInBytes),
                                              dstGenericDescPtr,
-                                             d_xorwowInitialStatePtr,
+                                             seed,
                                              meanTensor,
                                              stdDevTensor,
                                              roiGenericPtrSrc,
