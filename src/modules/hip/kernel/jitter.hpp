@@ -224,7 +224,7 @@ RppStatus hip_exec_jitter_tensor(T *srcPtr,
                                  T *dstPtr,
                                  RpptDescPtr dstDescPtr,
                                  uint *kernelSizeTensor,
-                                 RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
+                                 Rpp32u seed,
                                  RpptROIPtr roiTensorPtrSrc,
                                  RpptRoiType roiType,
                                  rpp::Handle& handle)
@@ -236,8 +236,22 @@ RppStatus hip_exec_jitter_tensor(T *srcPtr,
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = dstDescPtr->n;
 
+    RpptXorwowStateBoxMuller xorwowInitialStateHost;
+    xorwowInitialStateHost.x[0] = 0x75BCD15 + seed;
+    xorwowInitialStateHost.x[1] = 0x159A55E5 + seed;
+    xorwowInitialStateHost.x[2] = 0x1F123BB5 + seed;
+    xorwowInitialStateHost.x[3] = 0x5491333 + seed;
+    xorwowInitialStateHost.x[4] = 0x583F19 + seed;
+    xorwowInitialStateHost.counter = 0x64F0C9 + seed;
+    xorwowInitialStateHost.boxMullerFlag = 0;
+    xorwowInitialStateHost.boxMullerExtra = 0.0f;
+
+    RpptXorwowStateBoxMuller *xorwowInitialState;
+    xorwowInitialState = reinterpret_cast<RpptXorwowStateBoxMuller *>(rpp::deref(rppHandle).GetInitHandle()->mem.mgpu.scratchBufferHip.floatmem);
+    CHECK_RETURN_STATUS(hipMemcpy(xorwowInitialState, &xorwowInitialStateHost, sizeof(RpptXorwowStateBoxMuller), hipMemcpyHostToDevice));
+
     Rpp32u *xorwowSeedStream;
-    xorwowSeedStream = (Rpp32u *)&xorwowInitialStatePtr[1];
+    xorwowSeedStream = (Rpp32u *)&xorwowInitialState[1];
     CHECK_RETURN_STATUS(hipMemcpyAsync(xorwowSeedStream, rngSeedStream4050, SEED_STREAM_MAX_SIZE * sizeof(Rpp32u), hipMemcpyHostToDevice, handle.GetStream()));
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
@@ -252,7 +266,7 @@ RppStatus hip_exec_jitter_tensor(T *srcPtr,
                            dstPtr,
                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                            kernelSizeTensor,
-                           xorwowInitialStatePtr,
+                           xorwowInitialState,
                            xorwowSeedStream,
                            roiTensorPtrSrc);
     }
@@ -269,7 +283,7 @@ RppStatus hip_exec_jitter_tensor(T *srcPtr,
                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                            dstDescPtr->c,
                            kernelSizeTensor,
-                           xorwowInitialStatePtr,
+                           xorwowInitialState,
                            xorwowSeedStream,
                            roiTensorPtrSrc);
     }
@@ -287,7 +301,7 @@ RppStatus hip_exec_jitter_tensor(T *srcPtr,
                                dstPtr,
                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                                kernelSizeTensor,
-                               xorwowInitialStatePtr,
+                               xorwowInitialState,
                                xorwowSeedStream,
                                roiTensorPtrSrc);
         }
@@ -304,7 +318,7 @@ RppStatus hip_exec_jitter_tensor(T *srcPtr,
                                dstPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                kernelSizeTensor,
-                               xorwowInitialStatePtr,
+                               xorwowInitialState,
                                xorwowSeedStream,
                                roiTensorPtrSrc);
         }
