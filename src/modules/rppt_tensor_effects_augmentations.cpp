@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include <random>
 #include "rppdefs.h"
-#include "rppi_validate.hpp"
+#include "rppt_validate.hpp"
 #include "rppt_tensor_effects_augmentations.h"
 #include "cpu/host_tensor_effects_augmentations.hpp"
 
@@ -1020,7 +1020,7 @@ RppStatus rppt_pixelate_host(RppPtr_t srcPtr,
     // This function performs pixelation through a two-step resizing process:
     // 1. The image is first resized to a smaller intermediate size using bilinear interpolation.
     // 2. The intermediate image is then resized back to the original size using nearest neighbor interpolation.
-    // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back, 
+    // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back,
     // resulting in a pixelated effect as the intermediate pixels are repeated in the final image.
 
     if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
@@ -2168,7 +2168,7 @@ RppStatus rppt_pixelate_gpu(RppPtr_t srcPtr,
     // This function performs pixelation through a two-step resizing process:
     // 1. The image is first resized to a smaller intermediate size using bilinear interpolation.
     // 2. The intermediate image is then resized back to the original size using nearest neighbor interpolation.
-    // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back, 
+    // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back,
     // resulting in a pixelated effect as the intermediate pixels are repeated in the final image.
 
     if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
