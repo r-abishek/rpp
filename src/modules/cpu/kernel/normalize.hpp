@@ -159,6 +159,28 @@ void compute_3D_mean(T *srcPtr, Rpp32f *meanPtr, Rpp32u *dims, Rpp32u *stride, b
     }
 }
 
+template<typename T>
+void compute_3D_mean_axis_mask7(T *srcPtr, Rpp32f *meanPtr, Rpp32u *dims, Rpp32u *stride, bool isConsecutive = true)
+{
+    T *srcPtrTemp = srcPtr;
+
+    Rpp32f normFactor = 1.0 / (dims[1] * dims[2] * dims[0]);
+    
+    meanPtr[0] = 0;
+    for(Rpp32u i = 0; i < dims[0]; i++)
+    {
+        T *srcPtrRow = srcPtrTemp;
+        for(Rpp32u j = 0; j < dims[1]; j++)
+        {
+            compute_sum(meanPtr[0], srcPtrRow, stride[0], dims[2]);
+            srcPtrRow += stride[1];
+        }
+        srcPtrTemp += stride[2];
+    }
+    meanPtr[0] *= normFactor;
+}
+
+
 // Computes inverse stddev for 3D inputs
 template<typename T>
 void compute_3D_inv_std_dev(T *srcPtr, Rpp32f *meanPtr, Rpp32f *stdDevPtr, Rpp32u *dims, Rpp32u *stride, Rpp32f scale, bool isConsecutive = true)
@@ -198,6 +220,28 @@ void compute_3D_inv_std_dev(T *srcPtr, Rpp32f *meanPtr, Rpp32f *stdDevPtr, Rpp32
         rpp_rsqrt_avx(stdDevPtr, (Rpp32s)(dims[0]), 0, normFactor, scale);
     }
 }
+
+// Computes inverse stddev for 3D inputs
+template<typename T>
+void compute_3D_inv_std_dev_axis_mask7(T *srcPtr, Rpp32f *meanPtr, Rpp32f *stdDevPtr, Rpp32u *dims, Rpp32u *stride, Rpp32f scale, bool isConsecutive = true)
+{
+    T *srcPtrTemp = srcPtr;
+    Rpp32f normFactor = (Rpp32f)(1.0 / (dims[1] * dims[2] * dims[0]));
+    stdDevPtr[0] = 0;
+    for(Rpp32u i = 0; i < dims[0]; i++)
+    {
+        T *srcPtrRow = srcPtrTemp;
+        for(Rpp32u j = 0; j < dims[1]; j++)
+        {
+            compute_diff_square_sum(stdDevPtr[0], srcPtrRow, stride[0], dims[2], meanPtr[0]);
+            srcPtrRow += stride[1];
+        }
+        srcPtrTemp += stride[2];
+    }
+    rpp_rsqrt_avx(stdDevPtr, (Rpp32s)(1), 0, normFactor, scale);
+    
+}
+
 
 // Computes mean for ND inputs
 template<typename T>
@@ -462,12 +506,14 @@ void normalize_3D_tensor_pln3_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescP
         }
         else if(paramStride[0] == 1 && paramStride[2] == 0)
         {
+            Rpp32u paramIdxGreen = (!paramStride[1]) ? paramIdx + 1 : paramIdx + length[1];
+            Rpp32u paramIdxBlue = (!paramStride[1]) ? paramIdx + 2 : paramIdx + (length[1] * 2);
             pMean[0] = pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[2] = pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx + (length[1] * paramStride[1])));
-            pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx + (length[1] * paramStride[1]) * 2));
+            pMean[2] = pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdxGreen));
+            pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdxBlue));
             pMultiplier[0] = pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[2] = pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx + (length[1] * paramStride[1])));
-            pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx + (length[1] * paramStride[1]) * 2));
+            pMultiplier[2] = pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdxGreen));
+            pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdxBlue));
         }
         else if(paramStride[0] == 0 && paramStride[2] == 1)
         {
@@ -557,17 +603,17 @@ void normalize_3D_tensor_1channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDe
     __m256 pShift = _mm256_set1_ps(shift);
     Rpp8u *srcPtrRow = srcPtr;
     Rpp8u *dstPtrRow = dstPtr;
-    for(Rpp32u i = 0; i < length[0]; i++)
+    for(Rpp32u i = 0; i < length[1]; i++)
     {
         Rpp8u *srcPtrRowTemp, *dstPtrRowTemp;
         srcPtrRowTemp = srcPtrRow;
         dstPtrRowTemp = dstPtrRow;
         Rpp32u vectorIncrement = 16;
         Rpp32u vectorIncrementPerChannel = 16;
-        Rpp32u alignedLength = ((length[1] - 1) / 16) * 16;
+        Rpp32u alignedLength = ((length[2] - 1) / 16) * 16;
         Rpp32u vectorLoopCount = 0;
         __m256 pMean[2], pMultiplier[2];
-        if(paramStride[1] == 0)
+        if(paramStride[2] == 0)
         {
             pMean[0] = _mm256_set1_ps(*(meanPtr + paramIdx));
             pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
@@ -587,9 +633,9 @@ void normalize_3D_tensor_1channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDe
             pDst[1] = _mm256_add_ps(_mm256_mul_ps(_mm256_sub_ps(pSrc[1], pMean[1]), pMultiplier[1]), pShift);
             rpp_simd_store(rpp_store16_f32_to_u8_avx, dstPtrRowTemp, pDst);
 
-            if(paramStride[1] == 1)
+            if(paramStride[2] == 1)
                 paramIdx += vectorIncrementPerChannel;
-            if(paramStride[1] == 1 && vectorLoopCount < alignedLength - vectorIncrementPerChannel)
+            if(paramStride[2] == 1 && vectorLoopCount < alignedLength - vectorIncrementPerChannel)
             {
                 rpp_simd_load(rpp_load16_f32_to_f32_avx, (meanPtr + paramIdx), pMean);
                 rpp_simd_load(rpp_load16_f32_to_f32_avx, (multiplierPtr + paramIdx), pMultiplier);
@@ -598,18 +644,18 @@ void normalize_3D_tensor_1channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDe
             dstPtrRowTemp += vectorIncrement;
 
         }
-        for(; vectorLoopCount < length[1]; vectorLoopCount++)
+        for(; vectorLoopCount < length[2]; vectorLoopCount++)
         {
             *dstPtrRowTemp = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf(((static_cast<Rpp32f>(*srcPtrRowTemp) - meanPtr[paramIdx]) * multiplierPtr[paramIdx]) + shift)));
             srcPtrRowTemp++;
             dstPtrRowTemp++;
-            if(vectorLoopCount < length[1] - 1)
-                paramIdx = (!paramStride[1]) ? paramIdx : paramIdx + paramStride[1];
+            if(vectorLoopCount < length[2] - 1)
+                paramIdx = (!paramStride[2]) ? paramIdx : paramIdx + paramStride[2];
         }      
-        if(i < length[0] - 1)
-            paramIdx = (!paramStride[0]) ? 0 : paramIdx + paramStride[0];
-        srcPtrRow += srcGenericDescPtr->strides[1];
-        dstPtrRow += dstGenericDescPtr->strides[1];
+        if(i < length[1] - 1)
+            paramIdx = (!paramStride[1]) ? 0 : paramIdx + paramStride[1];
+        srcPtrRow += srcGenericDescPtr->strides[2];
+        dstPtrRow += dstGenericDescPtr->strides[2];
     }
 }
 
@@ -841,12 +887,14 @@ void normalize_3D_tensor_pln3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr 
         }
         else if(paramStride[0] == 1 && paramStride[2] == 0)
         {
+            Rpp32u paramIdxGreen = (!paramStride[1]) ? paramIdx + 1 : paramIdx + length[1];
+            Rpp32u paramIdxBlue = (!paramStride[1]) ? paramIdx + 2 : paramIdx + (length[1] * 2);
             pMean[0] = pMean[1] = _mm256_set1_ps(*(meanPtr + paramIdx));
-            pMean[2] = pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdx + (length[1] * paramStride[1])));
-            pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdx + (length[1] * paramStride[1]) * 2));
+            pMean[2] = pMean[3] = _mm256_set1_ps(*(meanPtr + paramIdxGreen));
+            pMean[4] = pMean[5] = _mm256_set1_ps(*(meanPtr + paramIdxBlue));
             pMultiplier[0] = pMultiplier[1] = _mm256_set1_ps(*(multiplierPtr + paramIdx));
-            pMultiplier[2] = pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdx + (length[1] * paramStride[1])));
-            pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdx + (length[1] * paramStride[1]) * 2));
+            pMultiplier[2] = pMultiplier[3] = _mm256_set1_ps(*(multiplierPtr + paramIdxGreen));
+            pMultiplier[4] = pMultiplier[5] = _mm256_set1_ps(*(multiplierPtr + paramIdxBlue));
         }
         else if(paramStride[0] == 0 && paramStride[2] == 1)
         {
@@ -1325,13 +1373,15 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
                     reductionDims = length[2];
                     paramStride[0] = paramStride[1] = 0;
                     paramStride[2] = 1;
-                    srcReductionDims[0] = 1;
-                    srcReductionDims[1] = length[2];
-                    srcReductionDims[2] = length[0] * length[1];
+                    srcReductionDims[0] = length[2];
+                    srcReductionDims[1] = length[0];
+                    srcReductionDims[2] = length[1];
                     srcStride[0] = srcGenericDescPtr->strides[2];
-                    srcStride[1] = srcGenericDescPtr->strides[3];
+                    srcStride[1] = srcGenericDescPtr->strides[1];
                     srcStride[2] = srcGenericDescPtr->strides[3];
+                    isConsecutive = false;
                     break;
+                    
                 }
                 case 4: // Normalize across 2
                 {
@@ -1365,22 +1415,26 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
                     reductionDims = length[0];
                     paramStride[1] = paramStride[2] = 0;
                     paramStride[0] = 1;
-                    srcReductionDims[0] = 1;
-                    srcReductionDims[1] = length[0];
-                    srcReductionDims[2] = length[1] * length[2];
+                    srcReductionDims[0] = length[0];
+                    srcReductionDims[1] = length[1];
+                    srcReductionDims[2] = length[2];
                     srcStride[0] = srcGenericDescPtr->strides[3];
-                    srcStride[1] = srcGenericDescPtr->strides[1];
-                    srcStride[2] = srcGenericDescPtr->strides[3];
+                    srcStride[1] = srcGenericDescPtr->strides[2];
+                    srcStride[2] = srcGenericDescPtr->strides[1];
+                    isConsecutive = false;
                     break;
                 }
                 case 7: // Normalize across 0, 1, 2
                 {
                     reductionDims = 1;
                     paramStride[0] = paramStride[1] = paramStride[2] = 0;
-                    srcReductionDims[0] = 1;
-                    srcReductionDims[1] = 1;
-                    srcReductionDims[2] = length[0] * length[1] * length[2];
-                    srcStride[0] = srcStride[1] = srcStride[2] = srcGenericDescPtr->strides[3];
+                    srcReductionDims[0] = length[0];
+                    srcReductionDims[1] = length[1];
+                    srcReductionDims[2] = length[2];
+                    srcStride[0] = 1;
+                    srcStride[1] = srcGenericDescPtr->strides[2];
+                    srcStride[2] = srcGenericDescPtr->strides[1];
+                    isConsecutive = false;
                     break;
                 }
                 default:
@@ -1393,13 +1447,24 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
                 srcPtrChannel += begin[i - 1] * srcGenericDescPtr->strides[i];
 
             if(computeMeanStddev & 1) // Check if mean is to be computed internally
-                compute_3D_mean(srcPtrChannel, meanTensor, srcReductionDims, srcStride, isConsecutive);
+            {
+                if(axisMask != 7)
+                    compute_3D_mean(srcPtrChannel, meanTensor, srcReductionDims, srcStride, isConsecutive);
+                else
+                    compute_3D_mean_axis_mask7(srcPtrChannel, meanTensor, srcReductionDims, srcStride, isConsecutive);
+            }
+
             if(computeMeanStddev & 2) // Check if stddev is to be computed internally
-                compute_3D_inv_std_dev(srcPtrChannel, meanTensor, stdDevTensor, srcReductionDims, srcStride, scale, isConsecutive);
+            {
+                if(axisMask != 7)
+                    compute_3D_inv_std_dev(srcPtrChannel, meanTensor, stdDevTensor, srcReductionDims, srcStride, scale, isConsecutive);
+                else
+                    compute_3D_inv_std_dev_axis_mask7(srcPtrChannel, meanTensor, stdDevTensor, srcReductionDims, srcStride, scale, isConsecutive);
+            }
 
             if((axisMask == 3) && (srcGenericDescPtr->layout == RpptLayout::NHWC) && (dstGenericDescPtr->layout == RpptLayout::NHWC) && (srcGenericDescPtr->dims[3] == 16))
                 normalize_3D_tensor_avx_axis3(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length[1] * layoutParams.bufferMultiplier, length);
-            else if((srcGenericDescPtr->layout == RpptLayout::NHWC) && (srcGenericDescPtr->dims[3] == 1))
+            else if((srcGenericDescPtr->layout == RpptLayout::NCHW) && (srcGenericDescPtr->dims[1] == 1))
                 normalize_3D_tensor_1channel(srcPtrChannel, srcGenericDescPtr, dstPtrTemp, dstGenericDescPtr, meanTensor, stdDevTensor, shift, paramStride, length);
             else if(srcGenericDescPtr->layout == dstGenericDescPtr->layout)
             {

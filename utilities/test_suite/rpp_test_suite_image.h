@@ -1040,6 +1040,12 @@ inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, R
     else if(testCase == 93)
     {
         func += "_axisMask" + axisMaskName;
+        if(srcDescPtr->layout == RpptLayout::NCHW)
+        {
+            Rpp32u axisMask = std::stoi(axisMaskName);
+            axisMask = ((axisMask & 1) << 2) | ((axisMask & 2) >> 1) | ((axisMask & 4) >> 1);
+            axisMaskName = std::to_string(axisMask);
+        }
         binFile += "_axisMask" + axisMaskName;
     }
     refFile = scriptPath + "/../REFERENCE_OUTPUT/" + funcName + "/"+ binFile + ".bin";
