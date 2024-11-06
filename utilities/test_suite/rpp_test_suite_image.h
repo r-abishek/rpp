@@ -494,7 +494,6 @@ inline void set_generic_descriptor_slice(RpptDescPtr srcDescPtr, RpptGenericDesc
         descriptorPtr3D->strides[0] = descriptorPtr3D->dims[1] * descriptorPtr3D->dims[2] * descriptorPtr3D->dims[3];
         descriptorPtr3D->strides[1] = descriptorPtr3D->dims[2] * descriptorPtr3D->dims[3];
         descriptorPtr3D->strides[2] = descriptorPtr3D->dims[3];
-        descriptorPtr3D->strides[3] = 1;
     }
     else
     {
@@ -505,6 +504,32 @@ inline void set_generic_descriptor_slice(RpptDescPtr srcDescPtr, RpptGenericDesc
         descriptorPtr3D->strides[0] = descriptorPtr3D->dims[1] * descriptorPtr3D->dims[2];
         descriptorPtr3D->strides[1] = descriptorPtr3D->dims[2];
     }
+}
+
+// sets generic descriptor dimensions and strides of src/dst for slice functionality
+inline void set_generic_descriptor_normalize(RpptDescPtr srcDescPtr, RpptGenericDescPtr descriptorPtr3D, int batchSize)
+{
+    descriptorPtr3D->offsetInBytes = 0;
+    descriptorPtr3D->dataType = srcDescPtr->dataType;
+    descriptorPtr3D->layout = srcDescPtr->layout;
+    descriptorPtr3D->numDims = 4;
+    descriptorPtr3D->dims[0] = batchSize;
+    if (srcDescPtr->layout == RpptLayout::NHWC)
+    {
+        descriptorPtr3D->dims[1] = srcDescPtr->h;
+        descriptorPtr3D->dims[2] = srcDescPtr->w;
+        descriptorPtr3D->dims[3] = srcDescPtr->c;
+    }
+    else
+    {
+        descriptorPtr3D->dims[1] = srcDescPtr->c;
+        descriptorPtr3D->dims[2] = srcDescPtr->h;
+        descriptorPtr3D->dims[3] = srcDescPtr->w;
+    }
+    descriptorPtr3D->strides[0] = descriptorPtr3D->dims[1] * descriptorPtr3D->dims[2] * descriptorPtr3D->dims[3];
+    descriptorPtr3D->strides[1] = descriptorPtr3D->dims[2] * descriptorPtr3D->dims[3];
+    descriptorPtr3D->strides[2] = descriptorPtr3D->dims[3];
+    descriptorPtr3D->strides[3] = 1;
 }
 
 // sets descriptor dimensions and strides of src/dst
@@ -1040,7 +1065,7 @@ inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, R
     else if(testCase == 93)
     {
         func += "_axisMask" + axisMaskName;
-        if(srcDescPtr->layout == RpptLayout::NCHW)
+        if(dstDescPtr->layout == RpptLayout::NCHW && dstDescPtr->c == 3)
         {
             Rpp32u axisMask = std::stoi(axisMaskName);
             axisMask = ((axisMask & 1) << 2) | ((axisMask & 2) >> 1) | ((axisMask & 4) >> 1);

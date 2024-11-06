@@ -349,7 +349,7 @@ int main(int argc, char **argv)
         }
     }
 
-    // create generic descriptor and params in case of slice
+    // create generic descriptor and params in case of slice and normalize
     RpptGenericDesc srcDescriptor3D, dstDescriptor3D;
     RpptGenericDescPtr srcDescriptorPtr3D = &srcDescriptor3D;
     RpptGenericDescPtr dstDescriptorPtr3D = &dstDescriptor3D;
@@ -363,8 +363,8 @@ int main(int argc, char **argv)
     Rpp32u *normalizeRoiTensor = static_cast<Rpp32u *>(calloc(3 * 2 * batchSize, sizeof(Rpp32u)));
     if(testCase == 93)
     {
-        set_generic_descriptor_slice(srcDescPtr, srcDescriptorPtr3D, batchSize);
-        set_generic_descriptor_slice(dstDescPtr, dstDescriptorPtr3D, batchSize);
+        set_generic_descriptor_normalize(srcDescPtr, srcDescriptorPtr3D, batchSize);
+        set_generic_descriptor_normalize(dstDescPtr, dstDescriptorPtr3D, batchSize);
     }
 
     // create cropRoi and patchRoi in case of crop_and_patch

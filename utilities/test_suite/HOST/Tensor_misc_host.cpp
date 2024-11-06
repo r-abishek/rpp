@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     RpptGenericDescPtr srcDescriptorPtrND, dstDescriptorPtrND;
     srcDescriptorPtrND = &srcDescriptor;
     dstDescriptorPtrND = &dstDescriptor;
-    int bitDepth = 0, offSetInBytes = 0;
+    int bitDepth = 2, offSetInBytes = 0;
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
     set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
     set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
