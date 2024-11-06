@@ -257,12 +257,6 @@ void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
         Rpp32u numValues, paramStride;
         switch(nDim)
         {
-            case 1:
-            {
-                numValues = 100 + 100 + 1;
-                paramStride = 0;
-                break;
-            }
             case 2:
             {
                 numValues = 100 + 100 + 1;
@@ -384,7 +378,7 @@ void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u buf
         for(int j = 0; j < sampleLength; j++)
         {
             bool invalid_comparision = ((out[j] == 0.0f) && (ref[j] != 0.0f));
-            if(!invalid_comparision && abs(out[j] - ref[j]) <= 1e-4)
+            if(!invalid_comparision && abs(out[j] - ref[j]) < 1e-4)
                 cnt++;
         }
         if (cnt == sampleLength)
