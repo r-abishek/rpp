@@ -533,7 +533,7 @@ inline void set_generic_descriptor_normalize(RpptDescPtr srcDescPtr, RpptGeneric
 }
 
 // sets descriptor dimensions and strides of src/dst
-inline void set_descriptor_dims_and_strides(RpptDescPtr descPtr, int noOfImages, int maxHeight, int maxWidth, int numChannels, int offsetInBytes)
+inline void set_descriptor_dims_and_strides(RpptDescPtr descPtr, int noOfImages, int maxHeight, int maxWidth, int numChannels, int offsetInBytes, int additionalStride = 0)
 {
     descPtr->numDims = 4;
     descPtr->offsetInBytes = offsetInBytes;
@@ -543,7 +543,7 @@ inline void set_descriptor_dims_and_strides(RpptDescPtr descPtr, int noOfImages,
     descPtr->c = numChannels;
 
     // Optionally set w stride as a multiple of 8 for src/dst
-    descPtr->w = ((descPtr->w / 8) * 8) + 8;
+    descPtr->w = (descPtr->w / 8) * 8 + 8 + additionalStride;
     // set strides
     if (descPtr->layout == RpptLayout::NHWC)
     {
@@ -1001,7 +1001,7 @@ void compare_outputs_pln3(Rpp8u* output, Rpp8u* refOutput, RpptDescPtr dstDescPt
 }
 
 template <typename T>
-inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int noOfImages, string interpolationTypeName, string noiseTypeName, string axisMaskName, int testCase, string dst, string scriptPath)
+inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int noOfImages, string interpolationTypeName, string noiseTypeName, string axisMaskName, int additionalParam, int testCase, string dst, string scriptPath)
 {
     string func = funcName;
     string refFile = "";
@@ -1018,7 +1018,7 @@ inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, R
     }
     int refOutputSize = refOutputHeight * refOutputWidth * dstDescPtr->c;
     Rpp64u binOutputSize = refOutputHeight * refOutputWidth * dstDescPtr->n * 4;
-    int pln1RefStride = dstDescPtr->strides.nStride * dstDescPtr->n * 3;
+    int pln1RefStride = refOutputHeight * refOutputWidth * dstDescPtr->n * 3;
 
     string dataType[4] = {"_u8_", "_f16_", "_f32_", "_i8_"};
 
@@ -1061,6 +1061,11 @@ inline void compare_output(T* output, string funcName, RpptDescPtr srcDescPtr, R
     {
         func += "_noiseType" + noiseTypeName;
         binFile += "_noiseType" + noiseTypeName;
+    }
+    else if(testCase == 49)
+    {
+        func += "_kernelSize" + std::to_string(additionalParam);
+        binFile += "_kernelSize" + std::to_string(additionalParam);
     }
     else if(testCase == 93)
     {
