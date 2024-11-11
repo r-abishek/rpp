@@ -115,7 +115,7 @@ int main(int argc, char **argv)
     // create generic descriptor in case of slice
     RpptGenericDesc descriptor3D;
     RpptGenericDescPtr descriptorPtr3D = &descriptor3D;
-    if(testCase == 5)
+    if(testCase == 5 || testCase == 8)
     {
         descriptorPtr3D->numDims = 2;
         descriptorPtr3D->offsetInBytes = 0;
@@ -123,7 +123,11 @@ int main(int argc, char **argv)
         descriptorPtr3D->dims[0] = batchSize;
         descriptorPtr3D->dims[1] = maxSrcWidth;
         descriptorPtr3D->strides[0] = descriptorPtr3D->dims[1];
+        descriptorPtr3D->strides[1] = 1;
     }
+    Rpp32f *meanTensor = nullptr, *stdDevTensor = nullptr;
+    bool externalMeanStd = true;
+    Rpp32u *normalizeRoiTensor = static_cast<Rpp32u *>(calloc(3 * 2 * batchSize, sizeof(Rpp32u)));
 
     // set buffer sizes for src/dst
     iBufferSize = (Rpp64u)srcDescPtr->h * (Rpp64u)srcDescPtr->w * (Rpp64u)srcDescPtr->c * (Rpp64u)srcDescPtr->n;
@@ -402,6 +406,48 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     rppt_mel_filter_bank_host(inputf32, srcDescPtr, outputf32, dstDescPtr, srcDimsTensor, maxFreq, minFreq, melFormula, numFilter, sampleRate, normalize, handle);
+
+                    break;
+                }
+                case 8:
+                {
+                    testCaseName  = "normalize";
+                    Rpp32u numDim = descriptorPtr3D->numDims - 1;
+                    float scale = 1.0;
+                    float shift = 0.0;
+                    for(int i=0 ;i < batchSize; i++)
+                    {
+                        Rpp32u idx = i*2;
+                        normalizeRoiTensor[idx] = 0;
+                        normalizeRoiTensor[idx + 1] = srcLengthTensor[i];
+                        dstDims[i].height = 1;
+                        dstDims[i].width = srcLengthTensor[i];
+                    }
+                    
+                    // computeMeanStddev set to 3 means both mean and stddev should be computed internally.
+                    // Wherein 0th bit used to represent computeMean and 1st bit for computeStddev.
+                    Rpp8u computeMeanStddev = 3;
+                    externalMeanStd = !computeMeanStddev; // when mean and stddev is passed from user
+
+                    Rpp32u size = 1; // length of mean and stddev tensors differ based on axisMask and nDim
+                    Rpp32u maxSize = 1;
+                    for(int batch = 0; batch < batchSize; batch++)
+                    {
+                        size = 1;
+                        for(int i = 0; i < numDim; i++)
+                            size *= ((1 & (int)(pow(2,i))) >= 1) ? 1 : normalizeRoiTensor[(numDim * 2 * batch) + numDim + i];
+                        maxSize = max(maxSize, size);
+                    }
+
+                    // allocate memory if no memory is allocated
+                    if(meanTensor == nullptr)
+                        meanTensor = static_cast<Rpp32f *>(calloc(maxSize * batchSize, sizeof(Rpp32f)));
+
+                    if(stdDevTensor == nullptr)
+                        stdDevTensor = static_cast<Rpp32f *>(calloc(maxSize * batchSize, sizeof(Rpp32f)));
+
+                    startWallTime = omp_get_wtime();
+                    rppt_normalize_host(inputf32, descriptorPtr3D, outputf32, descriptorPtr3D, 1, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
 
                     break;
                 }
