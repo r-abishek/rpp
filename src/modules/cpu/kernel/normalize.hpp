@@ -1385,25 +1385,49 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
                     reductionDims = length[0];
                     paramStride[1] = paramStride[2] = 0;
                     paramStride[0] = 1;
-                    srcReductionDims[0] = length[0];
-                    srcReductionDims[1] = length[1];
-                    srcReductionDims[2] = length[2];
-                    srcStride[0] = srcGenericDescPtr->strides[3];
-                    srcStride[1] = srcGenericDescPtr->strides[2];
-                    srcStride[2] = srcGenericDescPtr->strides[1];
-                    isConsecutive = false;
+                    if(srcGenericDescPtr->layout == RpptLayout::NHWC)
+                    {
+                        srcReductionDims[0] = 1;
+                        srcReductionDims[1] = length[0];
+                        srcReductionDims[2] = length[1] * length[2];
+                        srcStride[0] = srcGenericDescPtr->strides[3];
+                        srcStride[1] = srcGenericDescPtr->strides[1];
+                        srcStride[2] = srcGenericDescPtr->strides[3];
+                    }
+                    else
+                    {
+                        srcReductionDims[0] = length[0];
+                        srcReductionDims[1] = length[1];
+                        srcReductionDims[2] = length[2];
+                        srcStride[0] = srcGenericDescPtr->strides[3];
+                        srcStride[1] = srcGenericDescPtr->strides[2];
+                        srcStride[2] = srcGenericDescPtr->strides[1];
+                        isConsecutive = false;
+                    }
                     break;
                 }
                 case 7: // Normalize across 0, 1, 2
                 {
                     reductionDims = 1;
                     paramStride[0] = paramStride[1] = paramStride[2] = 0;
-                    srcReductionDims[0] = length[0];
-                    srcReductionDims[1] = length[1];
-                    srcReductionDims[2] = length[2];
-                    srcStride[0] = 1;
-                    srcStride[1] = srcGenericDescPtr->strides[2];
-                    srcStride[2] = srcGenericDescPtr->strides[1];
+                    if(srcGenericDescPtr->layout == RpptLayout::NHWC)
+                    {
+                        srcReductionDims[0] = 1;
+                        srcReductionDims[1] = length[0];
+                        srcReductionDims[2] = length[1] * length[2];
+                        srcStride[0] = srcGenericDescPtr->strides[2];
+                        srcStride[1] = srcGenericDescPtr->strides[1];
+                        srcStride[2] = 1;
+                    }
+                    else
+                    {
+                        srcReductionDims[0] = length[0];
+                        srcReductionDims[1] = length[1];
+                        srcReductionDims[2] = length[2];
+                        srcStride[0] = 1;
+                        srcStride[1] = srcGenericDescPtr->strides[2];
+                        srcStride[2] = srcGenericDescPtr->strides[1];
+                    }
                     isConsecutive = false;
                     break;
                 }
@@ -1418,10 +1442,10 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
 
             if(computeMeanStddev & 1) // Check if mean is to be computed internally
             {
-                if(axisMask != 7)
-                    compute_3D_mean(srcPtrChannel, meanTensor, srcReductionDims, srcStride, isConsecutive);
-                else
+                if(axisMask == 7 && srcGenericDescPtr->layout == RpptLayout::NCHW)
                     compute_3D_mean_axis_mask7(srcPtrChannel, meanTensor, srcReductionDims, srcStride, isConsecutive);
+                else
+                    compute_3D_mean(srcPtrChannel, meanTensor, srcReductionDims, srcStride, isConsecutive);
             }
 
             if(computeMeanStddev & 2) // Check if stddev is to be computed internally
