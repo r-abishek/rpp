@@ -115,7 +115,7 @@ int main(int argc, char **argv)
     // create generic descriptor in case of slice
     RpptGenericDesc descriptor3D;
     RpptGenericDescPtr descriptorPtr3D = &descriptor3D;
-    if(testCase == 5 || testCase == 8)
+    if(testCase == 5)
     {
         descriptorPtr3D->numDims = 2;
         descriptorPtr3D->offsetInBytes = 0;
@@ -123,6 +123,15 @@ int main(int argc, char **argv)
         descriptorPtr3D->dims[0] = batchSize;
         descriptorPtr3D->dims[1] = maxSrcWidth;
         descriptorPtr3D->strides[0] = descriptorPtr3D->dims[1];
+    }
+    else if(testCase == 8)
+    {
+        descriptorPtr3D->numDims = 2;
+        descriptorPtr3D->offsetInBytes = 0;
+        descriptorPtr3D->dataType = RpptDataType::F32;
+        descriptorPtr3D->dims[0] = batchSize;
+        descriptorPtr3D->dims[1] = maxSrcWidth;
+        descriptorPtr3D->strides[0] = dstDescPtr->strides.nStride;
         descriptorPtr3D->strides[1] = 1;
     }
     Rpp32f *meanTensor = nullptr, *stdDevTensor = nullptr;
