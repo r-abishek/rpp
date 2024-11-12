@@ -76,9 +76,9 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
 // Read data from Bin file
 void read_data(Rpp32f *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, bool isMeanStd = false)
 {
-    if(nDim > 3)
+    if(nDim != 2 && nDim != 3)
     {
-        std::cout<<"\nGolden Inputs / Outputs are generated only for 1D/2D/3D data"<<std::endl;
+        std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
         exit(0);
     }
     string dataPath = get_path(nDim, readType, scriptPath, testCase, isMeanStd);
@@ -268,12 +268,6 @@ void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
         Rpp32u numValues, paramStride;
         switch(nDim)
         {
-            case 1:
-            {
-                numValues = 100 + 100 + 1;
-                paramStride = 0;
-                break;
-            }
             case 2:
             {
                 numValues = 100 + 100 + 1;
@@ -315,10 +309,6 @@ void fill_perm_values(Rpp32u nDim, Rpp32u *permTensor, bool qaMode, int permOrde
     {
         switch(nDim)
         {
-            case 1:
-            {
-                permTensor[0] = 0;
-            }
             case 2:
             {
                 // HW->WH
@@ -399,7 +389,7 @@ void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u buf
         for(int j = 0; j < sampleLength; j++)
         {
             bool invalid_comparision = ((out[j] == 0.0f) && (ref[j] != 0.0f));
-            if(!invalid_comparision && abs(out[j] - ref[j]) <= 1)
+            if(!invalid_comparision && abs(out[j] - ref[j]) < 1e-4)
                 cnt++;
         }
         if (cnt == sampleLength)
