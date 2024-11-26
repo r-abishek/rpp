@@ -589,6 +589,9 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
     Rpp32u numThreads = handle.GetNumThreads();
     Rpp32u tensorDims = srcGenericDescPtr->numDims - 1;
     Rpp32u batchSize = dstGenericDescPtr->dims[0];
+    Rpp32u *axis = reinterpret_cast<Rpp32u *> (handle.GetInitHandle()->mem.mcpu.scratchBufferHost);
+    Rpp32u *newAxis = reinterpret_cast<Rpp32u *>(axis + tensorDims);
+    Rpp32u *newDims = reinterpret_cast<Rpp32u *>(newAxis + tensorDims);
 
     Rpp32u maxSize = 1;
     // Compute maxSize as length of input tensors differ based on axisMask and tensorDims
@@ -657,10 +660,9 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
             
             Rpp32u totalElements = 1;
             Rpp32u lastNormAxis = 0;
-            Rpp32u axis[tensorDims], newAxis[tensorDims], newDims[tensorDims];
             // Initialize newAxis and newDims used to store final Axis and Dims after removing redundant axis
-            memset(newAxis, 0, sizeof(newAxis));
-            memset(newDims, 0, sizeof(newDims));
+            memset(newAxis, 0, tensorDims * sizeof(Rpp32u));
+            memset(newDims, 0, tensorDims * sizeof(Rpp32u));
 
             for(Rpp32u i = 0; i < tensorDims; i++)
             {
