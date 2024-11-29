@@ -67,7 +67,8 @@ std::map<string, double> audioHIPCutOff =
     {"spectrogram", 1e-3},
     {"slice", 1e-20},
     {"resample", 1e-6},
-    {"mel_filter_bank", 1e-5}
+    {"mel_filter_bank", 1e-5},
+    {"normalize" , 1e-5}
 };
 
 // sets descriptor dimensions and strides of src/dst
