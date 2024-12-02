@@ -1220,9 +1220,8 @@ void normalize_1D_tensor(Rpp8u *srcPtr, RpptGenericDescPtr srcDescPtr, Rpp8u *ds
     }
     for(; vectorLoopCount < dims[0] ; vectorLoopCount++)
     {
-        *dstPtr = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf((static_cast<Rpp32f>(*srcPtr) - mean) * invStdDev + shift)));
+        *dstPtr++ = static_cast<Rpp8u>(RPPPIXELCHECK(std::nearbyintf((static_cast<Rpp32f>(*srcPtr) - mean) * invStdDev + shift)));
         srcPtr++;
-        dstPtr++;
     }
 }
 

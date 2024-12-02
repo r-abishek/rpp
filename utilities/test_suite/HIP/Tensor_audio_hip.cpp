@@ -133,6 +133,23 @@ int main(int argc, char **argv)
     if (testCase == 4)
         oBufferSize = spectrogramMaxBufferSize;
 
+    // create generic descriptor in case of normalize
+    RpptGenericDescPtr descriptorPtr3D;
+    CHECK_RETURN_STATUS(hipHostMalloc(&descriptorPtr3D, sizeof(RpptGenericDesc)));
+    if(testCase == 8)
+    {
+        descriptorPtr3D->numDims = 2;
+        descriptorPtr3D->offsetInBytes = 0;
+        descriptorPtr3D->dataType = RpptDataType::F32;
+        descriptorPtr3D->dims[0] = batchSize;
+        descriptorPtr3D->dims[1] = dstDescPtr->w;
+        descriptorPtr3D->strides[0] = dstDescPtr->strides.nStride;
+        descriptorPtr3D->strides[1] = 1;
+    }
+    Rpp32f *meanTensor = nullptr, *stdDevTensor = nullptr;
+    bool externalMeanStd = true;
+    Rpp32u *normalizeRoiTensor = NULL;
+
     // allocate hip buffers for input & output
     Rpp32f *inputf32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
     Rpp32f *outputf32 = static_cast<Rpp32f *>(calloc(oBufferSize, sizeof(Rpp32f)));
@@ -360,6 +377,46 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     rppt_mel_filter_bank_gpu(d_inputf32, srcDescPtr, d_outputf32, dstDescPtr, srcDimsTensor, maxFreq, minFreq, melFormula, numFilter, sampleRate, normalize, handle);
 
+                    break;
+                }
+                case 8:
+                {
+                    testCaseName  = "normalize";
+                    Rpp32u numDim = descriptorPtr3D->numDims - 1;
+                    float scale = 1.0;
+                    float shift = 0.0;
+                    if(normalizeRoiTensor == NULL)
+                        CHECK_RETURN_STATUS(hipHostMalloc(&normalizeRoiTensor, batchSize * 3 * 2 * sizeof(Rpp32u)));
+                    for(int i=0 ;i < batchSize; i++)
+                    {
+                        Rpp32u idx = i*2;
+                        normalizeRoiTensor[idx] = 0;
+                        normalizeRoiTensor[idx + 1] = srcLengthTensor[i];
+                        dstDims[i].height = 1;
+                        dstDims[i].width = srcLengthTensor[i];
+                    }
+                    
+                    // computeMeanStddev set to 3 means both mean and stddev should be computed internally.
+                    // Wherein 0th bit used to represent computeMean and 1st bit for computeStddev.
+                    Rpp8u computeMeanStddev = 3;
+                    externalMeanStd = !computeMeanStddev; // when mean and stddev is passed from user
+                    Rpp32u size = 1; // length of mean and stddev tensors differ based on axisMask and nDim
+                    Rpp32u maxSize = 1;
+                    for(int batch = 0; batch < batchSize; batch++)
+                    {
+                        size = 1;
+                        for(int i = 0; i < numDim; i++)
+                            size *= ((1 & (int)(pow(2,i))) >= 1) ? 1 : normalizeRoiTensor[(numDim * 2 * batch) + numDim + i];
+                        maxSize = max(maxSize, size);
+                    }
+                    // allocate memory if no memory is allocated
+                    if(meanTensor == nullptr)
+                        CHECK_RETURN_STATUS(hipHostMalloc(&meanTensor, maxSize * batchSize * sizeof(Rpp32f)));
+                    if(stdDevTensor == nullptr)
+                        CHECK_RETURN_STATUS(hipHostMalloc(&stdDevTensor, maxSize * batchSize * sizeof(Rpp32f)));
+                    startWallTime = omp_get_wtime();
+                    rppt_normalize_gpu(d_inputf32, descriptorPtr3D, d_outputf32, descriptorPtr3D, 1, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
+                    
                     break;
                 }
                 default:
