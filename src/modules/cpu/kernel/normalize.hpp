@@ -1279,9 +1279,9 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
     Rpp32u numThreads = handle.GetNumThreads();
     Rpp32u tensorDims = srcGenericDescPtr->numDims - 1;
     Rpp32u batchSize = dstGenericDescPtr->dims[0];
-    Rpp32u *axis = reinterpret_cast<Rpp32u *> (handle.GetInitHandle()->mem.mcpu.scratchBufferHost);
-    Rpp32u *newAxis = reinterpret_cast<Rpp32u *>(axis + tensorDims);
-    Rpp32u *newDims = reinterpret_cast<Rpp32u *>(newAxis + tensorDims);
+    Rpp32u *axisTensor = reinterpret_cast<Rpp32u *> (handle.GetInitHandle()->mem.mcpu.scratchBufferHost);
+    Rpp32u *newAxisTensor = reinterpret_cast<Rpp32u *>(axisTensor + (batchSize * tensorDims));
+    Rpp32u *newDimsTensor = reinterpret_cast<Rpp32u *>(newAxisTensor + (batchSize * tensorDims));
 
     Rpp32u maxSize = 1;
     // Compute maxSize as length of input tensors differ based on axisMask and tensorDims
@@ -1527,6 +1527,9 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
             Rpp32u totalElements = 1;
             Rpp32u lastNormAxis = 0;
             // Initialize newAxis and newDims used to store final Axis and Dims after removing redundant axis
+            Rpp32u *axis = axisTensor + batchCount * tensorDims;
+            Rpp32u *newAxis = newAxisTensor + batchCount * tensorDims;
+            Rpp32u *newDims = newDimsTensor + batchCount * tensorDims;
             memset(newAxis, 0, tensorDims * sizeof(Rpp32u));
             memset(newDims, 0, tensorDims * sizeof(Rpp32u));
 
@@ -1584,9 +1587,9 @@ RppStatus normalize_f32_f32_host_tensor(Rpp32f *srcPtr,
     Rpp32u numThreads = handle.GetNumThreads();
     Rpp32u tensorDims = srcGenericDescPtr->numDims - 1;
     Rpp32u batchSize = dstGenericDescPtr->dims[0];
-    Rpp32u *axis = reinterpret_cast<Rpp32u *> (handle.GetInitHandle()->mem.mcpu.scratchBufferHost);
-    Rpp32u *newAxis = reinterpret_cast<Rpp32u *>(axis + tensorDims);
-    Rpp32u *newDims = reinterpret_cast<Rpp32u *>(newAxis + tensorDims);
+    Rpp32u *axisTensor = reinterpret_cast<Rpp32u *> (handle.GetInitHandle()->mem.mcpu.scratchBufferHost);
+    Rpp32u *newAxisTensor = reinterpret_cast<Rpp32u *>(axisTensor + (batchSize * tensorDims));
+    Rpp32u *newDimsTensor = reinterpret_cast<Rpp32u *>(newAxisTensor + (batchSize * tensorDims));
 
     Rpp32u maxSize = 1;
     // Compute maxSize as length of input tensors differ based on axisMask and tensorDims
@@ -1790,6 +1793,9 @@ RppStatus normalize_f32_f32_host_tensor(Rpp32f *srcPtr,
             Rpp32u totalElements = 1;
             Rpp32u lastNormAxis = 0;
             // Initialize newAxis and newDims used to store final Axis and Dims after removing redundant axis
+            Rpp32u *axis = axisTensor + batchCount * tensorDims;
+            Rpp32u *newAxis = newAxisTensor + batchCount * tensorDims;
+            Rpp32u *newDims = newDimsTensor + batchCount * tensorDims;
             memset(newAxis, 0, tensorDims * sizeof(Rpp32u));
             memset(newDims, 0, tensorDims * sizeof(Rpp32u));
 
@@ -1847,9 +1853,9 @@ RppStatus normalize_generic_host_tensor(T1 *srcPtr,
     Rpp32u numThreads = handle.GetNumThreads();
     Rpp32u tensorDims = srcGenericDescPtr->numDims - 1; // Omitting batchSize here to get tensor dimension.
     Rpp32u batchSize = dstGenericDescPtr->dims[0];
-    Rpp32u *axis = reinterpret_cast<Rpp32u *> (handle.GetInitHandle()->mem.mcpu.scratchBufferHost);
-    Rpp32u *newAxis = reinterpret_cast<Rpp32u *>(axis + tensorDims);
-    Rpp32u *newDims = reinterpret_cast<Rpp32u *>(newAxis + tensorDims);
+    Rpp32u *axisTensor = reinterpret_cast<Rpp32u *> (handle.GetInitHandle()->mem.mcpu.scratchBufferHost);
+    Rpp32u *newAxisTensor = reinterpret_cast<Rpp32u *>(axisTensor + (batchSize * tensorDims));
+    Rpp32u *newDimsTensor = reinterpret_cast<Rpp32u *>(newAxisTensor + (batchSize * tensorDims));
 
     Rpp32u maxSize = 1;
     for(int batch = 0; batch < batchSize; batch++)
@@ -1895,6 +1901,9 @@ RppStatus normalize_generic_host_tensor(T1 *srcPtr,
         int totalElements = 1;
         Rpp32u lastNormAxis = 0;
         // Initialize newAxis and newDims used to store final Axis and Dims after removing redundant axis
+        Rpp32u *axis = axisTensor + batchCount * tensorDims;
+        Rpp32u *newAxis = newAxisTensor + batchCount * tensorDims;
+        Rpp32u *newDims = newDimsTensor + batchCount * tensorDims;
         memset(newAxis, 0, tensorDims * sizeof(Rpp32u));
         memset(newDims, 0, tensorDims * sizeof(Rpp32u));
 
