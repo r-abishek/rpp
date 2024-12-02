@@ -40,15 +40,6 @@ std::map<int, string> augmentationMiscMap =
 // Compute strides given Generic Tensor
 void compute_strides(RpptGenericDescPtr descriptorPtr)
 {
-    if(descriptorPtr->layout == RpptLayout::NCHW)
-    {
-        Rpp32u h = descriptorPtr->dims[1];
-        Rpp32u w = descriptorPtr->dims[2];
-        Rpp32u c = descriptorPtr->dims[3];
-        descriptorPtr->dims[1] = c;
-        descriptorPtr->dims[2] = h;
-        descriptorPtr->dims[3] = w;
-    }
     if (descriptorPtr->numDims > 0)
     {
         uint64_t v = 1;
@@ -380,6 +371,8 @@ void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u buf
             bool invalid_comparision = ((out[j] == 0.0f) && (ref[j] != 0.0f));
             if(!invalid_comparision && abs(out[j] - ref[j]) < 1e-4)
                 cnt++;
+            else
+                printf("\n %f %f ",out[j],ref[j]);
         }
         if (cnt == sampleLength)
             fileMatch++;

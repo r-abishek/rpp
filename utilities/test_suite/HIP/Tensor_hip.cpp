@@ -63,7 +63,7 @@ int main(int argc, char **argv)
     int decoderType = atoi(argv[13]);
     int batchSize = atoi(argv[14]);
 
-    bool additionalParamCase = (testCase == 8 || testCase == 21 || testCase == 23|| testCase == 24 || testCase == 40 || testCase == 41 || testCase == 49 || testCase == 54 || testCase == 79);
+    bool additionalParamCase = (testCase == 8 || testCase == 21 || testCase == 23|| testCase == 24 || testCase == 40 || testCase == 41 || testCase == 49 || testCase == 54 || testCase == 79 || testCase == 93);
     bool kernelSizeCase = (testCase == 40 || testCase == 41 || testCase == 49 || testCase == 54);
     bool dualInputCase = (testCase == 2 || testCase == 30 || testCase == 33 || testCase == 61 || testCase == 63 || testCase == 65 || testCase == 68);
     bool randomOutputCase = (testCase == 6 || testCase == 8 || testCase == 84 || testCase == 49 || testCase == 54);
@@ -188,6 +188,7 @@ int main(int argc, char **argv)
     RpptInterpolationType interpolationType = RpptInterpolationType::BILINEAR;
     std::string interpolationTypeName = "";
     std::string noiseTypeName = "";
+    std::string axisMaskName = "";
     if (kernelSizeCase)
     {
         char additionalParam_char[2];
@@ -206,6 +207,12 @@ int main(int argc, char **argv)
         noiseTypeName = get_noise_type(additionalParam);
         func += "_noiseType";
         func += noiseTypeName.c_str();
+    }
+    else if(testCase == 93)
+    {
+        axisMaskName = std::to_string(additionalParam);
+        func +="_axisMask";
+        func += std::to_string(additionalParam);        
     }
 
     if(!qaFlag)
@@ -352,13 +359,18 @@ int main(int argc, char **argv)
             CHECK_RETURN_STATUS(hipHostMalloc(&mean, reductionFuncResultArrLength * bitDepthByteSize));
     }
 
-    // create generic descriptor and params in case of slice
+    // create generic descriptor and params in case of slice and normalize
     RpptGenericDesc descriptor3D;
     RpptGenericDescPtr descriptorPtr3D = &descriptor3D;
     Rpp32s *anchorTensor = NULL, *shapeTensor = NULL;
+    Rpp32f *meanTensor = nullptr, *stdDevTensor = nullptr;
+    bool externalMeanStd = true;
+    Rpp32u *normalizeRoiTensor = NULL;
     Rpp32u *roiTensor = NULL;
     if(testCase == 92)
         set_generic_descriptor_slice(srcDescPtr, descriptorPtr3D, batchSize);
+    else if(testCase == 93)
+        set_generic_descriptor_normalize(srcDescPtr, descriptorPtr3D, batchSize);
 
     // Allocate hip memory for src/dst
     CHECK_RETURN_STATUS(hipMalloc(&d_input, inputBufferSize));
@@ -1454,6 +1466,55 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case 93:
+                {
+                    testCaseName  = "normalize";
+                    Rpp32u numDim = descriptorPtr3D->numDims - 1;
+                    float scale = 1.0;
+                    float shift = 0.0;
+                    if(inputBitDepth == 0)
+                    {
+                        scale = 50;
+                        shift = 127.5;
+                    }
+                    if(normalizeRoiTensor == NULL)
+                        CHECK_RETURN_STATUS(hipHostMalloc(&normalizeRoiTensor, batchSize * 3 * 2 * sizeof(Rpp32u)));
+                    init_normalize(descriptorPtr3D, roiTensorPtrSrc, normalizeRoiTensor);
+                    // computeMeanStddev set to 3 means both mean and stddev should be computed internally.
+                    // Wherein 0th bit used to represent computeMean and 1st bit for computeStddev.
+                    Rpp8u computeMeanStddev = 3;
+                    externalMeanStd = !computeMeanStddev; // when mean and stddev is passed from user
+
+                    Rpp32u size = 1; // length of mean and stddev tensors differ based on axisMask and nDim
+                    Rpp32u maxSize = 1;
+                    for(int batch = 0; batch < batchSize; batch++)
+                    {
+                        size = 1;
+                        for(int i = 0; i < numDim; i++)
+                            size *= ((additionalParam & (int)(pow(2,i))) >= 1) ? 1 : normalizeRoiTensor[(numDim * 2 * batch) + numDim + i];
+                        maxSize = max(maxSize, size);
+                    }
+
+                    // allocate memory if no memory is allocated
+                    if(meanTensor == nullptr)
+                        CHECK_RETURN_STATUS(hipHostMalloc(&meanTensor, maxSize * batchSize * sizeof(Rpp32f)));
+                    if(stdDevTensor == nullptr)
+                        CHECK_RETURN_STATUS(hipHostMalloc(&stdDevTensor, maxSize * batchSize * sizeof(Rpp32f)));
+
+                    startWallTime = omp_get_wtime();
+
+                    if(inputBitDepth == 0)
+                    {
+                        if(srcDescPtr->c == 3 || (srcDescPtr->c == 1 && (additionalParam % 2 == 0)))
+                            rppt_normalize_gpu(d_input, descriptorPtr3D, d_output, descriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
+                        else
+                            missingFuncFlag = 1;
+                    }
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 default:
                 {
                     missingFuncFlag = 1;
@@ -1593,7 +1654,7 @@ int main(int argc, char **argv)
                 3.source and destination layout are the same
                 4.augmentation case does not generate random output*/
                 if(qaFlag && inputBitDepth == 0 && ((srcDescPtr->layout == dstDescPtr->layout) || pln1OutTypeCase) && !(randomOutputCase) && !(nonQACase))
-                    compare_output<Rpp8u>(outputu8, testCaseName, srcDescPtr, dstDescPtr, dstImgSizes, batchSize, interpolationTypeName, noiseTypeName, additionalParam, testCase, dst, scriptPath);
+                    compare_output<Rpp8u>(outputu8, testCaseName, srcDescPtr, dstDescPtr, dstImgSizes, batchSize, interpolationTypeName, noiseTypeName, axisMaskName, additionalParam, testCase, dst, scriptPath);
 
                 // Calculate exact dstROI in XYWH format for OpenCV dump
                 if (roiTypeSrc == RpptRoiType::LTRB)
@@ -1679,6 +1740,13 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(shapeTensor));
     if(roiTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(roiTensor));
+    if(normalizeRoiTensor != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(normalizeRoiTensor));
+    if(meanTensor != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(meanTensor));
+    if(stdDevTensor != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(stdDevTensor));
+    
     if(testCase == 6)
         CHECK_RETURN_STATUS(hipHostFree(kernelSizeTensor));
     free(input);
