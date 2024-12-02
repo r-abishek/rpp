@@ -159,6 +159,7 @@ void compute_3D_mean(T *srcPtr, Rpp32f *meanPtr, Rpp32u *dims, Rpp32u *stride, b
     }
 }
 
+// Computes mean for 3D inputs for axis mask7
 template<typename T>
 void compute_3D_mean_axis_mask7(T *srcPtr, Rpp32f *meanPtr, Rpp32u *dims, Rpp32u *stride, bool isConsecutive = true)
 {
@@ -179,7 +180,6 @@ void compute_3D_mean_axis_mask7(T *srcPtr, Rpp32f *meanPtr, Rpp32u *dims, Rpp32u
     }
     meanPtr[0] *= normFactor;
 }
-
 
 // Computes inverse stddev for 3D inputs
 template<typename T>
@@ -242,7 +242,6 @@ void compute_3D_inv_std_dev_axis_mask7(T *srcPtr, Rpp32f *meanPtr, Rpp32f *stdDe
     
 }
 
-
 // Computes mean for ND inputs
 template<typename T>
 void compute_ND_mean(T *srcPtr, Rpp32f *meanPtr, Rpp32u *dims, Rpp32u *stride, Rpp32u *axis, Rpp32u tensorDim, Rpp32u level, Rpp32u index, Rpp32u size, Rpp32u norm, Rpp32u lastNormAxis)
@@ -289,7 +288,7 @@ void compute_ND_stddev(T *srcPtr, Rpp32f *meanPtr, Rpp32f *stdDevPtr, Rpp32u *di
 
 // Computes normalize for 3D non toggle variants
 void normalize_3D_tensor_nontoggle(Rpp32f *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp32f *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+                                   Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp32s paramIdx = 0;
     Rpp32s idx1 = 0;
@@ -325,7 +324,7 @@ void normalize_3D_tensor_nontoggle(Rpp32f *srcPtr, RpptGenericDescPtr srcGeneric
 
 // Computes normalize for 3D non toggle variants
 void normalize_3D_tensor_nontoggle(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+                                   Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp32s paramIdx = 0;
     Rpp32s idx1 = 0;
@@ -359,9 +358,9 @@ void normalize_3D_tensor_nontoggle(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericD
     }
 }
 
-// Computes normalize for 3D non toggle variants
+// Computes normalize for 3D pkd3 non toggle variants
 void normalize_3D_tensor_pkd3_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+                                                 Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp32s paramIdx = 0;
     Rpp32s idx1 = 0;
@@ -486,9 +485,9 @@ void normalize_3D_tensor_pkd3_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescP
     }
 }
 
-// Computes normalize for 3D non toggle variants
+// Computes normalize for 3D pln3 non toggle variants
 void normalize_3D_tensor_pln3_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+                                                 Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp32s paramIdx = 0;
     Rpp32s idx1 = 0;
@@ -611,9 +610,9 @@ void normalize_3D_tensor_pln3_nontoggle_3channel(Rpp8u *srcPtr, RpptGenericDescP
     }
 }
 
-// Computes normalize for 3D non toggle variants
+// Computes normalize for 3D pln1  variants
 void normalize_3D_tensor_1channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+                                  Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp32s paramIdx = 0;
     Rpp32s idx1 = 0;
@@ -678,7 +677,7 @@ void normalize_3D_tensor_1channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDe
 
 // Computes normalize for 3D toggle variants when axis mask is set to 3
 void normalize_3D_tensor_axis3_toggle(Rpp32f *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp32f *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+                                      Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp32f *srcPtrTemp = srcPtr;
     Rpp32f *dstPtrTemp[length[2]];
@@ -717,7 +716,7 @@ void normalize_3D_tensor_axis3_toggle(Rpp32f *srcPtr, RpptGenericDescPtr srcGene
 
 // Computes normalize for 3D toggle variants when axis mask is set to 3
 void normalize_3D_tensor_axis3_toggle(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+                                      Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp8u *srcPtrTemp = srcPtr;
     Rpp8u *dstPtrTemp[length[2]];
@@ -755,9 +754,9 @@ void normalize_3D_tensor_axis3_toggle(Rpp8u *srcPtr, RpptGenericDescPtr srcGener
     }
 }
 
-// Computes normalize for 3D toggle variants when axis mask is set to 3
+// Computes normalize for 3D pkd3 toggle variants
 void normalize_3D_tensor_pkd3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+                                              Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
 
     Rpp8u *srcPtrTemp = srcPtr;
@@ -889,9 +888,9 @@ void normalize_3D_tensor_pkd3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr 
     }
 }
 
-// Computes normalize for 3D non toggle variants
-void normalize_3D_tensor_pln3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr,
-                         Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
+// Computes normalize for 3D pln3 toggle variants
+void normalize_3D_tensor_pln3_toggle_3channel(Rpp8u *srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rpp8u *dstPtr, RpptGenericDescPtr dstGenericDescPtr, 
+                                              Rpp32f *meanPtr, Rpp32f *multiplierPtr, Rpp32f shift, Rpp32u *paramStride, Rpp32u *length)
 {
     Rpp32s paramIdx = 0;
     Rpp32s idx1 = 0;
@@ -1564,7 +1563,6 @@ RppStatus normalize_u8_u8_host_tensor(Rpp8u *srcPtr,
     }
 
     return RPP_SUCCESS;
-
 }
 
 RppStatus normalize_f32_f32_host_tensor(Rpp32f *srcPtr,

@@ -1538,9 +1538,7 @@ int main(int argc, char **argv)
                     
                     if(inputBitDepth == 0)
                     {
-                        if(srcDescPtr->c == 3)
-                            rppt_normalize_host(input, srcDescriptorPtr3D, output, dstDescriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
-                        else if(srcDescPtr->c == 1 && (additionalParam % 2 == 0))
+                        if(srcDescPtr->c == 3 || (srcDescPtr->c == 1 && (additionalParam % 2 == 0)))
                             rppt_normalize_host(input, srcDescriptorPtr3D, output, dstDescriptorPtr3D, additionalParam, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, normalizeRoiTensor, handle);
                         else
                             missingFuncFlag = 1;
