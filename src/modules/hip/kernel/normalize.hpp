@@ -474,8 +474,8 @@ __global__ void compute_mean_3d_hip_tensor(T *srcPtr,
             if (i + 8 > lengthX)
             {
                 int xDiff = i + 8 - lengthX;
-                for(int i = xDiff; i < 8; i++)
-                    src_f8.f1[i] = 0.0f;
+                for(int j = xDiff ; j >0 ; j--)
+                    src_f8.f1[8 - j] = 0.0f;
             }
             accum_f8.f4[0] += src_f8.f4[0];
             accum_f8.f4[1] += src_f8.f4[1];
@@ -626,10 +626,11 @@ __global__ void compute_mean_3d_hip_tensor(T *srcPtr,
 
         d_float8 src_f8;
         rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);           // load 8 pixels to local memory
-        if (xIndex + 8 > lengthX)
+        if ((id_x + 8) > (lengthX * lengthY))
         {
-            for(int i = xDiff; i < 8; i++)
-                src_f8.f1[i] = 0.0f;                                            // local memory reset of invalid values (from the vectorized global load) to 0.0f
+            xDiff = ((yIndex * xIndex) + 8) - (lengthX * lengthY);
+            for(int i = xDiff; i > 0; i--)
+                src_f8.f1[8 - i] = 0.0f;                                            // local memory reset of invalid values (from the vectorized global load) to 0.0f
         }
         src_f8.f4[0] += src_f8.f4[1];
         partialSumRowPtr_smem[hipThreadIdx_x] = (src_f8.f1[0] +
@@ -962,8 +963,8 @@ __global__ void compute_stddev_3d_hip_tensor(T *srcPtr,
             if (i + 8 > lengthX)
             {
                 int xDiff = i + 8 - lengthX;
-                for(int i = xDiff; i < 8; i++)
-                    src_f8.f1[i] = 0.0f;
+                for(int i = xDiff; i > 0; i--)
+                    src_f8.f1[8 - i] = 0.0f;
             }
             accum_f8.f4[0] += src_f8.f4[0];
             accum_f8.f4[1] += src_f8.f4[1];
@@ -1133,10 +1134,12 @@ __global__ void compute_stddev_3d_hip_tensor(T *srcPtr,
         rpp_hip_math_subtract8_const(&src_f8, &src_f8, mean_f4);
         rpp_hip_math_multiply8(&src_f8, &src_f8, &src_f8);
 
-        if (xIndex + 8 > lengthX)
+        if (((id_x) + 8) > (lengthX * lengthY))
         {
-            for(int i = xDiff; i < 8; i++)
-                src_f8.f1[i] = 0.0f;                                            // local memory reset of invalid values (from the vectorized global load) to 0.0f
+            xDiff = ((id_x) + 8) - (lengthX * lengthY);
+            xDiff = (xDiff <= 8) ? xDiff : 8;
+            for(int i = xDiff; i > 0; i--)
+                src_f8.f1[8 - i] = 0.0f;                                            // local memory reset of invalid values (from the vectorized global load) to 0.0f
         }
         src_f8.f4[0] += src_f8.f4[1];
         partialSumRowPtr_smem[hipThreadIdx_x] = (src_f8.f1[0] +
@@ -1304,7 +1307,7 @@ __global__ void reduce_final_result_hip(float *partialSumTensor,
     reduction_sum_x_hip(partialSum_smem);
 
     // Final store to dst
-    if (hipThreadIdx_x == 0)
+    if ((hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) == 0)
     {
         if (isMean)
             meanTensor[id_z * hipGridDim_y + id_y] = partialSum_smem[0] / meanFactor;
