@@ -1491,7 +1491,7 @@ int main(int argc, char **argv)
                     {
                         size = 1;
                         for(int i = 0; i < numDim; i++)
-                            size *= ((additionalParam & (int)(pow(2,i))) >= 1) ? 1 : normalizeRoiTensor[(numDim * 2 * batch) + numDim + i];
+                            size *= ((additionalParam & (int)(pow(2,i))) >= 1) ? 1 : descriptorPtr3D->dims[i + 1];
                         maxSize = max(maxSize, size);
                     }
 

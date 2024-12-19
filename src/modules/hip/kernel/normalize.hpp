@@ -42,7 +42,7 @@ void normalize_setup_2d_and_3d(Rpp32u *roiTensor, Rpp32u batchSize, Rpp32u tenso
     {
         // calculate the max param volume
         Rpp32u paramVolume = 1;
-        Rpp32u *roi = &roiTensor[tensorDims * 2 * i + tensorDims];
+        Rpp32u *roi = &roiTensor[1];
         for(uint j = 0; j < tensorDims; j++)
             paramVolume *= (axisSet[j]) ? 1 : roi[j];
         maxParamVolume = std::max(maxParamVolume, paramVolume);
@@ -615,29 +615,40 @@ __global__ void compute_mean_3d_hip_tensor(T *srcPtr,
 
         uint xIndex = id_x % srcStridesNZY.z;
         uint yIndex = id_x / srcStridesNZY.z;
-        if ((xIndex >= lengthX) || (yIndex >= lengthY) || (id_y >= lengthZ))
+        if ((xIndex < lengthX) && (yIndex < lengthY) && (id_y < lengthZ))
         {
-            return;
-        }
+            int xAlignedLength =  lengthX & ~7;       // alignedLength for vectorized global loads
+            int xDiff = lengthX - xAlignedLength;     // difference between roiWidth and alignedLength
+            uint srcIdx = (id_z * srcStridesNZY.x) + ((id_y + zBegin) * srcStridesNZY.y) + ((yIndex + yBegin) * srcStridesNZY.z) + (xIndex + xBegin);
 
-        int xAlignedLength =  lengthX & ~7;       // alignedLength for vectorized global loads
-        int xDiff = lengthX - xAlignedLength;     // difference between roiWidth and alignedLength
-        uint srcIdx = (id_z * srcStridesNZY.x) + ((id_y + zBegin) * srcStridesNZY.y) + ((yIndex + yBegin) * srcStridesNZY.z) + (xIndex + xBegin);
-
-        d_float8 src_f8;
-        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);           // load 8 pixels to local memory
-        if ((id_x + 8) > (lengthX * lengthY))
-        {
-            xDiff = ((yIndex * xIndex) + 8) - (lengthX * lengthY);
-            for(int i = xDiff; i > 0; i--)
-                src_f8.f1[8 - i] = 0.0f;                                            // local memory reset of invalid values (from the vectorized global load) to 0.0f
+            d_float8 src_f8;
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);           // load 8 pixels to local memory
+            if(srcStridesNZY.z == lengthX)
+            {
+                if ((id_x + 8) > (lengthX * lengthY))
+                {
+                    xDiff = ((yIndex * xIndex) + 8) - (lengthX * lengthY);
+                    for(int i = xDiff; i > 0; i--)
+                        src_f8.f1[8 - i] = 0.0f;                                            // local memory reset of invalid values (from the vectorized global load) to 0.0f
+                }
+            }
+            else
+            {
+                if((xIndex + 8) > lengthX)
+                {
+                    xDiff = (xIndex + 8) - lengthX;
+                    xDiff = min(xDiff , 8);
+                    for(int i = xDiff; i > 0; i--)
+                        src_f8.f1[8 - i] = 0.0f;
+                }
+            }
+            src_f8.f4[0] += src_f8.f4[1];
+            partialSumRowPtr_smem[hipThreadIdx_x] = (src_f8.f1[0] +
+                                                    src_f8.f1[1] +
+                                                    src_f8.f1[2] +
+                                                    src_f8.f1[3]);
+            __syncthreads();
         }
-        src_f8.f4[0] += src_f8.f4[1];
-        partialSumRowPtr_smem[hipThreadIdx_x] = (src_f8.f1[0] +
-                                                 src_f8.f1[1] +
-                                                 src_f8.f1[2] +
-                                                 src_f8.f1[3]);
-        __syncthreads();
 
         // Reduction of 16 floats on 16 threads per block in x dimension (for every y dimension)
         reduction_sum_x_hip(partialSumRowPtr_smem);
@@ -1116,38 +1127,48 @@ __global__ void compute_stddev_3d_hip_tensor(T *srcPtr,
 
         uint xIndex = id_x % srcStridesNZY.z;
         uint yIndex = id_x / srcStridesNZY.z;
-        if ((xIndex >= lengthX) || (yIndex >= lengthY) || (id_y >= lengthZ))
+        if ((xIndex < lengthX) && (yIndex < lengthY) && (id_y < lengthZ))
         {
-            return;
+            int xAlignedLength =  lengthX & ~7;       // alignedLength for vectorized global loads
+            int xDiff = lengthX - xAlignedLength;     // difference between roiWidth and alignedLength
+            uint srcIdx = (id_z * srcStridesNZY.x) + ((id_y + zBegin) * srcStridesNZY.y) + ((yIndex + yBegin) * srcStridesNZY.z) + (xIndex + xBegin);
+
+            uint paramIndex = id_z * maxParamVolume;
+            float mean = meanTensor[paramIndex];
+            float4 mean_f4 = static_cast<float4>(mean);
+
+            d_float8 src_f8;
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);           // load 8 pixels to local memory
+            rpp_hip_math_subtract8_const(&src_f8, &src_f8, mean_f4);
+            rpp_hip_math_multiply8(&src_f8, &src_f8, &src_f8);
+
+            if(srcStridesNZY.z == lengthX)
+            {
+                if((id_x + 8) > (lengthX * lengthY))
+                {
+                    xDiff = ((id_x) + 8) - (lengthX * lengthY);
+                    xDiff = (xDiff <= 8) ? xDiff : 8;
+                    for(int i = xDiff; i > 0; i--)
+                        src_f8.f1[8 - i] = 0.0f;                                            // local memory reset of invalid values (from the vectorized global load) to 0.0f
+                }
+            }
+            else
+            {
+                if((xIndex + 8) > lengthX)
+                {
+                    xDiff = (xIndex + 8) - lengthX;
+                    xDiff = min(xDiff , 8);
+                    for(int i = xDiff; i > 0; i--)
+                        src_f8.f1[8 - i] = 0.0f;
+                }
+            }
+            src_f8.f4[0] += src_f8.f4[1];
+            partialSumRowPtr_smem[hipThreadIdx_x] = (src_f8.f1[0] +
+                                                    src_f8.f1[1] +
+                                                    src_f8.f1[2] +
+                                                    src_f8.f1[3]);                 // perform small work of reducing float4s to float using 16 x 16 threads and store in Shared
+            __syncthreads();                                                        // syncthreads after Shared load
         }
-
-        int xAlignedLength =  lengthX & ~7;       // alignedLength for vectorized global loads
-        int xDiff = lengthX - xAlignedLength;     // difference between roiWidth and alignedLength
-        uint srcIdx = (id_z * srcStridesNZY.x) + ((id_y + zBegin) * srcStridesNZY.y) + ((yIndex + yBegin) * srcStridesNZY.z) + (xIndex + xBegin);
-
-        uint paramIndex = id_z * maxParamVolume;
-        float mean = meanTensor[paramIndex];
-        float4 mean_f4 = static_cast<float4>(mean);
-
-        d_float8 src_f8;
-        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_f8);           // load 8 pixels to local memory
-        rpp_hip_math_subtract8_const(&src_f8, &src_f8, mean_f4);
-        rpp_hip_math_multiply8(&src_f8, &src_f8, &src_f8);
-
-        if (((id_x) + 8) > (lengthX * lengthY))
-        {
-            xDiff = ((id_x) + 8) - (lengthX * lengthY);
-            xDiff = (xDiff <= 8) ? xDiff : 8;
-            for(int i = xDiff; i > 0; i--)
-                src_f8.f1[8 - i] = 0.0f;                                            // local memory reset of invalid values (from the vectorized global load) to 0.0f
-        }
-        src_f8.f4[0] += src_f8.f4[1];
-        partialSumRowPtr_smem[hipThreadIdx_x] = (src_f8.f1[0] +
-                                                 src_f8.f1[1] +
-                                                 src_f8.f1[2] +
-                                                 src_f8.f1[3]);                 // perform small work of reducing float4s to float using 16 x 16 threads and store in Shared
-        __syncthreads();                                                        // syncthreads after Shared load
-
         // Reduction of 16 floats on 16 threads per block in x dimension (for every y dimension)
         reduction_sum_x_hip(partialSumRowPtr_smem);
 
@@ -1817,7 +1838,7 @@ RppStatus hip_exec_normalize_tensor(T *srcPtr,
     // do initial preprocessing, compute maxParamVolue and fill the values for paramShape and paramStrides
     Rpp32u maxParamVolume;
     if (tensorDims == 2 || tensorDims == 3)
-        normalize_setup_2d_and_3d(roiTensor, batchSize, tensorDims,
+        normalize_setup_2d_and_3d(srcGenericDescPtr->dims, batchSize, tensorDims,
                                   axisMask, maxParamVolume);
     else
         normalize_setup_nd(roiTensor, batchSize, tensorDims, axisMask,
