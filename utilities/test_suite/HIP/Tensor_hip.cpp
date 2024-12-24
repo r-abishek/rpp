@@ -416,6 +416,16 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&greyFactor, batchSize * sizeof(Rpp32f)));
     }
 
+    Rpp32f *brightnessCoefficient = nullptr;
+    Rpp32f *snowThreshold = nullptr;
+    Rpp32s *darkMode = nullptr;
+    if(testCase == 7)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&brightnessCoefficient, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&snowThreshold, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&darkMode, batchSize * sizeof(Rpp32s)));
+    }
+
     Rpp32u *kernelSizeTensor;
     if(testCase == 6)
         CHECK_RETURN_STATUS(hipHostMalloc(&kernelSizeTensor, batchSize * sizeof(Rpp32u)));
@@ -608,6 +618,25 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
                         rppt_jitter_gpu(d_input, srcDescPtr, d_output, dstDescPtr, kernelSizeTensor, seed, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case 7:
+                {
+                    testCaseName = "snow";
+
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        brightnessCoefficient[i] = 2.5f;
+                        snowThreshold[i] = 1.0f;
+                        darkMode[i] = 0;
+                    }
+
+                    startWallTime = omp_get_wtime();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_snow_gpu(d_input, srcDescPtr, d_output, dstDescPtr, brightnessCoefficient, snowThreshold, darkMode, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -1741,6 +1770,12 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(intensityFactor));
     if(greyFactor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(greyFactor));
+    if(brightnessCoefficient != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(brightnessCoefficient));
+    if(snowThreshold != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(snowThreshold));
+    if(darkMode != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(darkMode));
     if(roiTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(roiTensor));
     if(testCase == 6)
