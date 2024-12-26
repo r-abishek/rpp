@@ -38,6 +38,7 @@ struct HandleImpl
 {
     size_t nBatchSize = 1;
     Rpp32u numThreads = 0;
+    RppBackend backend = RPP_HOST_BACKEND;
     InitHandle* initHandle = nullptr;
 
     void PreInitializeBufferCPU()
@@ -51,13 +52,14 @@ struct HandleImpl
     }
 };
 
-Handle::Handle(size_t batchSize, Rpp32u numThreads) : impl(new HandleImpl())
+Handle::Handle(size_t batchSize, Rpp32u numThreads, RppBackend backend) : impl(new HandleImpl())
 {
     impl->nBatchSize = batchSize;
     numThreads = std::min(numThreads, std::thread::hardware_concurrency());
     if(numThreads == 0)
         numThreads = batchSize;
     impl->numThreads = numThreads;
+    impl->backend = backend;
     impl->PreInitializeBufferCPU();
 }
 
@@ -88,6 +90,11 @@ size_t Handle::GetBatchSize() const
 Rpp32u Handle::GetNumThreads() const
 {
     return this->impl->numThreads;
+}
+
+RppBackend Handle::GetBackend() const
+{
+    return this->impl->backend;
 }
 
 void Handle::SetBatchSize(size_t bSize) const

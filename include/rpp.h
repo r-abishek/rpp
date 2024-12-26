@@ -146,7 +146,7 @@ extern "C" SHARED_PUBLIC rppStatus_t rppCreate(rppHandle_t* handle);
  * \retval rppStatusUnknownError
  * \retval rppStatusUnsupportedOp
  */
-extern "C" SHARED_PUBLIC rppStatus_t rppCreateWithBatchSize(rppHandle_t* handle, size_t nBatchSize, Rpp32u numThreads = 0);
+extern "C" SHARED_PUBLIC rppStatus_t rppCreateWithBatchSize(rppHandle_t* handle, size_t nBatchSize, Rpp32u numThreads = 0, RppBackend backend = RPP_HOST_BACKEND);
 
 /*! \brief Destory RPP handle.
  * \details Function to destroy a RPP handle. To be called in the end to break down the RPP environment.
@@ -257,7 +257,7 @@ extern "C" SHARED_PUBLIC rppStatus_t rppCreateWithStream(rppHandle_t* handle, rp
  * \retval rppStatusUnknownError
  * \retval rppStatusUnsupportedOp
  */
-extern "C" SHARED_PUBLIC rppStatus_t rppCreateWithStreamAndBatchSize(rppHandle_t* handle, rppAcceleratorQueue_t stream, size_t nBatchSize);
+extern "C" SHARED_PUBLIC rppStatus_t rppCreateWithStreamAndBatchSize(rppHandle_t* handle, rppAcceleratorQueue_t stream, size_t nBatchSize , RppBackend backend);
 
 /*! \brief Destory RPP GPU handle.
  * \details Function to destroy a RPP handle's device memory allocation. To be called in the end to break down the RPP environment.

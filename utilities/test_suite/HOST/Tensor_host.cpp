@@ -370,8 +370,8 @@ int main(int argc, char **argv)
     // Set the number of threads to be used by OpenMP pragma for RPP batch processing on host.
     // If numThreads value passed is 0, number of OpenMP threads used by RPP will be set to batch size
     Rpp32u numThreads = 0;
-    rppHandle_t handle;
-    rppCreateWithBatchSize(&handle, noOfImages, numThreads);
+    RppHandle_t handle;
+    rppCreateWithBatchSize(&handle, noOfImages, numThreads, RPP_HOST_BACKEND);
 
     int noOfIterations = (int)imageNames.size() / batchSize;
     double maxWallTime = 0, minWallTime = 500, avgWallTime = 0;
@@ -1155,7 +1155,7 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 3 || inputBitDepth == 4 || inputBitDepth == 5)
-                        rppt_vignette_host(input, srcDescPtr, output, dstDescPtr, intensity, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_vignette(input, srcDescPtr, output, dstDescPtr, intensity, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 

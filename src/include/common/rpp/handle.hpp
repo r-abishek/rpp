@@ -63,12 +63,14 @@ struct Handle : rppHandle
 {
     Handle();
     Handle(size_t nBatchSize, Rpp32u numThreads = 0);
+    Handle(size_t nBatchSize, Rpp32u numThreads = 0, RppBackend backend = RPP_HIP_BACKEND);
     Handle(Handle&&) noexcept;
     ~Handle();
 
     InitHandle* GetInitHandle() const;
     size_t GetBatchSize() const;
     Rpp32u GetNumThreads() const;
+    RppBackend GetBackend() const;
     void SetBatchSize(size_t bSize) const;
     void rpp_destroy_object_host();
     std::unique_ptr<HandleImpl> impl;
@@ -81,11 +83,13 @@ struct Handle : rppHandle
     // Host handle related
     Handle();
     Handle(size_t nBatchSize, Rpp32u numThreads = 0);
+    Handle(size_t nBatchSize, Rpp32u numThreads = 0, RppBackend backend = RPP_HOST_BACKEND);
     Handle(Handle&&) noexcept;
     ~Handle();
     InitHandle*  GetInitHandle() const;
     size_t GetBatchSize() const;
     Rpp32u GetNumThreads() const;
+    RppBackend GetBackend() const;
     void SetBatchSize(size_t bSize) const;
     void rpp_destroy_object_host();
 
@@ -94,7 +98,7 @@ struct Handle : rppHandle
 
     // Device handle related
     Handle(rppAcceleratorQueue_t stream);
-    Handle(rppAcceleratorQueue_t stream, size_t nBatchSize);
+    Handle(rppAcceleratorQueue_t stream, size_t nBatchSize, RppBackend backend);
     void rpp_destroy_object_gpu();
     rppAcceleratorQueue_t GetStream() const;
     void SetStream(rppAcceleratorQueue_t streamID) const;
