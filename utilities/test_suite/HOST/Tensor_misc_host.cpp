@@ -90,9 +90,9 @@ int main(int argc, char **argv)
     srcDescriptorPtrND = &srcDescriptor;
     dstDescriptorPtrND = &dstDescriptor;
     int bitDepth = 2, offSetInBytes = 0;
+    set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
     set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
     set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
-    set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
     Rpp32u bufferSize = 1;
     for(int i = 0; i <= nDim; i++)
@@ -205,6 +205,18 @@ int main(int argc, char **argv)
         avgWallTime += wallTime;
     }
 
+    if(DEBUG_MODE)
+    {
+        std::ofstream refFile;
+        std::string refFileName;
+        refFileName = func + "_host.csv";
+        refFile.open(refFileName);
+        for (int i = 0; i < bufferSize; i++)
+        {
+            refFile << *(outputF32 + i) << ",";
+        }
+        refFile.close();
+    }
     if(qaMode)
     {
         compare_output(outputF32, nDim, batchSize, bufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);

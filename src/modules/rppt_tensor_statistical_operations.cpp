@@ -259,6 +259,8 @@ RppStatus rppt_normalize_host(RppPtr_t srcPtr,
     Rpp32u tensorDim = srcGenericDescPtr->numDims - 1;
     if (tensorDim == 3 && (srcGenericDescPtr->layout == RpptLayout::NHWC))
         layoutParams = get_layout_params(srcGenericDescPtr->layout, srcGenericDescPtr->dims[3]);
+    else if (tensorDim == 3 && (srcGenericDescPtr->layout == RpptLayout::NCHW))
+        layoutParams = get_layout_params(srcGenericDescPtr->layout, srcGenericDescPtr->dims[1]);
     else if ((srcGenericDescPtr->layout == RpptLayout::NCDHW) && (dstGenericDescPtr->layout == RpptLayout::NCDHW))
         layoutParams = get_layout_params(srcGenericDescPtr->layout, srcGenericDescPtr->dims[1]);
     else if ((srcGenericDescPtr->layout == RpptLayout::NDHWC) && (dstGenericDescPtr->layout == RpptLayout::NDHWC))
@@ -268,19 +270,19 @@ RppStatus rppt_normalize_host(RppPtr_t srcPtr,
 
     if ((srcGenericDescPtr->dataType == RpptDataType::U8) && (dstGenericDescPtr->dataType == RpptDataType::U8))
     {
-        normalize_generic_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcGenericDescPtr->offsetInBytes,
-                                      srcGenericDescPtr,
-                                      static_cast<Rpp8u*>(dstPtr) + dstGenericDescPtr->offsetInBytes,
-                                      dstGenericDescPtr,
-                                      axisMask,
-                                      meanTensor,
-                                      stdDevTensor,
-                                      computeMeanStddev,
-                                      scale,
-                                      shift,
-                                      roiTensor,
-                                      layoutParams,
-                                      rpp::deref(rppHandle));
+        normalize_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcGenericDescPtr->offsetInBytes,
+                                    srcGenericDescPtr,
+                                    static_cast<Rpp8u*>(dstPtr) + dstGenericDescPtr->offsetInBytes,
+                                    dstGenericDescPtr,
+                                    axisMask,
+                                    meanTensor,
+                                    stdDevTensor,
+                                    computeMeanStddev,
+                                    scale,
+                                    shift,
+                                    roiTensor,
+                                    layoutParams,
+                                    rpp::deref(rppHandle));
     }
     else if ((srcGenericDescPtr->dataType == RpptDataType::F16) && (dstGenericDescPtr->dataType == RpptDataType::F16))
     {
