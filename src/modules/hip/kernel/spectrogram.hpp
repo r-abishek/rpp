@@ -1,5 +1,6 @@
 #include <hip/hip_runtime.h>
 #include "rpp_hip_common.hpp"
+#include "rpp_cpu_common.hpp"
 
 // -------------------- Set 1 - kernel executor --------------------
 
