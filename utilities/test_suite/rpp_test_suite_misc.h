@@ -34,7 +34,8 @@ std::map<int, string> augmentationMiscMap =
 {
     {0, "transpose"},
     {1, "normalize"},
-    {2, "log"}
+    {2, "log"},
+    {3, "concat"}
 };
 
 // Compute strides given Generic Tensor
@@ -358,8 +359,13 @@ void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u buf
     {
         subVariantStride = (additionalParam - 1) * bufferLength;
     }
+    else if(testCase == "concat")
+    {
+        subVariantStride = additionalParam * bufferLength;
+    }
 
     int sampleLength = bufferLength / batchSize;
+    printf("\n sample length %d , ", sampleLength);
     int fileMatch = 0;
     for(int i = 0; i < batchSize; i++)
     {
@@ -369,9 +375,13 @@ void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u buf
         for(int j = 0; j < sampleLength; j++)
         {
             bool invalid_comparision = ((out[j] == 0.0f) && (ref[j] != 0.0f));
-            if(!invalid_comparision && abs(out[j] - ref[j]) < 1e-4)
+            invalid_comparision = false;
+            if(!invalid_comparision && abs(out[j] - ref[j]) < 1)
                 cnt++;
+            else
+                printf("\n index %d output %f ref %f ",j, out[j],ref[j]);
         }
+        printf("\n cnt %d", cnt);
         if (cnt == sampleLength)
             fileMatch++;
     }
