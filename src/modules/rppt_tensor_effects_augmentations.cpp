@@ -1453,12 +1453,6 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
         if (!RPPINRANGE(noiseProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltProbabilityTensor[i], 0, 1) || !RPPINRANGE(saltValueTensor[i], 0, 1) || !RPPINRANGE(pepperValueTensor[i], 0, 1))
             return RPP_ERROR_INVALID_ARGUMENTS;
 
-    Rpp32u paramIndex = 0;
-    copy_param_float(noiseProbabilityTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(saltProbabilityTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(saltValueTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(pepperValueTensor, rpp::deref(rppHandle), paramIndex++);
-
     RpptXorwowState xorwowInitialState;
     xorwowInitialState.x[0] = 0x75BCD15 + seed;
     xorwowInitialState.x[1] = 0x159A55E5 + seed;
@@ -1477,6 +1471,10 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
                                               srcDescPtr,
                                               static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                               dstDescPtr,
+                                              noiseProbabilityTensor,
+                                              saltProbabilityTensor,
+                                              saltValueTensor,
+                                              pepperValueTensor,
                                               d_xorwowInitialStatePtr,
                                               roiTensorPtrSrc,
                                               roiType,
@@ -1488,6 +1486,10 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
                                               srcDescPtr,
                                               (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                               dstDescPtr,
+                                              noiseProbabilityTensor,
+                                              saltProbabilityTensor,
+                                              saltValueTensor,
+                                              pepperValueTensor,
                                               d_xorwowInitialStatePtr,
                                               roiTensorPtrSrc,
                                               roiType,
@@ -1499,6 +1501,10 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
                                               srcDescPtr,
                                               (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                               dstDescPtr,
+                                              noiseProbabilityTensor,
+                                              saltProbabilityTensor,
+                                              saltValueTensor,
+                                              pepperValueTensor,
                                               d_xorwowInitialStatePtr,
                                               roiTensorPtrSrc,
                                               roiType,
@@ -1510,6 +1516,10 @@ RppStatus rppt_salt_and_pepper_noise_gpu(RppPtr_t srcPtr,
                                               srcDescPtr,
                                               static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                               dstDescPtr,
+                                              noiseProbabilityTensor,
+                                              saltProbabilityTensor,
+                                              saltValueTensor,
+                                              pepperValueTensor,
                                               d_xorwowInitialStatePtr,
                                               roiTensorPtrSrc,
                                               roiType,
@@ -1539,9 +1549,6 @@ RppStatus rppt_shot_noise_gpu(RppPtr_t srcPtr,
         if (RPPISLESSER(shotNoiseFactorTensor[i], 0))
             return RPP_ERROR_INVALID_ARGUMENTS;
 
-    Rpp32u paramIndex = 0;
-    copy_param_float(shotNoiseFactorTensor, rpp::deref(rppHandle), paramIndex++);
-
     RpptXorwowStateBoxMuller xorwowInitialState;
     xorwowInitialState.x[0] = 0x75BCD15 + seed;
     xorwowInitialState.x[1] = 0x159A55E5 + seed;
@@ -1562,6 +1569,7 @@ RppStatus rppt_shot_noise_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                    dstDescPtr,
+                                   shotNoiseFactorTensor,
                                    d_xorwowInitialStatePtr,
                                    roiTensorPtrSrc,
                                    roiType,
@@ -1573,6 +1581,7 @@ RppStatus rppt_shot_noise_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                    dstDescPtr,
+                                   shotNoiseFactorTensor,
                                    d_xorwowInitialStatePtr,
                                    roiTensorPtrSrc,
                                    roiType,
@@ -1584,6 +1593,7 @@ RppStatus rppt_shot_noise_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                    dstDescPtr,
+                                   shotNoiseFactorTensor,
                                    d_xorwowInitialStatePtr,
                                    roiTensorPtrSrc,
                                    roiType,
@@ -1595,6 +1605,7 @@ RppStatus rppt_shot_noise_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                    dstDescPtr,
+                                   shotNoiseFactorTensor,
                                    d_xorwowInitialStatePtr,
                                    roiTensorPtrSrc,
                                    roiType,
@@ -1621,9 +1632,6 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
                                   rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    Rpp32u paramIndex = 0;
-    copy_param_float(meanTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(stdDevTensor, rpp::deref(rppHandle), paramIndex++);
 
     RpptXorwowStateBoxMuller xorwowInitialState;
     xorwowInitialState.x[0] = 0x75BCD15 + seed;
@@ -1645,6 +1653,8 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
                                        srcDescPtr,
                                        static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                        dstDescPtr,
+                                       meanTensor,
+                                       stdDevTensor,
                                        d_xorwowInitialStatePtr,
                                        roiTensorPtrSrc,
                                        roiType,
@@ -1656,6 +1666,8 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
                                        srcDescPtr,
                                        (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                        dstDescPtr,
+                                       meanTensor,
+                                       stdDevTensor,
                                        d_xorwowInitialStatePtr,
                                        roiTensorPtrSrc,
                                        roiType,
@@ -1667,6 +1679,8 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
                                        srcDescPtr,
                                        (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                        dstDescPtr,
+                                       meanTensor,
+                                       stdDevTensor,
                                        d_xorwowInitialStatePtr,
                                        roiTensorPtrSrc,
                                        roiType,
@@ -1678,6 +1692,8 @@ RppStatus rppt_gaussian_noise_gpu(RppPtr_t srcPtr,
                                        srcDescPtr,
                                        static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                        dstDescPtr,
+                                       meanTensor,
+                                       stdDevTensor,
                                        d_xorwowInitialStatePtr,
                                        roiTensorPtrSrc,
                                        roiType,
@@ -1771,8 +1787,6 @@ RppStatus rppt_non_linear_blend_gpu(RppPtr_t srcPtr1,
     for(int i = 0; i < srcDescPtr->n; i++)
         if (stdDevTensor[i] == 0)
             return RPP_ERROR_ZERO_DIVISION;
-    Rpp32u paramIndex = 0;
-    copy_param_float(stdDevTensor, rpp::deref(rppHandle), paramIndex++);
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -1781,6 +1795,7 @@ RppStatus rppt_non_linear_blend_gpu(RppPtr_t srcPtr1,
                                          srcDescPtr,
                                          static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                          dstDescPtr,
+                                         stdDevTensor,
                                          roiTensorPtrSrc,
                                          roiType,
                                          rpp::deref(rppHandle));
@@ -1792,6 +1807,7 @@ RppStatus rppt_non_linear_blend_gpu(RppPtr_t srcPtr1,
                                          srcDescPtr,
                                          (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                          dstDescPtr,
+                                         stdDevTensor,
                                          roiTensorPtrSrc,
                                          roiType,
                                          rpp::deref(rppHandle));
@@ -1803,6 +1819,7 @@ RppStatus rppt_non_linear_blend_gpu(RppPtr_t srcPtr1,
                                          srcDescPtr,
                                          (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                          dstDescPtr,
+                                         stdDevTensor,
                                          roiTensorPtrSrc,
                                          roiType,
                                          rpp::deref(rppHandle));
@@ -1814,6 +1831,7 @@ RppStatus rppt_non_linear_blend_gpu(RppPtr_t srcPtr1,
                                          srcDescPtr,
                                          static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                          dstDescPtr,
+                                         stdDevTensor,
                                          roiTensorPtrSrc,
                                          roiType,
                                          rpp::deref(rppHandle));
@@ -1842,13 +1860,6 @@ RppStatus rppt_water_gpu(RppPtr_t srcPtr,
                          rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    Rpp32u paramIndex = 0;
-    copy_param_float(amplitudeXTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(amplitudeYTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(frequencyXTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(frequencyYTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(phaseXTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(phaseYTensor, rpp::deref(rppHandle), paramIndex);
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -1856,6 +1867,12 @@ RppStatus rppt_water_gpu(RppPtr_t srcPtr,
                               srcDescPtr,
                               static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                               dstDescPtr,
+                              amplitudeXTensor,
+                              amplitudeYTensor,
+                              frequencyXTensor,
+                              frequencyYTensor,
+                              phaseXTensor,
+                              phaseYTensor,
                               roiTensorPtrSrc,
                               roiType,
                               rpp::deref(rppHandle));
@@ -1866,6 +1883,12 @@ RppStatus rppt_water_gpu(RppPtr_t srcPtr,
                               srcDescPtr,
                               reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                               dstDescPtr,
+                              amplitudeXTensor,
+                              amplitudeYTensor,
+                              frequencyXTensor,
+                              frequencyYTensor,
+                              phaseXTensor,
+                              phaseYTensor,
                               roiTensorPtrSrc,
                               roiType,
                               rpp::deref(rppHandle));
@@ -1876,6 +1899,12 @@ RppStatus rppt_water_gpu(RppPtr_t srcPtr,
                               srcDescPtr,
                               reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                               dstDescPtr,
+                              amplitudeXTensor,
+                              amplitudeYTensor,
+                              frequencyXTensor,
+                              frequencyYTensor,
+                              phaseXTensor,
+                              phaseYTensor,
                               roiTensorPtrSrc,
                               roiType,
                               rpp::deref(rppHandle));
@@ -1886,6 +1915,12 @@ RppStatus rppt_water_gpu(RppPtr_t srcPtr,
                               srcDescPtr,
                               static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                               dstDescPtr,
+                              amplitudeXTensor,
+                              amplitudeYTensor,
+                              frequencyXTensor,
+                              frequencyYTensor,
+                              phaseXTensor,
+                              phaseYTensor,
                               roiTensorPtrSrc,
                               roiType,
                               rpp::deref(rppHandle));
