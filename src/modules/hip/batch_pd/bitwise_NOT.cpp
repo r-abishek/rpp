@@ -1,8 +1,7 @@
 #include <hip/hip_runtime.h>
-#include "rpp_hip_host_decls.hpp"
+#include "../kernel/rpp_hip_host_decls.hpp"
 
-extern "C" __global__ void bitwise_AND(unsigned char *input1,
-                                       unsigned char *input2,
+extern "C" __global__ void bitwise_NOT(unsigned char *input,
                                        unsigned char *output,
                                        const unsigned int height,
                                        const unsigned int width,
@@ -18,11 +17,10 @@ extern "C" __global__ void bitwise_AND(unsigned char *input1,
     }
 
     int pixIdx = id_x + id_y * width + id_z * width * height;
-    output[pixIdx] = input1[pixIdx] & input2[pixIdx];
+    output[pixIdx] = ~input[pixIdx];
 }
 
-extern "C" __global__ void bitwise_AND_batch(unsigned char *input1,
-                                             unsigned char *input2,
+extern "C" __global__ void bitwise_NOT_batch(unsigned char *input,
                                              unsigned char *output,
                                              unsigned int *xroi_begin,
                                              unsigned int *xroi_end,
@@ -47,7 +45,7 @@ extern "C" __global__ void bitwise_AND_batch(unsigned char *input1,
     {
         for(int indextmp = 0; indextmp < channel; indextmp++)
         {
-            output[pixIdx] = input1[pixIdx] & input2[pixIdx];
+            output[pixIdx] = ~input[pixIdx];
             pixIdx += inc[id_z];
         }
     }
@@ -55,13 +53,13 @@ extern "C" __global__ void bitwise_AND_batch(unsigned char *input1,
     {
         for(int indextmp = 0; indextmp < channel; indextmp++)
         {
-            output[pixIdx] = input1[pixIdx];
+            output[pixIdx] = input[pixIdx];
             pixIdx += inc[id_z];
         }
     }
 }
 
-RppStatus hip_exec_bitwise_AND_batch(Rpp8u *srcPtr1, Rpp8u *srcPtr2, Rpp8u *dstPtr, rpp::Handle& handle, RppiChnFormat chnFormat, Rpp32u channel, Rpp32s plnpkdind, Rpp32u max_height, Rpp32u max_width)
+RppStatus hip_exec_bitwise_NOT_batch(Rpp8u *srcPtr, Rpp8u *dstPtr, rpp::Handle& handle, RppiChnFormat chnFormat, Rpp32u channel, Rpp32s plnpkdind, Rpp32u max_height, Rpp32u max_width)
 {
     int localThreads_x = 32;
     int localThreads_y = 32;
@@ -70,13 +68,12 @@ RppStatus hip_exec_bitwise_AND_batch(Rpp8u *srcPtr1, Rpp8u *srcPtr2, Rpp8u *dstP
     int globalThreads_y = (max_height + 31) & ~31;
     int globalThreads_z = handle.GetBatchSize();
 
-    hipLaunchKernelGGL(bitwise_AND_batch,
+    hipLaunchKernelGGL(bitwise_NOT_batch,
                        dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
                        dim3(localThreads_x, localThreads_y, localThreads_z),
                        0,
                        handle.GetStream(),
-                       srcPtr1,
-                       srcPtr2,
+                       srcPtr,
                        dstPtr,
                        handle.GetInitHandle()->mem.mgpu.roiPoints.x,
                        handle.GetInitHandle()->mem.mgpu.roiPoints.roiWidth,

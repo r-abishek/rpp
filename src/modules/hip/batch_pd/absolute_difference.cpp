@@ -1,5 +1,5 @@
 #include <hip/hip_runtime.h>
-#include "rpp_hip_host_decls.hpp"
+#include "../kernel/rpp_hip_host_decls.hpp"
 
 #define saturate_8u(value) ((value) > 255 ? 255 : ((value) < 0 ? 0 : (value)))
 #define abs(value) ((value) < 0 ? (-value) : value)

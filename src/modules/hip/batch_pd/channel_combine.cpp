@@ -1,5 +1,5 @@
 #include <hip/hip_runtime.h>
-#include "rpp_hip_host_decls.hpp"
+#include "../kernel/rpp_hip_host_decls.hpp"
 
 extern "C" __global__ void channel_combine_pln(unsigned char *input1,
                                                unsigned char *input2,
