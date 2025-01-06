@@ -1,6 +1,4 @@
-#include <hip/hip_runtime.h>
-#include <omp.h>
-#include "rpp_hip_common.hpp"
+#include "slice.hpp"
 
 template <typename T>
 __global__ void fill_value_ncdhw_hip_tensor(T *dstPtr,
@@ -530,20 +528,20 @@ template RppStatus hip_exec_slice_tensor<Rpp32f>(Rpp32f*,
                                                  RpptGenericDescPtr,
                                                  Rpp32f*,
                                                  RpptGenericDescPtr,
-                                                 Rpp32s,
-                                                 Rpp32s,
+                                                 Rpp32s*,
+                                                 Rpp32s*,
                                                  Rpp32f*,
                                                  bool,
-                                                 Rpp32u,
+                                                 Rpp32u*,
                                                  rpp::Handle&);
 
 template RppStatus hip_exec_slice_tensor<Rpp8u>(Rpp8u*,
                                                 RpptGenericDescPtr,
                                                 Rpp8u*,
                                                 RpptGenericDescPtr,
-                                                Rpp32s,
-                                                Rpp32s,
+                                                Rpp32s*,
+                                                Rpp32s*,
                                                 Rpp8u*,
                                                 bool,
-                                                Rpp32u,
+                                                Rpp32u*,
                                                 rpp::Handle&);

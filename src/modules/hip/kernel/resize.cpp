@@ -713,7 +713,7 @@ __global__ void resize_generic_pln3_pkd3_hip_tensor(T *srcPtr,
 // -------------------- Set 3 - Kernel Executors --------------------
 
 template <typename T>
-inline RppStatus hip_exec_resize_tensor(T *srcPtr,
+RppStatus hip_exec_resize_tensor(T *srcPtr,
                                  RpptDescPtr srcDescPtr,
                                  T *dstPtr,
                                  RpptDescPtr dstDescPtr,
@@ -952,42 +952,42 @@ inline RppStatus hip_exec_resize_tensor(T *srcPtr,
 }
 
 
-template inline RppStatus hip_exec_resize_tensor<Rpp8u>(Rpp8u*,
-                                                        RppDescPtr,
-                                                        Rpp8u*,
-                                                        RppDescPtr,
-                                                        RpptImagePatchPtr,
-                                                        RpptInterpolationType,
-                                                        RpptROIPtr,
-                                                        RpptRoiType,
-                                                        rpp::Handle&);
+template RppStatus hip_exec_resize_tensor<Rpp8u>(Rpp8u*,
+                                                 RpptDescPtr,
+                                                 Rpp8u*,
+                                                 RpptDescPtr,
+                                                 RpptImagePatchPtr,
+                                                 RpptInterpolationType,
+                                                 RpptROIPtr,
+                                                 RpptRoiType,
+                                                 rpp::Handle&);
 
-template inline RppStatus hip_exec_resize_tensor<half>(half*,
-                                                       RppDescPtr,
-                                                       half*,
-                                                       RppDescPtr,
-                                                       RpptImagePatchPtr,
-                                                       RpptInterpolationType,
-                                                       RpptROIPtr,
-                                                       RpptRoiType,
-                                                       rpp::Handle&);
+template RppStatus hip_exec_resize_tensor<half>(half*,
+                                                RpptDescPtr,
+                                                half*,
+                                                RpptDescPtr,
+                                                RpptImagePatchPtr,
+                                                RpptInterpolationType,
+                                                RpptROIPtr,
+                                                RpptRoiType,
+                                                rpp::Handle&);
 
-template inline RppStatus hip_exec_resize_tensor<Rpp32f>(Rpp32f*,
-                                                         RppDescPtr,
-                                                         Rpp32f*,
-                                                         RppDescPtr,
-                                                         RpptImagePatchPtr,
-                                                         RpptInterpolationType,
-                                                         RpptROIPtr,
-                                                         RpptRoiType,
-                                                         rpp::Handle&);
+template RppStatus hip_exec_resize_tensor<Rpp32f>(Rpp32f*,
+                                                  RpptDescPtr,
+                                                  Rpp32f*,
+                                                  RpptDescPtr,
+                                                  RpptImagePatchPtr,
+                                                  RpptInterpolationType,
+                                                  RpptROIPtr,
+                                                  RpptRoiType,
+                                                  rpp::Handle&);
 
-template inline RppStatus hip_exec_resize_tensor<Rpp8s>(Rpp8s*,
-                                                        RppDescPtr,
-                                                        Rpp8s*,
-                                                        RppDescPtr,
-                                                        RpptImagePatchPtr,
-                                                        RpptInterpolationType,
-                                                        RpptROIPtr,
-                                                        RpptRoiType,
-                                                        rpp::Handle&);
+template RppStatus hip_exec_resize_tensor<Rpp8s>(Rpp8s*,
+                                                 RpptDescPtr,
+                                                 Rpp8s*,
+                                                 RpptDescPtr,
+                                                 RpptImagePatchPtr,
+                                                 RpptInterpolationType,
+                                                 RpptROIPtr,
+                                                 RpptRoiType,
+                                                 rpp::Handle&);

@@ -4,7 +4,7 @@
 // -------------------- Set 3 - Kernel Executors --------------------
 
 template <typename T>
-inline RppStatus hip_exec_resize_tensor(T *srcPtr,
+RppStatus hip_exec_resize_tensor(T *srcPtr,
                                  RpptDescPtr srcDescPtr,
                                  T *dstPtr,
                                  RpptDescPtr dstDescPtr,
