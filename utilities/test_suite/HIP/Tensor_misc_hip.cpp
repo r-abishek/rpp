@@ -234,6 +234,15 @@ int main(int argc, char **argv)
 
                 break;
             }
+            case 4:
+            {
+                testCaseName  = "jpeg_compression_distrtion";
+
+                startWallTime = omp_get_wtime();
+                rppt_jpeg_compression_distrtion_gpu(d_inputI16, srcDescriptorPtrND, d_outputF32, dstDescriptorPtrND, roiTensor, handle);
+
+                break;
+            }
             default:
             {
                 cout << "functionality is not supported" <<std::endl;
@@ -250,29 +259,29 @@ int main(int argc, char **argv)
     }
     rppDestroyGPU(handle);
 
-    if(DEBUG_MODE)
-    {
-        CHECK_RETURN_STATUS(hipDeviceSynchronize());
-        CHECK_RETURN_STATUS(hipMemcpy(outputF32, d_outputF32, bufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost));
-        CHECK_RETURN_STATUS(hipDeviceSynchronize());
-        std::ofstream refFile;
-        std::string refFileName;
-        refFileName = func + "_host.csv";
-        refFile.open(refFileName);
-        for (int i = 0; i < bufferSize * 2; i++)
-        {
-            refFile << *(outputF32 + i) << ",";
-        }
-        refFile.close();
-    }
+    // if(DEBUG_MODE)
+    // {
+    //     CHECK_RETURN_STATUS(hipDeviceSynchronize());
+    //     CHECK_RETURN_STATUS(hipMemcpy(outputF32, d_outputF32, bufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost));
+    //     CHECK_RETURN_STATUS(hipDeviceSynchronize());
+    //     std::ofstream refFile;
+    //     std::string refFileName;
+    //     refFileName = func + "_host.csv";
+    //     refFile.open(refFileName);
+    //     for (int i = 0; i < bufferSize * 2; i++)
+    //     {
+    //         refFile << *(outputF32 + i) << ",";
+    //     }
+    //     refFile.close();
+    // }
 
     // compare outputs if qaMode is true
     if(qaMode)
     {
-        // CHECK_RETURN_STATUS(hipDeviceSynchronize());
-        // CHECK_RETURN_STATUS(hipMemcpy(outputF32, d_outputF32, bufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost));
-        // CHECK_RETURN_STATUS(hipDeviceSynchronize());
-        // compare_output(outputF32, nDim, batchSize, bufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
+        CHECK_RETURN_STATUS(hipDeviceSynchronize());
+        CHECK_RETURN_STATUS(hipMemcpy(outputF32, d_outputF32, bufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost));
+        CHECK_RETURN_STATUS(hipDeviceSynchronize());
+        compare_output(outputF32, nDim, batchSize, bufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
     }
     else
     {
