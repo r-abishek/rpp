@@ -27,7 +27,7 @@ SOFTWARE.
 
 #include <map>
 
-// color_model_conversions
+/*// color_model_conversions
 extern "C" __global__ void channel_extract_pln(unsigned char* input, unsigned char* output, const unsigned int height, const unsigned int width, const unsigned int channel, const unsigned int extractChannelNumber);
 extern "C" __global__ void channel_extract_pkd(unsigned char* input, unsigned char* output, const unsigned int height, const unsigned int width, const unsigned int channel, const unsigned int extractChannelNumber);
 extern "C" __global__ void channel_extract_batch(unsigned char* input, unsigned char* output, unsigned int* channelNumber, unsigned int *height, unsigned int *width, unsigned int *max_width, unsigned long *batch_index, const unsigned int channel, unsigned int *inc, const int plnpkdindex);
@@ -298,6 +298,7 @@ unsigned int get_pln_index(unsigned int id_x, unsigned int id_y, unsigned int id
 extern "C" __global__ void scan(int *input, int *output);
 extern "C" __global__ void scan_1c(int *input, int *output, __local int *b, __local int *c);
 extern "C" __global__ void scan_batch(int *input, int *output, const unsigned int batch_size, __local  int *b, __local  int *c);
+*/
 
 const std::map<std::string, const void*>& funMap1()
 {
