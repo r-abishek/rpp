@@ -1,4 +1,5 @@
 #include "noise_gaussian.hpp"
+#include "rng_seed_stream.hpp"
 
 __device__ void gaussian_noise_8_hip_compute(d_float8 *pix_f8, RpptXorwowStateBoxMuller *xorwowState, float mean, float stdDev)
 {
@@ -558,6 +559,42 @@ RppStatus hip_exec_gaussian_noise_voxel_tensor(T *srcPtr,
 
     return RPP_SUCCESS;
 }
+
+template RppStatus hip_exec_gaussian_noise_tensor<Rpp8u>(Rpp8u*,
+                                                         RpptDescPtr,
+                                                         Rpp8u*,
+                                                         RpptDescPtr,
+                                                         RpptXorwowStateBoxMuller*,
+                                                         RpptROIPtr,
+                                                         RpptRoiType,
+                                                         rpp::Handle&);
+
+template RppStatus hip_exec_gaussian_noise_tensor<half>(half*,
+                                                        RpptDescPtr,
+                                                        half*,
+                                                        RpptDescPtr,
+                                                        RpptXorwowStateBoxMuller*,
+                                                        RpptROIPtr,
+                                                        RpptRoiType,
+                                                        rpp::Handle&);
+
+template RppStatus hip_exec_gaussian_noise_tensor<Rpp32f>(Rpp32f*,
+                                                          RpptDescPtr,
+                                                          Rpp32f*,
+                                                          RpptDescPtr,
+                                                          RpptXorwowStateBoxMuller*,
+                                                          RpptROIPtr,
+                                                          RpptRoiType,
+                                                          rpp::Handle&);
+
+template RppStatus hip_exec_gaussian_noise_tensor<Rpp8s>(Rpp8s*,
+                                                         RpptDescPtr,
+                                                         Rpp8s*,
+                                                         RpptDescPtr,
+                                                         RpptXorwowStateBoxMuller*,
+                                                         RpptROIPtr,
+                                                         RpptRoiType,
+                                                         rpp::Handle&);
 
 template RppStatus hip_exec_gaussian_noise_voxel_tensor<Rpp8u>(Rpp8u*,
                                                                RpptGenericDescPtr,
