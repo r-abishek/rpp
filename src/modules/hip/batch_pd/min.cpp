@@ -1,14 +1,14 @@
 #include <hip/hip_runtime.h>
-#include "rpp_hip_host_decls.hpp"
+#include "../kernel/rpp_hip_host_decls.hpp"
 
 #define saturate_8u(value) ((value) > 255 ? 255 : ((value) < 0 ? 0 : (value)))
 
-__device__ unsigned char max_formula(unsigned char input_pixel1, unsigned char input_pixel2)
+__device__ unsigned char min_formula(unsigned char input_pixel1, unsigned char input_pixel2)
 {
-    return saturate_8u((input_pixel1 >= input_pixel2) ? input_pixel1 : input_pixel2);
+    return saturate_8u((input_pixel1 <= input_pixel2) ? input_pixel1 : input_pixel2);
 }
 
-extern "C" __global__ void max_hip(unsigned char *input1,
+extern "C" __global__ void min_hip(unsigned char *input1,
                                    unsigned char *input2,
                                    unsigned char *output,
                                    const unsigned int height,
@@ -29,8 +29,7 @@ extern "C" __global__ void max_hip(unsigned char *input1,
     output[pixIdx] = (input1[pixIdx] > input2[pixIdx]) ? input2[pixIdx] : input1[pixIdx];
 }
 
-
-extern "C" __global__ void max_batch(unsigned char *input1,
+extern "C" __global__ void min_batch(unsigned char *input1,
                                      unsigned char *input2,
                                      unsigned char *output,
                                      unsigned int *xroi_begin,
@@ -55,13 +54,13 @@ extern "C" __global__ void max_batch(unsigned char *input1,
 
     pixIdx = batch_index[id_z] + (id_x + id_y * max_width[id_z]) * plnpkdindex;
 
-    if((id_y >= yroi_begin[id_z]) && (id_y <= yroi_end[id_z]) && (id_x >= xroi_begin[id_z]) && (id_x <= xroi_end[id_z]))
+    if((id_y >= yroi_begin[id_z] ) && (id_y <= yroi_end[id_z]) && (id_x >= xroi_begin[id_z]) && (id_x <= xroi_end[id_z]))
     {
         for(indextmp = 0; indextmp < channel; indextmp++)
         {
             valuergb1 = input1[pixIdx];
             valuergb2 = input2[pixIdx];
-            output[pixIdx] = max_formula(valuergb1, valuergb2);
+            output[pixIdx] = min_formula(valuergb1, valuergb2);
             pixIdx += inc[id_z];
         }
     }
@@ -75,7 +74,7 @@ extern "C" __global__ void max_batch(unsigned char *input1,
     }
 }
 
-RppStatus hip_exec_max_batch(Rpp8u *srcPtr1, Rpp8u *srcPtr2, Rpp8u *dstPtr, rpp::Handle& handle, RppiChnFormat chnFormat, Rpp32u channel, Rpp32s plnpkdind, Rpp32u max_height, Rpp32u max_width)
+RppStatus hip_exec_min_batch(Rpp8u *srcPtr1, Rpp8u *srcPtr2, Rpp8u *dstPtr, rpp::Handle& handle, RppiChnFormat chnFormat, Rpp32u channel, Rpp32s plnpkdind, Rpp32u max_height, Rpp32u max_width)
 {
     int localThreads_x = 32;
     int localThreads_y = 32;
@@ -84,7 +83,7 @@ RppStatus hip_exec_max_batch(Rpp8u *srcPtr1, Rpp8u *srcPtr2, Rpp8u *dstPtr, rpp:
     int globalThreads_y = (max_height + 31) & ~31;
     int globalThreads_z = handle.GetBatchSize();
 
-    hipLaunchKernelGGL(max_batch,
+    hipLaunchKernelGGL(min_batch,
                        dim3(ceil((float)globalThreads_x/localThreads_x), ceil((float)globalThreads_y/localThreads_y), ceil((float)globalThreads_z/localThreads_z)),
                        dim3(localThreads_x, localThreads_y, localThreads_z),
                        0,
