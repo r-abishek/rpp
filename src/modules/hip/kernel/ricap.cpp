@@ -1,5 +1,4 @@
-#include <hip/hip_runtime.h>
-#include "rpp_hip_common.hpp"
+#include "ricap.hpp"
 
 template <typename T>
 __global__ void ricap_pkd_tensor(T *srcPtr,

@@ -1,6 +1,4 @@
-#include <hip/hip_runtime.h>
-#include "rpp_hip_common.hpp"
-#include "rpp_cpu_common.hpp"
+#include "swap_channels.hpp"
 
 __device__ void swap_channels_hip_compute(d_float24 *pix_f24)
 {

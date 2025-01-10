@@ -1,5 +1,4 @@
-#include <hip/hip_runtime.h>
-#include "rpp_hip_common.hpp"
+#include "remap.hpp"
 
 __device__ float4 rpp_hip_load4(float *table, uint4 &tableValLoc)
 {

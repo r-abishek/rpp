@@ -1,6 +1,4 @@
-#include <hip/hip_runtime.h>
-#include "rpp_hip_common.hpp"
-#include "reduction.hpp"
+#include "tensor_stddev.hpp"
 
 // ----------------------- Helper Functions --------------------------
 
