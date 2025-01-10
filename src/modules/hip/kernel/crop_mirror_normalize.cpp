@@ -421,45 +421,50 @@ RppStatus hip_exec_crop_mirror_normalize_tensor(T *srcPtr,
 
     return RPP_SUCCESS;
 }
-template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp8u>(Rpp8u*,
+template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp8u, Rpp8u>(Rpp8u*,
                                                                 RpptDescPtr,
                                                                 Rpp8u*,
                                                                 RpptDescPtr,
                                                                 RpptROIPtr,
                                                                 RpptRoiType,
                                                                 rpp::Handle&);
-template RppStatus hip_exec_crop_mirror_normalize_tensor<half>(half*,
+
+template RppStatus hip_exec_crop_mirror_normalize_tensor<half, half>(half*,
                                                                RpptDescPtr,
                                                                half*,
                                                                RpptDescPtr,
                                                                RpptROIPtr,
                                                                RpptRoiType,
                                                                rpp::Handle&);
-template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp32f>(Rpp32f*,
-                                                                 RpptDescPtr,
-                                                                 Rpp32f*,
-                                                                 RpptDescPtr,
-                                                                 RpptROIPtr,
-                                                                 RpptRoiType,
-                                                                 rpp::Handle&);
-template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp8s>(Rpp8s*,
-                                                                RpptDescPtr,
-                                                                Rpp8s*,
-                                                                RpptDescPtr,
-                                                                RpptROIPtr,
-                                                                RpptRoiType,
-                                                                rpp::Handle&);
-template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp8u>(Rpp8u*,
-                                                                RpptDescPtr,
-                                                                Rpp32f*,
-                                                                RpptDescPtr,
-                                                                RpptROIPtr,
-                                                                RpptRoiType,
-                                                                rpp::Handle&);
-template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp8u>(Rpp8u*,
-                                                                RpptDescPtr,
-                                                                half*,
-                                                                RpptDescPtr,
-                                                                RpptROIPtr,
-                                                                RpptRoiType,
-                                                                rpp::Handle&);
+
+template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp32f, Rpp32f>(Rpp32f*,
+                                                                         RpptDescPtr,
+                                                                         Rpp32f*,
+                                                                         RpptDescPtr,
+                                                                         RpptROIPtr,
+                                                                         RpptRoiType,
+                                                                         rpp::Handle&);
+
+template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp8s, Rpp8s>(Rpp8s*,
+                                                                       RpptDescPtr,
+                                                                       Rpp8s*,
+                                                                       RpptDescPtr,
+                                                                       RpptROIPtr,
+                                                                       RpptRoiType,
+                                                                       rpp::Handle&);
+
+template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp8u, Rpp32f>(Rpp8u*,
+                                                                        RpptDescPtr,
+                                                                        Rpp32f*,
+                                                                        RpptDescPtr,
+                                                                        RpptROIPtr,
+                                                                        RpptRoiType,
+                                                                        rpp::Handle&);
+
+template RppStatus hip_exec_crop_mirror_normalize_tensor<Rpp8u, half>(Rpp8u*,
+                                                                      RpptDescPtr,
+                                                                      half*,
+                                                                      RpptDescPtr,
+                                                                      RpptROIPtr,
+                                                                      RpptRoiType,
+                                                                      rpp::Handle&);
