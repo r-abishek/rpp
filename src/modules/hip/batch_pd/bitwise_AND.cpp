@@ -1,5 +1,5 @@
 #include <hip/hip_runtime.h>
-#include "../kernel/rpp_hip_host_decls.hpp"
+#include "rpp_hip_host_decls.hpp"
 
 extern "C" __global__ void bitwise_AND(unsigned char *input1,
                                        unsigned char *input2,
