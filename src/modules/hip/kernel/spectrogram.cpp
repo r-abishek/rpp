@@ -1,4 +1,5 @@
 #include "spectrogram.hpp"
+#include "rpp_cpu_common.hpp"
 
 /* Spectrogram kernel working overview
 1D Input -> 2D Output
