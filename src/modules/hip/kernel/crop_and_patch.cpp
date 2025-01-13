@@ -434,6 +434,7 @@ template RppStatus hip_exec_crop_and_patch_tensor<Rpp8u>(Rpp8u*,
                                                          RpptROIPtr,
                                                          RpptRoiType,
                                                          rpp::Handle&);
+
 template RppStatus hip_exec_crop_and_patch_tensor<half>(half*,
                                                         half*,
                                                         RpptDescPtr,
@@ -444,6 +445,7 @@ template RppStatus hip_exec_crop_and_patch_tensor<half>(half*,
                                                         RpptROIPtr,
                                                         RpptRoiType,
                                                         rpp::Handle&);
+
 template RppStatus hip_exec_crop_and_patch_tensor<Rpp32f>(Rpp32f*,
                                                           Rpp32f*,
                                                           RpptDescPtr,
@@ -454,6 +456,7 @@ template RppStatus hip_exec_crop_and_patch_tensor<Rpp32f>(Rpp32f*,
                                                           RpptROIPtr,
                                                           RpptRoiType,
                                                           rpp::Handle&);
+
 template RppStatus hip_exec_crop_and_patch_tensor<Rpp8s>(Rpp8s*,
                                                          Rpp8s*,
                                                          RpptDescPtr,

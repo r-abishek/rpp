@@ -268,38 +268,39 @@ RppStatus hip_exec_phase_tensor(T *srcPtr1,
     return RPP_SUCCESS;
 }
 
-template RppStatus hip_exec_phase_tensor<Rpp8u>(Rpp8u* srcPtr1,
-                                Rpp8u* srcPtr2,
-                                RpptDescPtr srcDescPtr,
-                                Rpp8u* dstPtr,
-                                RpptDescPtr dstDescPtr,
-                                RpptROIPtr roiTensorPtrSrc,
-                                RpptRoiType roiType,
-                                rpp::Handle& handle);
+template RppStatus hip_exec_phase_tensor<Rpp8u>(Rpp8u*,
+                                                Rpp8u*,
+                                                RpptDescPtr,
+                                                Rpp8u*,
+                                                RpptDescPtr,
+                                                RpptROIPtr,
+                                                RpptRoiType,
+                                                rpp::Handle&);
 
-template RppStatus hip_exec_phase_tensor<half>(half* srcPtr1,
-                                half* srcPtr2,
-                                RpptDescPtr srcDescPtr,
-                                half* dstPtr,
-                                RpptDescPtr dstDescPtr,
-                                RpptROIPtr roiTensorPtrSrc,
-                                RpptRoiType roiType,
-                                rpp::Handle& handle);
+template RppStatus hip_exec_phase_tensor<half>(half*,
+                                               half*,
+                                               RpptDescPtr,
+                                               half*,
+                                               RpptDescPtr,
+                                               RpptROIPtr,
+                                               RpptRoiType,
+                                               rpp::Handle&);
 
-template RppStatus hip_exec_phase_tensor<Rpp32f>(Rpp32f* srcPtr1,
-                                Rpp32f* srcPtr2,
-                                RpptDescPtr srcDescPtr,
-                                Rpp32f* dstPtr,
-                                RpptDescPtr dstDescPtr,
-                                RpptROIPtr roiTensorPtrSrc,
-                                RpptRoiType roiType,
-                                rpp::Handle& handle);
+template RppStatus hip_exec_phase_tensor<Rpp32f>(Rpp32f*,
+                                                 Rpp32f*,
+                                                 RpptDescPtr,
+                                                 Rpp32f*,
+                                                 RpptDescPtr,
+                                                 RpptROIPtr,
+                                                 RpptRoiType,
+                                                 rpp::Handle&);
 
-template RppStatus hip_exec_phase_tensor<Rpp8s>(Rpp8s* srcPtr1,
-                                Rpp8s* srcPtr2,
-                                RpptDescPtr srcDescPtr,
-                                Rpp8s* dstPtr,
-                                RpptDescPtr dstDescPtr,
-                                RpptROIPtr roiTensorPtrSrc,
-                                RpptRoiType roiType,
-                                rpp::Handle& handle);
+template RppStatus hip_exec_phase_tensor<Rpp8s>(Rpp8s*,
+                                                Rpp8s*,
+                                                RpptDescPtr,
+                                                Rpp8s*,
+                                                RpptDescPtr,
+                                                RpptROIPtr,
+                                                RpptRoiType,
+                                                rpp::Handle&);
+

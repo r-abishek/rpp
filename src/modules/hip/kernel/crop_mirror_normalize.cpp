@@ -37,13 +37,13 @@ __device__ void cmn_hip_compute(half *srcPtr, half *dstPtr, d_float8 *pix_f8, d_
 
 template <typename T, typename U>
 __global__ void crop_mirror_normalize_pkd_hip_tensor(T *srcPtr,
-                                                 uint2 srcStridesNH,
-                                                 U *dstPtr,
-                                                 uint2 dstStridesNH,
-                                                 float *offsetTensor,
-                                                 float *multiplierTensor,
-                                                 unsigned int *mirrorTensor,
-                                                 RpptROIPtr roiTensorPtrSrc)
+                                                     uint2 srcStridesNH,
+                                                     U *dstPtr,
+                                                     uint2 dstStridesNH,
+                                                     float *offsetTensor,
+                                                     float *multiplierTensor,
+                                                     unsigned int *mirrorTensor,
+                                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -96,14 +96,14 @@ __global__ void crop_mirror_normalize_pkd_hip_tensor(T *srcPtr,
 
 template <typename T, typename U>
 __global__ void crop_mirror_normalize_pln_hip_tensor(T *srcPtr,
-                                                 uint3 srcStridesNCH,
-                                                 U *dstPtr,
-                                                 uint3 dstStridesNCH,
-                                                 int channelsDst,
-                                                 float *offsetTensor,
-                                                 float *multiplierTensor,
-                                                 uint *mirrorTensor,
-                                                 RpptROIPtr roiTensorPtrSrc)
+                                                     uint3 srcStridesNCH,
+                                                     U *dstPtr,
+                                                     uint3 dstStridesNCH,
+                                                     int channelsDst,
+                                                     float *offsetTensor,
+                                                     float *multiplierTensor,
+                                                     uint *mirrorTensor,
+                                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -197,13 +197,13 @@ __global__ void crop_mirror_normalize_pln_hip_tensor(T *srcPtr,
 
 template <typename T, typename U>
 __global__ void crop_mirror_normalize_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                       uint2 srcStridesNH,
-                                                       U *dstPtr,
-                                                       uint3 dstStridesNCH,
-                                                       float *offsetTensor,
-                                                       float *multiplierTensor,
-                                                       uint *mirrorTensor,
-                                                       RpptROIPtr roiTensorPtrSrc)
+                                                           uint2 srcStridesNH,
+                                                           U *dstPtr,
+                                                           uint3 dstStridesNCH,
+                                                           float *offsetTensor,
+                                                           float *multiplierTensor,
+                                                           uint *mirrorTensor,
+                                                           RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -256,13 +256,13 @@ __global__ void crop_mirror_normalize_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T, typename U>
 __global__ void crop_mirror_normalize_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                       uint3 srcStridesNCH,
-                                                       U *dstPtr,
-                                                       uint2 dstStridesNH,
-                                                       float *offsetTensor,
-                                                       float *multiplierTensor,
-                                                       uint *mirrorTensor,
-                                                       RpptROIPtr roiTensorPtrSrc)
+                                                           uint3 srcStridesNCH,
+                                                           U *dstPtr,
+                                                           uint2 dstStridesNH,
+                                                           float *offsetTensor,
+                                                           float *multiplierTensor,
+                                                           uint *mirrorTensor,
+                                                           RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

@@ -104,33 +104,33 @@ RppStatus hip_exec_transpose_tensor(T *srcPtr,
 }
 
 template RppStatus hip_exec_transpose_tensor<Rpp8u>(Rpp8u*,
-                                    RpptGenericDescPtr,
-                                    Rpp8u*,
-                                    RpptGenericDescPtr,
-                                    Rpp32u*,
-                                    Rpp32u*,
-                                    rpp::Handle&);
+                                                    RpptGenericDescPtr,
+                                                    Rpp8u*,
+                                                    RpptGenericDescPtr,
+                                                    Rpp32u*,
+                                                    Rpp32u*,
+                                                    rpp::Handle&);
 
 template RppStatus hip_exec_transpose_tensor<half>(half*,
-                                    RpptGenericDescPtr,
-                                    half*,
-                                    RpptGenericDescPtr,
-                                    Rpp32u*,
-                                    Rpp32u*,
-                                    rpp::Handle&);
+                                                  RpptGenericDescPtr,
+                                                  half*,
+                                                  RpptGenericDescPtr,
+                                                  Rpp32u*,
+                                                  Rpp32u*,
+                                                  rpp::Handle&);
 
 template RppStatus hip_exec_transpose_tensor<Rpp32f>(Rpp32f*,
-                                    RpptGenericDescPtr,
-                                    Rpp32f*,
-                                    RpptGenericDescPtr,
-                                    Rpp32u*,
-                                    Rpp32u*,
-                                    rpp::Handle&);
+                                                     RpptGenericDescPtr,
+                                                     Rpp32f*,
+                                                     RpptGenericDescPtr,
+                                                     Rpp32u*,
+                                                     Rpp32u*,
+                                                     rpp::Handle&);
 
 template RppStatus hip_exec_transpose_tensor<Rpp8s>(Rpp8s*,
-                                    RpptGenericDescPtr,
-                                    Rpp8s*,
-                                    RpptGenericDescPtr,
-                                    Rpp32u*,
-                                    Rpp32u*,
-                                    rpp::Handle&);
+                                                    RpptGenericDescPtr,
+                                                    Rpp8s*,
+                                                    RpptGenericDescPtr,
+                                                    Rpp32u*,
+                                                    Rpp32u*,
+                                                    rpp::Handle&);

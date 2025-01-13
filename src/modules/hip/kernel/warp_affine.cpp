@@ -28,12 +28,12 @@ __device__ void warp_affine_roi_and_srclocs_hip_compute(int4 *srcRoiPtr_i4, int 
 
 template <typename T>
 __global__ void warp_affine_bilinear_pkd_hip_tensor(T *srcPtr,
-                                                uint2 srcStridesNH,
-                                                T *dstPtr,
-                                                uint2 dstStridesNH,
-                                                uint2 dstDimsWH,
-                                                d_float6 *affineTensorPtr,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint2 srcStridesNH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint2 dstDimsWH,
+                                                    d_float6 *affineTensorPtr,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -59,13 +59,13 @@ __global__ void warp_affine_bilinear_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void warp_affine_bilinear_pln_hip_tensor(T *srcPtr,
-                                                uint3 srcStridesNCH,
-                                                T *dstPtr,
-                                                uint3 dstStridesNCH,
-                                                uint2 dstDimsWH,
-                                                int channelsDst,
-                                                d_float6 *affineTensorPtr,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint3 dstStridesNCH,
+                                                    uint2 dstDimsWH,
+                                                    int channelsDst,
+                                                    d_float6 *affineTensorPtr,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -106,12 +106,12 @@ __global__ void warp_affine_bilinear_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void warp_affine_bilinear_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                      uint2 srcStridesNH,
-                                                      T *dstPtr,
-                                                      uint3 dstStridesNCH,
-                                                      uint2 dstDimsWH,
-                                                      d_float6 *affineTensorPtr,
-                                                      RpptROIPtr roiTensorPtrSrc)
+                                                          uint2 srcStridesNH,
+                                                          T *dstPtr,
+                                                          uint3 dstStridesNCH,
+                                                          uint2 dstDimsWH,
+                                                          d_float6 *affineTensorPtr,
+                                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -137,12 +137,12 @@ __global__ void warp_affine_bilinear_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void warp_affine_bilinear_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                      uint3 srcStridesNCH,
-                                                      T *dstPtr,
-                                                      uint2 dstStridesNH,
-                                                      uint2 dstDimsWH,
-                                                      d_float6 *affineTensorPtr,
-                                                      RpptROIPtr roiTensorPtrSrc)
+                                                          uint3 srcStridesNCH,
+                                                          T *dstPtr,
+                                                          uint2 dstStridesNH,
+                                                          uint2 dstDimsWH,
+                                                          d_float6 *affineTensorPtr,
+                                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -170,12 +170,12 @@ __global__ void warp_affine_bilinear_pln3_pkd3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void warp_affine_nearest_neighbor_pkd_hip_tensor(T *srcPtr,
-                                                uint2 srcStridesNH,
-                                                T *dstPtr,
-                                                uint2 dstStridesNH,
-                                                uint2 dstDimsWH,
-                                                d_float6 *affineTensorPtr,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                            uint2 srcStridesNH,
+                                                            T *dstPtr,
+                                                            uint2 dstStridesNH,
+                                                            uint2 dstDimsWH,
+                                                            d_float6 *affineTensorPtr,
+                                                            RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -201,13 +201,13 @@ __global__ void warp_affine_nearest_neighbor_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void warp_affine_nearest_neighbor_pln_hip_tensor(T *srcPtr,
-                                                        uint3 srcStridesNCH,
-                                                        T *dstPtr,
-                                                        uint3 dstStridesNCH,
-                                                        uint2 dstDimsWH,
-                                                        int channelsDst,
-                                                        d_float6 *affineTensorPtr,
-                                                        RpptROIPtr roiTensorPtrSrc)
+                                                            uint3 srcStridesNCH,
+                                                            T *dstPtr,
+                                                            uint3 dstStridesNCH,
+                                                            uint2 dstDimsWH,
+                                                            int channelsDst,
+                                                            d_float6 *affineTensorPtr,
+                                                            RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -248,12 +248,12 @@ __global__ void warp_affine_nearest_neighbor_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void warp_affine_nearest_neighbor_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                              uint2 srcStridesNH,
-                                                              T *dstPtr,
-                                                              uint3 dstStridesNCH,
-                                                              uint2 dstDimsWH,
-                                                              d_float6 *affineTensorPtr,
-                                                              RpptROIPtr roiTensorPtrSrc)
+                                                                  uint2 srcStridesNH,
+                                                                  T *dstPtr,
+                                                                  uint3 dstStridesNCH,
+                                                                  uint2 dstDimsWH,
+                                                                  d_float6 *affineTensorPtr,
+                                                                  RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -279,12 +279,12 @@ __global__ void warp_affine_nearest_neighbor_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void warp_affine_nearest_neighbor_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                              uint3 srcStridesNCH,
-                                                              T *dstPtr,
-                                                              uint2 dstStridesNH,
-                                                              uint2 dstDimsWH,
-                                                              d_float6 *affineTensorPtr,
-                                                              RpptROIPtr roiTensorPtrSrc)
+                                                                  uint3 srcStridesNCH,
+                                                                  T *dstPtr,
+                                                                  uint2 dstStridesNH,
+                                                                  uint2 dstDimsWH,
+                                                                  d_float6 *affineTensorPtr,
+                                                                  RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -472,41 +472,41 @@ RppStatus hip_exec_warp_affine_tensor(T *srcPtr,
 }
 
 template RppStatus hip_exec_warp_affine_tensor<Rpp8u>(Rpp8u*,
-                                      RpptDescPtr,
-                                      Rpp8u*,
-                                      RpptDescPtr,
-                                      Rpp32f*,
-                                      RpptInterpolationType,
-                                      RpptROIPtr,
-                                      RpptRoiType,
-                                      rpp::Handle&);
+                                                      RpptDescPtr,
+                                                      Rpp8u*,
+                                                      RpptDescPtr,
+                                                      Rpp32f*,
+                                                      RpptInterpolationType,
+                                                      RpptROIPtr,
+                                                      RpptRoiType,
+                                                      rpp::Handle&);
 
 template RppStatus hip_exec_warp_affine_tensor<half>(half*,
-                                      RpptDescPtr,
-                                      half*,
-                                      RpptDescPtr,
-                                      Rpp32f*,
-                                      RpptInterpolationType,
-                                      RpptROIPtr,
-                                      RpptRoiType,
-                                      rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     half*,
+                                                     RpptDescPtr,
+                                                     Rpp32f*,
+                                                     RpptInterpolationType,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
 
 template RppStatus hip_exec_warp_affine_tensor<Rpp32f>(Rpp32f*,
-                                      RpptDescPtr,
-                                      Rpp32f*,
-                                      RpptDescPtr,
-                                      Rpp32f*,
-                                      RpptInterpolationType,
-                                      RpptROIPtr,
-                                      RpptRoiType,
-                                      rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptInterpolationType,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);
 
 template RppStatus hip_exec_warp_affine_tensor<Rpp8s>(Rpp8s*,
-                                      RpptDescPtr,
-                                      Rpp8s*,
-                                      RpptDescPtr,
-                                      Rpp32f*,
-                                      RpptInterpolationType,
-                                      RpptROIPtr,
-                                      RpptRoiType,
-                                      rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp8s*,
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptInterpolationType,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);

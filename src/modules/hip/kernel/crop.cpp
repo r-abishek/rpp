@@ -2,10 +2,10 @@
 
 template <typename T>
 __global__ void crop_pkd_hip_tensor(T *srcPtr,
-                                uint2 srcStridesNH,
-                                T *dstPtr,
-                                uint2 dstStridesNH,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint2 srcStridesNH,
+                                    T *dstPtr,
+                                    uint2 dstStridesNH,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -26,11 +26,11 @@ __global__ void crop_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void crop_pln_hip_tensor(T *srcPtr,
-                                uint3 srcStridesNCH,
-                                T *dstPtr,
-                                uint3 dstStridesNCH,
-                                int channelsDst,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint3 srcStridesNCH,
+                                    T *dstPtr,
+                                    uint3 dstStridesNCH,
+                                    int channelsDst,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -62,10 +62,10 @@ __global__ void crop_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void crop_pkd3_pln3_hip_tensor(T *srcPtr,
-                                      uint2 srcStridesNH,
-                                      T *dstPtr,
-                                      uint3 dstStridesNCH,
-                                      RpptROIPtr roiTensorPtrSrc)
+                                          uint2 srcStridesNH,
+                                          T *dstPtr,
+                                          uint3 dstStridesNCH,
+                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -86,10 +86,10 @@ __global__ void crop_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void crop_pln3_pkd3_hip_tensor(T *srcPtr,
-                                      uint3 srcStridesNCH,
-                                      T *dstPtr,
-                                      uint2 dstStridesNH,
-                                      RpptROIPtr roiTensorPtrSrc)
+                                          uint3 srcStridesNCH,
+                                          T *dstPtr,
+                                          uint2 dstStridesNH,
+                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -191,6 +191,7 @@ template RppStatus hip_exec_crop_tensor<Rpp8u>(Rpp8u*,
                                                RpptROIPtr,
                                                RpptRoiType,
                                                rpp::Handle&);
+
 template RppStatus hip_exec_crop_tensor<half>(half*,
                                               RpptDescPtr,
                                               half*,
@@ -198,6 +199,7 @@ template RppStatus hip_exec_crop_tensor<half>(half*,
                                               RpptROIPtr,
                                               RpptRoiType,
                                               rpp::Handle&);
+
 template RppStatus hip_exec_crop_tensor<Rpp32f>(Rpp32f*,
                                                 RpptDescPtr,
                                                 Rpp32f*,
@@ -205,6 +207,7 @@ template RppStatus hip_exec_crop_tensor<Rpp32f>(Rpp32f*,
                                                 RpptROIPtr,
                                                 RpptRoiType,
                                                 rpp::Handle&);
+
 template RppStatus hip_exec_crop_tensor<Rpp8s>(Rpp8s*,
                                                RpptDescPtr,
                                                Rpp8s*,

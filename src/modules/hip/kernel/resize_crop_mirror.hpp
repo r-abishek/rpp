@@ -13,5 +13,3 @@ RppStatus hip_exec_resize_crop_mirror_tensor(T *srcPtr,
                                              RpptROIPtr roiTensorPtrSrc,
                                              RpptRoiType roiType,
                                              rpp::Handle& handle);
-
-
