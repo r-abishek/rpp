@@ -8,12 +8,12 @@ __device__ void blend_hip_compute(d_float8 *src1_f8, d_float8 *src2_f8, d_float8
 
 template <typename T>
 __global__ void blend_pkd_hip_tensor(T *srcPtr1,
-                                 T *srcPtr2,
-                                 uint2 srcStridesNH,
-                                 T *dstPtr,
-                                 uint2 dstStridesNH,
-                                 float *alpha,
-                                 RpptROIPtr roiTensorPtrSrc)
+                                     T *srcPtr2,
+                                     uint2 srcStridesNH,
+                                     T *dstPtr,
+                                     uint2 dstStridesNH,
+                                     float *alpha,
+                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -39,13 +39,13 @@ __global__ void blend_pkd_hip_tensor(T *srcPtr1,
 
 template <typename T>
 __global__ void blend_pln_hip_tensor(T *srcPtr1,
-                                 T *srcPtr2,
-                                 uint3 srcStridesNCH,
-                                 T *dstPtr,
-                                 uint3 dstStridesNCH,
-                                 int channelsDst,
-                                 float *alpha,
-                                 RpptROIPtr roiTensorPtrSrc)
+                                     T *srcPtr2,
+                                     uint3 srcStridesNCH,
+                                     T *dstPtr,
+                                     uint3 dstStridesNCH,
+                                     int channelsDst,
+                                     float *alpha,
+                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -90,12 +90,12 @@ __global__ void blend_pln_hip_tensor(T *srcPtr1,
 
 template <typename T>
 __global__ void blend_pkd3_pln3_hip_tensor(T *srcPtr1,
-                                       T *srcPtr2,
-                                       uint2 srcStridesNH,
-                                       T *dstPtr,
-                                       uint3 dstStridesNCH,
-                                       float *alpha,
-                                       RpptROIPtr roiTensorPtrSrc)
+                                           T *srcPtr2,
+                                           uint2 srcStridesNH,
+                                           T *dstPtr,
+                                           uint3 dstStridesNCH,
+                                           float *alpha,
+                                           RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -123,12 +123,12 @@ __global__ void blend_pkd3_pln3_hip_tensor(T *srcPtr1,
 
 template <typename T>
 __global__ void blend_pln3_pkd3_hip_tensor(T *srcPtr1,
-                                       T *srcPtr2,
-                                       uint3 srcStridesNCH,
-                                       T *dstPtr,
-                                       uint2 dstStridesNH,
-                                       float *alpha,
-                                       RpptROIPtr roiTensorPtrSrc)
+                                           T *srcPtr2,
+                                           uint3 srcStridesNCH,
+                                           T *dstPtr,
+                                           uint2 dstStridesNH,
+                                           float *alpha,
+                                           RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -248,6 +248,7 @@ template RppStatus hip_exec_blend_tensor<Rpp8u>(Rpp8u*,
                                 RpptROIPtr,
                                 RpptRoiType,
                                 rpp::Handle&);
+
 template RppStatus hip_exec_blend_tensor<half>(half*,
                                 half*,
                                 RpptDescPtr,
@@ -256,6 +257,7 @@ template RppStatus hip_exec_blend_tensor<half>(half*,
                                 RpptROIPtr,
                                 RpptRoiType,
                                 rpp::Handle&);
+
 template RppStatus hip_exec_blend_tensor<Rpp32f>(Rpp32f*,
                                 Rpp32f*,
                                 RpptDescPtr,
@@ -264,6 +266,7 @@ template RppStatus hip_exec_blend_tensor<Rpp32f>(Rpp32f*,
                                 RpptROIPtr,
                                 RpptRoiType,
                                 rpp::Handle&);
+
 template RppStatus hip_exec_blend_tensor<Rpp8s>(Rpp8s*,
                                 Rpp8s*,
                                 RpptDescPtr,

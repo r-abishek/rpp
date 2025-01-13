@@ -1,4 +1,5 @@
 #include "color_twist.hpp"
+#include "rpp_cpu_common.hpp"
 
 __device__ void color_twist_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float4 *colorTwistParams_f4)
 {
@@ -338,30 +339,33 @@ RppStatus hip_exec_color_twist_tensor(T *srcPtr,
 }
 
 template RppStatus hip_exec_color_twist_tensor<Rpp8u>(Rpp8u*,
-                                     RpptDescPtr,
-                                     Rpp8u*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                      RpptDescPtr,
+                                                      Rpp8u*,
+                                                      RpptDescPtr,
+                                                      RpptROIPtr,
+                                                      RpptRoiType,
+                                                      rpp::Handle&);
+
 template RppStatus hip_exec_color_twist_tensor<half>(half*,
-                                     RpptDescPtr,
-                                     half*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     half*,
+                                                     RpptDescPtr,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
+
 template RppStatus hip_exec_color_twist_tensor<Rpp32f>(Rpp32f*,
-                                     RpptDescPtr,
-                                     Rpp32f*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptDescPtr,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);
+
 template RppStatus hip_exec_color_twist_tensor<Rpp8s>(Rpp8s*,
-                                     RpptDescPtr,
-                                     Rpp8s*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                      RpptDescPtr,
+                                                      Rpp8s*,
+                                                      RpptDescPtr,
+                                                      RpptROIPtr,
+                                                      RpptRoiType,
+                                                      rpp::Handle&);

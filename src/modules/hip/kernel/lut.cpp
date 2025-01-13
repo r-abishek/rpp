@@ -163,12 +163,12 @@ __global__ void lut_pln3_pkd3_hip_tensor(T1 *srcPtr,
     rpp_hip_pack_float24_pkd3_and_store24_pkd3(dstPtr + dstIdx, &dst_f24);
 }
 
-template <typename T1, typename T2>
-RppStatus hip_exec_lut_tensor(T1 *srcPtr,
+template <typename T, typename U>
+RppStatus hip_exec_lut_tensor(T *srcPtr,
                               RpptDescPtr srcDescPtr,
-                              T2 *dstPtr,
+                              U *dstPtr,
                               RpptDescPtr dstDescPtr,
-                              T2 *lutPtr,
+                              U *lutPtr,
                               RpptROIPtr roiTensorPtrSrc,
                               RpptRoiType roiType,
                               rpp::Handle& handle)

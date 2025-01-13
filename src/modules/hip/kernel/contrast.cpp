@@ -257,30 +257,33 @@ RppStatus hip_exec_contrast_tensor(T *srcPtr,
 }
 
 template RppStatus hip_exec_contrast_tensor<Rpp8u>(Rpp8u*,
-                                   RpptDescPtr,
-                                   Rpp8u*,
-                                   RpptDescPtr,
-                                   RpptROIPtr,
-                                   RpptRoiType,
-                                   rpp::Handle&);
+                                                   RpptDescPtr,
+                                                   Rpp8u*,
+                                                   RpptDescPtr,
+                                                   RpptROIPtr,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);
+
 template RppStatus hip_exec_contrast_tensor<half>(half*,
-                                   RpptDescPtr,
-                                   half*,
-                                   RpptDescPtr,
-                                   RpptROIPtr,
-                                   RpptRoiType,
-                                   rpp::Handle&);
+                                                  RpptDescPtr,
+                                                  half*,
+                                                  RpptDescPtr,
+                                                  RpptROIPtr,
+                                                  RpptRoiType,
+                                                  rpp::Handle&);
+
 template RppStatus hip_exec_contrast_tensor<Rpp32f>(Rpp32f*,
-                                   RpptDescPtr,
-                                   Rpp32f*,
-                                   RpptDescPtr,
-                                   RpptROIPtr,
-                                   RpptRoiType,
-                                   rpp::Handle&);
+                                                  RpptDescPtr,
+                                                  Rpp32f*,
+                                                  RpptDescPtr,
+                                                  RpptROIPtr,
+                                                  RpptRoiType,
+                                                  rpp::Handle&);
+
 template RppStatus hip_exec_contrast_tensor<Rpp8s>(Rpp8s*,
-                                   RpptDescPtr,
-                                   Rpp8s*,
-                                   RpptDescPtr,
-                                   RpptROIPtr,
-                                   RpptRoiType,
-                                   rpp::Handle&);
+                                                  RpptDescPtr,
+                                                  Rpp8s*,
+                                                  RpptDescPtr,
+                                                  RpptROIPtr,
+                                                  RpptRoiType,
+                                                  rpp::Handle&);

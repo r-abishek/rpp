@@ -18,6 +18,7 @@ __device__ void exposure_hip_compute(schar *srcPtr, d_float8 *pix_f8, float4 *ex
     pix_f8->f4[0] = rpp_hip_pixel_check_0to255((pix_f8->f4[0] + (float4)128) * *exposureParam_f4) - (float4)128;
     pix_f8->f4[1] = rpp_hip_pixel_check_0to255((pix_f8->f4[1] + (float4)128) * *exposureParam_f4) - (float4)128;
 }
+
 __device__ void exposure_hip_compute(half *srcPtr, d_float8 *pix_f8, float4 *exposureParam_f4)
 {
     pix_f8->f4[0] = rpp_hip_pixel_check_0to1(pix_f8->f4[0] * *exposureParam_f4);
@@ -26,11 +27,11 @@ __device__ void exposure_hip_compute(half *srcPtr, d_float8 *pix_f8, float4 *exp
 
 template <typename T>
 __global__ void exposure_pkd_hip_tensor(T *srcPtr,
-                                    uint2 srcStridesNH,
-                                    T *dstPtr,
-                                    uint2 dstStridesNH,
-                                    float *exposureFactorTensor,
-                                    RpptROIPtr roiTensorPtrSrc)
+                                        uint2 srcStridesNH,
+                                        T *dstPtr,
+                                        uint2 dstStridesNH,
+                                        float *exposureFactorTensor,
+                                        RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -56,12 +57,12 @@ __global__ void exposure_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void exposure_pln_hip_tensor(T *srcPtr,
-                                    uint3 srcStridesNCH,
-                                    T *dstPtr,
-                                    uint3 dstStridesNCH,
-                                    int channelsDst,
-                                    float *exposureFactorTensor,
-                                    RpptROIPtr roiTensorPtrSrc)
+                                        uint3 srcStridesNCH,
+                                        T *dstPtr,
+                                        uint3 dstStridesNCH,
+                                        int channelsDst,
+                                        float *exposureFactorTensor,
+                                        RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -103,11 +104,11 @@ __global__ void exposure_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void exposure_pkd3_pln3_hip_tensor(T *srcPtr,
-                                          uint2 srcStridesNH,
-                                          T *dstPtr,
-                                          uint3 dstStridesNCH,
-                                          float *exposureFactorTensor,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint2 srcStridesNH,
+                                              T *dstPtr,
+                                              uint3 dstStridesNCH,
+                                              float *exposureFactorTensor,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -135,11 +136,11 @@ __global__ void exposure_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void exposure_pln3_pkd3_hip_tensor(T *srcPtr,
-                                          uint3 srcStridesNCH,
-                                          T *dstPtr,
-                                          uint2 dstStridesNH,
-                                          float *exposureFactorTensor,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint3 srcStridesNCH,
+                                              T *dstPtr,
+                                              uint2 dstStridesNH,
+                                              float *exposureFactorTensor,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -252,6 +253,7 @@ template RppStatus hip_exec_exposure_tensor<Rpp8u>(Rpp8u*,
                                                    RpptROIPtr,
                                                    RpptRoiType,
                                                    rpp::Handle&);
+
 template RppStatus hip_exec_exposure_tensor<half>(half*,
                                                   RpptDescPtr,
                                                   half*,
@@ -259,6 +261,7 @@ template RppStatus hip_exec_exposure_tensor<half>(half*,
                                                   RpptROIPtr,
                                                   RpptRoiType,
                                                   rpp::Handle&);
+
 template RppStatus hip_exec_exposure_tensor<Rpp32f>(Rpp32f*,
                                                     RpptDescPtr,
                                                     Rpp32f*,
@@ -266,6 +269,7 @@ template RppStatus hip_exec_exposure_tensor<Rpp32f>(Rpp32f*,
                                                     RpptROIPtr,
                                                     RpptRoiType,
                                                     rpp::Handle&);
+
 template RppStatus hip_exec_exposure_tensor<Rpp8s>(Rpp8s*,
                                                    RpptDescPtr,
                                                    Rpp8s*,

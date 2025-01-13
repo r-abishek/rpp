@@ -26,12 +26,12 @@ __device__ void brightness_hip_compute(half *srcPtr, d_float8 *src_f8, d_float8 
 
 template <typename T>
 __global__ void brightness_pkd_hip_tensor(T *srcPtr,
-                                      uint2 srcStridesNH,
-                                      T *dstPtr,
-                                      uint2 dstStridesNH,
-                                      float *alpha,
-                                      float *beta,
-                                      RpptROIPtr roiTensorPtrSrc)
+                                          uint2 srcStridesNH,
+                                          T *dstPtr,
+                                          uint2 dstStridesNH,
+                                          float *alpha,
+                                          float *beta,
+                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -57,13 +57,13 @@ __global__ void brightness_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void brightness_pln_hip_tensor(T *srcPtr,
-                                      uint3 srcStridesNCH,
-                                      T *dstPtr,
-                                      uint3 dstStridesNCH,
-                                      int channelsDst,
-                                      float *alpha,
-                                      float *beta,
-                                      RpptROIPtr roiTensorPtrSrc)
+                                          uint3 srcStridesNCH,
+                                          T *dstPtr,
+                                          uint3 dstStridesNCH,
+                                          int channelsDst,
+                                          float *alpha,
+                                          float *beta,
+                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -106,12 +106,12 @@ __global__ void brightness_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void brightness_pkd3_pln3_hip_tensor(T *srcPtr,
-                                            uint2 srcStridesNH,
-                                            T *dstPtr,
-                                            uint3 dstStridesNCH,
-                                            float *alpha,
-                                            float *beta,
-                                            RpptROIPtr roiTensorPtrSrc)
+                                                uint2 srcStridesNH,
+                                                T *dstPtr,
+                                                uint3 dstStridesNCH,
+                                                float *alpha,
+                                                float *beta,
+                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -139,12 +139,12 @@ __global__ void brightness_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void brightness_pln3_pkd3_hip_tensor(T *srcPtr,
-                                            uint3 srcStridesNCH,
-                                            T *dstPtr,
-                                            uint2 dstStridesNH,
-                                            float *alpha,
-                                            float *beta,
-                                            RpptROIPtr roiTensorPtrSrc)
+                                                uint3 srcStridesNCH,
+                                                T *dstPtr,
+                                                uint2 dstStridesNH,
+                                                float *alpha,
+                                                float *beta,
+                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -256,30 +256,33 @@ RppStatus hip_exec_brightness_tensor(T *srcPtr,
 }
 
 template RppStatus hip_exec_brightness_tensor<Rpp8u>(Rpp8u*,
-                                     RpptDescPtr,
-                                     Rpp8u*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     Rpp8u*,
+                                                     RpptDescPtr,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
+
 template RppStatus hip_exec_brightness_tensor<half>(half*,
-                                     RpptDescPtr,
-                                     half*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                    RpptDescPtr,
+                                                    half*,
+                                                    RpptDescPtr,
+                                                    RpptROIPtr,
+                                                    RpptRoiType,
+                                                    rpp::Handle&);
+
 template RppStatus hip_exec_brightness_tensor<Rpp32f>(Rpp32f*,
-                                     RpptDescPtr,
-                                     Rpp32f*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                      RpptDescPtr,
+                                                      Rpp32f*,
+                                                      RpptDescPtr,
+                                                      RpptROIPtr,
+                                                      RpptRoiType,
+                                                      rpp::Handle&);
+
 template RppStatus hip_exec_brightness_tensor<Rpp8s>(Rpp8s*,
-                                     RpptDescPtr,
-                                     Rpp8s*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     Rpp8s*,
+                                                     RpptDescPtr,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);

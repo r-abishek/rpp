@@ -1,12 +1,12 @@
 #include <hip/hip_runtime.h>
 #include "rpp_hip_common.hpp"
 
-template <typename T1, typename T2>
-RppStatus hip_exec_lut_tensor(T1 *srcPtr,
+template <typename T, typename U>
+RppStatus hip_exec_lut_tensor(T *srcPtr,
                               RpptDescPtr srcDescPtr,
-                              T2 *dstPtr,
+                              U *dstPtr,
                               RpptDescPtr dstDescPtr,
-                              T2 *lutPtr,
+                              U *lutPtr,
                               RpptROIPtr roiTensorPtrSrc,
                               RpptRoiType roiType,
                               rpp::Handle& handle);

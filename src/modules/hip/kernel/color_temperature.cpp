@@ -228,6 +228,7 @@ template RppStatus hip_exec_color_temperature_tensor<Rpp8u>(Rpp8u*,
                                             RpptROIPtr,
                                             RpptRoiType,
                                             rpp::Handle&);
+
 template RppStatus hip_exec_color_temperature_tensor<half>(half*,
                                             RpptDescPtr,
                                             half*,
@@ -235,6 +236,7 @@ template RppStatus hip_exec_color_temperature_tensor<half>(half*,
                                             RpptROIPtr,
                                             RpptRoiType,
                                             rpp::Handle&);
+
 template RppStatus hip_exec_color_temperature_tensor<Rpp32f>(Rpp32f*,
                                             RpptDescPtr,
                                             Rpp32f*,
@@ -242,6 +244,7 @@ template RppStatus hip_exec_color_temperature_tensor<Rpp32f>(Rpp32f*,
                                             RpptROIPtr,
                                             RpptRoiType,
                                             rpp::Handle&);
+
 template RppStatus hip_exec_color_temperature_tensor<Rpp8s>(Rpp8s*,
                                             RpptDescPtr,
                                             Rpp8s*,
