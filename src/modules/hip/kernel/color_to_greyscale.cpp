@@ -26,11 +26,11 @@ __device__ void color_to_greyscale_hip_compute(half *srcPtr, d_float24 *src_f24,
 
 template <typename T>
 __global__ void color_to_greyscale_pkd3_pln1_hip_tensor(T *srcPtr,
-                                                    uint2 srcStridesNH,
-                                                    T *dstPtr,
-                                                    uint2 dstStridesNH,
-                                                    float3 channelWeights_f3,
-                                                    uint2 maxDim)
+                                                        uint2 srcStridesNH,
+                                                        T *dstPtr,
+                                                        uint2 dstStridesNH,
+                                                        float3 channelWeights_f3,
+                                                        uint2 maxDim)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -59,11 +59,11 @@ __global__ void color_to_greyscale_pkd3_pln1_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void color_to_greyscale_pln3_pln1_hip_tensor(T *srcPtr,
-                                                    uint3 srcStridesNCH,
-                                                    T *dstPtr,
-                                                    uint2 dstStridesNH,
-                                                    float3 channelWeights_f3,
-                                                    uint2 maxDim)
+                                                        uint3 srcStridesNCH,
+                                                        T *dstPtr,
+                                                        uint2 dstStridesNH,
+                                                        float3 channelWeights_f3,
+                                                        uint2 maxDim)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -134,27 +134,31 @@ RppStatus hip_exec_color_to_greyscale_tensor(T *srcPtr,
 
     return RPP_SUCCESS;
 }
+
 template RppStatus hip_exec_color_to_greyscale_tensor<Rpp8u>(Rpp8u*,
                                              RpptDescPtr,
                                              Rpp8u*,
                                              RpptDescPtr,
                                              Rpp32f*,
-                                             rpp::Handle& );
+                                             rpp::Handle&);
+
 template RppStatus hip_exec_color_to_greyscale_tensor<half>(half*,
                                              RpptDescPtr,
                                              half*,
                                              RpptDescPtr,
                                              Rpp32f*,
-                                             rpp::Handle& );
+                                             rpp::Handle&);
+
 template RppStatus hip_exec_color_to_greyscale_tensor<Rpp32f>(Rpp32f*,
                                              RpptDescPtr,
                                              Rpp32f*,
                                              RpptDescPtr,
                                              Rpp32f*,
-                                             rpp::Handle& );
+                                             rpp::Handle&);
+
 template RppStatus hip_exec_color_to_greyscale_tensor<Rpp8s>(Rpp8s*,
                                              RpptDescPtr,
                                              Rpp8s*,
                                              RpptDescPtr,
                                              Rpp32f*,
-                                             rpp::Handle& );
+                                             rpp::Handle&);

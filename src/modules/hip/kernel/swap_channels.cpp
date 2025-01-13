@@ -1,4 +1,5 @@
 #include "swap_channels.hpp"
+#include "rpp_cpu_common.hpp"
 
 __device__ void swap_channels_hip_compute(d_float24 *pix_f24)
 {
@@ -10,10 +11,10 @@ __device__ void swap_channels_hip_compute(d_float24 *pix_f24)
 
 template <typename T>
 __global__ void swap_channels_pkd_hip_tensor(T *srcPtr,
-                                         uint2 srcStridesNH,
-                                         T *dstPtr,
-                                         uint2 dstStridesNH,
-                                         uint2 maxDim)
+                                             uint2 srcStridesNH,
+                                             T *dstPtr,
+                                             uint2 dstStridesNH,
+                                             uint2 maxDim)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -36,10 +37,10 @@ __global__ void swap_channels_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void swap_channels_pln_hip_tensor(T *srcPtr,
-                                         uint3 srcStridesNCH,
-                                         T *dstPtr,
-                                         uint3 dstStridesNCH,
-                                         uint2 maxDim)
+                                             uint3 srcStridesNCH,
+                                             T *dstPtr,
+                                             uint3 dstStridesNCH,
+                                             uint2 maxDim)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -62,10 +63,10 @@ __global__ void swap_channels_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void swap_channels_pkd3_pln3_hip_tensor(T *srcPtr,
-                                               uint2 srcStridesNH,
-                                               T *dstPtr,
-                                               uint3 dstStridesNCH,
-                                               uint2 maxDim)
+                                                   uint2 srcStridesNH,
+                                                   T *dstPtr,
+                                                   uint3 dstStridesNCH,
+                                                   uint2 maxDim)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -88,10 +89,10 @@ __global__ void swap_channels_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void swap_channels_pln3_pkd3_hip_tensor(T *srcPtr,
-                                               uint3 srcStridesNCH,
-                                               T *dstPtr,
-                                               uint2 dstStridesNH,
-                                               uint2 maxDim)
+                                                   uint3 srcStridesNCH,
+                                                   T *dstPtr,
+                                                   uint2 dstStridesNH,
+                                                   uint2 maxDim)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

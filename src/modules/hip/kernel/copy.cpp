@@ -2,10 +2,10 @@
 
 template <typename T>
 __global__ void copy_pkd3_pln3_hip_tensor(T *srcPtr,
-                                      uint2 srcStridesNH,
-                                      T *dstPtr,
-                                      uint3 dstStridesNCH,
-                                      uint2 maxDim)
+                                          uint2 srcStridesNH,
+                                          T *dstPtr,
+                                          uint3 dstStridesNCH,
+                                          uint2 maxDim)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -26,10 +26,10 @@ __global__ void copy_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void copy_pln3_pkd3_hip_tensor(T *srcPtr,
-                                      uint3 srcStridesNCH,
-                                      T *dstPtr,
-                                      uint2 dstStridesNH,
-                                      uint2 maxDim)
+                                          uint3 srcStridesNCH,
+                                          T *dstPtr,
+                                          uint2 dstStridesNH,
+                                          uint2 maxDim)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -101,16 +101,19 @@ template RppStatus hip_exec_copy_tensor<Rpp8u>(Rpp8u*,
                                                Rpp8u*,
                                                RpptDescPtr,
                                                rpp::Handle&);
+
 template RppStatus hip_exec_copy_tensor<half>(half*,
                                               RpptDescPtr,
                                               half*,
                                               RpptDescPtr,
                                               rpp::Handle&);
+
 template RppStatus hip_exec_copy_tensor<Rpp32f>(Rpp32f*,
                                                 RpptDescPtr,
                                                 Rpp32f*,
                                                 RpptDescPtr,
                                                 rpp::Handle&);
+
 template RppStatus hip_exec_copy_tensor<Rpp8s>(Rpp8s*,
                                                RpptDescPtr,
                                                Rpp8s*,
