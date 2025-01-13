@@ -277,12 +277,12 @@ __device__ void box_filter_9x9_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
 // kernelSize = 3
 template <typename T>
 __global__ void box_filter_3x3_pkd_hip_tensor(T *srcPtr,
-                                          uint2 srcStridesNH,
-                                          T *dstPtr,
-                                          uint2 dstStridesNH,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint2 srcStridesNH,
+                                              T *dstPtr,
+                                              uint2 dstStridesNH,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -347,12 +347,12 @@ __global__ void box_filter_3x3_pkd_hip_tensor(T *srcPtr,
 // kernelSize = 5
 template <typename T>
 __global__ void box_filter_5x5_pkd_hip_tensor(T *srcPtr,
-                                          uint2 srcStridesNH,
-                                          T *dstPtr,
-                                          uint2 dstStridesNH,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint2 srcStridesNH,
+                                              T *dstPtr,
+                                              uint2 dstStridesNH,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -423,12 +423,12 @@ __global__ void box_filter_5x5_pkd_hip_tensor(T *srcPtr,
 // kernelSize = 7
 template <typename T>
 __global__ void box_filter_7x7_pkd_hip_tensor(T *srcPtr,
-                                          uint2 srcStridesNH,
-                                          T *dstPtr,
-                                          uint2 dstStridesNH,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint2 srcStridesNH,
+                                              T *dstPtr,
+                                              uint2 dstStridesNH,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -505,12 +505,12 @@ __global__ void box_filter_7x7_pkd_hip_tensor(T *srcPtr,
 // kernelSize = 9
 template <typename T>
 __global__ void box_filter_9x9_pkd_hip_tensor(T *srcPtr,
-                                          uint2 srcStridesNH,
-                                          T *dstPtr,
-                                          uint2 dstStridesNH,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint2 srcStridesNH,
+                                              T *dstPtr,
+                                              uint2 dstStridesNH,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -595,13 +595,13 @@ __global__ void box_filter_9x9_pkd_hip_tensor(T *srcPtr,
 // kernelSize = 3
 template <typename T>
 __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
-                                          uint3 srcStridesNCH,
-                                          T *dstPtr,
-                                          uint3 dstStridesNCH,
-                                          int channelsDst,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint3 srcStridesNCH,
+                                              T *dstPtr,
+                                              uint3 dstStridesNCH,
+                                              int channelsDst,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -787,13 +787,13 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
 // kernelSize = 7
 template <typename T>
 __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
-                                          uint3 srcStridesNCH,
-                                          T *dstPtr,
-                                          uint3 dstStridesNCH,
-                                          int channelsDst,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint3 srcStridesNCH,
+                                              T *dstPtr,
+                                              uint3 dstStridesNCH,
+                                              int channelsDst,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -892,13 +892,13 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
 // kernelSize = 9
 template <typename T>
 __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
-                                          uint3 srcStridesNCH,
-                                          T *dstPtr,
-                                          uint3 dstStridesNCH,
-                                          int channelsDst,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint3 srcStridesNCH,
+                                              T *dstPtr,
+                                              uint3 dstStridesNCH,
+                                              int channelsDst,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1005,12 +1005,12 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
 // kernelSize = 3
 template <typename T>
 __global__ void box_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                uint2 srcStridesNH,
-                                                T *dstPtr,
-                                                uint3 dstStridesNCH,
-                                                uint padLength,
-                                                uint2 tileSize,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint2 srcStridesNH,
+                                                    T *dstPtr,
+                                                    uint3 dstStridesNCH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1075,12 +1075,12 @@ __global__ void box_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
 // kernelSize = 5
 template <typename T>
 __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                uint2 srcStridesNH,
-                                                T *dstPtr,
-                                                uint3 dstStridesNCH,
-                                                uint padLength,
-                                                uint2 tileSize,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint2 srcStridesNH,
+                                                    T *dstPtr,
+                                                    uint3 dstStridesNCH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1151,12 +1151,12 @@ __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
 // kernelSize = 7
 template <typename T>
 __global__ void box_filter_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                uint2 srcStridesNH,
-                                                T *dstPtr,
-                                                uint3 dstStridesNCH,
-                                                uint padLength,
-                                                uint2 tileSize,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint2 srcStridesNH,
+                                                    T *dstPtr,
+                                                    uint3 dstStridesNCH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1233,12 +1233,12 @@ __global__ void box_filter_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
 // kernelSize = 9
 template <typename T>
 __global__ void box_filter_9x9_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                uint2 srcStridesNH,
-                                                T *dstPtr,
-                                                uint3 dstStridesNCH,
-                                                uint padLength,
-                                                uint2 tileSize,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint2 srcStridesNH,
+                                                    T *dstPtr,
+                                                    uint3 dstStridesNCH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1323,12 +1323,12 @@ __global__ void box_filter_9x9_pkd3_pln3_hip_tensor(T *srcPtr,
 // kernelSize = 3
 template <typename T>
 __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                uint3 srcStridesNCH,
-                                                T *dstPtr,
-                                                uint2 dstStridesNH,
-                                                uint padLength,
-                                                uint2 tileSize,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1393,12 +1393,12 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
 // kernelSize = 5
 template <typename T>
 __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                uint3 srcStridesNCH,
-                                                T *dstPtr,
-                                                uint2 dstStridesNH,
-                                                uint padLength,
-                                                uint2 tileSize,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1469,12 +1469,12 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
 // kernelSize = 7
 template <typename T>
 __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                uint3 srcStridesNCH,
-                                                T *dstPtr,
-                                                uint2 dstStridesNH,
-                                                uint padLength,
-                                                uint2 tileSize,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1551,12 +1551,12 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
 // kernelSize = 9
 template <typename T>
 __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                uint3 srcStridesNCH,
-                                                T *dstPtr,
-                                                uint2 dstStridesNH,
-                                                uint padLength,
-                                                uint2 tileSize,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1928,34 +1928,37 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
     return RPP_SUCCESS;
 }
 template RppStatus hip_exec_box_filter_tensor<Rpp8u>(Rpp8u*,
-                                     RpptDescPtr,
-                                     Rpp8u*,
-                                     RpptDescPtr,
-                                     Rpp32u,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     Rpp8u*,
+                                                     RpptDescPtr,
+                                                     Rpp32u,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
+
 template RppStatus hip_exec_box_filter_tensor<half>(half*,
-                                     RpptDescPtr,
-                                     half*,
-                                     RpptDescPtr,
-                                     Rpp32u,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                   RpptDescPtr,
+                                                   half*,
+                                                   RpptDescPtr,
+                                                   Rpp32u,
+                                                   RpptROIPtr,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);
+
 template RppStatus hip_exec_box_filter_tensor<Rpp32f>(Rpp32f*,
-                                     RpptDescPtr,
-                                     Rpp32f*,
-                                     RpptDescPtr,
-                                     Rpp32u,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                      RpptDescPtr,
+                                                      Rpp32f*,
+                                                      RpptDescPtr,
+                                                      Rpp32u,
+                                                      RpptROIPtr,
+                                                      RpptRoiType,
+                                                      rpp::Handle&);
+
 template RppStatus hip_exec_box_filter_tensor<Rpp8s>(Rpp8s*,
-                                     RpptDescPtr,
-                                     Rpp8s*,
-                                     RpptDescPtr,
-                                     Rpp32u,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     Rpp8s*,
+                                                     RpptDescPtr,
+                                                     Rpp32u,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
