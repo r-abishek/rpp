@@ -35,11 +35,11 @@ __device__ void resize_roi_generic_srcloc_and_weight_hip_compute(int roiLoc, int
 
 template <typename T>
 __global__ void resize_nearest_neighbor_pkd_hip_tensor(T *srcPtr,
-                                                   uint2 srcStridesNH,
-                                                   T *dstPtr,
-                                                   uint2 dstStridesNH,
-                                                   RpptImagePatchPtr dstImgSize,
-                                                   RpptROIPtr roiTensorPtrSrc)
+                                                       uint2 srcStridesNH,
+                                                       T *dstPtr,
+                                                       uint2 dstStridesNH,
+                                                       RpptImagePatchPtr dstImgSize,
+                                                       RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -68,12 +68,12 @@ __global__ void resize_nearest_neighbor_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_nearest_neighbor_pln_hip_tensor(T *srcPtr,
-                                                   uint3 srcStridesNCH,
-                                                   T *dstPtr,
-                                                   uint3 dstStridesNCH,
-                                                   int channelsDst,
-                                                   RpptImagePatchPtr dstImgSize,
-                                                   RpptROIPtr roiTensorPtrSrc)
+                                                       uint3 srcStridesNCH,
+                                                       T *dstPtr,
+                                                       uint3 dstStridesNCH,
+                                                       int channelsDst,
+                                                       RpptImagePatchPtr dstImgSize,
+                                                       RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -117,11 +117,11 @@ __global__ void resize_nearest_neighbor_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_nearest_neighbor_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                         uint2 srcStridesNH,
-                                                         T *dstPtr,
-                                                         uint3 dstStridesNCH,
-                                                         RpptImagePatchPtr dstImgSize,
-                                                         RpptROIPtr roiTensorPtrSrc)
+                                                             uint2 srcStridesNH,
+                                                             T *dstPtr,
+                                                             uint3 dstStridesNCH,
+                                                             RpptImagePatchPtr dstImgSize,
+                                                             RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -150,11 +150,11 @@ __global__ void resize_nearest_neighbor_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_nearest_neighbor_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                         uint3 srcStridesNCH,
-                                                         T *dstPtr,
-                                                         uint2 dstStridesNH,
-                                                         RpptImagePatchPtr dstImgSize,
-                                                         RpptROIPtr roiTensorPtrSrc)
+                                                             uint3 srcStridesNCH,
+                                                             T *dstPtr,
+                                                             uint2 dstStridesNH,
+                                                             RpptImagePatchPtr dstImgSize,
+                                                             RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -185,11 +185,11 @@ __global__ void resize_nearest_neighbor_pln3_pkd3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_bilinear_pkd_hip_tensor(T *srcPtr,
-                                           uint2 srcStridesNH,
-                                           T *dstPtr,
-                                           uint2 dstStridesNH,
-                                           RpptImagePatchPtr dstImgSize,
-                                           RpptROIPtr roiTensorPtrSrc)
+                                               uint2 srcStridesNH,
+                                               T *dstPtr,
+                                               uint2 dstStridesNH,
+                                               RpptImagePatchPtr dstImgSize,
+                                               RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -218,12 +218,12 @@ __global__ void resize_bilinear_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_bilinear_pln_hip_tensor(T *srcPtr,
-                                           uint3 srcStridesNCH,
-                                           T *dstPtr,
-                                           uint3 dstStridesNCH,
-                                           int channelsDst,
-                                           RpptImagePatchPtr dstImgSize,
-                                           RpptROIPtr roiTensorPtrSrc)
+                                               uint3 srcStridesNCH,
+                                               T *dstPtr,
+                                               uint3 dstStridesNCH,
+                                               int channelsDst,
+                                               RpptImagePatchPtr dstImgSize,
+                                               RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -267,11 +267,11 @@ __global__ void resize_bilinear_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_bilinear_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                 uint2 srcStridesNH,
-                                                 T *dstPtr,
-                                                 uint3 dstStridesNCH,
-                                                 RpptImagePatchPtr dstImgSize,
-                                                 RpptROIPtr roiTensorPtrSrc)
+                                                     uint2 srcStridesNH,
+                                                     T *dstPtr,
+                                                     uint3 dstStridesNCH,
+                                                     RpptImagePatchPtr dstImgSize,
+                                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -300,11 +300,11 @@ __global__ void resize_bilinear_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_bilinear_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                 uint3 srcStridesNCH,
-                                                 T *dstPtr,
-                                                 uint2 dstStridesNH,
-                                                 RpptImagePatchPtr dstImgSize,
-                                                 RpptROIPtr roiTensorPtrSrc)
+                                                     uint3 srcStridesNCH,
+                                                     T *dstPtr,
+                                                     uint2 dstStridesNH,
+                                                     RpptImagePatchPtr dstImgSize,
+                                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -333,12 +333,12 @@ __global__ void resize_bilinear_pln3_pkd3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_generic_pkd_hip_tensor(T *srcPtr,
-                                          uint2 srcStridesNH,
-                                          T *dstPtr,
-                                          uint2 dstStridesNH,
-                                          RpptImagePatchPtr dstImgSize,
-                                          RpptROIPtr roiTensorPtrSrc,
-                                          RpptInterpolationType interpolationType)
+                                              uint2 srcStridesNH,
+                                              T *dstPtr,
+                                              uint2 dstStridesNH,
+                                              RpptImagePatchPtr dstImgSize,
+                                              RpptROIPtr roiTensorPtrSrc,
+                                              RpptInterpolationType interpolationType)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -407,12 +407,12 @@ __global__ void resize_generic_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_generic_pln3_hip_tensor(T *srcPtr,
-                                           uint3 srcStridesNCH,
-                                           T *dstPtr,
-                                           uint3 dstStridesNCH,
-                                           RpptImagePatchPtr dstImgSize,
-                                           RpptROIPtr roiTensorPtrSrc,
-                                           RpptInterpolationType interpolationType)
+                                               uint3 srcStridesNCH,
+                                               T *dstPtr,
+                                               uint3 dstStridesNCH,
+                                               RpptImagePatchPtr dstImgSize,
+                                               RpptROIPtr roiTensorPtrSrc,
+                                               RpptInterpolationType interpolationType)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -487,12 +487,12 @@ __global__ void resize_generic_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_generic_pln1_hip_tensor(T *srcPtr,
-                                           uint3 srcStridesNCH,
-                                           T *dstPtr,
-                                           uint3 dstStridesNCH,
-                                           RpptImagePatchPtr dstImgSize,
-                                           RpptROIPtr roiTensorPtrSrc,
-                                           RpptInterpolationType interpolationType)
+                                               uint3 srcStridesNCH,
+                                               T *dstPtr,
+                                               uint3 dstStridesNCH,
+                                               RpptImagePatchPtr dstImgSize,
+                                               RpptROIPtr roiTensorPtrSrc,
+                                               RpptInterpolationType interpolationType)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -559,12 +559,12 @@ __global__ void resize_generic_pln1_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_generic_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                uint2 srcStridesNH,
-                                                T *dstPtr,
-                                                uint3 dstStridesNCH,
-                                                RpptImagePatchPtr dstImgSize,
-                                                RpptROIPtr roiTensorPtrSrc,
-                                                RpptInterpolationType interpolationType)
+                                                    uint2 srcStridesNH,
+                                                    T *dstPtr,
+                                                    uint3 dstStridesNCH,
+                                                    RpptImagePatchPtr dstImgSize,
+                                                    RpptROIPtr roiTensorPtrSrc,
+                                                    RpptInterpolationType interpolationType)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -632,12 +632,12 @@ __global__ void resize_generic_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void resize_generic_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                uint3 srcStridesNCH,
-                                                T *dstPtr,
-                                                uint2 dstStridesNH,
-                                                RpptImagePatchPtr dstImgSize,
-                                                RpptROIPtr roiTensorPtrSrc,
-                                                RpptInterpolationType interpolationType)
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    RpptImagePatchPtr dstImgSize,
+                                                    RpptROIPtr roiTensorPtrSrc,
+                                                    RpptInterpolationType interpolationType)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

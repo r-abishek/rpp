@@ -36,12 +36,12 @@ __device__ void non_linear_blend_24_hip_compute(d_float24 *src1_f24, d_float24 *
 
 template <typename T>
 __global__ void non_linear_blend_pkd_hip_tensor(T *srcPtr1,
-                                            T *srcPtr2,
-                                            uint2 srcStridesNH,
-                                            T *dstPtr,
-                                            uint2 dstStridesNH,
-                                            float *stdDev,
-                                            RpptROIPtr roiTensorPtrSrc)
+                                                T *srcPtr2,
+                                                uint2 srcStridesNH,
+                                                T *dstPtr,
+                                                uint2 dstStridesNH,
+                                                float *stdDev,
+                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -71,13 +71,13 @@ __global__ void non_linear_blend_pkd_hip_tensor(T *srcPtr1,
 
 template <typename T>
 __global__ void non_linear_blend_pln_hip_tensor(T *srcPtr1,
-                                            T *srcPtr2,
-                                            uint3 srcStridesNCH,
-                                            T *dstPtr,
-                                            uint3 dstStridesNCH,
-                                            int channelsDst,
-                                            float *stdDev,
-                                            RpptROIPtr roiTensorPtrSrc)
+                                                T *srcPtr2,
+                                                uint3 srcStridesNCH,
+                                                T *dstPtr,
+                                                uint3 dstStridesNCH,
+                                                int channelsDst,
+                                                float *stdDev,
+                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -125,12 +125,12 @@ __global__ void non_linear_blend_pln_hip_tensor(T *srcPtr1,
 
 template <typename T>
 __global__ void non_linear_blend_pkd3_pln3_hip_tensor(T *srcPtr1,
-                                                  T *srcPtr2,
-                                                  uint2 srcStridesNH,
-                                                  T *dstPtr,
-                                                  uint3 dstStridesNCH,
-                                                  float *stdDev,
-                                                  RpptROIPtr roiTensorPtrSrc)
+                                                      T *srcPtr2,
+                                                      uint2 srcStridesNH,
+                                                      T *dstPtr,
+                                                      uint3 dstStridesNCH,
+                                                      float *stdDev,
+                                                      RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -160,12 +160,12 @@ __global__ void non_linear_blend_pkd3_pln3_hip_tensor(T *srcPtr1,
 
 template <typename T>
 __global__ void non_linear_blend_pln3_pkd3_hip_tensor(T *srcPtr1,
-                                                  T *srcPtr2,
-                                                  uint3 srcStridesNCH,
-                                                  T *dstPtr,
-                                                  uint2 dstStridesNH,
-                                                  float *stdDev,
-                                                  RpptROIPtr roiTensorPtrSrc)
+                                                      T *srcPtr2,
+                                                      uint3 srcStridesNCH,
+                                                      T *dstPtr,
+                                                      uint2 dstStridesNH,
+                                                      float *stdDev,
+                                                      RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

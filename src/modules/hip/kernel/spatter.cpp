@@ -1,7 +1,5 @@
+#include "spater.hpp"
 #include <random>
-#include <hip/hip_runtime.h>
-
-#include "rpp_hip_common.hpp"
 #include "spatter_mask.hpp"
 
 __device__ void spatter_hip_compute(uchar *srcPtr, d_float8 *src_f8, d_float8 *dst_f8, d_float8 *mask_f8, d_float8 *maskInv_f8, float4 *pix_f4)
@@ -32,15 +30,15 @@ __device__ void spatter_hip_compute(half *srcPtr, d_float8 *src_f8, d_float8 *ds
 
 template <typename T>
 __global__ void spatter_pkd_hip_tensor(T *srcPtr,
-                                   uint2 srcStridesNH,
-                                   T *dstPtr,
-                                   uint2 dstStridesNH,
-                                   float *spatterMaskPtr,
-                                   float *spatterMaskInvPtr,
-                                   uint *maskLocArrX,
-                                   uint *maskLocArrY,
-                                   float3 spatterColor,
-                                   RpptROIPtr roiTensorPtrSrc)
+                                       uint2 srcStridesNH,
+                                       T *dstPtr,
+                                       uint2 dstStridesNH,
+                                       float *spatterMaskPtr,
+                                       float *spatterMaskInvPtr,
+                                       uint *maskLocArrX,
+                                       uint *maskLocArrY,
+                                       float3 spatterColor,
+                                       RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -73,16 +71,16 @@ __global__ void spatter_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void spatter_pln_hip_tensor(T *srcPtr,
-                                   uint3 srcStridesNCH,
-                                   T *dstPtr,
-                                   uint3 dstStridesNCH,
-                                   int channelsDst,
-                                   float *spatterMaskPtr,
-                                   float *spatterMaskInvPtr,
-                                   uint *maskLocArrX,
-                                   uint *maskLocArrY,
-                                   float3 spatterColor,
-                                   RpptROIPtr roiTensorPtrSrc)
+                                       uint3 srcStridesNCH,
+                                       T *dstPtr,
+                                       uint3 dstStridesNCH,
+                                       int channelsDst,
+                                       float *spatterMaskPtr,
+                                       float *spatterMaskInvPtr,
+                                       uint *maskLocArrX,
+                                       uint *maskLocArrY,
+                                       float3 spatterColor,
+                                       RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -130,15 +128,15 @@ __global__ void spatter_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void spatter_pkd3_pln3_hip_tensor(T *srcPtr,
-                                         uint2 srcStridesNH,
-                                         T *dstPtr,
-                                         uint3 dstStridesNCH,
-                                         float *spatterMaskPtr,
-                                         float *spatterMaskInvPtr,
-                                         uint *maskLocArrX,
-                                         uint *maskLocArrY,
-                                         float3 spatterColor,
-                                         RpptROIPtr roiTensorPtrSrc)
+                                             uint2 srcStridesNH,
+                                             T *dstPtr,
+                                             uint3 dstStridesNCH,
+                                             float *spatterMaskPtr,
+                                             float *spatterMaskInvPtr,
+                                             uint *maskLocArrX,
+                                             uint *maskLocArrY,
+                                             float3 spatterColor,
+                                             RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -171,15 +169,15 @@ __global__ void spatter_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void spatter_pln3_pkd3_hip_tensor(T *srcPtr,
-                                         uint3 srcStridesNCH,
-                                         T *dstPtr,
-                                         uint2 dstStridesNH,
-                                         float *spatterMaskPtr,
-                                         float *spatterMaskInvPtr,
-                                         uint *maskLocArrX,
-                                         uint *maskLocArrY,
-                                         float3 spatterColor,
-                                         RpptROIPtr roiTensorPtrSrc)
+                                             uint3 srcStridesNCH,
+                                             T *dstPtr,
+                                             uint2 dstStridesNH,
+                                             float *spatterMaskPtr,
+                                             float *spatterMaskInvPtr,
+                                             uint *maskLocArrX,
+                                             uint *maskLocArrY,
+                                             float3 spatterColor,
+                                             RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

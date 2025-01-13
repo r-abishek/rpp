@@ -265,19 +265,19 @@ template RppStatus hip_exec_ricap_tensor<half>(half*,
                                                rpp::Handle&);
 
 template RppStatus hip_exec_ricap_tensor<Rpp32f>(Rpp32f*,
-                                               RpptDescPtr,
-                                               Rpp32f*,
-                                               RpptDescPtr,
-                                               Rpp32u*,
-                                               RpptROIPtr,
-                                               RpptRoiType,
-                                               rpp::Handle&);
+                                                 RpptDescPtr,
+                                                 Rpp32f*,
+                                                 RpptDescPtr,
+                                                 Rpp32u*,
+                                                 RpptROIPtr,
+                                                 RpptRoiType,
+                                                rpp::Handle&);
 
 template RppStatus hip_exec_ricap_tensor<Rpp8s>(Rpp8s*,
-                                               RpptDescPtr,
-                                               Rpp8s*,
-                                               RpptDescPtr,
-                                               Rpp32u*,
-                                               RpptROIPtr,
-                                               RpptRoiType,
-                                               rpp::Handle&);
+                                                RpptDescPtr,
+                                                Rpp8s*,
+                                                RpptDescPtr,
+                                                Rpp32u*,
+                                                RpptROIPtr,
+                                                RpptRoiType,
+                                                rpp::Handle&);

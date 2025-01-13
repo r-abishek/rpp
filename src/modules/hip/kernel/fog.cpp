@@ -1,5 +1,6 @@
 #include "fog.hpp"
 #include <random>
+
 __device__ __forceinline__ void fog_grey_hip_compute(d_float8 *r_f8, d_float8 *g_f8, d_float8 *b_f8, float4 *greyFactor_f4)
 {
     float4 grey_f4[2];
@@ -365,6 +366,7 @@ template RppStatus hip_exec_fog_tensor<Rpp8u>(Rpp8u*,
                                               RpptROIPtr,
                                               RpptRoiType,
                                               rpp::Handle&);
+
 template RppStatus hip_exec_fog_tensor<half>(half*,
                                              RpptDescPtr,
                                              half*,
@@ -378,6 +380,7 @@ template RppStatus hip_exec_fog_tensor<half>(half*,
                                              RpptROIPtr,
                                              RpptRoiType,
                                              rpp::Handle&);
+
 template RppStatus hip_exec_fog_tensor<Rpp32f>(Rpp32f*,
                                                RpptDescPtr,
                                                Rpp32f*,
@@ -391,6 +394,7 @@ template RppStatus hip_exec_fog_tensor<Rpp32f>(Rpp32f*,
                                                RpptROIPtr,
                                                RpptRoiType,
                                                rpp::Handle&);
+
 template RppStatus hip_exec_fog_tensor<Rpp8s>(Rpp8s*,
                                               RpptDescPtr,
                                               Rpp8s*,

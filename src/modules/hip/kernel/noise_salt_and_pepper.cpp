@@ -44,16 +44,16 @@ __device__ void salt_and_pepper_noise_adjusted_input_hip_compute(half *srcPtr, f
 
 template <typename T>
 __global__ void salt_and_pepper_noise_pkd_hip_tensor(T *srcPtr,
-                                                 uint2 srcStridesNH,
-                                                 T *dstPtr,
-                                                 uint2 dstStridesNH,
-                                                 float *noiseProbabilityTensor,
-                                                 float *saltProbabilityTensor,
-                                                 float *saltValueTensor,
-                                                 float *pepperValueTensor,
-                                                 RpptXorwowState *xorwowInitialStatePtr,
-                                                 uint *xorwowSeedStream,
-                                                 RpptROIPtr roiTensorPtrSrc)
+                                                     uint2 srcStridesNH,
+                                                     T *dstPtr,
+                                                     uint2 dstStridesNH,
+                                                     float *noiseProbabilityTensor,
+                                                     float *saltProbabilityTensor,
+                                                     float *saltValueTensor,
+                                                     float *pepperValueTensor,
+                                                     RpptXorwowState *xorwowInitialStatePtr,
+                                                     uint *xorwowSeedStream,
+                                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -94,17 +94,17 @@ __global__ void salt_and_pepper_noise_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void salt_and_pepper_noise_pln_hip_tensor(T *srcPtr,
-                                                 uint3 srcStridesNCH,
-                                                 T *dstPtr,
-                                                 uint3 dstStridesNCH,
-                                                 int channelsDst,
-                                                 float *noiseProbabilityTensor,
-                                                 float *saltProbabilityTensor,
-                                                 float *saltValueTensor,
-                                                 float *pepperValueTensor,
-                                                 RpptXorwowState *xorwowInitialStatePtr,
-                                                 uint *xorwowSeedStream,
-                                                 RpptROIPtr roiTensorPtrSrc)
+                                                     uint3 srcStridesNCH,
+                                                     T *dstPtr,
+                                                     uint3 dstStridesNCH,
+                                                     int channelsDst,
+                                                     float *noiseProbabilityTensor,
+                                                     float *saltProbabilityTensor,
+                                                     float *saltValueTensor,
+                                                     float *pepperValueTensor,
+                                                     RpptXorwowState *xorwowInitialStatePtr,
+                                                     uint *xorwowSeedStream,
+                                                     RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -161,16 +161,16 @@ __global__ void salt_and_pepper_noise_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void salt_and_pepper_noise_pkd3_pln3_hip_tensor(T *srcPtr,
-                                                       uint2 srcStridesNH,
-                                                       T *dstPtr,
-                                                       uint3 dstStridesNCH,
-                                                       float *noiseProbabilityTensor,
-                                                       float *saltProbabilityTensor,
-                                                       float *saltValueTensor,
-                                                       float *pepperValueTensor,
-                                                       RpptXorwowState *xorwowInitialStatePtr,
-                                                       uint *xorwowSeedStream,
-                                                       RpptROIPtr roiTensorPtrSrc)
+                                                           uint2 srcStridesNH,
+                                                           T *dstPtr,
+                                                           uint3 dstStridesNCH,
+                                                           float *noiseProbabilityTensor,
+                                                           float *saltProbabilityTensor,
+                                                           float *saltValueTensor,
+                                                           float *pepperValueTensor,
+                                                           RpptXorwowState *xorwowInitialStatePtr,
+                                                           uint *xorwowSeedStream,
+                                                           RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -211,16 +211,16 @@ __global__ void salt_and_pepper_noise_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void salt_and_pepper_noise_pln3_pkd3_hip_tensor(T *srcPtr,
-                                                       uint3 srcStridesNCH,
-                                                       T *dstPtr,
-                                                       uint2 dstStridesNH,
-                                                       float *noiseProbabilityTensor,
-                                                       float *saltProbabilityTensor,
-                                                       float *saltValueTensor,
-                                                       float *pepperValueTensor,
-                                                       RpptXorwowState *xorwowInitialStatePtr,
-                                                       uint *xorwowSeedStream,
-                                                       RpptROIPtr roiTensorPtrSrc)
+                                                           uint3 srcStridesNCH,
+                                                           T *dstPtr,
+                                                           uint2 dstStridesNH,
+                                                           float *noiseProbabilityTensor,
+                                                           float *saltProbabilityTensor,
+                                                           float *saltValueTensor,
+                                                           float *pepperValueTensor,
+                                                           RpptXorwowState *xorwowInitialStatePtr,
+                                                           uint *xorwowSeedStream,
+                                                           RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

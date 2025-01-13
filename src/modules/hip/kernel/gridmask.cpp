@@ -351,13 +351,13 @@ __device__ void gridmask_result_pln3_pkd3_hip_compute(half *srcPtr, uint srcStri
 
 template <typename T>
 __global__ void gridmask_pkd_hip_tensor(T *srcPtr,
-                                    uint2 srcStridesNH,
-                                    T *dstPtr,
-                                    uint2 dstStridesNH,
-                                    float2 rotateRatios,
-                                    float2 translateRatios,
-                                    float gridRatio,
-                                    RpptROIPtr roiTensorPtrSrc)
+                                        uint2 srcStridesNH,
+                                        T *dstPtr,
+                                        uint2 dstStridesNH,
+                                        float2 rotateRatios,
+                                        float2 translateRatios,
+                                        float gridRatio,
+                                        RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -381,14 +381,14 @@ __global__ void gridmask_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void gridmask_pln_hip_tensor(T *srcPtr,
-                                    uint3 srcStridesNCH,
-                                    T *dstPtr,
-                                    uint3 dstStridesNCH,
-                                    int channelsDst,
-                                    float2 rotateRatios,
-                                    float2 translateRatios,
-                                    float gridRatio,
-                                    RpptROIPtr roiTensorPtrSrc)
+                                        uint3 srcStridesNCH,
+                                        T *dstPtr,
+                                        uint3 dstStridesNCH,
+                                        int channelsDst,
+                                        float2 rotateRatios,
+                                        float2 translateRatios,
+                                        float gridRatio,
+                                        RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -416,13 +416,13 @@ __global__ void gridmask_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void gridmask_pkd3_pln3_hip_tensor(T *srcPtr,
-                                          uint2 srcStridesNH,
-                                          T *dstPtr,
-                                          uint3 dstStridesNCH,
-                                          float2 rotateRatios,
-                                          float2 translateRatios,
-                                          float gridRatio,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint2 srcStridesNH,
+                                              T *dstPtr,
+                                              uint3 dstStridesNCH,
+                                              float2 rotateRatios,
+                                              float2 translateRatios,
+                                              float gridRatio,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -446,13 +446,13 @@ __global__ void gridmask_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void gridmask_pln3_pkd3_hip_tensor(T *srcPtr,
-                                          uint3 srcStridesNCH,
-                                          T *dstPtr,
-                                          uint2 dstStridesNH,
-                                          float2 rotateRatios,
-                                          float2 translateRatios,
-                                          float gridRatio,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint3 srcStridesNCH,
+                                              T *dstPtr,
+                                              uint2 dstStridesNH,
+                                              float2 rotateRatios,
+                                              float2 translateRatios,
+                                              float gridRatio,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

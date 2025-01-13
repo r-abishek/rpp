@@ -50,13 +50,13 @@ __device__ void shot_noise_24_adjusted_output_hip_compute(half *srcPtr, d_float2
 
 template <typename T>
 __global__ void shot_noise_pkd_hip_tensor(T *srcPtr,
-                                      uint2 srcStridesNH,
-                                      T *dstPtr,
-                                      uint2 dstStridesNH,
-                                      float *shotNoiseFactorTensor,
-                                      RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
-                                      uint *xorwowSeedStream,
-                                      RpptROIPtr roiTensorPtrSrc)
+                                          uint2 srcStridesNH,
+                                          T *dstPtr,
+                                          uint2 dstStridesNH,
+                                          float *shotNoiseFactorTensor,
+                                          RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
+                                          uint *xorwowSeedStream,
+                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -101,14 +101,14 @@ __global__ void shot_noise_pkd_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void shot_noise_pln_hip_tensor(T *srcPtr,
-                                      uint3 srcStridesNCH,
-                                      T *dstPtr,
-                                      uint3 dstStridesNCH,
-                                      int channelsDst,
-                                      float *shotNoiseFactorTensor,
-                                      RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
-                                      uint *xorwowSeedStream,
-                                      RpptROIPtr roiTensorPtrSrc)
+                                          uint3 srcStridesNCH,
+                                          T *dstPtr,
+                                          uint3 dstStridesNCH,
+                                          int channelsDst,
+                                          float *shotNoiseFactorTensor,
+                                          RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
+                                          uint *xorwowSeedStream,
+                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -200,13 +200,13 @@ __global__ void shot_noise_pln_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void shot_noise_pkd3_pln3_hip_tensor(T *srcPtr,
-                                            uint2 srcStridesNH,
-                                            T *dstPtr,
-                                            uint3 dstStridesNCH,
-                                            float *shotNoiseFactorTensor,
-                                            RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
-                                            uint *xorwowSeedStream,
-                                            RpptROIPtr roiTensorPtrSrc)
+                                                uint2 srcStridesNH,
+                                                T *dstPtr,
+                                                uint3 dstStridesNCH,
+                                                float *shotNoiseFactorTensor,
+                                                RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
+                                                uint *xorwowSeedStream,
+                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -251,13 +251,13 @@ __global__ void shot_noise_pkd3_pln3_hip_tensor(T *srcPtr,
 
 template <typename T>
 __global__ void shot_noise_pln3_pkd3_hip_tensor(T *srcPtr,
-                                            uint3 srcStridesNCH,
-                                            T *dstPtr,
-                                            uint2 dstStridesNH,
-                                            float *shotNoiseFactorTensor,
-                                            RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
-                                            uint *xorwowSeedStream,
-                                            RpptROIPtr roiTensorPtrSrc)
+                                                uint3 srcStridesNCH,
+                                                T *dstPtr,
+                                                uint2 dstStridesNH,
+                                                float *shotNoiseFactorTensor,
+                                                RpptXorwowStateBoxMuller *xorwowInitialStatePtr,
+                                                uint *xorwowSeedStream,
+                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

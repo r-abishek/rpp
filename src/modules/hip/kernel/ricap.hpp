@@ -10,5 +10,3 @@ RppStatus hip_exec_ricap_tensor(T *srcPtr,
                                 RpptROIPtr roiPtrInputCropRegion,
                                 RpptRoiType roiType,
                                 rpp::Handle& handle);
-
-

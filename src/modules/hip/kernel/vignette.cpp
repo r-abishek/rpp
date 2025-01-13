@@ -306,37 +306,37 @@ RppStatus hip_exec_vignette_tensor(T *srcPtr,
 
 
 template RppStatus hip_exec_vignette_tensor<Rpp8u>(Rpp8u*,
-                                   RpptDescPtr,
-                                   Rpp8u*,
-                                   RpptDescPtr,
-                                   RpptROIPtr,
-                                   Rpp32f*,
-                                   RpptRoiType,
-                                   rpp::Handle&);
+                                                   RpptDescPtr,
+                                                   Rpp8u*,
+                                                   RpptDescPtr,
+                                                   RpptROIPtr,
+                                                   Rpp32f*,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);
 
 template RppStatus hip_exec_vignette_tensor<half>(half*,
-                                   RpptDescPtr,
-                                   half*,
-                                   RpptDescPtr,
-                                   RpptROIPtr,
-                                   Rpp32f*,
-                                   RpptRoiType,
-                                   rpp::Handle&);
+                                                   RpptDescPtr,
+                                                   half*,
+                                                   RpptDescPtr,
+                                                   RpptROIPtr,
+                                                   Rpp32f*,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);
 
 template RppStatus hip_exec_vignette_tensor<Rpp32f>(Rpp32f*,
-                                   RpptDescPtr,
-                                   Rpp32f*,
-                                   RpptDescPtr,
-                                   RpptROIPtr,
-                                   Rpp32f*,
-                                   RpptRoiType,
-                                   rpp::Handle&);
+                                                   RpptDescPtr,
+                                                   Rpp32f*,
+                                                   RpptDescPtr,
+                                                   RpptROIPtr,
+                                                   Rpp32f*,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);
 
 template RppStatus hip_exec_vignette_tensor<Rpp8s>(Rpp8s*,
-                                   RpptDescPtr,
-                                   Rpp8s*,
-                                   RpptDescPtr,
-                                   RpptROIPtr,
-                                   Rpp32f*,
-                                   RpptRoiType,
-                                   rpp::Handle&);
+                                                   RpptDescPtr,
+                                                   Rpp8s*,
+                                                   RpptDescPtr,
+                                                   RpptROIPtr,
+                                                   Rpp32f*,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);

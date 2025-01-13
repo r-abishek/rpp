@@ -264,6 +264,7 @@ RppStatus hip_exec_erase_tensor(T *srcPtr,
 
     return RPP_SUCCESS;
 }
+
 template RppStatus hip_exec_erase_tensor<Rpp8u, Rpp8u>(Rpp8u*,
                                                        RpptDescPtr,
                                                        Rpp8u*,
@@ -287,23 +288,23 @@ template RppStatus hip_exec_erase_tensor<half, half>(half*,
                                                      rpp::Handle&);
 
 template RppStatus hip_exec_erase_tensor<Rpp32f, Rpp32f>(Rpp32f*,
-                                                 RpptDescPtr,
-                                                 Rpp32f*,
-                                                 RpptDescPtr,
-                                                 RpptRoiLtrb*,
-                                                 Rpp32f*,
-                                                 Rpp32u*,
-                                                 RpptROIPtr,
-                                                 RpptRoiType,
-                                                 rpp::Handle&);
+                                                         RpptDescPtr,
+                                                         Rpp32f*,
+                                                         RpptDescPtr,
+                                                         RpptRoiLtrb*,
+                                                         Rpp32f*,
+                                                         Rpp32u*,
+                                                         RpptROIPtr,
+                                                         RpptRoiType,
+                                                         rpp::Handle&);
 
 template RppStatus hip_exec_erase_tensor<Rpp8s, Rpp8s>(Rpp8s*,
-                                                RpptDescPtr,
-                                                Rpp8s*,
-                                                RpptDescPtr,
-                                                RpptRoiLtrb*,
-                                                Rpp8s*,
-                                                Rpp32u*,
-                                                RpptROIPtr,
-                                                RpptRoiType,
-                                                rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp8s*,
+                                                       RpptDescPtr,
+                                                       RpptRoiLtrb*,
+                                                       Rpp8s*,
+                                                       Rpp32u*,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);
