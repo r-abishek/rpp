@@ -20,12 +20,12 @@ __device__ void fmaf_scalar_hip_compute(d_float24 *val_f24, float2 *fmaddParams_
 }
 
 __global__ void fused_multiply_add_scalar_ncdhw_hip_tensor(float *srcPtr,
-                                              uint3 srcStridesCDH,
-                                              float *dstPtr,
-                                              uint3 dstStridesCDH,
-                                              int channels,
-                                              float2 fmaddParams_f2,
-                                              RpptROI3DPtr roiGenericSrc)
+                                                           uint3 srcStridesCDH,
+                                                           float *dstPtr,
+                                                           uint3 dstStridesCDH,
+                                                           int channels,
+                                                           float2 fmaddParams_f2,
+                                                           RpptROI3DPtr roiGenericSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;        // W - inner most dim vectorized
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;              // H - second to inner
@@ -76,13 +76,13 @@ __global__ void fused_multiply_add_scalar_ndhwc_hip_tensor(float *srcPtr,
 }
 
 RppStatus hip_exec_fused_multiply_add_scalar_tensor(Rpp32f *srcPtr,
-                                       RpptGenericDescPtr srcGenericDescPtr,
-                                       Rpp32f *dstPtr,
-                                       RpptGenericDescPtr dstGenericDescPtr,
-                                       RpptROI3DPtr roiGenericPtrSrc,
-                                       Rpp32f *mulTensor,
-                                       Rpp32f *addTensor,
-                                       rpp::Handle& handle)
+                                                    RpptGenericDescPtr srcGenericDescPtr,
+                                                    Rpp32f *dstPtr,
+                                                    RpptGenericDescPtr dstGenericDescPtr,
+                                                    RpptROI3DPtr roiGenericPtrSrc,
+                                                    Rpp32f *mulTensor,
+                                                    Rpp32f *addTensor,
+                                                    rpp::Handle& handle)
 {
     if (dstGenericDescPtr->layout == RpptLayout::NCDHW)
     {
