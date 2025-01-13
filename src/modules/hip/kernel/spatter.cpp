@@ -1,4 +1,4 @@
-#include "spater.hpp"
+#include "spatter.hpp"
 #include <random>
 #include "spatter_mask.hpp"
 
