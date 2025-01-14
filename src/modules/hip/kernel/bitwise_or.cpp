@@ -247,34 +247,37 @@ RppStatus hip_exec_bitwise_or_tensor(T *srcPtr1,
 }
 
 template RppStatus hip_exec_bitwise_or_tensor<Rpp8u>(Rpp8u*,
-                                     Rpp8u*,
-                                     RpptDescPtr,
-                                     Rpp8u*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle& );
+                                                    Rpp8u*,
+                                                    RpptDescPtr,
+                                                    Rpp8u*,
+                                                    RpptDescPtr,
+                                                    RpptROIPtr,
+                                                    RpptRoiType,
+                                                    rpp::Handle&);
+
 template RppStatus hip_exec_bitwise_or_tensor<half>(half*,
-                                     half*,
-                                     RpptDescPtr,
-                                     half*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle& );
+                                                    half*,
+                                                    RpptDescPtr,
+                                                    half*,
+                                                    RpptDescPtr,
+                                                    RpptROIPtr,
+                                                    RpptRoiType,
+                                                    rpp::Handle&);
+
 template RppStatus hip_exec_bitwise_or_tensor<Rpp32f>(Rpp32f*,
-                                     Rpp32f*,
-                                     RpptDescPtr,
-                                     Rpp32f*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle& );
+                                                      Rpp32f*,
+                                                      RpptDescPtr,
+                                                      Rpp32f*,
+                                                      RpptDescPtr,
+                                                      RpptROIPtr,
+                                                      RpptRoiType,
+                                                      rpp::Handle&);
+
 template RppStatus hip_exec_bitwise_or_tensor<Rpp8s>(Rpp8s*,
-                                     Rpp8s*,
-                                     RpptDescPtr,
-                                     Rpp8s*,
-                                     RpptDescPtr,
-                                     RpptROIPtr,
-                                     RpptRoiType,
-                                     rpp::Handle& );
+                                                     Rpp8s*,
+                                                     RpptDescPtr,
+                                                     Rpp8s*,
+                                                     RpptDescPtr,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);

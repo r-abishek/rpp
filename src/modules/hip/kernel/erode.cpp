@@ -277,12 +277,12 @@ __device__ void erode_9x9_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
 // kernelSize = 3
 template <typename T>
 __global__ void erode_3x3_pkd_hip_tensor(T *srcPtr,
-                                     uint2 srcStridesNH,
-                                     T *dstPtr,
-                                     uint2 dstStridesNH,
-                                     uint padLength,
-                                     uint2 tileSize,
-                                     RpptROIPtr roiTensorPtrSrc)
+                                         uint2 srcStridesNH,
+                                         T *dstPtr,
+                                         uint2 dstStridesNH,
+                                         uint padLength,
+                                         uint2 tileSize,
+                                         RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -350,12 +350,12 @@ __global__ void erode_3x3_pkd_hip_tensor(T *srcPtr,
 // kernelSize = 5
 template <typename T>
 __global__ void erode_5x5_pkd_hip_tensor(T *srcPtr,
-                                     uint2 srcStridesNH,
-                                     T *dstPtr,
-                                     uint2 dstStridesNH,
-                                     uint padLength,
-                                     uint2 tileSize,
-                                     RpptROIPtr roiTensorPtrSrc)
+                                         uint2 srcStridesNH,
+                                         T *dstPtr,
+                                         uint2 dstStridesNH,
+                                         uint padLength,
+                                         uint2 tileSize,
+                                         RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -607,13 +607,13 @@ __global__ void erode_9x9_pkd_hip_tensor(T *srcPtr,
 // kernelSize = 3
 template <typename T>
 __global__ void erode_3x3_pln_hip_tensor(T *srcPtr,
-                                     uint3 srcStridesNCH,
-                                     T *dstPtr,
-                                     uint3 dstStridesNCH,
-                                     int channelsDst,
-                                     uint padLength,
-                                     uint2 tileSize,
-                                     RpptROIPtr roiTensorPtrSrc)
+                                         uint3 srcStridesNCH,
+                                         T *dstPtr,
+                                         uint3 dstStridesNCH,
+                                         int channelsDst,
+                                         uint padLength,
+                                         uint2 tileSize,
+                                         RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -703,13 +703,13 @@ __global__ void erode_3x3_pln_hip_tensor(T *srcPtr,
 // kernelSize = 5
 template <typename T>
 __global__ void erode_5x5_pln_hip_tensor(T *srcPtr,
-                                     uint3 srcStridesNCH,
-                                     T *dstPtr,
-                                     uint3 dstStridesNCH,
-                                     int channelsDst,
-                                     uint padLength,
-                                     uint2 tileSize,
-                                     RpptROIPtr roiTensorPtrSrc)
+                                         uint3 srcStridesNCH,
+                                         T *dstPtr,
+                                         uint3 dstStridesNCH,
+                                         int channelsDst,
+                                         uint padLength,
+                                         uint2 tileSize,
+                                         RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -805,13 +805,13 @@ __global__ void erode_5x5_pln_hip_tensor(T *srcPtr,
 // kernelSize = 7
 template <typename T>
 __global__ void erode_7x7_pln_hip_tensor(T *srcPtr,
-                                     uint3 srcStridesNCH,
-                                     T *dstPtr,
-                                     uint3 dstStridesNCH,
-                                     int channelsDst,
-                                     uint padLength,
-                                     uint2 tileSize,
-                                     RpptROIPtr roiTensorPtrSrc)
+                                         uint3 srcStridesNCH,
+                                         T *dstPtr,
+                                         uint3 dstStridesNCH,
+                                         int channelsDst,
+                                         uint padLength,
+                                         uint2 tileSize,
+                                         RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1029,12 +1029,12 @@ __global__ void erode_9x9_pln_hip_tensor(T *srcPtr,
 // kernelSize = 3
 template <typename T>
 __global__ void erode_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
-                                           uint2 srcStridesNH,
-                                           T *dstPtr,
-                                           uint3 dstStridesNCH,
-                                           uint padLength,
-                                           uint2 tileSize,
-                                           RpptROIPtr roiTensorPtrSrc)
+                                               uint2 srcStridesNH,
+                                               T *dstPtr,
+                                               uint3 dstStridesNCH,
+                                               uint padLength,
+                                               uint2 tileSize,
+                                               RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1181,12 +1181,12 @@ __global__ void erode_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
 // kernelSize = 7
 template <typename T>
 __global__ void erode_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
-                                           uint2 srcStridesNH,
-                                           T *dstPtr,
-                                           uint3 dstStridesNCH,
-                                           uint padLength,
-                                           uint2 tileSize,
-                                           RpptROIPtr roiTensorPtrSrc)
+                                               uint2 srcStridesNH,
+                                               T *dstPtr,
+                                               uint3 dstStridesNCH,
+                                               uint padLength,
+                                               uint2 tileSize,
+                                               RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1266,12 +1266,12 @@ __global__ void erode_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
 // kernelSize = 9
 template <typename T>
 __global__ void erode_9x9_pkd3_pln3_hip_tensor(T *srcPtr,
-                                           uint2 srcStridesNH,
-                                           T *dstPtr,
-                                           uint3 dstStridesNCH,
-                                           uint padLength,
-                                           uint2 tileSize,
-                                           RpptROIPtr roiTensorPtrSrc)
+                                               uint2 srcStridesNH,
+                                               T *dstPtr,
+                                               uint3 dstStridesNCH,
+                                               uint padLength,
+                                               uint2 tileSize,
+                                               RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1432,12 +1432,12 @@ __global__ void erode_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
 // kernelSize = 5
 template <typename T>
 __global__ void erode_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
-                                           uint3 srcStridesNCH,
-                                           T *dstPtr,
-                                           uint2 dstStridesNH,
-                                           uint padLength,
-                                           uint2 tileSize,
-                                           RpptROIPtr roiTensorPtrSrc)
+                                               uint3 srcStridesNCH,
+                                               T *dstPtr,
+                                               uint2 dstStridesNH,
+                                               uint padLength,
+                                               uint2 tileSize,
+                                               RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1511,12 +1511,12 @@ __global__ void erode_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
 // kernelSize = 7
 template <typename T>
 __global__ void erode_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
-                                           uint3 srcStridesNCH,
-                                           T *dstPtr,
-                                           uint2 dstStridesNH,
-                                           uint padLength,
-                                           uint2 tileSize,
-                                           RpptROIPtr roiTensorPtrSrc)
+                                               uint3 srcStridesNCH,
+                                               T *dstPtr,
+                                               uint2 dstStridesNH,
+                                               uint padLength,
+                                               uint2 tileSize,
+                                               RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1596,12 +1596,12 @@ __global__ void erode_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
 // kernelSize = 9
 template <typename T>
 __global__ void erode_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
-                                           uint3 srcStridesNCH,
-                                           T *dstPtr,
-                                           uint2 dstStridesNH,
-                                           uint padLength,
-                                           uint2 tileSize,
-                                           RpptROIPtr roiTensorPtrSrc)
+                                               uint3 srcStridesNCH,
+                                               T *dstPtr,
+                                               uint2 dstStridesNH,
+                                               uint padLength,
+                                               uint2 tileSize,
+                                               RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1983,6 +1983,7 @@ template RppStatus hip_exec_erode_tensor<Rpp8u>(Rpp8u*,
                                                 RpptROIPtr,
                                                 RpptRoiType,
                                                 rpp::Handle&);
+
 template RppStatus hip_exec_erode_tensor<half>(half*,
                                                RpptDescPtr,
                                                half*,
@@ -1991,6 +1992,7 @@ template RppStatus hip_exec_erode_tensor<half>(half*,
                                                RpptROIPtr,
                                                RpptRoiType,
                                                rpp::Handle&);
+
 template RppStatus hip_exec_erode_tensor<Rpp32f>(Rpp32f*,
                                                  RpptDescPtr,
                                                  Rpp32f*,
@@ -1999,6 +2001,7 @@ template RppStatus hip_exec_erode_tensor<Rpp32f>(Rpp32f*,
                                                  RpptROIPtr,
                                                  RpptRoiType,
                                                  rpp::Handle&);
+
 template RppStatus hip_exec_erode_tensor<Rpp8s>(Rpp8s*,
                                                 RpptDescPtr,
                                                 Rpp8s*,

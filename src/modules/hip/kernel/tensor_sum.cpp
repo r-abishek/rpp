@@ -2,8 +2,8 @@
 
 // -------------------- Set 0 - Reduction Stage 2 --------------------
 __global__ void tensor_sum_grid_result_hip(Rpp32u *srcPtr,
-                                       uint xBufferLength,
-                                       Rpp64u *dstPtr)
+                                           uint xBufferLength,
+                                           Rpp64u *dstPtr)
 {
     int id_x = hipThreadIdx_x * 8;
     int id_z = hipBlockIdx_z;
@@ -48,8 +48,8 @@ __global__ void tensor_sum_grid_result_hip(Rpp32u *srcPtr,
 }
 
 __global__ void tensor_sum_grid_result_hip(Rpp32s *srcPtr,
-                                       uint xBufferLength,
-                                       Rpp64s *dstPtr)
+                                           uint xBufferLength,
+                                           Rpp64s *dstPtr)
 {
     int id_x = hipThreadIdx_x * 8;
     int id_z = hipBlockIdx_z;
@@ -138,8 +138,8 @@ __global__ void tensor_sum_grid_result_hip(float *srcPtr,
 }
 
 __global__ void tensor_sum_grid_3channel_result_hip(Rpp32u *srcPtr,
-                                                uint xBufferLength,
-                                                Rpp64u *dstPtr)
+                                                    uint xBufferLength,
+                                                    Rpp64u *dstPtr)
 {
     int id_x = hipThreadIdx_x * 8;
     int id_z = hipBlockIdx_z;
@@ -217,8 +217,8 @@ __global__ void tensor_sum_grid_3channel_result_hip(Rpp32u *srcPtr,
 }
 
 __global__ void tensor_sum_grid_3channel_result_hip(Rpp32s *srcPtr,
-                                                uint xBufferLength,
-                                                Rpp64s *dstPtr)
+                                                    uint xBufferLength,
+                                                    Rpp64s *dstPtr)
 {
     int id_x = hipThreadIdx_x * 8;
     int id_z = hipBlockIdx_z;
@@ -296,8 +296,8 @@ __global__ void tensor_sum_grid_3channel_result_hip(Rpp32s *srcPtr,
 }
 
 __global__ void tensor_sum_grid_3channel_result_hip(float *srcPtr,
-                                                uint xBufferLength,
-                                                float *dstPtr)
+                                                    uint xBufferLength,
+                                                    float *dstPtr)
 {
     int id_x = hipThreadIdx_x * 8;
     int id_z = hipBlockIdx_z;
@@ -374,9 +374,9 @@ __global__ void tensor_sum_grid_3channel_result_hip(float *srcPtr,
 // Handle f16/f32
 template <typename T, typename U>
 __global__ void tensor_sum_pln1_hip(T *srcPtr,
-                                uint2 srcStridesNH,
-                                U *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint2 srcStridesNH,
+                                    U *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -432,22 +432,22 @@ __global__ void tensor_sum_pln1_hip(T *srcPtr,
 }
 
 template __global__ void tensor_sum_pln1_hip<half, Rpp32f>(half*,
-                                uint2,
-                                Rpp32f*,
-                                RpptROIPtr);
+                                                           uint2,
+                                                           Rpp32f*,
+                                                           RpptROIPtr);
 
 template __global__ void tensor_sum_pln1_hip<Rpp32f, Rpp32f>(Rpp32f*,
-                                uint2,
-                                Rpp32f*,
-                                RpptROIPtr);
+                                                             uint2,
+                                                             Rpp32f*,
+                                                             RpptROIPtr);
 
 // -------------------- Set 1 - Reduction Stage 1 --------------------
 // Handle U8
 template<>
 __global__ void tensor_sum_pln1_hip(Rpp8u *srcPtr,
-                                uint2 srcStridesNH,
-                                Rpp32u *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint2 srcStridesNH,
+                                    Rpp32u *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -506,9 +506,9 @@ __global__ void tensor_sum_pln1_hip(Rpp8u *srcPtr,
 // Handle I8
 template<>
 __global__ void tensor_sum_pln1_hip(Rpp8s *srcPtr,
-                                uint2 srcStridesNH,
-                                Rpp32s *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint2 srcStridesNH,
+                                    Rpp32s *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -567,9 +567,9 @@ __global__ void tensor_sum_pln1_hip(Rpp8s *srcPtr,
 // Handle f16/f32
 template <typename T, typename U>
 __global__ void tensor_sum_pln3_hip(T *srcPtr,
-                                uint3 srcStridesNCH,
-                                U *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint3 srcStridesNCH,
+                                    U *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -661,21 +661,21 @@ __global__ void tensor_sum_pln3_hip(T *srcPtr,
 }
 
 template __global__ void tensor_sum_pln3_hip<half, Rpp32f>(half*,
-                                uint3 srcStridesNH,
-                                Rpp32f*,
-                                RpptROIPtr);
+                                                           uint3,
+                                                           Rpp32f*,
+                                                           RpptROIPtr);
 
 template __global__ void tensor_sum_pln3_hip<Rpp32f, Rpp32f>(Rpp32f*,
-                                uint3 srcStridesNH,
-                                Rpp32f*,
-                                RpptROIPtr);
+                                                             uint3,
+                                                             Rpp32f*,
+                                                             RpptROIPtr);
 
 // Handle U8
 template<>
 __global__ void tensor_sum_pln3_hip(Rpp8u *srcPtr,
-                                uint3 srcStridesNCH,
-                                Rpp32u *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint3 srcStridesNCH,
+                                    Rpp32u *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -770,9 +770,9 @@ __global__ void tensor_sum_pln3_hip(Rpp8u *srcPtr,
 // Handle I8
 template<>
 __global__ void tensor_sum_pln3_hip(Rpp8s *srcPtr,
-                                uint3 srcStridesNCH,
-                                Rpp32s *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint3 srcStridesNCH,
+                                    Rpp32s *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -867,9 +867,9 @@ __global__ void tensor_sum_pln3_hip(Rpp8s *srcPtr,
 // Handle f16/f32
 template <typename T, typename U>
 __global__ void tensor_sum_pkd3_hip(T *srcPtr,
-                                uint2 srcStridesNH,
-                                U *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint2 srcStridesNH,
+                                    U *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -961,21 +961,21 @@ __global__ void tensor_sum_pkd3_hip(T *srcPtr,
 }
 
 template __global__ void tensor_sum_pkd3_hip<half, Rpp32f>(half*,
-                                uint2 srcStridesNH,
-                                Rpp32f*,
-                                RpptROIPtr);
+                                                           uint2,
+                                                           Rpp32f*,
+                                                           RpptROIPtr);
 
 template __global__ void tensor_sum_pkd3_hip<Rpp32f, Rpp32f>(Rpp32f*,
-                                uint2 srcStridesNH,
-                                Rpp32f*,
-                                RpptROIPtr);
+                                                             uint2,
+                                                             Rpp32f*,
+                                                             RpptROIPtr);
 
 // Handle U8
 template<>
 __global__ void tensor_sum_pkd3_hip(Rpp8u *srcPtr,
-                                uint2 srcStridesNH,
-                                Rpp32u *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint2 srcStridesNH,
+                                    Rpp32u *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -1069,9 +1069,9 @@ __global__ void tensor_sum_pkd3_hip(Rpp8u *srcPtr,
 // Handle I8
 template<>
 __global__ void tensor_sum_pkd3_hip(Rpp8s *srcPtr,
-                                uint2 srcStridesNH,
-                                Rpp32s *tensorSumArr,
-                                RpptROIPtr roiTensorPtrSrc)
+                                    uint2 srcStridesNH,
+                                    Rpp32s *tensorSumArr,
+                                    RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -1262,18 +1262,18 @@ RppStatus hip_exec_tensor_sum(T *srcPtr,
 }
 
 template RppStatus hip_exec_tensor_sum<half, Rpp32f>(half*,
-                                RpptDescPtr,
-                                Rpp32f*,
-                                RpptROIPtr,
-                                RpptRoiType,
-                                rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     Rpp32f*,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
 
 template RppStatus hip_exec_tensor_sum<Rpp32f, Rpp32f>(Rpp32f*,
-                                RpptDescPtr,
-                                Rpp32f*,
-                                RpptROIPtr,
-                                RpptRoiType,
-                                rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);
 
 // -------------------- Set 2 - Kernel Executors --------------------
 // Handle U8 datatype

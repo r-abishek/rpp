@@ -226,29 +226,29 @@ RppStatus hip_exec_tensor_mean(T *srcPtr,
 }
 
 template RppStatus hip_exec_tensor_mean<Rpp8u, Rpp32u>(Rpp8u*,
-                               RpptDescPtr,
-                               Rpp32f*,
-                               RpptROIPtr,
-                               RpptRoiType,
-                               rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);
 
 template RppStatus hip_exec_tensor_mean<half, float>(half*,
-                               RpptDescPtr,
-                               Rpp32f*,
-                               RpptROIPtr,
-                               RpptRoiType,
-                               rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     Rpp32f*,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
 
 template RppStatus hip_exec_tensor_mean<Rpp32f, float>(Rpp32f*,
-                               RpptDescPtr,
-                               Rpp32f*,
-                               RpptROIPtr,
-                               RpptRoiType,
-                               rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);
 
 template RppStatus hip_exec_tensor_mean<Rpp8s, Rpp32s>(Rpp8s*,
-                               RpptDescPtr,
-                               Rpp32f*,
-                               RpptROIPtr,
-                               RpptRoiType,
-                               rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);

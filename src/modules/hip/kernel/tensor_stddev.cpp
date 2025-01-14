@@ -493,33 +493,33 @@ RppStatus hip_exec_tensor_stddev(T *srcPtr,
 }
 
 template RppStatus hip_exec_tensor_stddev<Rpp8u>(Rpp8u*,
-                                 RpptDescPtr,
-                                 Rpp32f*,
-                                 Rpp32f*,
-                                 RpptROIPtr,
-                                 RpptRoiType,
-                                 rpp::Handle&);
+                                                 RpptDescPtr,
+                                                 Rpp32f*,
+                                                 Rpp32f*,
+                                                 RpptROIPtr,
+                                                 RpptRoiType,
+                                                 rpp::Handle&);
 
 template RppStatus hip_exec_tensor_stddev<half>(half*,
-                                 RpptDescPtr,
-                                 Rpp32f*,
-                                 Rpp32f*,
-                                 RpptROIPtr,
-                                 RpptRoiType,
-                                 rpp::Handle&);
+                                                RpptDescPtr,
+                                                Rpp32f*,
+                                                Rpp32f*,
+                                                RpptROIPtr,
+                                                RpptRoiType,
+                                                rpp::Handle&);
 
 template RppStatus hip_exec_tensor_stddev<Rpp32f>(Rpp32f*,
-                                 RpptDescPtr,
-                                 Rpp32f*,
-                                 Rpp32f*,
-                                 RpptROIPtr,
-                                 RpptRoiType,
-                                 rpp::Handle&);
+                                                  RpptDescPtr,
+                                                  Rpp32f*,
+                                                  Rpp32f*,
+                                                  RpptROIPtr,
+                                                  RpptRoiType,
+                                                  rpp::Handle&);
 
 template RppStatus hip_exec_tensor_stddev<Rpp8s>(Rpp8s*,
-                                 RpptDescPtr,
-                                 Rpp32f*,
-                                 Rpp32f*,
-                                 RpptROIPtr,
-                                 RpptRoiType,
-                                 rpp::Handle&);
+                                                 RpptDescPtr,
+                                                 Rpp32f*,
+                                                 Rpp32f*,
+                                                 RpptROIPtr,
+                                                 RpptRoiType,
+                                                 rpp::Handle&);

@@ -409,29 +409,29 @@ RppStatus hip_exec_tensor_min(T *srcPtr,
 }
 
 template RppStatus hip_exec_tensor_min<Rpp8u, Rpp8u>(Rpp8u*,
-                              RpptDescPtr,
-                              Rpp8u*,
-                              RpptROIPtr,
-                              RpptRoiType,
-                              rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     Rpp8u*,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
 
 template RppStatus hip_exec_tensor_min<half, half>(half*,
-                              RpptDescPtr,
-                              half*,
-                              RpptROIPtr,
-                              RpptRoiType,
-                              rpp::Handle&);
+                                                   RpptDescPtr,
+                                                   half*,
+                                                   RpptROIPtr,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);
 
 template RppStatus hip_exec_tensor_min<Rpp32f, Rpp32f>(Rpp32f*,
-                              RpptDescPtr,
-                              Rpp32f*,
-                              RpptROIPtr,
-                              RpptRoiType,
-                              rpp::Handle&);
+                                                       RpptDescPtr,
+                                                       Rpp32f*,
+                                                       RpptROIPtr,
+                                                       RpptRoiType,
+                                                       rpp::Handle&);
 
 template RppStatus hip_exec_tensor_min<Rpp8s, Rpp8s>(Rpp8s*,
-                              RpptDescPtr,
-                              Rpp8s*,
-                              RpptROIPtr,
-                              RpptRoiType,
-                              rpp::Handle&);
+                                                     RpptDescPtr,
+                                                     Rpp8s*,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
