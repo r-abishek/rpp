@@ -1,4 +1,4 @@
-#include "erase.hpp"
+#include "hip_tensor_effects_augmentations.hpp"
 
 // -------------------- Set 0 - Erase main kernels --------------------
 template <typename T, typename U>

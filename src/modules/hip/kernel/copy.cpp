@@ -1,4 +1,4 @@
-#include "copy.hpp"
+#include "hip_tensor_data_exchange_operations.hpp"
 
 template <typename T>
 __global__ void copy_pkd3_pln3_hip_tensor(T *srcPtr,

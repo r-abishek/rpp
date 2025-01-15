@@ -1,5 +1,4 @@
-#include "color_twist.hpp"
-#include "rpp_cpu_common.hpp"
+#include "hip_tensor_color_augmentations.hpp"
 
 __device__ void color_twist_1RGB_hip_compute(float *pixelR, float *pixelG, float *pixelB, float4 *colorTwistParams_f4)
 {

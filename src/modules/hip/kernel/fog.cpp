@@ -1,4 +1,4 @@
-#include "fog.hpp"
+#include "hip_tensor_effects_augmentations.hpp"
 #include <random>
 
 __device__ __forceinline__ void fog_grey_hip_compute(d_float8 *r_f8, d_float8 *g_f8, d_float8 *b_f8, float4 *greyFactor_f4)

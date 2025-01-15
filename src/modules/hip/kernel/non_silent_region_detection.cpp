@@ -1,4 +1,4 @@
-#include "non_silent_region_detection.hpp"
+#include "hip_tensor_audio_augmentations.hpp"
 
 // -------------------- Set 0 -  moving mean square kernel device helpers --------------------
 

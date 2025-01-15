@@ -1,4 +1,4 @@
-#include "crop.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 template <typename T>
 __global__ void crop_pkd_hip_tensor(T *srcPtr,

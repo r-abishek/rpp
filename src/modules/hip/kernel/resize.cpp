@@ -1,4 +1,4 @@
-#include "resize.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 // -------------------- Set 0 - resize device helpers --------------------
 

@@ -1,4 +1,4 @@
-#include "magnitude.hpp"
+#include "hip_tensor_arithmetic_augmentations.hpp"
 
 template <typename T>
 __device__ void magnitude_hip_compute(T *srcPtr, d_float8 *src1_f8, d_float8 *src2_f8, d_float8 *dst_f8)

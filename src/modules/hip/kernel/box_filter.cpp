@@ -1,4 +1,4 @@
-#include "box_filter.hpp"
+#include "hip_tensor_filter_augmentations.hpp"
 
 // -------------------- Set 0 - box_filter device helpers --------------------
 

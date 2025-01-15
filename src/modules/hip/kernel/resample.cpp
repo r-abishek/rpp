@@ -1,4 +1,4 @@
-#include "resample.hpp"
+#include "hip_tensor_audio_augmentations.hpp"
 
 // -------------------- Set 0 - resample kernel device helpers  --------------------
 

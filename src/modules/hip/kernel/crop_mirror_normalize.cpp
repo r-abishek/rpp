@@ -1,4 +1,4 @@
-#include "crop_mirror_normalize.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 __device__ void cmn_hip_compute(uchar *srcPtr, float *dstPtr, d_float8 *pix_f8, d_float8 *cmnParams_f8)
 {

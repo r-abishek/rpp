@@ -1,4 +1,4 @@
-#include "color_to_greyscale.hpp"
+#include "hip_tensor_data_exchange_operations.hpp"
 
 __device__ void color_to_greyscale_hip_compute(uchar *srcPtr, d_float24 *src_f24, d_float8 *dst_f8, d_float12 *channelWeights_f12)
 {

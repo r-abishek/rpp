@@ -1,4 +1,4 @@
-#include "contrast.hpp"
+#include "hip_tensor_color_augmentations.hpp"
 
 __device__ void contrast_hip_compute(uchar *srcPtr, d_float8 *pix_f8, d_float8 *contrastParams_f8)
 {

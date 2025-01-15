@@ -1,4 +1,4 @@
-#include "normalize.hpp"
+#include "hip_tensor_statistical_operations.hpp"
 
 #define MAX_SHARED_MEMORY_SIZE 1024
 

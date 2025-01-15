@@ -1,4 +1,4 @@
-#include "resize_mirror_normalize.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 __device__ void rmn_hip_compute(uchar *srcPtr, uchar *dstPtr, d_float8 *pix_f8, d_float8 *rmnParamsf8)
 {

@@ -1,4 +1,4 @@
-#include "gridmask.hpp"
+#include "hip_tensor_effects_augmentations.hpp"
 
 // Gridmask helper - Computing row and column ratios
 

@@ -1,4 +1,4 @@
-#include "down_mixing.hpp"
+#include "hip_tensor_audio_augmentations.hpp"
 
 __global__ void down_mixing_hip_tensor(float *srcPtr,
                                        uint srcStride,

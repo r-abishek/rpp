@@ -1,4 +1,4 @@
-#include "erode.hpp"
+#include "hip_tensor_morphological_operations.hpp"
 
 // -------------------- Set 0 - erode device helpers --------------------
 

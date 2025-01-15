@@ -1,4 +1,4 @@
-#include "log.hpp"
+#include "hip_tensor_arithmetic_operations.hpp"
 
 // -------------------- Set 1 - helper kernels --------------------
 template <typename T>

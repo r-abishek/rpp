@@ -1,4 +1,4 @@
-#include "fused_multiply_add_scalar.hpp"
+#include "hip_tensor_arithmetic_operations.hpp"
 
 __device__ void fmaf_scalar_hip_compute(d_float8 *val_f8, float2 *fmaddParams_f2)
 {

@@ -1,4 +1,4 @@
-#include "remap.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 __device__ float4 rpp_hip_load4(float *table, uint4 &tableValLoc)
 {

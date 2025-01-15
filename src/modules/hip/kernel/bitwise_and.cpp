@@ -1,4 +1,4 @@
-#include "bitwise_and.hpp"
+#include "hip_tensor_logical_operations.hpp"
 
 /* BitwiseAND is logical operation only on U8/I8 types.
    For a Rpp32f precision image (pixel values from 0-1), the BitwiseAND is applied on a 0-255

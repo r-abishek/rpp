@@ -1,4 +1,4 @@
-#include "pre_emphasis_filter.hpp"
+#include "hip_tensor_audio_augmentations.hpp"
 
 __device__ __forceinline__ void pre_emphasis_filter_hip_compute(d_float8 *src1_f8, d_float8 *src2_f8, d_float8 *dst_f8, float4 *coeff_f4)
 {

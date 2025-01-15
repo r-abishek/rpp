@@ -1,4 +1,4 @@
-#include "glitch.hpp"
+#include "hip_tensor_effects_augmentations.hpp"
 
 template <typename T>
 __device__ __forceinline__ void rpp_hip_load1_glitch(T *srcPtr, uint2 srcStrideCH, float &locSrcX, float &locSrcY, float *dst, int channels)

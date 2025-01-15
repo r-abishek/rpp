@@ -1,5 +1,5 @@
 
-#include "mel_filter_bank.hpp"
+#include "hip_tensor_audio_augmentations.hpp"
 
 /*
 This kernel transforms the 2D spectrogram output into a Mel-scaled output based on the number of filters (numFilter) and applies optional normalization.

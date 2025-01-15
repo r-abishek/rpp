@@ -1,4 +1,4 @@
-#include "crop_and_patch.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 // -------------------- Set 0 - crop and patch device helpers --------------------
 

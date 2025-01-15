@@ -1,4 +1,4 @@
-#include "flip_voxel.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 // Flips a NCDHW tensor along x direction
 // Also Flips along y direction if mirrorYZ.x is set to 1

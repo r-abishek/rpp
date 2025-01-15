@@ -1,4 +1,4 @@
-#include "noise_salt_and_pepper.hpp"
+#include "hip_tensor_effects_augmentations.hpp"
 #include "rng_seed_stream.hpp"
 
 __device__ void salt_and_pepper_noise_1_hip_compute(float *pix, float noiseProbability, float saltProbability, float salt, float pepper, float randomNumberFloat)
