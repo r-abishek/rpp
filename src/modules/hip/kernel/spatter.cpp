@@ -1,4 +1,4 @@
-#include "hip_tensor_effects_augmentation.hpp"
+#include "hip_tensor_effects_augmentations.hpp"
 #include <random>
 #include "spatter_mask.hpp"
 
