@@ -1,4 +1,4 @@
-#include "warp_perspective.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 // -------------------- Set 0 - warp_perspective device helpers --------------------
 

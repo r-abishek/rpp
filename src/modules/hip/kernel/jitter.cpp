@@ -1,4 +1,4 @@
-#include "jitter.hpp"
+#include "hip_tensor_effects_augmentations.hpp"
 #include "rng_seed_stream.hpp"
 
 __device__ __forceinline__ void jitter_roi_and_srclocs_hip_compute(int4 *srcRoiPtr_i4, RpptXorwowStateBoxMuller *xorwowState, uint kernelSize, uint bound, int id_x, int id_y, d_float16 *locSrc_f16)

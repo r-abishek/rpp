@@ -1,4 +1,4 @@
-#include "tensor_stddev.hpp"
+#include "hip_tensor_statistical_operations.hpp"
 #include "reduction.hpp"
 
 // ----------------------- Helper Functions --------------------------

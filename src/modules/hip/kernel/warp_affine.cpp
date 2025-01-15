@@ -1,4 +1,4 @@
-#include "warp_affine.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 // -------------------- Set 0 - warp_affine device helpers --------------------
 

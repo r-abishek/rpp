@@ -1,4 +1,4 @@
-#include "ricap.hpp"
+#include "hip_tensor_effects_augmentation.hpp"
 
 template <typename T>
 __global__ void ricap_pkd_tensor(T *srcPtr,

@@ -1,4 +1,4 @@
-#include "subtract_scalar.hpp"
+#include "hip_tensor_arithmetic_operations.hpp"
 
 __global__ void subtract_scalar_ncdhw_hip_tensor(float *srcPtr,
                                                  uint3 srcStridesCDH,

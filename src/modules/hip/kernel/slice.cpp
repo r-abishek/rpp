@@ -1,4 +1,4 @@
-#include "slice.hpp"
+#include "hip_exec_geometric_augmentations.hpp"
 
 template <typename T>
 __global__ void fill_value_ncdhw_hip_tensor(T *dstPtr,

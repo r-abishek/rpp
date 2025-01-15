@@ -1,4 +1,4 @@
-#include "spectrogram.hpp"
+#include "hip_tensor_audio_augmentations.hpp"
 #include "rpp_cpu_common.hpp"
 
 /* Spectrogram kernel working overview

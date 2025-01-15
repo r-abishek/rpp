@@ -1,4 +1,4 @@
-#include "water.hpp"
+#include "hip_tensor_effects_augmentation.hpp"
 
 __device__ void water_roi_and_srclocs_hip_compute(int id_x, int id_y, float4 *amplX_f4, float4 *amplY_f4,
                                                   float freqX, float freqY, float phaseX, float phaseY, d_float16 *locSrc_f16)

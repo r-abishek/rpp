@@ -1,5 +1,4 @@
-#include "tensor_mean.hpp"
-#include "tensor_sum.hpp"
+#include "hip_tensor_statistical_operations"
 #include "reduction.hpp"
 
 // -------------------- Set 0 - Reduction Stage 2 --------------------

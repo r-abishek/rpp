@@ -1,4 +1,4 @@
-#include "transpose.hpp"
+#include "hip_tensor_geometric_augmentations.hpp"
 
 // Vectorized dst->src mapping
 template <typename T>
