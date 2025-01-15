@@ -1,4 +1,4 @@
-#include "hip_tensor_statistical_operations"
+#include "hip_tensor_statistical_operations.hpp"
 #include "reduction.hpp"
 
 // -------------------- Set 0 - Reduction Stage 2 --------------------
