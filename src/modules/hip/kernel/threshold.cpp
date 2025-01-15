@@ -1,5 +1,4 @@
-#include <hip/hip_runtime.h>
-#include "rpp_hip_common.hpp"
+#include "hip_tensor_statistical_augmentations.hpp"
 
 __device__ void threshold_hip_rgb_compute(d_float24 *pix_f24, float3 *minRGB_f3, float3 *maxRGB_f3, float2 *rangeMinMax)
 {
@@ -304,3 +303,43 @@ RppStatus hip_exec_threshold_tensor(T *srcPtr,
 
     return RPP_SUCCESS;
 }
+
+template RppStatus hip_exec_threshold_tensor<Rpp8u>(Rpp8u*,
+                                                    RpptDescPtr,
+                                                    Rpp8u*,
+                                                    RpptDescPtr,
+                                                    Rpp32f*,
+                                                    Rpp32f*,
+                                                    RpptROIPtr,
+                                                    RpptRoiType,
+                                                    rpp::Handle&);
+
+template RppStatus hip_exec_threshold_tensor<half>(half*,
+                                                   RpptDescPtr,
+                                                   half*,
+                                                   RpptDescPtr,
+                                                   Rpp32f*,
+                                                   Rpp32f*,
+                                                   RpptROIPtr,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);
+
+template RppStatus hip_exec_threshold_tensor<Rpp32f>(Rpp32f*,
+                                                     RpptDescPtr,
+                                                     Rpp32f*,
+                                                     RpptDescPtr,
+                                                     Rpp32f*,
+                                                     Rpp32f*,
+                                                     RpptROIPtr,
+                                                     RpptRoiType,
+                                                     rpp::Handle&);
+
+template RppStatus hip_exec_threshold_tensor<Rpp8s>(Rpp8s*,
+                                                    RpptDescPtr,
+                                                    Rpp8s*,
+                                                    RpptDescPtr,
+                                                    Rpp32f*,
+                                                    Rpp32f*,
+                                                    RpptROIPtr,
+                                                    RpptRoiType,
+                                                    rpp::Handle&);

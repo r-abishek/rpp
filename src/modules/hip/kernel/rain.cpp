@@ -1,5 +1,4 @@
-#include <hip/hip_runtime.h>
-#include "rpp_hip_common.hpp"
+#include "hip_tensor_effects_augmentations.hpp"
 
 // Constants to represent the rain intensity for different data types
 #define RAIN_INTENSITY_8U 200   // Intensity value for Rpp8u
@@ -302,3 +301,55 @@ RppStatus hip_exec_rain_tensor(T *srcPtr,
 
     return RPP_SUCCESS;
 }
+
+template RppStatus hip_exec_rain_tensor<Rpp8u>(Rpp8u*,
+                                               RpptDescPtr,
+                                               Rpp8u*,
+                                               RpptDescPtr,
+                                               Rpp32f,
+                                               Rpp32u,
+                                               Rpp32u,
+                                               Rpp32f,
+                                               Rpp32f*,
+                                               RpptROIPtr,
+                                               RpptRoiType,
+                                               rpp::Handle&);
+
+template RppStatus hip_exec_rain_tensor<half>(half*,
+                                              RpptDescPtr,
+                                              half*,
+                                              RpptDescPtr,
+                                              Rpp32f,
+                                              Rpp32u,
+                                              Rpp32u,
+                                              Rpp32f,
+                                              Rpp32f*,
+                                              RpptROIPtr,
+                                              RpptRoiType,
+                                              rpp::Handle&);
+
+template RppStatus hip_exec_rain_tensor<Rpp32f>(Rpp32f*,
+                                                RpptDescPtr,
+                                                Rpp32f*,
+                                                RpptDescPtr,
+                                                Rpp32f,
+                                                Rpp32u,
+                                                Rpp32u,
+                                                Rpp32f,
+                                                Rpp32f*,
+                                                RpptROIPtr,
+                                                RpptRoiType,
+                                                rpp::Handle&);
+
+template RppStatus hip_exec_rain_tensor<Rpp8s>(Rpp8s*,
+                                               RpptDescPtr,
+                                               Rpp8s*,
+                                               RpptDescPtr,
+                                               Rpp32f,
+                                               Rpp32u,
+                                               Rpp32u,
+                                               Rpp32f,
+                                               Rpp32f*,
+                                               RpptROIPtr,
+                                               RpptRoiType,
+                                               rpp::Handle&);

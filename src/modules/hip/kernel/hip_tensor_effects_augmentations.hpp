@@ -121,6 +121,20 @@ RppStatus hip_exec_non_linear_blend_tensor(T *srcPtr1,
                                            rpp::Handle& handle);
 
 template <typename T>
+RppStatus hip_exec_rain_tensor(T *srcPtr,
+                               RpptDescPtr srcDescPtr,
+                               T *dstPtr,
+                               RpptDescPtr dstDescPtr,
+                               Rpp32f rainPercentage,
+                               Rpp32u rainWidth,
+                               Rpp32u rainHeight,
+                               Rpp32f slantAngle,
+                               Rpp32f *alpha,
+                               RpptROIPtr roiTensorPtrSrc,
+                               RpptRoiType roiType,
+                               rpp::Handle& handle);
+
+template <typename T>
 RppStatus hip_exec_ricap_tensor(T *srcPtr,
                                 RpptDescPtr srcDescPtr,
                                 T *dstPtr,

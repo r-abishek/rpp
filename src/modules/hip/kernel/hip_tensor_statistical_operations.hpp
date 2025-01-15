@@ -27,6 +27,20 @@ SOFTWARE.
 #include <hip/hip_runtime.h>
 #include "rpp_hip_common.hpp"
 
+template <typename T>
+RppStatus hip_exec_normalize_tensor(T *srcPtr,
+                                    RpptGenericDescPtr srcGenericDescPtr,
+                                    T *dstPtr,
+                                    RpptGenericDescPtr dstGenericDescPtr,
+                                    Rpp32u axisMask,
+                                    Rpp32f *meanTensor,
+                                    Rpp32f *stdDevTensor,
+                                    Rpp8u computeMeanStddev,
+                                    Rpp32f scale,
+                                    Rpp32f shift,
+                                    Rpp32u *roiTensor,
+                                    rpp::Handle& handle);
+
 template <typename T, typename U>
 RppStatus hip_exec_tensor_max(T *srcPtr,
                               RpptDescPtr srcDescPtr,
@@ -143,17 +157,14 @@ RppStatus hip_exec_tensor_sum<Rpp8s, Rpp64s>(Rpp8s *srcPtr,
                                              rpp::Handle& handle);
 
 template <typename T>
-RppStatus hip_exec_normalize_tensor(T *srcPtr,
-                                    RpptGenericDescPtr srcGenericDescPtr,
+RppStatus hip_exec_threshold_tensor(T *srcPtr,
+                                    RpptDescPtr srcDescPtr,
                                     T *dstPtr,
-                                    RpptGenericDescPtr dstGenericDescPtr,
-                                    Rpp32u axisMask,
-                                    Rpp32f *meanTensor,
-                                    Rpp32f *stdDevTensor,
-                                    Rpp8u computeMeanStddev,
-                                    Rpp32f scale,
-                                    Rpp32f shift,
-                                    Rpp32u *roiTensor,
+                                    RpptDescPtr dstDescPtr,
+                                    Rpp32f *minTensor,
+                                    Rpp32f *maxTensor,
+                                    RpptROIPtr roiTensorPtrSrc,
+                                    RpptRoiType roiType,
                                     rpp::Handle& handle);
 
 #endif // HIP_TENSOR_STATISTICAL_OPERATIONS_HPP
