@@ -38,6 +38,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                      RpptRoiType roiType,
                                      rpp::Handle& handle);
 
+template <typename T>
 RppStatus hip_exec_gaussian_filter_tensor(T *srcPtr,
                                           RpptDescPtr srcDescPtr,
                                           T *dstPtr,
