@@ -1,6 +1,5 @@
 #include <hip/hip_runtime.h>
 #include "rpp_hip_common.hpp"
-#include "reduction.hpp"
 
 // -------------------- Set 1 - Kernel Executors --------------------
 

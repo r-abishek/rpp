@@ -1,5 +1,4 @@
 #include <hip/hip_runtime.h>
-#include <omp.h>
 #include "rpp_hip_common.hpp"
 
 template <typename T>

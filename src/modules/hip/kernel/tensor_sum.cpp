@@ -1,4 +1,5 @@
 #include "tensor_sum.hpp"
+#include "reduction.hpp"
 
 // -------------------- Set 0 - Reduction Stage 2 --------------------
 __global__ void tensor_sum_grid_result_hip(Rpp32u *srcPtr,

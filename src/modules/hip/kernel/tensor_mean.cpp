@@ -1,5 +1,6 @@
 #include "tensor_mean.hpp"
 #include "tensor_sum.hpp"
+#include "reduction.hpp"
 
 // -------------------- Set 0 - Reduction Stage 2 --------------------
 template <typename T>

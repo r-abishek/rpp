@@ -1,4 +1,5 @@
 #include "tensor_stddev.hpp"
+#include "reduction.hpp"
 
 // ----------------------- Helper Functions --------------------------
 

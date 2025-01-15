@@ -1,6 +1,5 @@
 #include <hip/hip_runtime.h>
 #include "rpp_hip_common.hpp"
-#include "reduction.hpp"
 
 // Handle f16/f32
 template <typename T, typename U>
