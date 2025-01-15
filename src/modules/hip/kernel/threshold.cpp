@@ -1,4 +1,4 @@
-#include "hip_tensor_statistical_augmentations.hpp"
+#include "hip_tensor_statistical_operations.hpp"
 
 __device__ void threshold_hip_rgb_compute(d_float24 *pix_f24, float3 *minRGB_f3, float3 *maxRGB_f3, float2 *rangeMinMax)
 {
