@@ -450,11 +450,11 @@ template RppStatus hip_exec_resize_mirror_normalize_tensor<Rpp32f, Rpp32f>(Rpp32
                                                                            RpptDescPtr,
                                                                            Rpp32f*,
                                                                            RpptDescPtr,
-                                                                           RRpptImagePatchPtr,
-                                                                           RRpptInterpolationType,
-                                                                           RRpptROIPtr,
-                                                                           RRpptRoiType,
-                                                                           Rrpp::Handle&);
+                                                                           RpptImagePatchPtr,
+                                                                           RpptInterpolationType,
+                                                                           RpptROIPtr,
+                                                                           RpptRoiType,
+                                                                           rpp::Handle&);
 
 template RppStatus hip_exec_resize_mirror_normalize_tensor<Rpp8s, Rpp8s>(Rpp8s*,
                                                                          RpptDescPtr,
