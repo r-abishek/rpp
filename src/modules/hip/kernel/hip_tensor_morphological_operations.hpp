@@ -22,15 +22,30 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#ifndef HIP_TENSOR_AUDIO_AUGMENTATIONS_HPP
-#define HIP_TENSOR_AUDIO_AUGMENTATIONS_HPP
+#ifndef HIP_TENSOR_MORPHOLOGICAL_OPERATIONS_HPP
+#define HIP_TENSOR_MORPHOLOGICAL_OPERATIONS_HPP
 
-#include "kernel/non_silent_region_detection.hpp"
-#include "kernel/down_mixing.hpp"
-#include "kernel/mel_filter_bank.hpp"
-#include "kernel/pre_emphasis_filter.hpp"
-#include "kernel/to_decibels.hpp"
-#include "kernel/resample.hpp"
-#include "kernel/spectrogram.hpp"
+#include <hip/hip_runtime.h>
+#include "rpp_hip_common.hpp"
 
-#endif // HIP_TENSOR_AUDIO_AUGMENTATIONS_HPP
+template <typename T>
+RppStatus hip_exec_dilate_tensor(T *srcPtr,
+                                 RpptDescPtr srcDescPtr,
+                                 T *dstPtr,
+                                 RpptDescPtr dstDescPtr,
+                                 Rpp32u kernelSize,
+                                 RpptROIPtr roiTensorPtrSrc,
+                                 RpptRoiType roiType,
+                                 rpp::Handle& handle);
+
+template <typename T>
+RppStatus hip_exec_erode_tensor(T *srcPtr,
+                                RpptDescPtr srcDescPtr,
+                                T *dstPtr,
+                                RpptDescPtr dstDescPtr,
+                                Rpp32u kernelSize,
+                                RpptROIPtr roiTensorPtrSrc,
+                                RpptRoiType roiType,
+                                rpp::Handle& handle);
+
+#endif // HIP_TENSOR_MORPHOLOGICAL_OPERATIONS_HPP

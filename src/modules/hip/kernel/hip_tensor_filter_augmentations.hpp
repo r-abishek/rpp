@@ -25,7 +25,26 @@ SOFTWARE.
 #ifndef HIP_TENSOR_FILTER_AUGMENTATIONS_HPP
 #define HIP_TENSOR_FILTER_AUGMENTATIONS_HPP
 
-#include "kernel/box_filter.hpp"
-#include "kernel/gaussian_filter.hpp"
+#include <hip/hip_runtime.h>
+#include "rpp_hip_common.hpp"
+
+template <typename T>
+RppStatus hip_exec_box_filter_tensor(T *srcPtr,
+                                     RpptDescPtr srcDescPtr,
+                                     T *dstPtr,
+                                     RpptDescPtr dstDescPtr,
+                                     Rpp32u kernelSize,
+                                     RpptROIPtr roiTensorPtrSrc,
+                                     RpptRoiType roiType,
+                                     rpp::Handle& handle);
+
+RppStatus hip_exec_gaussian_filter_tensor(T *srcPtr,
+                                          RpptDescPtr srcDescPtr,
+                                          T *dstPtr,
+                                          RpptDescPtr dstDescPtr,
+                                          Rpp32u kernelSize,
+                                          RpptROIPtr roiTensorPtrSrc,
+                                          RpptRoiType roiType,
+                                          rpp::Handle& handle);
 
 #endif // HIP_TENSOR_FILTER_AUGMENTATIONS_HPP

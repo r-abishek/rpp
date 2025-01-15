@@ -25,7 +25,27 @@ SOFTWARE.
 #ifndef HIP_TENSOR_LOGICAL_OPERATIONS_HPP
 #define HIP_TENSOR_LOGICAL_OPERATIONS_HPP
 
-#include "kernel/bitwise_and.hpp"
-#include "kernel/bitwise_or.hpp"
+#include <hip/hip_runtime.h>
+#include "rpp_hip_common.hpp"
+
+template <typename T>
+RppStatus hip_exec_bitwise_and_tensor(T *srcPtr1,
+                                      T *srcPtr2,
+                                      RpptDescPtr srcDescPtr,
+                                      T *dstPtr,
+                                      RpptDescPtr dstDescPtr,
+                                      RpptROIPtr roiTensorPtrSrc,
+                                      RpptRoiType roiType,
+                                      rpp::Handle& handle);
+
+template <typename T>
+RppStatus hip_exec_bitwise_or_tensor(T *srcPtr1,
+                                     T *srcPtr2,
+                                     RpptDescPtr srcDescPtr,
+                                     T *dstPtr,
+                                     RpptDescPtr dstDescPtr,
+                                     RpptROIPtr roiTensorPtrSrc,
+                                     RpptRoiType roiType,
+                                     rpp::Handle& handle);
 
 #endif // HIP_TENSOR_LOGICAL_OPERATIONS_HPP

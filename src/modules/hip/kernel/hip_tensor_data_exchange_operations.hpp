@@ -25,8 +25,30 @@ SOFTWARE.
 #ifndef HIP_TENSOR_DATA_EXCHANGE_OPERATIONS_HPP
 #define HIP_TENSOR_DATA_EXCHANGE_OPERATIONS_HPP
 
-#include "kernel/copy.hpp"
-#include "kernel/swap_channels.hpp"
-#include "kernel/color_to_greyscale.hpp"
+#include <hip/hip_runtime.h>
+#include "rpp_hip_common.hpp"
+
+template <typename T>
+RppStatus hip_exec_color_to_greyscale_tensor(T *srcPtr,
+                                             RpptDescPtr srcDescPtr,
+                                             T *dstPtr,
+                                             RpptDescPtr dstDescPtr,
+                                             Rpp32f *channelWeights,
+                                             rpp::Handle& handle);
+
+template <typename T>
+RppStatus hip_exec_copy_tensor(T *srcPtr,
+                               RpptDescPtr srcDescPtr,
+                               T *dstPtr,
+                               RpptDescPtr dstDescPtr,
+                               rpp::Handle& handle);
+
+template <typename T>
+RppStatus hip_exec_swap_channels_tensor(T *srcPtr,
+                                        RpptDescPtr srcDescPtr,
+                                        T *dstPtr,
+                                        RpptDescPtr dstDescPtr,
+                                        rpp::Handle& handle);
+
 
 #endif // HIP_TENSOR_DATA_EXCHANGE_OPERATIONS_HPP
