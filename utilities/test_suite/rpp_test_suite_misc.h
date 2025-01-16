@@ -35,7 +35,7 @@ std::map<int, string> augmentationMiscMap =
     {0, "transpose"},
     {1, "normalize"},
     {2, "log"},
-    {3, "log1p"}
+    {3, "log1p"},
 };
 
 // Compute strides given Generic Tensor
