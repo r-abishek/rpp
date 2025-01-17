@@ -126,7 +126,7 @@ struct HandleImpl
     float profiling_result = 0.0;
     size_t nBatchSize = 1;
     Rpp32u numThreads = 0;
-    RppBackend backend = RPP_HIP_BACKEND;
+    RppBackend backend = RppBackend::RPP_HIP_BACKEND;
     InitHandle* initHandle = nullptr;
 
     HandleImpl() : ctx(get_ctx()) {}

@@ -148,7 +148,7 @@ int main(int argc, char * argv[])
     // If numThreads value passed is 0, number of OpenMP threads used by RPP will be set to batch size
     Rpp32u numThreads = 0;
     rppHandle_t handle;
-    rppCreateWithBatchSize(&handle, noOfFiles, numThreads);
+    rppCreateWithBatchSize(&handle, noOfFiles, numThreads, RppBackend::RPP_HOST_BACKEND);
 
     // Run case-wise RPP API and measure time
     int missingFuncFlag = 0;
