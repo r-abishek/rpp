@@ -43,7 +43,8 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                RpptRoiType roiType,
                                rppHandle_t rppHandle)
 {
-    RppBackend backend = rpp::deref(rppHandle).GetBackend();
+    rpp::Handle &handle = rpp::deref(rppHandle);
+    RppBackend backend = handle.GetBackend();
     if(backend == RppBackend::RPP_HOST_BACKEND)
     {
         RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
@@ -59,7 +60,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                         roiTensorPtrSrc,
                                         roiType,
                                         layoutParams,
-                                        rpp::deref(rppHandle));
+                                        handle);
         }
         else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
         {
@@ -72,7 +73,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                         roiTensorPtrSrc,
                                         roiType,
                                         layoutParams,
-                                        rpp::deref(rppHandle));
+                                        handle);
         }
         else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
         {
@@ -85,7 +86,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                         roiTensorPtrSrc,
                                         roiType,
                                         layoutParams,
-                                        rpp::deref(rppHandle));
+                                        handle);
         }
         else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
         {
@@ -98,7 +99,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                         roiTensorPtrSrc,
                                         roiType,
                                         layoutParams,
-                                        rpp::deref(rppHandle));
+                                        handle);
         }
 
         return RPP_SUCCESS;
@@ -119,7 +120,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                     dstDescPtr,
                                     roiTensorPtrSrc,
                                     roiType,
-                                    rpp::deref(rppHandle));
+                                    handle);
         }
         else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
         {
@@ -129,7 +130,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                     dstDescPtr,
                                     roiTensorPtrSrc,
                                     roiType,
-                                    rpp::deref(rppHandle));
+                                    handle);
         }
         else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
         {
@@ -139,7 +140,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                     dstDescPtr,
                                     roiTensorPtrSrc,
                                     roiType,
-                                    rpp::deref(rppHandle));
+                                    handle);
         }
         else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
         {
@@ -149,7 +150,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                     dstDescPtr,
                                     roiTensorPtrSrc,
                                     roiType,
-                                    rpp::deref(rppHandle));
+                                    handle);
         }
 
         return RPP_SUCCESS;
