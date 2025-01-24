@@ -26,6 +26,7 @@ project(modules)
 
 if( "${BACKEND}" STREQUAL "HIP")
     file(GLOB RPP_KERNELS hip/kernel/*.cpp)
+    file(GLOB RPP_KERNELS hip/batch_pd/*.cpp)
 elseif( "${BACKEND}" STREQUAL "OCL")
     file(GLOB RPP_KERNELS cl/kernel/*.cl)
 endif()
@@ -90,7 +91,8 @@ if( "${BACKEND}" STREQUAL "HIP")
     # Add HIP kernels
     file(GLOB MOD_HIP_CPP "hip/*.cpp" )
     file(GLOB MOD_HIP_CPP_KERNELS "hip/kernel/*.cpp" )
-    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HIP_CPP} ${MOD_HIP_CPP_KERNELS})
+    file(GLOB MOD_HIP_CPP_BATCHPD_KERNELS "hip/batch_pd/*.cpp" )
+    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HIP_CPP} ${MOD_HIP_CPP_KERNELS} ${MOD_HIP_CPP_BATCHPD_KERNELS})
     message("-- ${Green}HIP kernels added${ColourReset}")
 
     # Set compiler flags

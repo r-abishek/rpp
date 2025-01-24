@@ -30,7 +30,7 @@ SOFTWARE.
 #include "cpu/host_tensor_audio_augmentations.hpp"
 
 #ifdef HIP_COMPILE
-    #include "hip/hip_tensor_audio_augmentations.hpp"
+    #include "hip/kernel/hip_tensor_audio_augmentations.hpp"
 #endif // HIP_COMPILE
 
 /******************** non_silent_region_detection ********************/
