@@ -1,5 +1,4 @@
 #include "hip_tensor_audio_augmentations.hpp"
-#include "rpp_cpu_common.hpp"
 
 /* Spectrogram kernel working overview
 1D Input -> 2D Output
@@ -35,6 +34,42 @@ real part      - windowOutput (numWindows, nfft) . cosFactor (nfft, nfft/2 + 1)
 imaginary part - windowOutput (numWindows, nfft) . sinFactor (nfft, nfft/2 + 1)
 4. Compute final result using the real and imaginary part */
 
+
+// Compute hanning window
+inline RPP_HOST_DEVICE void hann_window(Rpp32f *output, Rpp32s windowSize)
+{
+    Rpp64f a = (2.0 * M_PI) / windowSize;
+    for (Rpp32s t = 0; t < windowSize; t++)
+    {
+        Rpp64f phase = a * (t + 0.5);
+        output[t] = (0.5 * (1.0 - std::cos(phase)));
+    }
+}
+
+// Compute number of spectrogram windows
+inline RPP_HOST_DEVICE Rpp32s get_num_windows(Rpp32s length, Rpp32s windowLength, Rpp32s windowStep, bool centerWindows)
+{
+    if (!centerWindows)
+        length -= windowLength;
+    return ((length / windowStep) + 1);
+}
+
+// Compute reflect start idx to pad
+inline RPP_HOST_DEVICE Rpp32s get_idx_reflect(Rpp32s loc, Rpp32s minLoc, Rpp32s maxLoc)
+{
+    if (maxLoc - minLoc < 2)
+        return maxLoc - 1;
+    for (;;)
+    {
+        if (loc < minLoc)
+            loc = 2 * minLoc - loc;
+        else if (loc >= maxLoc)
+            loc = 2 * maxLoc - 2 - loc;
+        else
+            break;
+    }
+    return loc;
+}
 
 // -------------------- Set 0 -  spectrogram hip kernels --------------------
 

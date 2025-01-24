@@ -1,5 +1,4 @@
 #include "hip_tensor_data_exchange_operations.hpp"
-#include "rpp_cpu_common.hpp"
 
 __device__ void swap_channels_hip_compute(d_float24 *pix_f24)
 {
