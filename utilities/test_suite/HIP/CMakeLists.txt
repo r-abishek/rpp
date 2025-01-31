@@ -133,9 +133,7 @@ else()
         find_package(OpenCV QUIET)
         find_package(TurboJpeg QUIET)
         find_package(StdFilesystem QUIET)
-        set(THREADS_PREFER_PTHREAD_FLAG ON)
-        find_package(Threads QUIET)
-
+        
         # find required python3-pip imports
         execute_process(
             COMMAND ${Python3_EXECUTABLE} -m pip show pandas
@@ -154,10 +152,7 @@ else()
             message("-- ${Green}HIP found at HIP_INCLUDE_DIRS - ${HIP_INCLUDE_DIRS} and HIP_LIBRARIES - ${HIP_LIBRARIES}${ColourReset}")
             include_directories(${HIP_INCLUDE_DIRS} ${HIP_INCLUDE_DIRS}/hip)
             set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${HIP_LIBRARIES})
-            if(Threads_FOUND)
-                set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} Threads::Threads)
-            endif()
-
+            
             if(Python3_FOUND)
                 message("-- ${Green}Python3 found${ColourReset}")
                 # Check pandas for all RPP rocprof performance test results
@@ -170,7 +165,7 @@ else()
                     link_directories(${ROCM_PATH}/lib /usr/local/lib)
                     link_directories(${ROCM_PATH}/lib/llvm/lib)
 
-                    if(OpenMP_FOUND)
+                    if(OpenMP_CXX_FOUND)
                         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
                         set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${OpenMP_CXX_LIBRARIES})
                         message("-- ${White}${PROJECT_NAME}: Using OpenMP -- \n\tOpenMP_CXX_FLAGS:${OpenMP_CXX_FLAGS}\n\tOpenMP_CXX_LIBRARIES:${OpenMP_CXX_LIBRARIES}${ColourReset}")
@@ -185,17 +180,17 @@ else()
                                 include_directories(${OpenCV_INCLUDE_DIRS})
                                 set(LINK_LIBRARY_LIST ${LINK_LIBRARY_LIST} ${OpenCV_LIBRARIES})
                                 message("-- ${Green}${PROJECT_NAME} Tensor-Image HIP tests set to build with OpenCV${ColourReset}")
-                                add_executable(Tensor_hip Tensor_hip.cpp)
-                                target_link_libraries(Tensor_hip ${LINK_LIBRARY_LIST})
-                                message("-- ${White}Tensor_hip -- Link Libraries: ${LINK_LIBRARY_LIST}${ColourReset}")
+                                add_executable(Tensor_image_hip Tensor_image_hip.cpp)
+                                target_link_libraries(Tensor_image_hip ${LINK_LIBRARY_LIST})
+                                message("-- ${White}Tensor_image_hip -- Link Libraries: ${LINK_LIBRARY_LIST}${ColourReset}")
                                 # if (OPENPYXL_FOUND EQUAL 0)                                                                                                                                   # added only on HOST
                                 #     message("-- ${Green}Openpyxl for Python3 found ${ColourReset}")                                                                                           # added only on HOST
                                 #     add_executable(BatchPD_hip_pkd3 ${ROCM_PATH}/share/rpp/test/rpp-performancetests/HOST_NEW/BatchPD_hip_pkd3.cpp) # OLD - To be deprecated and removed      # added only on HOST
                                 #     add_executable(BatchPD_hip_pln1 ${ROCM_PATH}/share/rpp/test/rpp-performancetests/HOST_NEW/BatchPD_hip_pln1.cpp) # OLD - To be deprecated and removed      # added only on HOST
                                 #     add_executable(BatchPD_hip_pln3 ${ROCM_PATH}/share/rpp/test/rpp-performancetests/HOST_NEW/BatchPD_hip_pln3.cpp) # OLD - To be deprecated and removed      # added only on HOST
-                                #     target_link_libraries(BatchPD_hip_pkd3 ${OpenCV_LIBS} -lturbojpeg -lrpp pthread ${LINK_LIBRARY_LIST}) # OLD - To be deprecated and removed                # added only on HOST
-                                #     target_link_libraries(BatchPD_hip_pln1 ${OpenCV_LIBS} -lturbojpeg -lrpp pthread ${LINK_LIBRARY_LIST}) # OLD - To be deprecated and removed                # added only on HOST
-                                #     target_link_libraries(BatchPD_hip_pln3 ${OpenCV_LIBS} -lturbojpeg -lrpp pthread ${LINK_LIBRARY_LIST}) # OLD - To be deprecated and removed                # added only on HOST
+                                #     target_link_libraries(BatchPD_hip_pkd3 ${OpenCV_LIBS} -lturbojpeg -lrpp ${LINK_LIBRARY_LIST}) # OLD - To be deprecated and removed                # added only on HOST
+                                #     target_link_libraries(BatchPD_hip_pln1 ${OpenCV_LIBS} -lturbojpeg -lrpp ${LINK_LIBRARY_LIST}) # OLD - To be deprecated and removed                # added only on HOST
+                                #     target_link_libraries(BatchPD_hip_pln3 ${OpenCV_LIBS} -lturbojpeg -lrpp ${LINK_LIBRARY_LIST}) # OLD - To be deprecated and removed                # added only on HOST
                                 # else()                                                                                                                                                        # added only on HOST
                                 #     message("-- ${Yellow}Warning: Openpyxl for Python3 must be installed to run any RPP test_suite QA performance tests successfully${ColourReset}")          # added only on HOST
                                 # endif(OPENPYXL_FOUND EQUAL 0)                                                                                                                                 # added only on HOST
@@ -245,7 +240,7 @@ else()
                         message("-- ${White}Tensor_misc_hip -- Link Libraries: ${LINK_LIBRARY_LIST}${ColourReset}")
                     else()
                         message("-- ${Red}${PROJECT_NAME} Error: OpenMP must be installed to run any RPP tests successfully!${ColourReset}")
-                    endif(OpenMP_FOUND)
+                    endif(OpenMP_CXX_FOUND)
                 else()
                     message("-- ${Red}${PROJECT_NAME} Error: Pandas for Python3 must be installed to run any RPP test_suite performance tests with profiling successfully${ColourReset}")
                 endif(PANDAS_FOUND EQUAL 0)
