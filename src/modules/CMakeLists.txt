@@ -24,10 +24,13 @@ SOFTWARE.
 
 project(modules)
 
+
+file(GLOB RPP_KERNELS tensor/cpu/kernel/*.cpp)
 if( "${BACKEND}" STREQUAL "HIP")
-    file(GLOB RPP_KERNELS hip/kernel/*.cpp)
+    file(GLOB RPP_KERNELS tensor/hip/kernel/*.cpp)
+    file(GLOB RPP_KERNELS batch_pd/hip/kernel/*.cpp)
 elseif( "${BACKEND}" STREQUAL "OCL")
-    file(GLOB RPP_KERNELS cl/kernel/*.cl)
+    file(GLOB RPP_KERNELS batch_pd/cl/kernel/*.cl)
 endif()
 
 list(APPEND Rpp_Source ${PROJECT_BINARY_DIR}/rpp_kernels.h)
@@ -75,8 +78,12 @@ function(add_kernel_includes KERNEL_FILES)
     configure_file(kernels/kernel_includes.cpp.in ${PROJECT_BINARY_DIR}/kernel_includes.cpp)
 endfunction()
 
-file(GLOB CPPFILES "*.cpp" )
+set(CPPFILES "handle_api.cpp" "handlehost.cpp")
+file(GLOB BATCH_PD_CPPFILES "batch_pd/*.cpp" )
+file(GLOB TENSOR_CPPFILES "tensor/*.cpp" )
 list(APPEND Rpp_Source ${CPPFILES})
+list(APPEND Rpp_Source ${BATCH_PD_CPPFILES})
+list(APPEND Rpp_Source ${TENSOR_CPPFILES})
 list(APPEND Rpp_Source ${PROJECT_BINARY_DIR}/kernel.cpp)
 list(APPEND Rpp_Source ${PROJECT_BINARY_DIR}/kernel_includes.cpp)
 
@@ -88,9 +95,12 @@ endif()
 
 if( "${BACKEND}" STREQUAL "HIP")
     # Add HIP kernels
-    file(GLOB MOD_HIP_CPP "hip/*.cpp" )
-    file(GLOB MOD_HIP_CPP_KERNELS "hip/kernel/*.cpp" )
-    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HIP_CPP} ${MOD_HIP_CPP_KERNELS})
+    set(MOD_HIP_CPP "handlehip.cpp")
+    file(GLOB MOD_HIP_CPP_TENSOR_KERNELS "tensor/hip/kernel/*.cpp" )
+    file(GLOB MOD_HIP_CPP_BATCHPD_FILES "batch_pd/hip/*.cpp" )
+    file(GLOB MOD_HIP_CPP_BATCHPD_KERNELS "batch_pd/hip/kernel/*.cpp" )
+    file(GLOB MOD_HOST_CPP_TENSOR_KERNELS "tensor/cpu/kernel/*.cpp" )
+    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HIP_CPP} ${MOD_HIP_CPP_TENSOR_KERNELS} ${MOD_HIP_CPP_BATCHPD_FILES} ${MOD_HIP_CPP_BATCHPD_KERNELS} ${MOD_HOST_CPP_TENSOR_KERNELS})
     message("-- ${Green}HIP kernels added${ColourReset}")
 
     # Set compiler flags
@@ -103,12 +113,13 @@ if( "${BACKEND}" STREQUAL "HIP")
 
     # Add HIP specific includes
     set(ROCM_INC ${ROCM_PATH}/include/)
-    list(APPEND HIP_LOCAL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/src/include/hip/ ${CMAKE_SOURCE_DIR}/src/include/common/)
+    list(APPEND HIP_LOCAL_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/src/include/tensor/hip/ ${CMAKE_SOURCE_DIR}/src/include/batch_pd/hip/ ${CMAKE_SOURCE_DIR}/src/include/common/)
     set(INCLUDE_LIST ${ROCM_INC} ${HIP_LOCAL_INCLUDE_DIRS} ${INCLUDE_LIST})
 elseif( "${BACKEND}" STREQUAL "OCL")
     # Add OpenCL kernels
-    file(GLOB MOD_CL_CPP "cl/*.cpp" )
-    list(APPEND Rpp_Source ${CPPFILES} ${MOD_CL_CPP})
+    file(GLOB MOD_CL_CPP "batch_pd/cl/*.cpp" )
+    file(GLOB MOD_HOST_CPP_TENSOR_KERNELS "tensor/cpu/kernel/*.cpp" )
+    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HOST_CPP_TENSOR_KERNELS} ${MOD_CL_CPP})
     message("-- ${Green}OpenCL kernels added!${ColourReset}")
     set_source_files_properties(rppt_tensor_audio_augmentations.cpp PROPERTIES COMPILE_FLAGS -mno-fma)
     set_source_files_properties(rppt_tensor_statistical_operations.cpp PROPERTIES COMPILE_FLAGS -mno-fma) # no-fma flag added to get the exact output match with golden outputs
@@ -116,14 +127,17 @@ elseif( "${BACKEND}" STREQUAL "OCL")
     # Add OpenCL specific preprocessor flags
     add_definitions(-DOCL_COMPILE)
     add_definitions(-DRPP_CACHE_DIR="${CACHE_DIR}")
-    add_definitions(-DMOD_CL_PATH="${CMAKE_CURRENT_LIST_DIR}/cl/kernel/")
+    add_definitions(-DMOD_CL_PATH="${CMAKE_CURRENT_LIST_DIR}/batch_pd/cl/kernel/")
 
     # Add OpenCL specific includes
     set(ROCM_INC ${ROCM_PATH}/include/)
-    list(APPEND OCL_LOCAL_INCLUDE_LIST ${CMAKE_SOURCE_DIR}/src/include/cl/ ${CMAKE_SOURCE_DIR}/src/include/common/)
+    list(APPEND OCL_LOCAL_INCLUDE_LIST ${CMAKE_SOURCE_DIR}/src/include/batch_pd/cl/ ${CMAKE_SOURCE_DIR}/src/include/common/)
     set(INCLUDE_LIST ${ROCM_INC} ${OCL_LOCAL_INCLUDE_LIST} ${INCLUDE_LIST})
 elseif( "${BACKEND}" STREQUAL "CPU")
     # Add CPU specific includes
+    file(GLOB MOD_HOST_CPP_TENSOR_KERNELS "tensor/cpu/kernel/*.cpp" )
+    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HOST_CPP_TENSOR_KERNELS})
+    message("-- ${Green}HOST kernels added${ColourReset}")
     set(INCLUDE_LIST ${CMAKE_SOURCE_DIR}/src/include/common/)
     set_source_files_properties(rppt_tensor_audio_augmentations.cpp PROPERTIES COMPILE_FLAGS -mno-fma)
     set_source_files_properties(rppt_tensor_statistical_operations.cpp PROPERTIES COMPILE_FLAGS -mno-fma) # no-fma flag added to get the exact output match with golden outputs
@@ -146,9 +160,12 @@ target_include_directories( ${PROJECT_NAME}
         ${CMAKE_SOURCE_DIR}/include
         ${ROCM_INC}
     PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/include/cpu
+        ${CMAKE_SOURCE_DIR}/src/include/batch_pd/cpu
         ${CMAKE_SOURCE_DIR}/src/include/common
-        ${CMAKE_SOURCE_DIR}/src/include/func_specific
+        ${CMAKE_SOURCE_DIR}/src/include/common/cpu
+        ${CMAKE_SOURCE_DIR}/src/include/tensor/cpu
+        ${CMAKE_SOURCE_DIR}/src/include/tensor/cpu/kernel
+        ${CMAKE_SOURCE_DIR}/src/include/tensor/func_specific
         ${INCLUDE_LIST}
 )
 
@@ -156,11 +173,14 @@ if( "${BACKEND}" STREQUAL "HIP")
     target_include_directories(${PROJECT_NAME}
     PRIVATE
         ${CMAKE_SOURCE_DIR}/src/include/hip
+        ${CMAKE_SOURCE_DIR}/src/include/batch_pd/hip
+        ${CMAKE_SOURCE_DIR}/src/include/common/hip
+        ${CMAKE_SOURCE_DIR}/src/include/tensor/hip
     )
     target_link_libraries(${PROJECT_NAME} hip::device)
 elseif( "${BACKEND}" STREQUAL "OCL")
     target_include_directories(${PROJECT_NAME}
     PRIVATE
-        ${CMAKE_SOURCE_DIR}/src/include/cl
+        ${CMAKE_SOURCE_DIR}/src/include/batch_pd/cl
     )
 endif()
