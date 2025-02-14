@@ -56,9 +56,9 @@ extern "C" rppStatus_t rppCreate(rppHandle_t* handle)
     return rpp::try_([&] { rpp::deref(handle) = new rpp::Handle(); });
 }
 
-extern "C" rppStatus_t rppCreateWithBatchSize(rppHandle_t* handle, size_t nBatchSize, Rpp32u numThreads)
+extern "C" rppStatus_t rppCreateWithBatchSize(rppHandle_t* handle, size_t nBatchSize, Rpp32u numThreads, RppBackend backend)
 {
-    return rpp::try_([&] { rpp::deref(handle) = new rpp::Handle(nBatchSize, numThreads); });
+    return rpp::try_([&] { rpp::deref(handle) = new rpp::Handle(nBatchSize, numThreads, backend); });
 }
 
 extern "C" rppStatus_t rppDestroy(rppHandle_t handle)
@@ -88,9 +88,9 @@ extern "C" rppStatus_t rppCreateWithStream(rppHandle_t* handle, rppAcceleratorQu
     return rpp::try_([&] { rpp::deref(handle) = new rpp::Handle(stream); });
 }
 
-extern "C" rppStatus_t rppCreateWithStreamAndBatchSize(rppHandle_t* handle, rppAcceleratorQueue_t stream, size_t nBatchSize)
+extern "C" rppStatus_t rppCreateWithStreamAndBatchSize(rppHandle_t* handle, rppAcceleratorQueue_t stream, size_t nBatchSize, RppBackend backend)
 {
-    return rpp::try_([&] { rpp::deref(handle) = new rpp::Handle(stream, nBatchSize); });
+    return rpp::try_([&] { rpp::deref(handle) = new rpp::Handle(stream, nBatchSize, backend); });
 }
 
 extern "C" rppStatus_t rppDestroyGPU(rppHandle_t handle)

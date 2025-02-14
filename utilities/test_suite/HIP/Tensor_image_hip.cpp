@@ -324,7 +324,7 @@ int main(int argc, char **argv)
     rppHandle_t handle;
     hipStream_t stream;
     CHECK_RETURN_STATUS(hipStreamCreate(&stream));
-    rppCreateWithStreamAndBatchSize(&handle, stream, batchSize);
+    rppCreateWithStreamAndBatchSize(&handle, stream, batchSize, RppBackend::RPP_HIP_BACKEND);
 
     int noOfIterations = (int)imageNames.size() / batchSize;
     double maxWallTime = 0, minWallTime = 500, avgWallTime = 0;
@@ -535,7 +535,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_brightness_gpu(d_input, srcDescPtr, d_output, dstDescPtr, alpha, beta, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_brightness(d_input, srcDescPtr, d_output, dstDescPtr, alpha, beta, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -1230,7 +1230,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_vignette_gpu(d_input, srcDescPtr, d_output, dstDescPtr, intensity, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_vignette(d_input, srcDescPtr, d_output, dstDescPtr, intensity, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 

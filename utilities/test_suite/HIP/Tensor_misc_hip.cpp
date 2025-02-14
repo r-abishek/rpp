@@ -130,7 +130,7 @@ int main(int argc, char **argv)
     rppHandle_t handle;
     hipStream_t stream;
     CHECK_RETURN_STATUS(hipStreamCreate(&stream));
-    rppCreateWithStreamAndBatchSize(&handle, stream, batchSize);
+    rppCreateWithStreamAndBatchSize(&handle, stream, batchSize, RppBackend::RPP_HIP_BACKEND);
 
     Rpp32f *meanTensor = nullptr, *stdDevTensor = nullptr;
     Rpp32f *meanTensorCPU = nullptr, *stdDevTensorCPU = nullptr;
