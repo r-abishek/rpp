@@ -755,9 +755,6 @@ RppStatus rppt_brightness_gpu(RppPtr_t srcPtr,
                               rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    Rpp32u paramIndex = 0;
-    copy_param_float(alphaTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(betaTensor, rpp::deref(rppHandle), paramIndex++);
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -765,6 +762,8 @@ RppStatus rppt_brightness_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                    dstDescPtr,
+                                   alphaTensor,
+                                   betaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
                                    rpp::deref(rppHandle));
@@ -775,6 +774,8 @@ RppStatus rppt_brightness_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                    dstDescPtr,
+                                   alphaTensor,
+                                   betaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
                                    rpp::deref(rppHandle));
@@ -785,6 +786,8 @@ RppStatus rppt_brightness_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                    dstDescPtr,
+                                   alphaTensor,
+                                   betaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
                                    rpp::deref(rppHandle));
@@ -795,6 +798,8 @@ RppStatus rppt_brightness_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                    dstDescPtr,
+                                   alphaTensor,
+                                   betaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
                                    rpp::deref(rppHandle));
@@ -818,8 +823,6 @@ RppStatus rppt_gamma_correction_gpu(RppPtr_t srcPtr,
                                     rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    Rpp32u paramIndex = 0;
-    copy_param_float(gammaTensor, rpp::deref(rppHandle), paramIndex++);
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -827,6 +830,7 @@ RppStatus rppt_gamma_correction_gpu(RppPtr_t srcPtr,
                                          srcDescPtr,
                                          static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                          dstDescPtr,
+                                         gammaTensor,
                                          roiTensorPtrSrc,
                                          roiType,
                                          rpp::deref(rppHandle));
@@ -837,6 +841,7 @@ RppStatus rppt_gamma_correction_gpu(RppPtr_t srcPtr,
                                          srcDescPtr,
                                          (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                          dstDescPtr,
+                                         gammaTensor,
                                          roiTensorPtrSrc,
                                          roiType,
                                          rpp::deref(rppHandle));
@@ -847,6 +852,7 @@ RppStatus rppt_gamma_correction_gpu(RppPtr_t srcPtr,
                                          srcDescPtr,
                                          (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                          dstDescPtr,
+                                         gammaTensor,
                                          roiTensorPtrSrc,
                                          roiType,
                                          rpp::deref(rppHandle));
@@ -857,6 +863,7 @@ RppStatus rppt_gamma_correction_gpu(RppPtr_t srcPtr,
                                          srcDescPtr,
                                          static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                          dstDescPtr,
+                                         gammaTensor,
                                          roiTensorPtrSrc,
                                          roiType,
                                          rpp::deref(rppHandle));
@@ -881,8 +888,6 @@ RppStatus rppt_blend_gpu(RppPtr_t srcPtr1,
                          rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    Rpp32u paramIndex = 0;
-    copy_param_float(alphaTensor, rpp::deref(rppHandle), paramIndex++);
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -891,6 +896,7 @@ RppStatus rppt_blend_gpu(RppPtr_t srcPtr1,
                               srcDescPtr,
                               static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                               dstDescPtr,
+                              alphaTensor,
                               roiTensorPtrSrc,
                               roiType,
                               rpp::deref(rppHandle));
@@ -902,6 +908,7 @@ RppStatus rppt_blend_gpu(RppPtr_t srcPtr1,
                               srcDescPtr,
                               (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                               dstDescPtr,
+                              alphaTensor,
                               roiTensorPtrSrc,
                               roiType,
                               rpp::deref(rppHandle));
@@ -913,6 +920,7 @@ RppStatus rppt_blend_gpu(RppPtr_t srcPtr1,
                               srcDescPtr,
                               (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                               dstDescPtr,
+                              alphaTensor,
                               roiTensorPtrSrc,
                               roiType,
                               rpp::deref(rppHandle));
@@ -924,6 +932,7 @@ RppStatus rppt_blend_gpu(RppPtr_t srcPtr1,
                               srcDescPtr,
                               static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                               dstDescPtr,
+                              alphaTensor,
                               roiTensorPtrSrc,
                               roiType,
                               rpp::deref(rppHandle));
@@ -955,18 +964,16 @@ RppStatus rppt_color_twist_gpu(RppPtr_t srcPtr,
         return RPP_ERROR_INVALID_CHANNELS;
     }
 
-    Rpp32u paramIndex = 0;
-    copy_param_float(brightnessTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(contrastTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(hueTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(saturationTensor, rpp::deref(rppHandle), paramIndex++);
-
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         hip_exec_color_twist_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                     srcDescPtr,
                                     static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                     dstDescPtr,
+                                    brightnessTensor,
+                                    contrastTensor,
+                                    hueTensor,
+                                    saturationTensor,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));
@@ -977,6 +984,10 @@ RppStatus rppt_color_twist_gpu(RppPtr_t srcPtr,
                                     srcDescPtr,
                                     (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                     dstDescPtr,
+                                    brightnessTensor,
+                                    contrastTensor,
+                                    hueTensor,
+                                    saturationTensor,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));
@@ -987,6 +998,10 @@ RppStatus rppt_color_twist_gpu(RppPtr_t srcPtr,
                                     srcDescPtr,
                                     (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                     dstDescPtr,
+                                    brightnessTensor,
+                                    contrastTensor,
+                                    hueTensor,
+                                    saturationTensor,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));
@@ -997,6 +1012,10 @@ RppStatus rppt_color_twist_gpu(RppPtr_t srcPtr,
                                     srcDescPtr,
                                     static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                     dstDescPtr,
+                                    brightnessTensor,
+                                    contrastTensor,
+                                    hueTensor,
+                                    saturationTensor,
                                     roiTensorPtrSrc,
                                     roiType,
                                     rpp::deref(rppHandle));
@@ -1026,16 +1045,14 @@ RppStatus rppt_color_cast_gpu(RppPtr_t srcPtr,
         return RPP_ERROR_INVALID_CHANNELS;
     }
 
-    Rpp32u paramIndex = 0;
-    copy_param_float(alphaTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_RpptRGB(rgbTensor, rpp::deref(rppHandle));
-
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         hip_exec_color_cast_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                    srcDescPtr,
                                    static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                    dstDescPtr,
+                                   rgbTensor,
+                                   alphaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
                                    rpp::deref(rppHandle));
@@ -1046,6 +1063,8 @@ RppStatus rppt_color_cast_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                    dstDescPtr,
+                                   rgbTensor,
+                                   alphaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
                                    rpp::deref(rppHandle));
@@ -1056,6 +1075,8 @@ RppStatus rppt_color_cast_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                    dstDescPtr,
+                                   rgbTensor,
+                                   alphaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
                                    rpp::deref(rppHandle));
@@ -1066,6 +1087,8 @@ RppStatus rppt_color_cast_gpu(RppPtr_t srcPtr,
                                    srcDescPtr,
                                    static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                    dstDescPtr,
+                                   rgbTensor,
+                                   alphaTensor,
                                    roiTensorPtrSrc,
                                    roiType,
                                    rpp::deref(rppHandle));
@@ -1089,8 +1112,6 @@ RppStatus rppt_exposure_gpu(RppPtr_t srcPtr,
                             rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    Rpp32u paramIndex = 0;
-    copy_param_float(exposureFactorTensor, rpp::deref(rppHandle), paramIndex++);
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -1098,6 +1119,7 @@ RppStatus rppt_exposure_gpu(RppPtr_t srcPtr,
                                  srcDescPtr,
                                  static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                  dstDescPtr,
+                                 exposureFactorTensor,
                                  roiTensorPtrSrc,
                                  roiType,
                                  rpp::deref(rppHandle));
@@ -1108,6 +1130,7 @@ RppStatus rppt_exposure_gpu(RppPtr_t srcPtr,
                                  srcDescPtr,
                                  (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                  dstDescPtr,
+                                 exposureFactorTensor,
                                  roiTensorPtrSrc,
                                  roiType,
                                  rpp::deref(rppHandle));
@@ -1118,6 +1141,7 @@ RppStatus rppt_exposure_gpu(RppPtr_t srcPtr,
                                  srcDescPtr,
                                  (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                  dstDescPtr,
+                                 exposureFactorTensor,
                                  roiTensorPtrSrc,
                                  roiType,
                                  rpp::deref(rppHandle));
@@ -1128,6 +1152,7 @@ RppStatus rppt_exposure_gpu(RppPtr_t srcPtr,
                                  srcDescPtr,
                                  static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                  dstDescPtr,
+                                 exposureFactorTensor,
                                  roiTensorPtrSrc,
                                  roiType,
                                  rpp::deref(rppHandle));
@@ -1152,9 +1177,6 @@ RppStatus rppt_contrast_gpu(RppPtr_t srcPtr,
                             rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    Rpp32u paramIndex = 0;
-    copy_param_float(contrastFactorTensor, rpp::deref(rppHandle), paramIndex++);
-    copy_param_float(contrastCenterTensor, rpp::deref(rppHandle), paramIndex++);
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
@@ -1162,6 +1184,8 @@ RppStatus rppt_contrast_gpu(RppPtr_t srcPtr,
                                  srcDescPtr,
                                  static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                  dstDescPtr,
+                                 contrastFactorTensor,
+                                 contrastCenterTensor,
                                  roiTensorPtrSrc,
                                  roiType,
                                  rpp::deref(rppHandle));
@@ -1172,6 +1196,8 @@ RppStatus rppt_contrast_gpu(RppPtr_t srcPtr,
                                  srcDescPtr,
                                  (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                  dstDescPtr,
+                                 contrastFactorTensor,
+                                 contrastCenterTensor,
                                  roiTensorPtrSrc,
                                  roiType,
                                  rpp::deref(rppHandle));
@@ -1182,6 +1208,8 @@ RppStatus rppt_contrast_gpu(RppPtr_t srcPtr,
                                  srcDescPtr,
                                  (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                  dstDescPtr,
+                                 contrastFactorTensor,
+                                 contrastCenterTensor,
                                  roiTensorPtrSrc,
                                  roiType,
                                  rpp::deref(rppHandle));
@@ -1192,6 +1220,8 @@ RppStatus rppt_contrast_gpu(RppPtr_t srcPtr,
                                  srcDescPtr,
                                  static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                  dstDescPtr,
+                                 contrastFactorTensor,
+                                 contrastCenterTensor,
                                  roiTensorPtrSrc,
                                  roiType,
                                  rpp::deref(rppHandle));
