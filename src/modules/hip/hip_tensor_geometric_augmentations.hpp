@@ -40,5 +40,6 @@ SOFTWARE.
 #include "kernel/crop_and_patch.hpp"
 #include "kernel/flip_voxel.hpp"
 #include "kernel/warp_perspective.hpp"
+#include "kernel/fisheye.hpp"
 
 #endif // HIP_TENSOR_GEOMETRIC_AUGMENTATIONS_HPP

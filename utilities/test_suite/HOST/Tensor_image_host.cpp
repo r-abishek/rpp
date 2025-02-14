@@ -818,6 +818,19 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case FISHEYE:
+                {
+                    testCaseName = "fisheye";
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_fisheye_host(input, srcDescPtr, output, dstDescPtr, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 case LENS_CORRECTION:
                 {
                     testCaseName = "lens_correction";
