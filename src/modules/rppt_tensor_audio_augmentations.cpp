@@ -28,7 +28,6 @@ SOFTWARE.
 #include "rppi_validate.hpp"
 #include "rppt_tensor_audio_augmentations.h"
 #include "cpu/host_tensor_audio_augmentations.hpp"
-
 #ifdef HIP_COMPILE
     #include "hip/hip_tensor_audio_augmentations.hpp"
 #endif // HIP_COMPILE

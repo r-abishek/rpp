@@ -25,7 +25,8 @@ SOFTWARE.
 #ifndef HOST_GEOMETRIC_TRASFORMS_HPP
 #define HOST_GEOMETRIC_TRASFORMS_HPP
 
-#include "rpp_cpu_common.hpp"
+#include "rpp_cpu_common_batchpd.hpp"
+#include "rpp_cpu_simd_math.hpp"
 
 /**************** flip ***************/
 

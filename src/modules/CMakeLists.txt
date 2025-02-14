@@ -24,6 +24,8 @@ SOFTWARE.
 
 project(modules)
 
+
+file(GLOB RPP_KERNELS cpu/kernel/*.cpp)
 if( "${BACKEND}" STREQUAL "HIP")
     file(GLOB RPP_KERNELS hip/kernel/*.cpp)
 elseif( "${BACKEND}" STREQUAL "OCL")
@@ -90,7 +92,8 @@ if( "${BACKEND}" STREQUAL "HIP")
     # Add HIP kernels
     file(GLOB MOD_HIP_CPP "hip/*.cpp" )
     file(GLOB MOD_HIP_CPP_KERNELS "hip/kernel/*.cpp" )
-    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HIP_CPP} ${MOD_HIP_CPP_KERNELS})
+    file(GLOB MOD_HOST_CPP_KERNELS "cpu/kernel/*.cpp" )
+    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HIP_CPP} ${MOD_HIP_CPP_KERNELS} ${MOD_HOST_CPP_KERNELS})
     message("-- ${Green}HIP kernels added${ColourReset}")
 
     # Set compiler flags
@@ -124,6 +127,9 @@ elseif( "${BACKEND}" STREQUAL "OCL")
     set(INCLUDE_LIST ${ROCM_INC} ${OCL_LOCAL_INCLUDE_LIST} ${INCLUDE_LIST})
 elseif( "${BACKEND}" STREQUAL "CPU")
     # Add CPU specific includes
+    file(GLOB MOD_HOST_CPP_KERNELS "cpu/kernel/*.cpp" )
+    list(APPEND Rpp_Source ${CPPFILES} ${MOD_HOST_CPP_KERNELS})
+    message("-- ${Green}HOST kernels added${ColourReset}")
     set(INCLUDE_LIST ${CMAKE_SOURCE_DIR}/src/include/common/)
     set_source_files_properties(rppt_tensor_audio_augmentations.cpp PROPERTIES COMPILE_FLAGS -mno-fma)
     set_source_files_properties(rppt_tensor_statistical_operations.cpp PROPERTIES COMPILE_FLAGS -mno-fma) # no-fma flag added to get the exact output match with golden outputs
