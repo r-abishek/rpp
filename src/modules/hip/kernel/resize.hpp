@@ -729,9 +729,9 @@ inline RppStatus hip_exec_resize_tensor(T *srcPtr,
 
     if (interpolationType == RpptInterpolationType::NEAREST_NEIGHBOR)
     {
-        int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
+        int globalThreads_x = (dstDescPtr->w + 7) >> 3;
         int globalThreads_y = dstDescPtr->h;
-        int globalThreads_z = handle.GetBatchSize();
+        int globalThreads_z = dstDescPtr->n;
         if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
             hipLaunchKernelGGL(resize_nearest_neighbor_pkd_hip_tensor,
@@ -795,9 +795,9 @@ inline RppStatus hip_exec_resize_tensor(T *srcPtr,
     }
     else if (interpolationType == RpptInterpolationType::BILINEAR)
     {
-        int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
+        int globalThreads_x = (dstDescPtr->w + 7) >> 3;
         int globalThreads_y = dstDescPtr->h;
-        int globalThreads_z = handle.GetBatchSize();
+        int globalThreads_z = dstDescPtr->n;
         if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
             hipLaunchKernelGGL(resize_bilinear_pkd_hip_tensor,
@@ -863,7 +863,7 @@ inline RppStatus hip_exec_resize_tensor(T *srcPtr,
     {
         int globalThreads_x = dstDescPtr->w;
         int globalThreads_y = dstDescPtr->h;
-        int globalThreads_z = handle.GetBatchSize();
+        int globalThreads_z = dstDescPtr->n;
 
         if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
         {

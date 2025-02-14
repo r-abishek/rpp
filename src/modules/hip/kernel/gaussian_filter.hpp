@@ -1910,9 +1910,10 @@ __global__ void create_gaussian_kernel_9x9(float *filterTensor,
 static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                                                  Rpp32s kernelSize,
                                                  Rpp32f *stdDevTensor,
-                                                 rpp::Handle &handle)
+                                                 rpp::Handle &handle,
+                                                 Rpp32s batchSize)
 {
-    int globalThreads_x = handle.GetBatchSize();
+    int globalThreads_x = batchSize;
     int globalThreads_y = 1;
     int globalThreads_z = 1;
 
@@ -1925,7 +1926,7 @@ static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                            handle.GetStream(),
                            filterTensor,
                            stdDevTensor,
-                           handle.GetBatchSize());
+                           batchSize);
     }
     else if (kernelSize == 5)
     {
@@ -1936,7 +1937,7 @@ static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                            handle.GetStream(),
                            filterTensor,
                            stdDevTensor,
-                           handle.GetBatchSize());
+                           batchSize);
     }
     else if (kernelSize == 7)
     {
@@ -1947,7 +1948,7 @@ static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                            handle.GetStream(),
                            filterTensor,
                            stdDevTensor,
-                           handle.GetBatchSize());
+                           batchSize);
     }
     else if (kernelSize == 9)
     {
@@ -1958,7 +1959,7 @@ static RppStatus hip_exec_create_gaussian_kernel(Rpp32f *filterTensor,
                            handle.GetStream(),
                            filterTensor,
                            stdDevTensor,
-                           handle.GetBatchSize());
+                           batchSize);
     }
 
     return RPP_SUCCESS;
@@ -1979,9 +1980,9 @@ RppStatus hip_exec_gaussian_filter_tensor(T *srcPtr,
     if (roiType == RpptRoiType::LTRB)
         hip_exec_roi_converison_ltrb_to_xywh(roiTensorPtrSrc, handle);
 
-    int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
+    int globalThreads_x = (dstDescPtr->w + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
-    int globalThreads_z = handle.GetBatchSize();
+    int globalThreads_z = dstDescPtr->n;
 
     uint padLength = kernelSize / 2;
     uint padLengthTwice = padLength * 2;
@@ -1994,7 +1995,8 @@ RppStatus hip_exec_gaussian_filter_tensor(T *srcPtr,
     hip_exec_create_gaussian_kernel(filterTensor,
                                     kernelSize,
                                     handle.GetInitHandle()->mem.mgpu.floatArr[0].floatmem,
-                                    handle);
+                                    handle,
+                                    globalThreads_z);
 
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
@@ -2208,7 +2210,6 @@ RppStatus hip_exec_gaussian_filter_tensor(T *srcPtr,
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
-            globalThreads_x = (srcDescPtr->strides.hStride + 7) >> 3;
 
             if (kernelSize == 3)
             {
