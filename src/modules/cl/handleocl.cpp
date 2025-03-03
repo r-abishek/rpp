@@ -537,7 +537,7 @@ void Handle::SetBatchSize(size_t bSize) const
     this->impl->nBatchSize = bSize;
 }
 
-rppAcceleratorQueue_t Handle::GetStream(int streamNo) const
+rppAcceleratorQueue_t Handle::GetStream() const
 {
     return impl->queue.get();
 }
