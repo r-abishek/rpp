@@ -360,7 +360,6 @@ rppAcceleratorQueue_t Handle::GetStream(int streamNo) const
     return impl->streams[streamNo].get();
 }
 
-
 InitHandle* Handle::GetInitHandle() const
 {
     return impl->initHandle;
