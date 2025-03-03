@@ -31,17 +31,20 @@ extern "C" rppStatus_t rppCreate(rppHandle_t* handle, size_t nBatchSize, Rpp32u 
     if(backend == RppBackend::RPP_HOST_BACKEND)
         return rpp::try_([&] { rpp::deref(handle) = new rpp::Handle(nBatchSize, numThreads); });
 #if GPU_SUPPORT
+#if HIP_COMPILE
     else if(backend == RppBackend::RPP_HIP_BACKEND)
     {
             return rpp::try_([&] {
             rpp::deref(handle) = new rpp::Handle(nBatchSize, streams);
         });
     }
+#elif OCL_COMPILE
     else if(backend == RppBackend::RPP_OCL_BACKEND) {
             return rpp::try_([&] {
             rpp::deref(handle) = new rpp::Handle(nBatchSize, reinterpret_cast<rppAcceleratorQueue_t>(streams[0]));
         });
     }
+#endif
 #endif // GPU_SUPPORT
     else
         return rppStatusNotImplemented;
