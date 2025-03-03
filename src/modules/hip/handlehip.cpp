@@ -263,7 +263,7 @@ Handle::~Handle() {}
 
 void Handle::SetStream(rppAcceleratorQueue_t streamID) const
 {
-    (this->impl->streams).insert(HandleImpl::reference_stream(streamID), (this->impl->streams).begin());
+    (this->impl->streams).insert((this->impl->streams).begin(), HandleImpl::reference_stream(streamID));
 }
 
 void Handle::rpp_destroy_object_gpu()
