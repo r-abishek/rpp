@@ -90,8 +90,10 @@ struct Handle : rppHandle
 
     // Device handle related
     Handle(size_t nBatchSize, rppAcceleratorQueue_t stream);
+    Handle(size_t batchSize, const std::vector<void*>& streams);
     void rpp_destroy_object_gpu();
     rppAcceleratorQueue_t GetStream() const;
+    rppAcceleratorQueue_t GetStream(int streamNo = 0) const;
     void SetStream(rppAcceleratorQueue_t streamID) const;
 
     // Profiling and timing related

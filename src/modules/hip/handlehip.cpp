@@ -98,7 +98,7 @@ struct HandleImpl
     using StreamPtr = std::shared_ptr<typename std::remove_pointer<hipStream_t>::type>;
 
     hipCtx_t ctx;
-    StreamPtr stream = nullptr;
+    std::vector<StreamPtr> streams = {};
     int device = -1;
     Allocator allocator{};
     KernelCache cache;
@@ -232,16 +232,15 @@ struct HandleImpl
     }
 };
 
-Handle::Handle(size_t batchSize, rppAcceleratorQueue_t stream) : impl(new HandleImpl())
+Handle::Handle(size_t batchSize, const std::vector<void*>& streams) : impl(new HandleImpl())
 {
     impl->nBatchSize = batchSize;
     this->impl->device = get_device_id();
     this->impl->ctx = get_ctx();
 
-    if(stream == nullptr)
-        this->impl->stream = HandleImpl::reference_stream(nullptr);
-    else
-        this->impl->stream = HandleImpl::reference_stream(stream);
+    for (auto stream : streams) {
+        (this->impl->streams).push_back(HandleImpl::reference_stream(reinterpret_cast<rppAcceleratorQueue_t>(stream)));
+    }
 
     this->SetAllocator(nullptr, nullptr, nullptr);
     impl->PreInitializeBuffer();
@@ -356,10 +355,11 @@ void Handle::SetBatchSize(size_t bSize) const
     this->impl->nBatchSize = bSize;
 }
 
-rppAcceleratorQueue_t Handle::GetStream() const
+rppAcceleratorQueue_t Handle::GetStream(int streamNo) const
 {
-    return impl->stream.get();
+    return impl->streams[streamNo].get();
 }
+
 
 InitHandle* Handle::GetInitHandle() const
 {
