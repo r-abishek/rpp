@@ -128,9 +128,8 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&permTensor, nDim * sizeof(Rpp32u)));
 
     rppHandle_t handle;
-    int numStreams = 4;
     std::vector<void*> streams;
-    for(int streamno = 0; streamno < numStreams; streamno++) {
+    for(int streamNumber = 0; streamNumber < NUM_STREAMS; streamNumber++) {
         hipStream_t stream;
         CHECK_RETURN_STATUS(hipStreamCreate(&stream));
         streams.push_back(reinterpret_cast<void*>(stream));

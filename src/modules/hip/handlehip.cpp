@@ -261,6 +261,7 @@ Handle::Handle(size_t batchSize, Rpp32u numThreads) : impl(new HandleImpl())
 
 Handle::~Handle() {}
 
+// Adds a stream at the start of the stream vector - The default stream with GetStream() is the stream set by SetStream()
 void Handle::SetStream(rppAcceleratorQueue_t streamID) const
 {
     (this->impl->streams).insert((this->impl->streams).begin(), HandleImpl::reference_stream(streamID));
@@ -355,9 +356,9 @@ void Handle::SetBatchSize(size_t bSize) const
     this->impl->nBatchSize = bSize;
 }
 
-rppAcceleratorQueue_t Handle::GetStream(int streamNo) const
+rppAcceleratorQueue_t Handle::GetStream(int streamNumber) const
 {
-    return impl->streams[streamNo].get();
+    return impl->streams[streamNumber].get();
 }
 
 InitHandle* Handle::GetInitHandle() const

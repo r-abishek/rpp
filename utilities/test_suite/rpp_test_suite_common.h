@@ -33,6 +33,8 @@ SOFTWARE.
 #define DEBUG_MODE 0
 using namespace std;
 
+#define NUM_STREAMS 4
+
 // Opens a folder and recursively search for files with given extension
 void open_folder(const string& folderPath, vector<string>& imageNames, vector<string>& imageNamesPath, string extension)
 {

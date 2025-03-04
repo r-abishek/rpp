@@ -96,7 +96,7 @@ struct Handle : rppHandle
 #endif
     void rpp_destroy_object_gpu();
 #if HIP_COMPILE
-    rppAcceleratorQueue_t GetStream(int streamNo = 0) const;
+    rppAcceleratorQueue_t GetStream(int streamNumber = 0) const;
 #elif OCL_COMPILE
     rppAcceleratorQueue_t GetStream() const;
 #endif
