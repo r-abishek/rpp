@@ -89,9 +89,17 @@ struct Handle : rppHandle
     void SetAllocator(rppAllocatorFunction allocator, rppDeallocatorFunction deallocator, void* allocatorContext) const;
 
     // Device handle related
+#if HIP_COMPILE
+    Handle(size_t batchSize, const std::vector<void*>& streams);
+#elif OCL_COMPILE
     Handle(size_t nBatchSize, rppAcceleratorQueue_t stream);
+#endif
     void rpp_destroy_object_gpu();
+#if HIP_COMPILE
+    rppAcceleratorQueue_t GetStream(int streamNumber = 0) const;
+#elif OCL_COMPILE
     rppAcceleratorQueue_t GetStream() const;
+#endif
     void SetStream(rppAcceleratorQueue_t streamID) const;
 
     // Profiling and timing related

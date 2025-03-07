@@ -322,10 +322,14 @@ int main(int argc, char **argv)
 
     // Run case-wise RPP API and measure time
     rppHandle_t handle;
-    hipStream_t stream;
-    CHECK_RETURN_STATUS(hipStreamCreate(&stream));
+    std::vector<void*> streams;
+    for(int streamNumber = 0; streamNumber < NUM_STREAMS; streamNumber++) {
+        hipStream_t stream;
+        CHECK_RETURN_STATUS(hipStreamCreate(&stream));
+        streams.push_back(reinterpret_cast<void*>(stream));
+    }
     RppBackend backend = RppBackend::RPP_HIP_BACKEND;
-    rppCreate(&handle, batchSize, 0, stream, backend);
+    rppCreate(&handle, batchSize, 0, streams, backend);
 
     int noOfIterations = (int)imageNames.size() / batchSize;
     double maxWallTime = 0, minWallTime = 500, avgWallTime = 0;

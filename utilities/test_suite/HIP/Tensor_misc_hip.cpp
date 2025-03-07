@@ -128,10 +128,14 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&permTensor, nDim * sizeof(Rpp32u)));
 
     rppHandle_t handle;
-    hipStream_t stream;
-    CHECK_RETURN_STATUS(hipStreamCreate(&stream));
+    std::vector<void*> streams;
+    for(int streamNumber = 0; streamNumber < NUM_STREAMS; streamNumber++) {
+        hipStream_t stream;
+        CHECK_RETURN_STATUS(hipStreamCreate(&stream));
+        streams.push_back(reinterpret_cast<void*>(stream));
+    }
     RppBackend backend = RppBackend::RPP_HIP_BACKEND;
-    rppCreate(&handle, batchSize, 0, stream, backend);
+    rppCreate(&handle, batchSize, 0, streams, backend);
 
     Rpp32f *meanTensor = nullptr, *stdDevTensor = nullptr;
     Rpp32f *meanTensorCPU = nullptr, *stdDevTensorCPU = nullptr;
