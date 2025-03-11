@@ -34,8 +34,13 @@ std::map<int, string> augmentationMiscMap =
 {
     {0, "transpose"},
     {1, "normalize"},
-    {2, "log"},
-    {3, "log1p"},
+    {2, "log"}
+};
+
+enum Augmentation {
+    TRANSPOSE = 0,
+    NORMALIZE = 1,
+    LOG = 2
 };
 
 // Compute strides given Generic Tensor
@@ -79,9 +84,7 @@ void read_data(Rpp32f *data, Rpp32u nDim, Rpp32u readType, string scriptPath, st
 {
     if(nDim != 2 && nDim != 3)
     {
-        //std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
-        // exit(0);
-        if(nDim != 4 ) {
+        if(nDim != 4 || testCase != "log") {
             std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
             exit(0);
         }

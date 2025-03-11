@@ -167,6 +167,16 @@ typedef enum
     RPP_ERROR_INVALID_DST_DIMS          = -24
 } RppStatus;
 
+/*! \brief RPP RppBackend type enums
+ * \ingroup group_rppdefs
+ */
+typedef enum
+{
+    RPP_HOST_BACKEND,
+    RPP_HIP_BACKEND,
+    RPP_OCL_BACKEND
+} RppBackend;
+
 /*! \brief RPP rppStatus_t type enums
  * \ingroup group_rppdefs
  */
@@ -241,6 +251,14 @@ typedef struct
 {
     Rpp32f data[6];
 } Rpp32f6;
+
+/*! \brief RPP 9 float vector
+ * \ingroup group_rppdefs
+ */
+typedef struct
+{
+    Rpp32f data[9];
+} Rpp32f9;
 
 /*! \brief RPP 24 signed int vector
  * \ingroup group_rppdefs
