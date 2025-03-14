@@ -404,6 +404,103 @@ int main(int argc, char **argv)
     }
     bool invalidROI = (roiList[0] == 0 && roiList[1] == 0 && roiList[2] == 0 && roiList[3] == 0);
 
+    Rpp32f *alpha = nullptr;
+    Rpp32f *beta = nullptr;
+    Rpp32f *gammaVal = nullptr;
+    Rpp32f *contrastFactor = nullptr;
+    Rpp32f *contrastCenter = nullptr;
+    Rpp32f *noiseProbabilityTensor = nullptr;
+    Rpp32f *saltProbabilityTensor = nullptr;
+    Rpp32f *saltValueTensor = nullptr;
+    Rpp32f *pepperValueTensor = nullptr;
+    Rpp32f *meanTensor = nullptr;
+    Rpp32f *stdDevTensor = nullptr;
+    Rpp32f *shotNoiseFactorTensor = nullptr;
+    Rpp32f *exposureFactor = nullptr;
+    Rpp32f *amplX = nullptr;
+    Rpp32f *amplY = nullptr;
+    Rpp32f *freqX = nullptr;
+    Rpp32f *freqY = nullptr;
+    Rpp32f *phaseX = nullptr;
+    Rpp32f *phaseY = nullptr;
+    RpptRGB *rgbTensor = nullptr;
+    Rpp32f *brightness = nullptr;
+    Rpp32f *contrast = nullptr;
+    Rpp32f *hue = nullptr;
+    Rpp32f *saturation = nullptr;
+    Rpp32f *multiplier = nullptr;
+    Rpp32f *offset = nullptr;
+    Rpp32u *mirror = nullptr;
+    if(testCase == 0)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&alpha, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&beta, batchSize * sizeof(Rpp32f)));
+    }
+    else if(testCase == 1)
+        CHECK_RETURN_STATUS(hipHostMalloc(&gammaVal, batchSize * sizeof(Rpp32f)));
+    else if(testCase == 2)
+        CHECK_RETURN_STATUS(hipHostMalloc(&alpha, batchSize * sizeof(Rpp32f)));
+    else if(testCase == 4)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&contrastFactor, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&contrastCenter, batchSize * sizeof(Rpp32f)));
+    }
+    else if(testCase == 8)
+    {
+        if(additionalParam == 0)
+        {
+            CHECK_RETURN_STATUS(hipHostMalloc(&noiseProbabilityTensor, batchSize * sizeof(Rpp32f)));
+            CHECK_RETURN_STATUS(hipHostMalloc(&saltProbabilityTensor, batchSize * sizeof(Rpp32f)));
+            CHECK_RETURN_STATUS(hipHostMalloc(&saltValueTensor, batchSize * sizeof(Rpp32f)));
+            CHECK_RETURN_STATUS(hipHostMalloc(&pepperValueTensor, batchSize * sizeof(Rpp32f)));
+        }
+        else if(additionalParam == 1)
+        {
+            CHECK_RETURN_STATUS(hipHostMalloc(&meanTensor, batchSize * sizeof(Rpp32f)));
+            CHECK_RETURN_STATUS(hipHostMalloc(&stdDevTensor, batchSize * sizeof(Rpp32f)));
+        }
+        else if(additionalParam == 2)
+            CHECK_RETURN_STATUS(hipHostMalloc(&shotNoiseFactorTensor, batchSize * sizeof(Rpp32f)));
+    }
+    else if(testCase == 13)
+        CHECK_RETURN_STATUS(hipHostMalloc(&exposureFactor, batchSize * sizeof(Rpp32f)));
+    else if(testCase == 29)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&amplX, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&amplY, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&freqX, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&freqY, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&phaseX, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&phaseY, batchSize * sizeof(Rpp32f)));
+    }
+    else if(testCase == 30)
+        CHECK_RETURN_STATUS(hipHostMalloc(&stdDevTensor, batchSize * sizeof(Rpp32f)));
+    else if(testCase == 31)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&rgbTensor, batchSize * sizeof(RpptRGB)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&alpha, batchSize * sizeof(Rpp32f)));
+    }
+    else if(testCase == 36)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&brightness, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&contrast, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&hue, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&saturation, batchSize * sizeof(Rpp32f)));
+    }
+    else if(testCase == 38)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&multiplier, batchSize * srcDescPtr->c *sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&offset, batchSize * srcDescPtr->c * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&mirror, batchSize * sizeof(Rpp32f)));
+    }
+    else if(testCase == 39)
+        CHECK_RETURN_STATUS(hipHostMalloc(&mirror, batchSize * sizeof(Rpp32f)));
+    else if(testCase == 54)
+        CHECK_RETURN_STATUS(hipHostMalloc(&stdDevTensor, batchSize * sizeof(Rpp32f)));
+
+    
+        
+
     Rpp32f *intensity;
     if(testCase == VIGNETTE)
         CHECK_RETURN_STATUS(hipHostMalloc(&intensity, batchSize * sizeof(Rpp32f)));
@@ -526,8 +623,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "brightness";
 
-                    Rpp32f alpha[batchSize];
-                    Rpp32f beta[batchSize];
                     for (i = 0; i < batchSize; i++)
                     {
                         alpha[i] = 1.75;
@@ -546,7 +641,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "gamma_correction";
 
-                    Rpp32f gammaVal[batchSize];
                     for (i = 0; i < batchSize; i++)
                         gammaVal[i] = 1.9;
 
@@ -562,7 +656,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "blend";
 
-                    Rpp32f alpha[batchSize];
                     for (i = 0; i < batchSize; i++)
                         alpha[i] = 0.4;
 
@@ -578,8 +671,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "contrast";
 
-                    Rpp32f contrastFactor[batchSize];
-                    Rpp32f contrastCenter[batchSize];
                     for (i = 0; i < batchSize; i++)
                     {
                         contrastFactor[i] = 2.96;
@@ -632,10 +723,6 @@ int main(int argc, char **argv)
                     {
                         case 0:
                         {
-                            Rpp32f noiseProbabilityTensor[batchSize];
-                            Rpp32f saltProbabilityTensor[batchSize];
-                            Rpp32f saltValueTensor[batchSize];
-                            Rpp32f pepperValueTensor[batchSize];
                             Rpp32u seed = 1255459;
                             for (i = 0; i < batchSize; i++)
                             {
@@ -655,8 +742,6 @@ int main(int argc, char **argv)
                         }
                         case 1:
                         {
-                            Rpp32f meanTensor[batchSize];
-                            Rpp32f stdDevTensor[batchSize];
                             Rpp32u seed = 1255459;
                             for (i = 0; i < batchSize; i++)
                             {
@@ -674,7 +759,6 @@ int main(int argc, char **argv)
                         }
                         case 2:
                         {
-                            Rpp32f shotNoiseFactorTensor[batchSize];
                             Rpp32u seed = 1255459;
                             for (i = 0; i < batchSize; i++)
                                 shotNoiseFactorTensor[i] = 80.0f;
@@ -718,7 +802,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "exposure";
 
-                    Rpp32f exposureFactor[batchSize];
                     for (i = 0; i < batchSize; i++)
                         exposureFactor[i] = 1.4;
 
@@ -917,13 +1000,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "water";
 
-                    Rpp32f amplX[batchSize];
-                    Rpp32f amplY[batchSize];
-                    Rpp32f freqX[batchSize];
-                    Rpp32f freqY[batchSize];
-                    Rpp32f phaseX[batchSize];
-                    Rpp32f phaseY[batchSize];
-
                     for (i = 0; i < batchSize; i++)
                     {
                         amplX[i] = 2.0f;
@@ -946,13 +1022,12 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "non_linear_blend";
 
-                    Rpp32f stdDev[batchSize];
                     for (i = 0; i < batchSize; i++)
-                        stdDev[i] = 50.0;
+                        stdDevTensor[i] = 50.0;
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_non_linear_blend_gpu(d_input, d_input_second, srcDescPtr, d_output, dstDescPtr, stdDev, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_non_linear_blend_gpu(d_input, d_input_second, srcDescPtr, d_output, dstDescPtr, stdDevTensor, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -962,20 +1037,17 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "color_cast";
 
-                    RpptRGB rgbTensor[batchSize];
-                    Rpp32f alphaTensor[batchSize];
-
                     for (i = 0; i < batchSize; i++)
                     {
                         rgbTensor[i].R = 0;
                         rgbTensor[i].G = 0;
                         rgbTensor[i].B = 100;
-                        alphaTensor[i] = 0.5;
+                        alpha[i] = 0.5;
                     }
 
                     startWallTime = omp_get_wtime();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_color_cast_gpu(d_input, srcDescPtr, d_output, dstDescPtr, rgbTensor, alphaTensor, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_color_cast_gpu(d_input, srcDescPtr, d_output, dstDescPtr, rgbTensor, alpha, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -1079,10 +1151,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "color_twist";
 
-                    Rpp32f brightness[batchSize];
-                    Rpp32f contrast[batchSize];
-                    Rpp32f hue[batchSize];
-                    Rpp32f saturation[batchSize];
                     for (i = 0; i < batchSize; i++)
                     {
                         brightness[i] = 1.4;
@@ -1122,9 +1190,6 @@ int main(int argc, char **argv)
                 case CROP_MIRROR_NORMALIZE:
                 {
                     testCaseName = "crop_mirror_normalize";
-                    Rpp32f multiplier[batchSize * srcDescPtr->c];
-                    Rpp32f offset[batchSize * srcDescPtr->c];
-                    Rpp32u mirror[batchSize];
                     if (srcDescPtr->c == 3)
                     {
                         Rpp32f meanParam[3] = { 60.0f, 80.0f, 100.0f };
@@ -1184,7 +1249,6 @@ int main(int argc, char **argv)
                         break;
                     }
 
-                    Rpp32u mirror[batchSize];
                     for (i = 0; i < batchSize; i++)
                         mirror[i] = 1;
 
@@ -1255,7 +1319,6 @@ int main(int argc, char **argv)
                     testCaseName = "gaussian_filter";
                     Rpp32u kernelSize = additionalParam;
 
-                    Rpp32f stdDevTensor[batchSize];
                     for (i = 0; i < batchSize; i++)
                     {
                         stdDevTensor[i] = 5.0f;
