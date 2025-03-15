@@ -149,6 +149,8 @@ const __m128i xmm_pxMask04To07 = _mm_setr_epi8(4, 0x80, 0x80, 0x80, 5, 0x80, 0x8
 const __m128i xmm_pxMask08To11 = _mm_setr_epi8(8, 0x80, 0x80, 0x80, 9, 0x80, 0x80, 0x80, 10, 0x80, 0x80, 0x80, 11, 0x80, 0x80, 0x80);
 const __m128i xmm_pxMask12To15 = _mm_setr_epi8(12, 0x80, 0x80, 0x80, 13, 0x80, 0x80, 0x80, 14, 0x80, 0x80, 0x80, 15, 0x80, 0x80, 0x80);
 
+
+
 const __m128i xmm_pxMask00To02 = _mm_setr_epi8(0, 0x80, 0x80, 0x80, 1, 0x80, 0x80, 0x80, 2, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
 const __m128i xmm_pxMask03To05 = _mm_setr_epi8(3, 0x80, 0x80, 0x80, 4, 0x80, 0x80, 0x80, 5, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
 const __m128i xmm_pxMask06To08 = _mm_setr_epi8(6, 0x80, 0x80, 0x80, 7, 0x80, 0x80, 0x80, 8, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80);
@@ -2039,6 +2041,23 @@ inline void rpp_load16_i8_to_f32_avx(Rpp8s *srcPtr, __m256 *p)
     p[1] = _mm256_cvtepi32_ps(_mm256_setr_m128i(_mm_shuffle_epi8(px, xmm_pxMask08To11), _mm_shuffle_epi8(px, xmm_pxMask12To15)));    /* Contains pixels 09-16 */
 }
 
+inline void rpp_load16_i16_to_f32_avx(Rpp16s *srcPtr, __m256 *p)
+{
+    __m256i px =  _mm256_loadu_si256((__m256i *)srcPtr);  
+
+    //Extracting 16 bits from the px and converting from 16 bit int to 32 bit int
+    __m256i px0 = _mm256_cvtepi16_epi32(_mm256_extracti128_si256(px, 0)); 
+    __m256i px1 = _mm256_cvtepi16_epi32(_mm256_extracti128_si256(px, 1)); 
+
+    //Taking absolute values
+    __m256i abs_px0 = _mm256_abs_epi32(px0);  
+    __m256i abs_px1 = _mm256_abs_epi32(px1); 
+    
+    // Convert 32 bit int to 32 bit floats
+    p[0] = _mm256_cvtepi32_ps(abs_px0); 
+    p[1] = _mm256_cvtepi32_ps(abs_px1); 
+}
+
 inline void rpp_load24_i8_to_f32_avx(Rpp8s *srcPtr, __m256 *p)
 {
     __m128i px1, px2;
@@ -2791,6 +2810,8 @@ static inline __m256 log_ps(__m256 x)
     __m256i emm0;
     __m256 one = *(__m256 *)&avx_p1;
     __m256 invalid_mask = _mm256_cmp_ps(x, avx_p0, _CMP_LE_OQ);
+
+    // x = _mm256_add_ps(x, one);
 
     // cut off denormalized stuff
     x = _mm256_max_ps(x, *(__m256 *)&_ps_min_norm_pos_avx);

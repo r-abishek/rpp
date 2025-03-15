@@ -91,7 +91,8 @@ imageAugmentationMap = {
     89: ["tensor_max", "HOST", "HIP"],
     90: ["tensor_mean", "HOST", "HIP"],
     91: ["tensor_stddev", "HOST", "HIP"],
-    92: ["slice", "HOST", "HIP"]
+    92: ["slice", "HOST", "HIP"],
+    93: ["jpeg_compression_distortion","HIP"],
 }
 
 audioAugmentationMap = {
@@ -118,7 +119,8 @@ voxelAugmentationMap = {
 miscAugmentationMap  = {
     0: ["transpose","HOST", "HIP"],
     1: ["normalize", "HOST", "HIP"],
-    2: ["log", "HOST", "HIP"]
+    2: ["log", "HOST", "HIP"],
+    3: ["log1p","HOST","HIP"]
 }
 
 ImageAugmentationGroupMap = {
