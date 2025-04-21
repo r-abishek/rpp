@@ -336,3 +336,4 @@ RppStatus rppt_tensor_add_tensor_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptGen
 }
 #endif
 #endif // RPPT_TENSOR_ARITHMETIC_OPERATIONS_H
+hk/tensor_arithmetic_hip
