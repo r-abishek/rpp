@@ -975,4 +975,15 @@ RppStatus hip_exec_concat_tensor(T *srcPtr1,
                                 Rpp32u *srcPtr1roiTensor,
                                 rpp::Handle& handle);
 
+template <typename T>
+RppStatus hip_exec_tensor_add_tensor_generic_tensor(T *srcPtr1,
+                                                    T *srcPtr2,
+                                                    RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                    RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                    T *dstPtr,
+                                                    RpptGenericDescPtr dstGenericDescPtr,
+                                                    Rpp32u *roiTensor1,
+                                                    Rpp32u *roiTensor2,
+                                                    rpp::Handle& handle);
+
 #endif // HIP_TENSOR_EXECUTORS_HPP

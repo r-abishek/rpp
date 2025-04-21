@@ -2913,5 +2913,4 @@ RppStatus rppt_concat_gpu(RppPtr_t srcPtr1,
 #endif // backend
 }
 
-
 #endif // GPU_SUPPORT

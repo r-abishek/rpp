@@ -326,6 +326,9 @@ RppStatus rppt_log1p_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr,
 RppStatus rppt_log1p_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *roiTensor, rppHandle_t rppHandle);
 #endif // GPU_SUPPORT
 
+#ifdef GPU_SUPPORT
+RppStatus rppt_tensor_add_tensor_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptGenericDescPtr srcGenericDescPtr1, RpptGenericDescPtr srcGenericDescPtr2, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *roiTensor1, Rpp32u *roiTensor2, rppHandle_t rppHandle);
+#endif // GPU_SUPPORT
 /*! @}
  */
 
