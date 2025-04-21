@@ -36,7 +36,8 @@ std::map<int, string> augmentationMiscMap =
     {1, "normalize"},
     {2, "log"},
     {3, "concat"},
-    {4, "log1p"}
+    {4, "log1p"},
+    {5, "tensor_add_tensor"}
 };
 
 enum Augmentation {
@@ -44,7 +45,8 @@ enum Augmentation {
     NORMALIZE = 1,
     LOG = 2,
     CONCAT = 3,
-    LOG1P = 4
+    LOG1P = 4,
+    TENSOR_ADD_TENSOR = 5
 };
 
 // Compute strides given Generic Tensor

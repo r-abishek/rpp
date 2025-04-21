@@ -87,7 +87,7 @@ int main(int argc, char **argv)
     CHECK_RETURN_STATUS(hipHostMalloc(&dstRoiTensor, nDim * 2 * batchSize, sizeof(Rpp32u)));
     fill_roi_values(nDim, batchSize, roiTensor, qaMode);
     memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 6, batchSize, roiTensor);
     set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || TENSOR_ADD_TENSOR)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
     Rpp16s *inputI16 = NULL;
     inputF32 = static_cast<Rpp32f *>(calloc(iBufferSizeInBytes, 1));
     outputF32 = static_cast<Rpp32f *>(calloc(oBufferSizeInBytes, 1));
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || TENSOR_ADD_TENSOR)
     {
         for(int i = 0; i <= nDim; i++)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
@@ -148,14 +148,14 @@ int main(int argc, char **argv)
     output = static_cast<Rpp32f *>(calloc(oBufferSizeInBytes, 1));
     CHECK_RETURN_STATUS(hipMalloc(&d_input, iBufferSizeInBytes));
     CHECK_RETURN_STATUS(hipMalloc(&d_output, oBufferSizeInBytes * 2));
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || TENSOR_ADD_TENSOR)
         CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeSecondInBytes));
 
     // read input data
     if(qaMode)
     {
         read_data(inputF32, nDim, 0, scriptPath, funcName);
-        if(testCase == CONCAT)
+        if(testCase == CONCAT || TENSOR_ADD_TENSOR)
             read_data(inputF32Second, nDim, 0, scriptPath, funcName);
     }
     else
@@ -163,7 +163,7 @@ int main(int argc, char **argv)
         std::srand(0);
         for(int i = 0; i < iBufferSize; i++)
             inputF32[i] = static_cast<float>((std::rand() % 255));
-        if(testCase == CONCAT)
+        if(testCase == CONCAT || TENSOR_ADD_TENSOR)
         {
             for(int i = 0; i < iBufferSizeSecond; i++)
                 inputF32Second[i] = static_cast<float>((std::rand() % 255));
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
 
     // copy data from HOST to HIP
     CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || TENSOR_ADD_TENSOR)
         CHECK_RETURN_STATUS(hipMemcpy(d_inputSecond, inputSecond, iBufferSizeSecondInBytes, hipMemcpyHostToDevice));
     CHECK_RETURN_STATUS(hipDeviceSynchronize());
 
@@ -308,6 +308,15 @@ int main(int argc, char **argv)
 
                 startWallTime = omp_get_wtime();
                 rppt_log1p_gpu(d_inputI16, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
+
+                break;
+            }
+            case TENSOR_ADD_TENSOR:
+            {
+                testCaseName = "tensor_add_tensor";
+
+                startWallTime = omp_get_wtime();
+                rppt_tensor_add_tensor_gpu(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
 
                 break;
             }
