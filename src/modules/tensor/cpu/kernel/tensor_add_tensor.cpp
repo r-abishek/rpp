@@ -11,7 +11,8 @@ void tensor_add_tensor_recursive(Rpp32f *src1, Rpp32f *src2, Rpp32u *src1Strides
         {
             tensor_add_tensor_recursive(src1, src2, src1Strides + 1, src2Strides + 1, dst, dstStrides + 1, dstShape + 1, nDim - 1);
             dst += *(dstStrides + 1);
-            src += *(srcStrides + 1);
+            src1 += *(src1Strides + 1);
+            src2 += *(src2Strides + 1);
         }
     }
 }
