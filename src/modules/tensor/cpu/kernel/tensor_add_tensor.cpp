@@ -4,7 +4,7 @@
 void tensor_add_tensor_recursive(Rpp32f *src1, Rpp32f *src2, Rpp32u *src1Strides, Rpp32u *src2Strides, Rpp32f *dst, Rpp32u *dstStrides, Rpp32u *dstShape, Rpp32u nDim)
 {
     if (!nDim)
-        *dst = *src1 + * src2;
+        *dst = *src1 + *src2;
     else
     {
         for (int i = 0; i < *dstShape; i++)
@@ -28,16 +28,20 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                                                 Rpp32u *srcPtr2roiTensor,
                                                 rpp::Handle& handle) {
     Rpp32u numThreads = handle.GetNumThreads();
-    Rpp32u nDim = srcGenericDescPtr->numDims - 1; // Omitting batchSize here to get tensor dimension.
+    Rpp32u nDim = dstGenericDescPtr->numDims - 1; // Omitting batchSize here to get tensor dimension.
     Rpp32u batchSize = dstGenericDescPtr->dims[0];
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
     for(int batchCount = 0; batchCount < batchSize; batchCount++)
     {
-        Rpp32u *roi = roiTensor + batchCount * nDim * 2;
+        Rpp32u *roi = srcPtr1roiTensor + batchCount * nDim * 2;
         Rpp32u *length = &roi[nDim];
-        tensor_add_tensor_recursive(srcPtr1, srcPtr2, src1GenericDescPtr->strides, src2GenericDescPtr->strides, dstPtr, dstGenericDescPtr->strides, length, nDim);
+
+        Rpp32f *srcPtrTemp1 = srcPtr1 + batchCount * srcPtr1GenericDescPtr->strides[0];
+        Rpp32f *srcPtrTemp2 = srcPtr2 + batchCount * srcPtr2GenericDescPtr->strides[0];
+        Rpp32f *dstPtrTemp = dstPtr + batchCount * dstGenericDescPtr->strides[0];
+        tensor_add_tensor_recursive(srcPtrTemp1, srcPtrTemp2, srcPtr1GenericDescPtr->strides, srcPtr2GenericDescPtr->strides, dstPtrTemp, dstGenericDescPtr->strides, length, nDim);
     }
 
     return RPP_SUCCESS;

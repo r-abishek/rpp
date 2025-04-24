@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     bitDepth = atoi(argv[7]);
     string dst = argv[9];
     string scriptPath = argv[10];
-    qaMode = (testType == 0);
+    qaMode = 0;//(testType == 0);
     bool axisMaskCase = (testCase == NORMALIZE || testCase == CONCAT);
     bool permOrderCase = (testCase == TRANSPOSE);
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
-        dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask]; 
+        //dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask];
     }
 
     // set src/dst generic tensor descriptors
@@ -165,6 +165,7 @@ int main(int argc, char **argv)
                 inputF32Second[i] = static_cast<float>((std::rand() % 255));
         }
     }
+
     if(testCase == LOG1P)
     {
         inputI16 = static_cast<Rpp16s *>(calloc(iBufferSize, sizeof(Rpp16s)));
@@ -294,7 +295,13 @@ int main(int argc, char **argv)
                     rppt_tensor_add_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
-
+                printf("After run of tensor add tensor\n");
+                float* in  = (float*)input;
+                float* in2 = (float*)inputSecond;
+                float* out = (float*)output;
+                for(int i1 = 0; i1 < iBufferSize; i1++)
+                    printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
+                exit(0);
                 break;
             }
             default:

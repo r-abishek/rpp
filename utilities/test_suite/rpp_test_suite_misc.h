@@ -36,7 +36,7 @@ std::map<int, string> augmentationMiscMap =
     {1, "normalize"},
     {2, "log"},
     {3, "concat"},
-    {4, "log1p"}
+    {4, "log1p"},
     {5, "tensor_add_tensor"}
 };
 
@@ -144,7 +144,7 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             }
             case 3:
             {
-                std::array<Rpp32u, 6> roi = {0, 0, 0, 1920, 1080, 3};
+                std::array<Rpp32u, 6> roi = {0, 0, 0, 2, 2, 4};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 6)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -387,7 +387,7 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
         for (Rpp32s i = 0; i < ioBufferSize; i++)
             outputU8[i] = static_cast<Rpp8u>(std::clamp(std::round(inputF32[i]), 0.0f, 255.0f));
 
-        if (testCase == CONCAT)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
         {
             Rpp8u *outputU8Second = static_cast<Rpp8u *>(outputSecond) + srcGenericDescPtr->offsetInBytes;
             for (Rpp32s i = 0; i < ioBufferSize; i++)
@@ -400,7 +400,7 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
         for (Rpp32s i = 0; i < ioBufferSize; i++)
             outputF16[i] = static_cast<Rpp16f>(std::clamp(inputF32[i], -65504.0f, 65504.0f)); // F16 range
 
-        if (testCase == CONCAT)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
         {
             Rpp16f *outputF16Second = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(outputSecond) + srcGenericDescPtr->offsetInBytes);
             for (Rpp32s i = 0; i < ioBufferSize; i++)
@@ -410,7 +410,7 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
     else if (outputBitDepth == 2) // F32 case (No conversion needed)
     {
         memcpy(output, inputF32, outputBufferSize);
-        if (testCase == CONCAT)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
             memcpy(outputSecond, inputF32Second, outputBufferSize);
     }
     else if (outputBitDepth == 5) // I8 case
@@ -419,7 +419,7 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
         for (int i = 0; i < ioBufferSize; i++)
             outputI8[i] = static_cast<Rpp8s>(std::clamp(std::round(inputF32[i]) - 128, -128.0f, 127.0f));
 
-        if (testCase == CONCAT)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
         {
             Rpp8s *outputI8Second = static_cast<Rpp8s *>(outputSecond) + srcGenericDescPtr->offsetInBytes;
             for (int i = 0; i < ioBufferSize; i++)
