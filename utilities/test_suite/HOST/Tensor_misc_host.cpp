@@ -88,7 +88,7 @@ int main(int argc, char **argv)
     
     fill_roi_values(nDim, batchSize, roiTensor, qaMode);
     memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
     {
         srcDescriptorPtrNDSecond = &srcDescriptorSecond;
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
     Rpp16s *inputI16 = NULL;
     inputF32 = static_cast<Rpp32f *>(calloc(iBufferSizeInBytes, 1));
     outputF32 = static_cast<Rpp32f *>(calloc(oBufferSizeInBytes, 1));
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
     {
         for(int i = 0; i <= nDim; i++)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
     if(qaMode)
     {
         read_data(inputF32, nDim, 0, scriptPath, funcName);
-        if(testCase == CONCAT)
+        if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
             read_data(inputF32Second, nDim, 0, scriptPath, funcName);
     }
     else
@@ -159,7 +159,7 @@ int main(int argc, char **argv)
         std::srand(0);
         for(int i = 0; i < iBufferSize; i++)
             inputF32[i] = static_cast<float>(std::rand() % 255);
-        if(testCase == CONCAT)
+        if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
         {
             for(int i = 0; i < iBufferSizeSecond; i++)
                 inputF32Second[i] = static_cast<float>((std::rand() % 255));
@@ -282,6 +282,18 @@ int main(int argc, char **argv)
 
                 startWallTime = omp_get_wtime();
                 rppt_log1p_host(inputI16, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
+
+                break;
+            }
+            case TENSOR_ADD_TENSOR:
+            {
+                testCaseName  = "tensor_add_tensor";
+
+                startWallTime = omp_get_wtime();
+                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                    rppt_tensor_add_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
+                else
+                    missingFuncFlag = 1;
 
                 break;
             }
