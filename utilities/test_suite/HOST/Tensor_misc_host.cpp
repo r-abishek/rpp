@@ -86,12 +86,13 @@ int main(int argc, char **argv)
     Rpp32u *roiTensorSecond ;
     Rpp32u *dstRoiTensor = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
     
-    fill_roi_values(nDim, batchSize, roiTensor, qaMode);
-    memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
+    fill_roi_values(nDim, batchSize, roiTensor, qaMode, 0);
+    //memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
+    fill_roi_values(nDim, batchSize, dstRoiTensor, qaMode, 2);
     if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
-        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
+        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode, 1);
         //dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask];
     }
 
@@ -174,7 +175,7 @@ int main(int argc, char **argv)
     }
 
     // Convert inputs to correponding bit depth specified by user
-    convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeInBytes, srcDescriptorPtrND, testCase);
+    convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, testCase);
 
     // Set the number of threads to be used by OpenMP pragma for RPP batch processing on host.
     // If numThreads value passed is 0, number of OpenMP threads used by RPP will be set to batch size
@@ -299,8 +300,19 @@ int main(int argc, char **argv)
                 float* in  = (float*)input;
                 float* in2 = (float*)inputSecond;
                 float* out = (float*)output;
+                printf("Input 1 : ");
                 for(int i1 = 0; i1 < iBufferSize; i1++)
-                    printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
+                    printf("%f ", in[i1]);
+                printf("\n");
+                printf("Input 2  of size %d: ", iBufferSizeSecond);
+                for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
+                    printf("%f ", in2[i1]);
+                printf("\n");
+                printf("Output : ");
+                for(int i1 = 0; i1 < oBufferSize; i1++)
+                    printf("%f ", out[i1]);
+                printf("\n");
+                //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
                 exit(0);
                 break;
             }
