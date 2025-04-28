@@ -2,7 +2,8 @@
 #include "broadcast.hpp"
 #include "rpp_cpu_simd_math.hpp"
 
-void tensor_add_tensor_recursive(Rpp32f *src1, Rpp32f *src2, Rpp32u *src1Strides, Rpp32u *src2Strides, Rpp32f *dst, Rpp32u *dstStrides, Rpp32u *dstShape, Rpp32u nDim)
+template<typename T>
+void tensor_add_tensor_recursive(T *src1, T *src2, Rpp32u *src1Strides, Rpp32u *src2Strides, T *dst, Rpp32u *dstStrides, Rpp32u *dstShape, Rpp32u nDim)
 {
     if (!nDim)
         *dst = *src1 + *src2;
