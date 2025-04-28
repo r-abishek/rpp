@@ -39,86 +39,40 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
     src1BroadcastDesc = *srcPtr1GenericDescPtr;
     src2BroadcastDesc = *srcPtr2GenericDescPtr;
     dstBroadcastDesc = *dstGenericDescPtr;
-    printf("src1 : ");
-    for(int i1 = 0; i1 < srcPtr1GenericDescPtr->numDims; i1++) {
-        printf("%d ", srcPtr1GenericDescPtr->dims[i1]);
-    }
-    printf("\n");
-    printf("src2 : ");
-    for(int i1 = 0; i1 < srcPtr2GenericDescPtr->numDims; i1++) {
-        printf("%d ", srcPtr2GenericDescPtr->dims[i1]);
-    }
-    printf("\n");
-    printf("dst : ");
-    for(int i1 = 0; i1 < dstGenericDescPtr->numDims; i1++) {
-        printf("%d ", dstGenericDescPtr->dims[i1]);
-    }
-    printf("\n");
-    printf("src1 : ");
-    for(int i1 = 0; i1 < src1BroadcastDescPtr->numDims; i1++) {
-        printf("%d ", src1BroadcastDescPtr->dims[i1]);
-    }
-    printf("\n");
-    printf("src2 : ");
-    for(int i1 = 0; i1 < src2BroadcastDescPtr->numDims; i1++) {
-        printf("%d ", src2BroadcastDescPtr->dims[i1]);
-    }
-    printf("\n");
-    printf("dst : ");
-    for(int i1 = 0; i1 < dstBroadcastDescPtr->numDims; i1++) {
-        printf("%d ", dstBroadcastDescPtr->dims[i1]);
-    }
-    printf("\n");
     GroupShapes(src1BroadcastDescPtr, src2BroadcastDescPtr, dstBroadcastDescPtr);
-    printf("src1 : ");
-    for(int i1 = 0; i1 < src1BroadcastDescPtr->numDims; i1++) {
-        printf("%d ", src1BroadcastDescPtr->dims[i1]);
-    }
-    printf("\n");
-    printf("src2 : ");
-    for(int i1 = 0; i1 < src2BroadcastDescPtr->numDims; i1++) {
-        printf("%d ", src2BroadcastDescPtr->dims[i1]);
-    }
-    printf("\n");
-    printf("dst : ");
-    for(int i1 = 0; i1 < dstBroadcastDescPtr->numDims; i1++) {
-        printf("%d ", dstBroadcastDescPtr->dims[i1]);
-    }
-    printf("\n");
     StridesForBroadcasting(src1BroadcastDescPtr, dstBroadcastDescPtr);
     StridesForBroadcasting(src2BroadcastDescPtr, dstBroadcastDescPtr);
-    printf("Strides src1 : ");
-    for(int i1 = 0; i1 < src1BroadcastDescPtr->numDims; i1++) {
-        printf("%d ", src1BroadcastDescPtr->strides[i1]);
-    }
-    printf("\n");
-    printf("Strides src2 : ");
-    for(int i1 = 0; i1 < src2BroadcastDescPtr->numDims; i1++) {
-        printf("%d ", src2BroadcastDescPtr->strides[i1]);
-    }
-    printf("\n");
-    printf("Strides dst : ");
-    for(int i1 = 0; i1 < dstBroadcastDescPtr->numDims; i1++) {
-        printf("%d ", dstBroadcastDescPtr->strides[i1]);
-    }
-    printf("\n");
-    //exit(0);
 
     Rpp32u numThreads = handle.GetNumThreads();
-    Rpp32u nDim = dstBroadcastDescPtr->numDims - 1; // Omitting batchSize here to get tensor dimension.
+    Rpp32u src1NDim = srcPtr1GenericDescPtr->numDims - 1;
+    Rpp32u src2NDim = srcPtr2GenericDescPtr->numDims - 1;
+    Rpp32u broadcastNDim = dstBroadcastDescPtr->numDims - 1; // Omitting batchSize here to get tensor dimension.
     Rpp32u batchSize = dstBroadcastDescPtr->dims[0];
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
     for(int batchCount = 0; batchCount < batchSize; batchCount++)
     {
-        //Rpp32u *roi = srcPtr1roiTensor + batchCount * nDim * 2;
+        Rpp32u *src1roi = srcPtr1roiTensor + batchCount * src1NDim * 2;
+        Rpp32u *src1begin = src1roi;
+
+        Rpp32u *src2roi = srcPtr2roiTensor + batchCount * src2NDim * 2;
+        Rpp32u *src2begin = src2roi;
+
+        Rpp32f *srcPtrTemp1 = srcPtr1 + batchCount * srcPtr1GenericDescPtr->strides[0];
+        Rpp32f *srcPtrTemp2 = srcPtr2 + batchCount * srcPtr2GenericDescPtr->strides[0];
+
+        for(int i = 0; i < src1NDim; i++)
+            srcPtrTemp1 += src1begin[i] * srcPtr1GenericDescPtr->strides[i + 1];
+
+        for(int i = 0; i < src2NDim; i++)
+            srcPtrTemp2 += src2begin[i] * srcPtr2GenericDescPtr->strides[i + 1];
+
+        Rpp32f *dstPtrTemp = dstPtr + batchCount * dstGenericDescPtr->strides[0];
+
         Rpp32u *length = dstBroadcastDescPtr->dims + 1;
 
-        Rpp32f *srcPtrTemp1 = srcPtr1 + batchCount * src1BroadcastDescPtr->strides[0];
-        Rpp32f *srcPtrTemp2 = srcPtr2 + batchCount * src2BroadcastDescPtr->strides[0];
-        Rpp32f *dstPtrTemp = dstPtr + batchCount * dstBroadcastDescPtr->strides[0];
-        tensor_add_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, nDim);
+        tensor_add_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
     }
 
     return RPP_SUCCESS;
