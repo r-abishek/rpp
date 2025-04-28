@@ -78,3 +78,62 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 
     return RPP_SUCCESS;
 }
+
+RppStatus tensor_add_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
+                                                Rpp16f *srcPtr2,
+                                                RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                Rpp16f *dstPtr,
+                                                RpptGenericDescPtr dstGenericDescPtr,
+                                                Rpp32u *srcPtr1roiTensor,
+                                                Rpp32u *srcPtr2roiTensor,
+                                                rpp::Handle& handle) {
+
+    checkEqualBatchSize(srcPtr1GenericDescPtr, srcPtr2GenericDescPtr);
+    BroadcastDstShape(srcPtr1GenericDescPtr, srcPtr2GenericDescPtr, dstGenericDescPtr);
+    RpptGenericDesc src1BroadcastDesc, src2BroadcastDesc, dstBroadcastDesc;
+    RpptGenericDescPtr src1BroadcastDescPtr, src2BroadcastDescPtr, dstBroadcastDescPtr;
+    src1BroadcastDescPtr = &src1BroadcastDesc;
+    src2BroadcastDescPtr = &src2BroadcastDesc;
+    dstBroadcastDescPtr = &dstBroadcastDesc;
+    src1BroadcastDesc = *srcPtr1GenericDescPtr;
+    src2BroadcastDesc = *srcPtr2GenericDescPtr;
+    dstBroadcastDesc = *dstGenericDescPtr;
+    GroupShapes(src1BroadcastDescPtr, src2BroadcastDescPtr, dstBroadcastDescPtr);
+    StridesForBroadcasting(src1BroadcastDescPtr, dstBroadcastDescPtr);
+    StridesForBroadcasting(src2BroadcastDescPtr, dstBroadcastDescPtr);
+
+    Rpp32u numThreads = handle.GetNumThreads();
+    Rpp32u src1NDim = srcPtr1GenericDescPtr->numDims - 1;
+    Rpp32u src2NDim = srcPtr2GenericDescPtr->numDims - 1;
+    Rpp32u broadcastNDim = dstBroadcastDescPtr->numDims - 1; // Omitting batchSize here to get tensor dimension.
+    Rpp32u batchSize = dstBroadcastDescPtr->dims[0];
+
+    omp_set_dynamic(0);
+#pragma omp parallel for num_threads(numThreads)
+    for(int batchCount = 0; batchCount < batchSize; batchCount++)
+    {
+        Rpp32u *src1roi = srcPtr1roiTensor + batchCount * src1NDim * 2;
+        Rpp32u *src1begin = src1roi;
+
+        Rpp32u *src2roi = srcPtr2roiTensor + batchCount * src2NDim * 2;
+        Rpp32u *src2begin = src2roi;
+
+        Rpp16f *srcPtrTemp1 = srcPtr1 + batchCount * srcPtr1GenericDescPtr->strides[0];
+        Rpp16f *srcPtrTemp2 = srcPtr2 + batchCount * srcPtr2GenericDescPtr->strides[0];
+
+        for(int i = 0; i < src1NDim; i++)
+            srcPtrTemp1 += src1begin[i] * srcPtr1GenericDescPtr->strides[i + 1];
+
+        for(int i = 0; i < src2NDim; i++)
+            srcPtrTemp2 += src2begin[i] * srcPtr2GenericDescPtr->strides[i + 1];
+
+        Rpp16f *dstPtrTemp = dstPtr + batchCount * dstGenericDescPtr->strides[0];
+
+        Rpp32u *length = dstBroadcastDescPtr->dims + 1;
+
+        tensor_add_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
+    }
+
+    return RPP_SUCCESS;
+}
