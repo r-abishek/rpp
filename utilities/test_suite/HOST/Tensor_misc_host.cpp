@@ -113,8 +113,9 @@ int main(int argc, char **argv)
         srcDescriptorPtrNDSecond = &srcDescriptorSecond;
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
         set_generic_descriptor_layout(srcDescriptorPtrNDSecond, dstDescriptorPtrND, nDim, toggle, qaMode);
-
     }
+    printf("\nAfter set descriptor");
+
     Rpp32u iBufferSize = 1;
     Rpp32u oBufferSize = 1;
     Rpp32u iBufferSizeSecond = 1;
@@ -124,6 +125,10 @@ int main(int argc, char **argv)
     for(int i = 0; i <= nDim; i++)
     {
         iBufferSize *= srcDescriptorPtrND->dims[i];
+    }
+    for(int i = 0; i <= nDim; i++)
+    {
+        //iBufferSize *= srcDescriptorPtrND->dims[i];
         oBufferSize *= dstDescriptorPtrND->dims[i];
     }
 
@@ -166,6 +171,9 @@ int main(int argc, char **argv)
                 inputF32Second[i] = static_cast<float>((std::rand() % 255));
         }
     }
+
+    printf("\nAfter setting input buffers");
+    //exit(0);
 
     if(testCase == LOG1P)
     {
@@ -289,6 +297,7 @@ int main(int argc, char **argv)
             }
             case TENSOR_ADD_TENSOR:
             {
+                printf("Inside tensor add tensor\n");
                 testCaseName  = "tensor_add_tensor";
 
                 startWallTime = omp_get_wtime();
