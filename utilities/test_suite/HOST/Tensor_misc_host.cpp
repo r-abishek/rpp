@@ -89,7 +89,7 @@ int main(int argc, char **argv)
     fill_roi_values(nDim, batchSize, roiTensor, qaMode, 0);
     //memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
     fill_roi_values(nDim, batchSize, dstRoiTensor, qaMode, 2);
-    if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
+    if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode, 1);
@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
-    if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
+    if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
     {
         srcDescriptorPtrNDSecond = &srcDescriptorSecond;
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
     Rpp16s *inputI16 = NULL;
     inputF32 = static_cast<Rpp32f *>(calloc(iBufferSizeInBytes, 1));
     outputF32 = static_cast<Rpp32f *>(calloc(oBufferSizeInBytes, 1));
-    if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
+    if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
     {
         for(int i = 0; i <= nDim; i++)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
@@ -157,7 +157,7 @@ int main(int argc, char **argv)
     if(qaMode)
     {
         read_data(inputF32, nDim, 0, scriptPath, funcName);
-        if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
             read_data(inputF32Second, nDim, 0, scriptPath, funcName);
     }
     else
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
         std::srand(0);
         for(int i = 0; i < iBufferSize; i++)
             inputF32[i] = static_cast<float>(std::rand() % 255);
-        if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
         {
             for(int i = 0; i < iBufferSizeSecond; i++)
                 inputF32Second[i] = static_cast<float>((std::rand() % 255));
@@ -303,6 +303,96 @@ int main(int argc, char **argv)
                 startWallTime = omp_get_wtime();
                 if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
                     rppt_tensor_add_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
+                else
+                    missingFuncFlag = 1;
+                printf("After run of tensor add tensor\n");
+                float* in  = (float*)input;
+                float* in2 = (float*)inputSecond;
+                float* out = (float*)output;
+                printf("Input 1 : ");
+                for(int i1 = 0; i1 < iBufferSize; i1++)
+                    printf("%f ", in[i1]);
+                printf("\n");
+                printf("Input 2  of size %d: ", iBufferSizeSecond);
+                for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
+                    printf("%f ", in2[i1]);
+                printf("\n");
+                printf("Output : ");
+                for(int i1 = 0; i1 < oBufferSize; i1++)
+                    printf("%f ", out[i1]);
+                printf("\n");
+                //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
+                exit(0);
+                break;
+            }
+            case TENSOR_SUBTRACT_TENSOR:
+            {
+                printf("Inside tensor subtract tensor\n");
+                testCaseName  = "tensor_subtract_tensor";
+
+                startWallTime = omp_get_wtime();
+                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                    rppt_tensor_subtract_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
+                else
+                    missingFuncFlag = 1;
+                printf("After run of tensor subtract tensor\n");
+                float* in  = (float*)input;
+                float* in2 = (float*)inputSecond;
+                float* out = (float*)output;
+                printf("Input 1 : ");
+                for(int i1 = 0; i1 < iBufferSize; i1++)
+                    printf("%f ", in[i1]);
+                printf("\n");
+                printf("Input 2  of size %d: ", iBufferSizeSecond);
+                for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
+                    printf("%f ", in2[i1]);
+                printf("\n");
+                printf("Output : ");
+                for(int i1 = 0; i1 < oBufferSize; i1++)
+                    printf("%f ", out[i1]);
+                printf("\n");
+                //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
+                exit(0);
+                break;
+            }
+            case TENSOR_MULTIPLY_TENSOR:
+            {
+                printf("Inside tensor multiply tensor\n");
+                testCaseName  = "tensor_multiply_tensor";
+
+                startWallTime = omp_get_wtime();
+                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                    rppt_tensor_multiply_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
+                else
+                    missingFuncFlag = 1;
+                printf("After run of tensor multiply tensor\n");
+                float* in  = (float*)input;
+                float* in2 = (float*)inputSecond;
+                float* out = (float*)output;
+                printf("Input 1 : ");
+                for(int i1 = 0; i1 < iBufferSize; i1++)
+                    printf("%f ", in[i1]);
+                printf("\n");
+                printf("Input 2  of size %d: ", iBufferSizeSecond);
+                for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
+                    printf("%f ", in2[i1]);
+                printf("\n");
+                printf("Output : ");
+                for(int i1 = 0; i1 < oBufferSize; i1++)
+                    printf("%f ", out[i1]);
+                printf("\n");
+                //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
+                exit(0);
+                break;
+            }
+            case TENSOR_DIVIDE_TENSOR:
+            {
+                printf("Inside tensor divide tensor\n");
+                testCaseName  = "tensor_divide_tensor";
+
+                startWallTime = omp_get_wtime();
+                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                    rppt_tensor_divide_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
                 printf("After run of tensor add tensor\n");
