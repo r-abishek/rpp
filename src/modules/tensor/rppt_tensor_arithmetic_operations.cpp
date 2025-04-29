@@ -474,7 +474,7 @@ RppStatus rppt_tensor_divide_tensor_host(RppPtr_t srcPtr1,
                                               roiTensorSrc2,
                                               rpp::deref(rppHandle));
     }
-    elseif ((srcPtr1GenericDescPtr->dataType == RpptDataType::F32) && (dstGenericDescPtr->dataType == RpptDataType::F32))
+    else if ((srcPtr1GenericDescPtr->dataType == RpptDataType::F32) && (dstGenericDescPtr->dataType == RpptDataType::F32))
     {
         tensor_divide_tensor_f32_f32_host_tensor(reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(srcPtr1) + srcPtr1GenericDescPtr->offsetInBytes),
                                               reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(srcPtr2) + srcPtr2GenericDescPtr->offsetInBytes),
