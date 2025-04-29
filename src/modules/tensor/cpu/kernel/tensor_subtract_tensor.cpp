@@ -3,7 +3,7 @@
 #include "rpp_cpu_simd_math.hpp"
 
 template<typename T>
-void tensor_multiply_tensor_recursive(T *src1, T *src2, Rpp32u *src1Strides, Rpp32u *src2Strides, T *dst, Rpp32u *dstStrides, Rpp32u *dstShape, Rpp32u nDim)
+void tensor_subtract_tensor_recursive(T *src1, T *src2, Rpp32u *src1Strides, Rpp32u *src2Strides, T *dst, Rpp32u *dstStrides, Rpp32u *dstShape, Rpp32u nDim)
 {
     if (!nDim)
         *dst = *src1 - *src2;
@@ -11,7 +11,7 @@ void tensor_multiply_tensor_recursive(T *src1, T *src2, Rpp32u *src1Strides, Rpp
     {
         for (int i = 0; i < *dstShape; i++)
         {
-            tensor_multiply_tensor_recursive(src1, src2, src1Strides + 1, src2Strides + 1, dst, dstStrides + 1, dstShape + 1, nDim - 1);
+            tensor_subtract_tensor_recursive(src1, src2, src1Strides + 1, src2Strides + 1, dst, dstStrides + 1, dstShape + 1, nDim - 1);
             dst += *(dstStrides + 1);
             src1 += *(src1Strides + 1);
             src2 += *(src2Strides + 1);
@@ -20,7 +20,7 @@ void tensor_multiply_tensor_recursive(T *src1, T *src2, Rpp32u *src1Strides, Rpp
 }
 
 
-RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
+RppStatus tensor_subtract_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                                                 Rpp32f *srcPtr2,
                                                 RpptGenericDescPtr srcPtr1GenericDescPtr,
                                                 RpptGenericDescPtr srcPtr2GenericDescPtr,
@@ -73,13 +73,13 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 
         Rpp32u *length = dstBroadcastDescPtr->dims + 1;
 
-        tensor_multiply_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
+        tensor_subtract_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
     }
 
     return RPP_SUCCESS;
 }
 
-RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
+RppStatus tensor_subtract_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                                                 Rpp16f *srcPtr2,
                                                 RpptGenericDescPtr srcPtr1GenericDescPtr,
                                                 RpptGenericDescPtr srcPtr2GenericDescPtr,
@@ -132,7 +132,7 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
 
         Rpp32u *length = dstBroadcastDescPtr->dims + 1;
 
-        tensor_multiply_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
+        tensor_subtract_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
     }
 
     return RPP_SUCCESS;

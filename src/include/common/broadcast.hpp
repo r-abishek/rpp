@@ -1,19 +1,19 @@
 #include "rpp.h"
 
-void checkEqualBatchSize(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND) {
+inline void checkEqualBatchSize(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND) {
     if(src1DescriptorPtrND->dims[0] != src2DescriptorPtrND->dims[0]) {
         printf("Batch Size of Inputs must be equal\n");
         exit(0);
     }
 }
 
-Rpp32s getMaxNumDims(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND) {
+inline Rpp32s getMaxNumDims(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND) {
     if(src1DescriptorPtrND->numDims > src2DescriptorPtrND->numDims)
         return src1DescriptorPtrND->numDims;
     return src2DescriptorPtrND->numDims;
 }
 
-void UpdateDstDimension(RpptGenericDescPtr srcDescriptorPtr, RpptGenericDescPtr dstDescriptorPtr, Rpp32s idx) {
+inline void UpdateDstDimension(RpptGenericDescPtr srcDescriptorPtr, RpptGenericDescPtr dstDescriptorPtr, Rpp32s idx) {
     int srcDimension;
     int src_ndim = srcDescriptorPtr->numDims;
     int dst_ndim = dstDescriptorPtr->numDims;
@@ -30,13 +30,13 @@ void UpdateDstDimension(RpptGenericDescPtr srcDescriptorPtr, RpptGenericDescPtr 
         dstDescriptorPtr->dims[dst_ndim - 1 - idx] = srcDimension;
 }
 
-void CopyDescriptorForBroadcasting(RpptGenericDescPtr descPtrND, RpptGenericDescPtr broadcastDescPtrND) {
+inline void CopyDescriptorForBroadcasting(RpptGenericDescPtr descPtrND, RpptGenericDescPtr broadcastDescPtrND) {
     RpptGenericDesc descND = *descPtrND;
     RpptGenericDesc broadcastDescND = descND;
     broadcastDescPtrND = &broadcastDescND;
 }
 
-void BroadcastDstShape(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND) {
+inline void BroadcastDstShape(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND) {
     int ndim = getMaxNumDims(src1DescriptorPtrND, src2DescriptorPtrND);
     dstDescriptorPtrND->numDims = ndim;
     dstDescriptorPtrND->dims[0] = src1DescriptorPtrND->dims[0];
@@ -89,7 +89,7 @@ inline bool CanCollapse(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescP
     return true;
 }
 
-void AddGroupDimension(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND, int* volumes, int index, int n_groups, std::vector<int>& updated_dims) {
+inline void AddGroupDimension(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND, int* volumes, int index, int n_groups, std::vector<int>& updated_dims) {
     int ndim = dstDescriptorPtrND->numDims;
     updated_dims.push_back(volumes[0]);
     updated_dims.push_back(volumes[1]);
@@ -99,7 +99,7 @@ void AddGroupDimension(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPt
     volumes[2] = GetShapeAtIndex(dstDescriptorPtrND, index, ndim);
 }
 
-void GroupShapes(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND) {
+inline void GroupShapes(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND) {
     int ndim = dstDescriptorPtrND->numDims;
     int d = 1;
     int group_start;
@@ -153,7 +153,7 @@ void GroupShapes(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2
     }
 }
 
-void StridesForBroadcasting(RpptGenericDescPtr srcDescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND) {
+inline void StridesForBroadcasting(RpptGenericDescPtr srcDescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND) {
     int ndim = dstDescriptorPtrND->numDims;
     for(int i = 0; i < ndim - 1; i++) {
         if((srcDescriptorPtrND->dims[ndim - 1 - i] != dstDescriptorPtrND->dims[ndim - 1 - 1]) && (srcDescriptorPtrND->dims[ndim - 1 - i] == 1)) {
