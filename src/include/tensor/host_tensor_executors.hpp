@@ -2704,6 +2704,16 @@ RppStatus concat_generic_host_tensor(T1 *srcPtr1,
 
 // -------------------- tensor_add_tensor --------------------
 
+RppStatus tensor_add_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
+                                                   Rpp16f *srcPtr2,
+                                                   RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                   RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                   Rpp16f *dstPtr,
+                                                   RpptGenericDescPtr dstGenericDescPtr,
+                                                   Rpp32u *srcPtr1roiTensor,
+                                                   Rpp32u *srcPtr2roiTensor,
+                                                   rpp::Handle& handle);
+
 RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                                                 Rpp32f *srcPtr2,
                                                 RpptGenericDescPtr srcPtr1GenericDescPtr,
@@ -2717,6 +2727,16 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 
 // -------------------- tensor_subtract_tensor --------------------
 
+RppStatus tensor_subtract_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
+                                                   Rpp16f *srcPtr2,
+                                                   RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                   RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                   Rpp16f *dstPtr,
+                                                   RpptGenericDescPtr dstGenericDescPtr,
+                                                   Rpp32u *srcPtr1roiTensor,
+                                                   Rpp32u *srcPtr2roiTensor,
+                                                   rpp::Handle& handle);
+
 RppStatus tensor_subtract_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                                                 Rpp32f *srcPtr2,
                                                 RpptGenericDescPtr srcPtr1GenericDescPtr,
@@ -2729,6 +2749,16 @@ RppStatus tensor_subtract_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 
 // -------------------- tensor_multiply_tensor --------------------
 
+RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
+                                                   Rpp16f *srcPtr2,
+                                                   RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                   RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                   Rpp16f *dstPtr,
+                                                   RpptGenericDescPtr dstGenericDescPtr,
+                                                   Rpp32u *srcPtr1roiTensor,
+                                                   Rpp32u *srcPtr2roiTensor,
+                                                   rpp::Handle& handle);
+
 RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                                                 Rpp32f *srcPtr2,
                                                 RpptGenericDescPtr srcPtr1GenericDescPtr,
@@ -2740,6 +2770,16 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                                                 rpp::Handle& handle);
 
 // -------------------- tensor_divide_tensor --------------------
+
+RppStatus tensor_divide_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
+                                                   Rpp16f *srcPtr2,
+                                                   RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                   RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                   Rpp16f *dstPtr,
+                                                   RpptGenericDescPtr dstGenericDescPtr,
+                                                   Rpp32u *srcPtr1roiTensor,
+                                                   Rpp32u *srcPtr2roiTensor,
+                                                   rpp::Handle& handle);
 
 RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                                                 Rpp32f *srcPtr2,
