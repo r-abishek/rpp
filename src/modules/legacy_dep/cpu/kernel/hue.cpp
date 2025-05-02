@@ -1,5 +1,8 @@
 #include "host_legacy_executors.hpp"
 
+#define RPPMAX3(a,b,c)                  ((a > b) && (a > c) ?  a : ((b > c) ? b : c))
+#define RPPMIN3(a,b,c)                  ((a < b) && (a < c) ?  a : ((b < c) ? b : c))
+
 inline void compute_image_location_host(RppiSize *batch_srcSizeMax, int batchCount, Rpp32u *loc, Rpp32u channel)
 {
     for (int m = 0; m < batchCount; m++)
