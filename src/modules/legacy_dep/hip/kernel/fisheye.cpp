@@ -1,6 +1,6 @@
 #include "hip_legacy_executors.hpp"
 
-void max_size(Rpp32u *height, Rpp32u *width, unsigned int batch_size, unsigned int *max_height, unsigned int *max_width)
+inline void max_size(Rpp32u *height, Rpp32u *width, unsigned int batch_size, unsigned int *max_height, unsigned int *max_width)
 {
     int i;
     *max_height  = 0;

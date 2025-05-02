@@ -1,5 +1,8 @@
 #include "rpp.h"
 #include "handle.hpp"
+#include <math.h>
+#include <algorithm>
+#include <omp.h>
 #include "rpp_cpu_simd_load_store.hpp"
 #include "rpp_cpu_simd_math.hpp"
 

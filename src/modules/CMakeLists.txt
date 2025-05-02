@@ -197,7 +197,7 @@ target_include_directories( ${PROJECT_NAME}
         ${ROCM_INC}
     PRIVATE
         $<$<BOOL:${RPP_LEGACY_SUPPORT}>:${CMAKE_SOURCE_DIR}/src/include/batch_pd/cpu>
-        $<NOT:$<BOOL:${RPP_LEGACY_SUPPORT}>:${CMAKE_SOURCE_DIR}/src/include/legacy_dep>
+        $<$<NOT:$<BOOL:${RPP_LEGACY_SUPPORT}>>:${CMAKE_SOURCE_DIR}/src/include/legacy_dep>
         ${CMAKE_SOURCE_DIR}/src/include/common
         ${CMAKE_SOURCE_DIR}/src/include/common/cpu
         ${CMAKE_SOURCE_DIR}/src/include/tensor
