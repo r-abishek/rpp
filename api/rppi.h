@@ -38,6 +38,7 @@ SOFTWARE.
 extern "C" {
 #endif
 
+#ifdef LEGACY_SUPPORT
 #include "rppi_image_augmentations.h"
 #include "rppi_arithmetic_operations.h"
 #include "rppi_color_model_conversions.h"
@@ -49,6 +50,9 @@ extern "C" {
 #include "rppi_computer_vision.h"
 #include "rppi_fused_functions.h"
 #include "rppi_advanced_augmentations.h"
+#else
+#include "rppi_legacy_augmentations.h"
+#endif
 
 #ifdef __cplusplus
 }
