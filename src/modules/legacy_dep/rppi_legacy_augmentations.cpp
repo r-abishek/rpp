@@ -127,6 +127,66 @@ RppStatus rppi_snow_u8_pkd3_batchPD_host(RppPtr_t srcPtr,
     return RPP_SUCCESS;
 }
 
+RppStatus rppi_hueRGB_u8_pkd3_batchPD_host(RppPtr_t srcPtr,
+                                           RppiSize *srcSize,
+                                           RppiSize maxSrcSize,
+                                           RppPtr_t dstPtr,
+                                           Rpp32f *hueShift,
+                                           Rpp32u nbatchSize,
+                                           rppHandle_t rppHandle)
+{
+    RppiROI roiPoints;
+    roiPoints.x = 0;
+    roiPoints.y = 0;
+    roiPoints.roiHeight = 0;
+    roiPoints.roiWidth = 0;
+    copy_host_roi(roiPoints, rpp::deref(rppHandle));
+    copy_host_maxSrcSize(maxSrcSize, rpp::deref(rppHandle));
+
+    hueRGB_host_batch<Rpp8u>(static_cast<Rpp8u*>(srcPtr),
+                             srcSize,
+                             rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.maxSrcSize,
+                             static_cast<Rpp8u*>(dstPtr),
+                             hueShift,
+                             rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.roiPoints,
+                             rpp::deref(rppHandle).GetBatchSize(),
+                             RPPI_CHN_PACKED,
+                             3,
+                             rpp::deref(rppHandle));
+
+    return RPP_SUCCESS;
+}
+
+RppStatus rppi_saturationRGB_u8_pkd3_batchPD_host(RppPtr_t srcPtr,
+                                                  RppiSize *srcSize,
+                                                  RppiSize maxSrcSize,
+                                                  RppPtr_t dstPtr,
+                                                  Rpp32f *saturationFactor,
+                                                  Rpp32u nbatchSize,
+                                                  rppHandle_t rppHandle)
+{
+    RppiROI roiPoints;
+    roiPoints.x = 0;
+    roiPoints.y = 0;
+    roiPoints.roiHeight = 0;
+    roiPoints.roiWidth = 0;
+    copy_host_roi(roiPoints, rpp::deref(rppHandle));
+    copy_host_maxSrcSize(maxSrcSize, rpp::deref(rppHandle));
+
+    saturationRGB_host_batch<Rpp8u>(static_cast<Rpp8u*>(srcPtr),
+                                    srcSize,
+                                    rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.maxSrcSize,
+                                    static_cast<Rpp8u*>(dstPtr),
+                                    saturationFactor,
+                                    rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.roiPoints,
+                                    rpp::deref(rppHandle).GetBatchSize(),
+                                    RPPI_CHN_PACKED,
+                                    3,
+                                    rpp::deref(rppHandle));
+
+    return RPP_SUCCESS;
+}
+
 /********************************************************************************************************************/
 /*********************************************** RPP_GPU_SUPPORT = ON ***********************************************/
 /********************************************************************************************************************/
@@ -242,6 +302,64 @@ RppStatus rppi_snow_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr,
                     rpp::deref(rppHandle),
                     RPPI_CHN_PACKED,
                     3);
+
+    return RPP_SUCCESS;
+}
+
+RppStatus rppi_hueRGB_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr,
+                                          RppiSize *srcSize,
+                                          RppiSize maxSrcSize,
+                                          RppPtr_t dstPtr,
+                                          Rpp32f *hueShift,
+                                          Rpp32u nbatchSize,
+                                          rppHandle_t rppHandle)
+{
+    RppiROI roiPoints;
+    roiPoints.x = 0;
+    roiPoints.y = 0;
+    roiPoints.roiHeight = 0;
+    roiPoints.roiWidth = 0;
+    Rpp32u paramIndex = 0;
+    copy_srcSize(srcSize, rpp::deref(rppHandle));
+    copy_srcMaxSize(maxSrcSize, rpp::deref(rppHandle));
+    copy_roi(roiPoints, rpp::deref(rppHandle));
+    get_srcBatchIndex(rpp::deref(rppHandle), 3, RPPI_CHN_PACKED);
+    copy_param_float(hueShift, rpp::deref(rppHandle), paramIndex++);
+
+    hueRGB_hip_batch(static_cast<Rpp8u*>(srcPtr),
+                        static_cast<Rpp8u*>(dstPtr),
+                        rpp::deref(rppHandle),
+                        RPPI_CHN_PACKED,
+                        3);
+
+    return RPP_SUCCESS;
+}
+
+RppStatus rppi_saturationRGB_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr,
+                                                 RppiSize *srcSize,
+                                                 RppiSize maxSrcSize,
+                                                 RppPtr_t dstPtr,
+                                                 Rpp32f *saturationFactor,
+                                                 Rpp32u nbatchSize,
+                                                 rppHandle_t rppHandle)
+{
+    RppiROI roiPoints;
+    roiPoints.x = 0;
+    roiPoints.y = 0;
+    roiPoints.roiHeight = 0;
+    roiPoints.roiWidth = 0;
+    Rpp32u paramIndex = 0;
+    copy_srcSize(srcSize, rpp::deref(rppHandle));
+    copy_srcMaxSize(maxSrcSize, rpp::deref(rppHandle));
+    copy_roi(roiPoints, rpp::deref(rppHandle));
+    get_srcBatchIndex(rpp::deref(rppHandle), 3, RPPI_CHN_PACKED);
+    copy_param_float(saturationFactor, rpp::deref(rppHandle), paramIndex++);
+
+    saturationRGB_hip_batch(static_cast<Rpp8u*>(srcPtr),
+                            static_cast<Rpp8u*>(dstPtr),
+                            rpp::deref(rppHandle),
+                            RPPI_CHN_PACKED,
+                            3);
 
     return RPP_SUCCESS;
 }

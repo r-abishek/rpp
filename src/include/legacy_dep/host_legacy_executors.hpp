@@ -21,3 +21,19 @@ RppStatus snow_host_batch(T* srcPtr, RppiSize *batch_srcSize, RppiSize *batch_sr
                           Rpp32f *batch_strength,
                           RppiROI *roiPoints, Rpp32u nbatchSize,
                           RppiChnFormat chnFormat, Rpp32u channel, rpp::Handle& handle);
+
+// -------------------- hueRGB --------------------
+
+template <typename T>
+RppStatus hueRGB_host_batch(T* srcPtr, RppiSize *batch_srcSize, RppiSize *batch_srcSizeMax, T* dstPtr,
+                            Rpp32f *batch_hueShift,
+                            RppiROI *roiPoints, Rpp32u nbatchSize,
+                            RppiChnFormat chnFormat, Rpp32u channel, rpp::Handle& handle);
+
+// -------------------- saturationRGB --------------------
+
+template <typename T>
+RppStatus saturationRGB_host_batch(T* srcPtr, RppiSize *batch_srcSize, RppiSize *batch_srcSizeMax, T* dstPtr,
+                                   Rpp32f *batch_saturationFactor,
+                                   RppiROI *roiPoints, Rpp32u nbatchSize,
+                                   RppiChnFormat chnFormat, Rpp32u channel, rpp::Handle& handle);
