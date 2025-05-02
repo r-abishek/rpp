@@ -129,8 +129,8 @@ if( "${BACKEND}" STREQUAL "HIP")
         file(GLOB MOD_HIP_CPP_BATCHPD_KERNELS "batch_pd/hip/kernel/*.cpp" )
         list(APPEND Rpp_Source ${MOD_HIP_CPP_BATCHPD_FILES} ${MOD_HIP_CPP_BATCHPD_KERNELS})
     else()
-        file(GLOB MOD_HIP_CPP_BATCHPD_KERNELS "legacy_dep/hip/*.cpp" )
-        file(GLOB MOD_CPU_CPP_BATCHPD_KERNELS "legacy_dep/cpu/*.cpp" )
+        file(GLOB MOD_HIP_CPP_BATCHPD_KERNELS "legacy_dep/hip/kernel/*.cpp" )
+        file(GLOB MOD_CPU_CPP_BATCHPD_KERNELS "legacy_dep/cpu/kernel/*.cpp" )
         list(APPEND Rpp_Source ${MOD_HIP_CPP_BATCHPD_KERNELS} ${MOD_CPU_CPP_BATCHPD_KERNELS})
     endif()
     message("-- ${Green}HIP kernels added${ColourReset}")
@@ -169,7 +169,7 @@ elseif( "${BACKEND}" STREQUAL "CPU")
     file(GLOB MOD_HOST_CPP_TENSOR_KERNELS "tensor/cpu/kernel/*.cpp" )
     list(APPEND Rpp_Source ${CPPFILES} ${MOD_HOST_CPP_TENSOR_KERNELS})
     if(NOT RPP_LEGACY_SUPPORT)
-        file(GLOB MOD_CPU_CPP_BATCHPD_KERNELS "legacy_dep/cpu/*.cpp" )
+        file(GLOB MOD_CPU_CPP_BATCHPD_KERNELS "legacy_dep/cpu/kernel/*.cpp" )
         list(APPEND Rpp_Source ${MOD_HIP_CPP_BATCHPD_KERNELS} ${MOD_CPU_CPP_BATCHPD_KERNELS})
     endif()
     message("-- ${Green}HOST kernels added${ColourReset}")
@@ -197,6 +197,7 @@ target_include_directories( ${PROJECT_NAME}
         ${ROCM_INC}
     PRIVATE
         $<$<BOOL:${RPP_LEGACY_SUPPORT}>:${CMAKE_SOURCE_DIR}/src/include/batch_pd/cpu>
+        $<NOT:$<BOOL:${RPP_LEGACY_SUPPORT}>:${CMAKE_SOURCE_DIR}/src/include/legacy_dep>
         ${CMAKE_SOURCE_DIR}/src/include/common
         ${CMAKE_SOURCE_DIR}/src/include/common/cpu
         ${CMAKE_SOURCE_DIR}/src/include/tensor

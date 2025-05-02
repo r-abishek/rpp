@@ -50,6 +50,5 @@ RppStatus rppi_snow_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, Rppi
 #endif // GPU_SUPPORT
 
 #ifdef __cplusplus
-extern "C"
 }
 #endif // cpusplus
