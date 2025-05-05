@@ -87,6 +87,26 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             if (src1shape == 1)
             {
                 printf("src1shape is %d\n", src1shape);
+#if __AVX2__
+                __m256 p1 = _mm256_set1_ps(srcPtrTemp1[0]);
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    printf("Goes inside vectorLoopCount loop 1\n");
+                    __m256 p2[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp2, p2);    // simd loads
+                    p2[0] = _mm256_add_ps(p1, p2[0]);
+                    p2[1] = _mm256_add_ps(p1, p2[1]);
+                    rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTemp, p2);    // simd stores
+                    srcPtrTemp2 += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                }
+#endif
+                 for (; vectorLoopCount < length[0]; vectorLoopCount++)
+                 {
+                     *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                     srcPtrTemp2++;
+                     dstPtrTemp++;
+                 }
             }
             else if (src2shape == 1)
             {
@@ -95,7 +115,7 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                 __m256 p2 = _mm256_set1_ps(srcPtrTemp2[0]);
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-                    printf("Goes inside vectorLoopCount loop\n");
+                    printf("Goes inside vectorLoopCount loop 2\n");
                     __m256 p1[2];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp1, p1);    // simd loads
                     p1[0] = _mm256_add_ps(p1[0], p2);
