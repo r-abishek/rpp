@@ -72,8 +72,88 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
         Rpp32f *dstPtrTemp = dstPtr + batchCount * dstGenericDescPtr->strides[0];
 
         Rpp32u *length = dstBroadcastDescPtr->dims + 1;
+        Rpp32u* src1length = src1BroadcastDescPtr->dims + 1;
+        Rpp32u* src2length = src2BroadcastDescPtr->dims + 1;
 
-        tensor_add_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
+        Rpp32u vectorIncrement = 16;
+
+        if (broadcastNDim == 1)
+        {
+            Rpp32u alignedLength = length[0] & ~15;
+            Rpp32u src1shape = src1length[0];
+            Rpp32u src2shape = src2length[0];
+            Rpp32u vectorLoopCount = 0;
+            if (src1shape == 1)
+            {
+#if __AVX2__
+                __m256 p1 = _mm256_set1_ps(srcPtrTemp1[0]);
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    __m256 p2[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp2, p2);    // simd loads
+                    p2[0] = _mm256_add_ps(p1, p2[0]);
+                    p2[1] = _mm256_add_ps(p1, p2[1]);
+                    rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTemp, p2);    // simd stores
+                    srcPtrTemp2 += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                }
+#endif
+                for (; vectorLoopCount < length[0]; vectorLoopCount++)
+                {
+                    *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                    srcPtrTemp2++;
+                    dstPtrTemp++;
+                }
+            }
+            else if (src2shape == 1)
+            {
+#if __AVX2__
+                __m256 p2 = _mm256_set1_ps(srcPtrTemp2[0]);
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    __m256 p1[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp1, p1);    // simd loads
+                    p1[0] = _mm256_add_ps(p1[0], p2);
+                    p1[1] = _mm256_add_ps(p1[1], p2);
+                    rpp_simd_store(rpp_load16_f32_to_f32_avx, dstPtrTemp, p1);    // simd stores
+                    srcPtrTemp1 += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                }
+#endif
+                for (; vectorLoopCount < length[0]; vectorLoopCount++)
+                {
+                    *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                    srcPtrTemp1++;
+                    dstPtrTemp++;
+                }
+            }
+            else
+            {
+#if __AVX2__
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    __m256 p1[2], p2[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp1, p1);    // simd loads
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp2, p2);    // simd loads
+                    p2[0] = _mm256_add_ps(p1[0], p2[0]);
+                    p2[1] = _mm256_add_ps(p1[1], p2[1]);
+                    rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTemp, p2);    // simd stores
+                    srcPtrTemp1 += vectorIncrement;
+                    srcPtrTemp2 += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                }
+#endif
+                for (; vectorLoopCount < length[0]; vectorLoopCount++)
+                {
+                    *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                    srcPtrTemp1++;
+                    srcPtrTemp2++;
+                    dstPtrTemp++;
+                }
+            }
+        }
+        else
+            tensor_add_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
     }
 
     return RPP_SUCCESS;
