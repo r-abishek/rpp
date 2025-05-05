@@ -160,6 +160,113 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                 }
             }
         }
+        else if (broadcastNDim == 2)
+        {
+            Rpp32u alignedLength = length[1] & ~15;
+            Rpp32u src1shape = src1length[1];
+            Rpp32u src2shape = src2length[1];
+            if(src1shape == 1)
+            {
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    int vectorLoopCount = 0;
+                    __m256 p1 = _mm256_set1_ps(srcPtrTest1[0]);
+#if __AVX2__
+                    for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                    {
+                        __m256 p2[2];
+                        rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTest2, p2);    // simd loads
+                        p2[0] = _mm256_add_ps(p1, p2[0]);
+                        p2[1] = _mm256_add_ps(p1, p2[1]);
+                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTest, p2);    // simd stores
+                        srcPtrTest1 += vectorIncrement;
+                        dstPtrTest += vectorIncrement;
+                    }
+#endif
+                    for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                    {
+                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        srcPtrTest1++;
+                        dstPtrTest++;
+                    }
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+            else if (src2shape == 1)
+            {
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    int vectorLoopCount = 0;
+                    __m256 p2 = _mm256_set1_ps(srcPtrTest2[0]);
+#if __AVX2__
+                    for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                    {
+                        __m256 p1[2];
+                        rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTest1, p1);    // simd loads
+                        p1[0] = _mm256_add_ps(p1[0], p2);
+                        p1[1] = _mm256_add_ps(p1[1], p2);
+                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTest, p1);    // simd stores
+                        srcPtrTest1 += vectorIncrement;
+                        dstPtrTest += vectorIncrement;
+                    }
+#endif
+                    for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                    {
+                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        srcPtrTest1++;
+                        dstPtrTest++;
+                    }
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+            else
+            {
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    int vectorLoopCount = 0;
+#if __AVX2__
+                    for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                    {
+                        __m256 p1[2], p2[2];
+                        rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTest1, p1);    // simd loads
+                        rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTest2, p2);    // simd loads
+                        p2[0] = _mm256_add_ps(p1[0], p2[0]);
+                        p2[1] = _mm256_add_ps(p1[1], p2[1]);
+                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTest, p2);    // simd stores
+                        srcPtrTest1 += vectorIncrement;
+                        srcPtrTest2 += vectorIncrement;
+                        dstPtrTest += vectorIncrement;
+                    }
+#endif
+                    for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                    {
+                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        srcPtrTest1++;
+                        srcPtrTest2++;
+                        dstPtrTest++;
+                    }
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+        }
         else
             tensor_add_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
     }
