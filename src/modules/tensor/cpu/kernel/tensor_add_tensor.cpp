@@ -91,6 +91,26 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             else if (src2shape == 1)
             {
                 printf("src2shape is %d\n", src2shape);
+#if __AVX2__
+                __m256 p2 = _mm256_set1_ps(srcPtrTemp2[0]);
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    printf("Goes inside vectorLoopCount loop\n");
+                    __m256 p1[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp1, p1);    // simd loads
+                    p1[0] = _mm256_add_ps(p1[0], p2);
+                    p1[1] = _mm256_add_ps(p1[1], p2);
+                    rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTemp, p1);    // simd stores
+                    srcPtrTemp1 += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                }
+#endif
+                 for (; vectorLoopCount < length[0]; vectorLoopCount++)
+                 {
+                     *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                     srcPtrTemp1++;
+                     dstPtrTemp++;
+                 }
             }
             else
             {
