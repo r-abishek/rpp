@@ -187,14 +187,14 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                         p2[0] = _mm256_div_ps(p1, p2[0]);
                         p2[1] = _mm256_div_ps(p1, p2[1]);
                         rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTest, p2);    // simd stores
-                        srcPtrTest1 += vectorIncrement;
+                        srcPtrTest2 += vectorIncrement;
                         dstPtrTest += vectorIncrement;
                     }
 #endif
                     for (; vectorLoopCount < length[1]; vectorLoopCount++)
                     {
                         *dstPtrTest = *srcPtrTest1 / *srcPtrTest2;
-                        srcPtrTest1++;
+                        srcPtrTest2++;
                         dstPtrTest++;
                     }
                     srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
