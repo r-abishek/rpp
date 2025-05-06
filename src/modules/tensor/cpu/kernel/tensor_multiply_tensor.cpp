@@ -72,7 +72,347 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
         Rpp32f *dstPtrTemp = dstPtr + batchCount * dstGenericDescPtr->strides[0];
 
         Rpp32u *length = dstBroadcastDescPtr->dims + 1;
+        if (broadcastNDim == 1)
+        {
+            Rpp32u alignedLength = length[0] & ~15;
+            Rpp32u src1shape = src1length[0];
+            Rpp32u src2shape = src2length[0];
+            Rpp32u vectorLoopCount = 0;
+            if (src1shape == 1)
+            {
+                printf("src1shape is %d\n", src1shape);
+#if __AVX2__
+                __m256 p1 = _mm256_set1_ps(srcPtrTemp1[0]);
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    printf("Goes inside vectorLoopCount loop 1\n");
+                    __m256 p2[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp2, p2);    // simd loads
+                    p2[0] = _mm256_mul_ps(p1, p2[0]);
+                    p2[1] = _mm256_mul_ps(p1, p2[1]);
+                    rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTemp, p2);    // simd stores
+                    srcPtrTemp2 += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                }
+#endif
+                 for (; vectorLoopCount < length[0]; vectorLoopCount++)
+                 {
+                     *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                     srcPtrTemp2++;
+                     dstPtrTemp++;
+                 }
+            }
+            else if (src2shape == 1)
+            {
+                printf("src2shape is %d\n", src2shape);
+#if __AVX2__
+                __m256 p2 = _mm256_set1_ps(srcPtrTemp2[0]);
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    printf("Goes inside vectorLoopCount loop 2\n");
+                    __m256 p1[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp1, p1);    // simd loads
+                    p1[0] = _mm256_mul_ps(p1[0], p2);
+                    p1[1] = _mm256_mul_ps(p1[1], p2);
+                    rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTemp, p1);    // simd stores
+                    srcPtrTemp1 += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                }
+#endif
+                 for (; vectorLoopCount < length[0]; vectorLoopCount++)
+                 {
+                     *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                     srcPtrTemp1++;
+                     dstPtrTemp++;
+                 }
+            }
+            else
+            {
+                printf("src1shape and src2shape are %d %d\n", src1shape, src2shape);
+#if __AVX2__
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                {
+                    printf("Inside loop with vectorLoopCount %d\n", vectorLoopCount);
+                    __m256 p1[2], p2[2];
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp1, p1);    // simd loads
+                    rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp2, p2);    // simd loads
+                    p2[0] = _mm256_mul_ps(p1[0], p2[0]);
+                    p2[1] = _mm256_mul_ps(p1[1], p2[1]);
+                    rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTemp, p2);    // simd stores
+                    srcPtrTemp1 += vectorIncrement;
+                    srcPtrTemp2 += vectorIncrement;
+                    dstPtrTemp += vectorIncrement;
+                }
+#endif
+                for (; vectorLoopCount < length[0]; vectorLoopCount++)
+                {
+                    printf("Inside loop with vectorLoopCount %d\n", vectorLoopCount);
+                    *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                    srcPtrTemp1++;
+                    srcPtrTemp2++;
+                    dstPtrTemp++;
+                }
+            }
+        }
+        else if (broadcastNDim == 2)
+        {
+            Rpp32u alignedLength = length[1] & ~15;
+            Rpp32u src1shape = src1length[1];
+            Rpp32u src2shape = src2length[1];
+            printf("Alignedlength, src1shape and src2shape is %d %d %d\n", alignedLength, src1shape, src2shape);
+            if(src1shape == 1)
+            {
+                printf("src1Shape is %d\n", src1shape);
+                //exit(0);
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
 
+                    int vectorLoopCount = 0;
+                    __m256 p1 = _mm256_set1_ps(srcPtrTest1[0]);
+#if __AVX2__
+                    for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                    {
+                        __m256 p2[2];
+                        rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTest2, p2);    // simd loads
+                        p2[0] = _mm256_mul_ps(p1, p2[0]);
+                        p2[1] = _mm256_mul_ps(p1, p2[1]);
+                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTest, p2);    // simd stores
+                        srcPtrTest1 += vectorIncrement;
+                        dstPtrTest += vectorIncrement;
+                    }
+#endif
+                    for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                    {
+                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        srcPtrTest1++;
+                        dstPtrTest++;
+                    }
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+            else if (src2shape == 1)
+            {
+                printf("src2Shape is %d\n", src2shape);
+                //exit(0);
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    int vectorLoopCount = 0;
+                    __m256 p2 = _mm256_set1_ps(srcPtrTest2[0]);
+#if __AVX2__
+                    for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                    {
+                        __m256 p1[2];
+                        rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTest1, p1);    // simd loads
+                        p1[0] = _mm256_mul_ps(p1[0], p2);
+                        p1[1] = _mm256_mul_ps(p1[1], p2);
+                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTest, p1);    // simd stores
+                        srcPtrTest1 += vectorIncrement;
+                        dstPtrTest += vectorIncrement;
+                    }
+#endif
+                    for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                    {
+                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        srcPtrTest1++;
+                        dstPtrTest++;
+                    }
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+            else
+            {
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    int vectorLoopCount = 0;
+#if __AVX2__
+                    for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                    {
+                        __m256 p1[2], p2[2];
+                        rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTest1, p1);    // simd loads
+                        rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTest2, p2);    // simd loads
+                        p2[0] = _mm256_mul_ps(p1[0], p2[0]);
+                        p2[1] = _mm256_mul_ps(p1[1], p2[1]);
+                        rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrTest, p2);    // simd stores
+                        srcPtrTest1 += vectorIncrement;
+                        srcPtrTest2 += vectorIncrement;
+                        dstPtrTest += vectorIncrement;
+                    }
+#endif
+                    for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                    {
+                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        srcPtrTest1++;
+                        srcPtrTest2++;
+                        dstPtrTest++;
+                    }
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+        }
+        else if (broadcastNDim == 3)
+        {
+            Rpp32u alignedLength = length[2] & ~15;
+            Rpp32u src1shape = src1length[2];
+            Rpp32u src2shape = src2length[2];
+            if(src1shape == 1)
+            {
+                printf("Goes inside src1shape is 1\n");
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    for (int j = 0; j < length[1]; j++)
+                    {
+                        Rpp32f *srcPtrNew1 = srcPtrTest1;
+                        Rpp32f *srcPtrNew2 = srcPtrTest2;
+                        Rpp32f *dstPtrNew = dstPtrTest;
+
+                        int vectorLoopCount = 0;
+                        __m256 p1 = _mm256_set1_ps(srcPtrNew1[0]);
+#if __AVX2__
+                        for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                        {
+                            __m256 p2[2];
+                            rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrNew2, p2);    // simd loads
+                            p2[0] = _mm256_mul_ps(p1, p2[0]);
+                            p2[1] = _mm256_mul_ps(p1, p2[1]);
+                            rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrNew, p2);    // simd stores
+                            srcPtrNew2 += vectorIncrement;
+                            dstPtrNew += vectorIncrement;
+                        }
+#endif
+                        for (; vectorLoopCount < length[2]; vectorLoopCount++)
+                        {
+                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            srcPtrNew2++;
+                            dstPtrNew++;
+                        }
+
+                        srcPtrTest1 += src1BroadcastDescPtr->strides[2];
+                        srcPtrTest2 += src2BroadcastDescPtr->strides[2];
+                        dstPtrTest += dstBroadcastDescPtr->strides[2];
+                    }
+
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+            else if (src2shape == 1)
+            {
+                printf("Goes inside src2shape is 1\n");
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    for (int j = 0; j < length[1]; j++)
+                    {
+                        Rpp32f *srcPtrNew1 = srcPtrTest1;
+                        Rpp32f *srcPtrNew2 = srcPtrTest2;
+                        Rpp32f *dstPtrNew = dstPtrTest;
+
+                        int vectorLoopCount = 0;
+                        __m256 p2 = _mm256_set1_ps(srcPtrNew2[0]);
+#if __AVX2__
+                        for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                        {
+                            __m256 p1[2];
+                            rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrNew1, p1);    // simd loads
+                            p1[0] = _mm256_mul_ps(p1[0], p2);
+                            p1[1] = _mm256_mul_ps(p1[1], p2);
+                            rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrNew, p1);    // simd stores
+                            srcPtrNew1 += vectorIncrement;
+                            dstPtrNew += vectorIncrement;
+                        }
+#endif
+                        for (; vectorLoopCount < length[2]; vectorLoopCount++)
+                        {
+                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            srcPtrNew1++;
+                            dstPtrNew++;
+                        }
+
+                        srcPtrTest1 += src1BroadcastDescPtr->strides[2];
+                        srcPtrTest2 += src2BroadcastDescPtr->strides[2];
+                        dstPtrTest += dstBroadcastDescPtr->strides[2];
+                    }
+
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+            else
+            {
+                printf("Goes inside src1shape == src2shape\n");
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    for (int j = 0; j < length[1]; j++)
+                    {
+                        Rpp32f *srcPtrNew1 = srcPtrTest1;
+                        Rpp32f *srcPtrNew2 = srcPtrTest2;
+                        Rpp32f *dstPtrNew = dstPtrTest;
+
+                        int vectorLoopCount = 0;
+#if __AVX2__
+                        for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                        {
+                            __m256 p1[2], p2[2];
+                            rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrNew1, p1);    // simd loads
+                            rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrNew2, p2);    // simd loads
+                            p2[0] = _mm256_mul_ps(p1[0], p2[0]);
+                            p2[1] = _mm256_mul_ps(p1[1], p2[1]);
+                            rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrNew, p2);    // simd stores
+                            srcPtrNew1 += vectorIncrement;
+                            srcPtrNew2 += vectorIncrement;
+                            dstPtrNew += vectorIncrement;
+                        }
+#endif
+                        for (; vectorLoopCount < length[2]; vectorLoopCount++)
+                        {
+                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            srcPtrNew1++;
+                            srcPtrNew2++;
+                            dstPtrNew++;
+                        }
+
+                        srcPtrTest1 += src1BroadcastDescPtr->strides[2];
+                        srcPtrTest2 += src2BroadcastDescPtr->strides[2];
+                        dstPtrTest += dstBroadcastDescPtr->strides[2];
+                    }
+
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+        }
+        else
         tensor_multiply_tensor_recursive(srcPtrTemp1, srcPtrTemp2, src1BroadcastDescPtr->strides, src2BroadcastDescPtr->strides, dstPtrTemp, dstBroadcastDescPtr->strides, length, broadcastNDim);
     }
 
