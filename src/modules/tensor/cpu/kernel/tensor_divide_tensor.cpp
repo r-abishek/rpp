@@ -72,6 +72,13 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
         Rpp32f *dstPtrTemp = dstPtr + batchCount * dstGenericDescPtr->strides[0];
 
         Rpp32u *length = dstBroadcastDescPtr->dims + 1;
+        Rpp32u *src1length = src1BroadcastDescPtr->dims + 1;
+        Rpp32u *src2length = src2BroadcastDescPtr->dims + 1;
+        printf("Length, src1Length, and src2Length is %d %d %d\n", length[0], src1length[0], src2length[0]);
+
+        Rpp32u vectorIncrement = 16;
+        printf("broadcastNDim is %d\n", broadcastNDim);
+
         if (broadcastNDim == 1)
         {
             Rpp32u alignedLength = length[0] & ~15;
