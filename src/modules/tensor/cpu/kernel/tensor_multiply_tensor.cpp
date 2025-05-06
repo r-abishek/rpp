@@ -104,7 +104,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                  for (; vectorLoopCount < length[0]; vectorLoopCount++)
                  {
-                     *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                     *dstPtrTemp = *srcPtrTemp1 * *srcPtrTemp2;
                      srcPtrTemp2++;
                      dstPtrTemp++;
                  }
@@ -128,7 +128,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                  for (; vectorLoopCount < length[0]; vectorLoopCount++)
                  {
-                     *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                     *dstPtrTemp = *srcPtrTemp1 * *srcPtrTemp2;
                      srcPtrTemp1++;
                      dstPtrTemp++;
                  }
@@ -154,7 +154,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                 for (; vectorLoopCount < length[0]; vectorLoopCount++)
                 {
                     printf("Inside loop with vectorLoopCount %d\n", vectorLoopCount);
-                    *dstPtrTemp = *srcPtrTemp1 + *srcPtrTemp2;
+                    *dstPtrTemp = *srcPtrTemp1 * *srcPtrTemp2;
                     srcPtrTemp1++;
                     srcPtrTemp2++;
                     dstPtrTemp++;
@@ -193,7 +193,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                     for (; vectorLoopCount < length[1]; vectorLoopCount++)
                     {
-                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        *dstPtrTest = *srcPtrTest1 * *srcPtrTest2;
                         srcPtrTest1++;
                         dstPtrTest++;
                     }
@@ -228,7 +228,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                     for (; vectorLoopCount < length[1]; vectorLoopCount++)
                     {
-                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        *dstPtrTest = *srcPtrTest1 * *srcPtrTest2;
                         srcPtrTest1++;
                         dstPtrTest++;
                     }
@@ -262,7 +262,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                     for (; vectorLoopCount < length[1]; vectorLoopCount++)
                     {
-                        *dstPtrTest = *srcPtrTest1 + *srcPtrTest2;
+                        *dstPtrTest = *srcPtrTest1 * *srcPtrTest2;
                         srcPtrTest1++;
                         srcPtrTest2++;
                         dstPtrTest++;
@@ -309,7 +309,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                         for (; vectorLoopCount < length[2]; vectorLoopCount++)
                         {
-                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            *dstPtrNew = *srcPtrNew1 * *srcPtrNew2;
                             srcPtrNew2++;
                             dstPtrNew++;
                         }
@@ -355,7 +355,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                         for (; vectorLoopCount < length[2]; vectorLoopCount++)
                         {
-                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            *dstPtrNew = *srcPtrNew1 * *srcPtrNew2;
                             srcPtrNew1++;
                             dstPtrNew++;
                         }
@@ -402,7 +402,7 @@ RppStatus tensor_multiply_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                         for (; vectorLoopCount < length[2]; vectorLoopCount++)
                         {
-                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            *dstPtrNew = *srcPtrNew1 * *srcPtrNew2;
                             srcPtrNew1++;
                             srcPtrNew2++;
                             dstPtrNew++;
