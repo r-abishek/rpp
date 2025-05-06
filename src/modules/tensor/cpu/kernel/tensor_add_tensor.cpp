@@ -78,6 +78,7 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 
         Rpp32u vectorIncrement = 16;
         printf("broadcastNDim is %d\n", broadcastNDim);
+
         if (broadcastNDim == 1)
         {
             Rpp32u alignedLength = length[0] & ~15;
@@ -165,8 +166,11 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             Rpp32u alignedLength = length[1] & ~15;
             Rpp32u src1shape = src1length[1];
             Rpp32u src2shape = src2length[1];
+            printf("Alignedlength, src1shape and src2shape is %d %d %d\n", alignedLength, src1shape, src2shape);
             if(src1shape == 1)
             {
+                printf("src1Shape is %d\n", src1shape);
+                //exit(0);
                 for (int i = 0; i < length[0]; i++)
                 {
                     Rpp32f *srcPtrTest1 = srcPtrTemp1;
@@ -200,6 +204,8 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             }
             else if (src2shape == 1)
             {
+                printf("src2Shape is %d\n", src2shape);
+                //exit(0);
                 for (int i = 0; i < length[0]; i++)
                 {
                     Rpp32f *srcPtrTest1 = srcPtrTemp1;
@@ -261,6 +267,149 @@ RppStatus tensor_add_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
                         srcPtrTest2++;
                         dstPtrTest++;
                     }
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+        }
+        else if (broadcastNDim == 3)
+        {
+            Rpp32u alignedLength = length[2] & ~15;
+            Rpp32u src1shape = src1length[2];
+            Rpp32u src2shape = src2length[2];
+            if(src1shape == 1)
+            {
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    for (int j = 0; j < length[1]; j++)
+                    {
+                        Rpp32f *srcPtrNew1 = srcPtrTest1;
+                        Rpp32f *srcPtrNew2 = srcPtrTest2;
+                        Rpp32f *dstPtrNew = dstPtrTest;
+
+                        int vectorLoopCount = 0;
+                        __m256 p1 = _mm256_set1_ps(srcPtrNew1[0]);
+#if __AVX2__
+                        for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                        {
+                            __m256 p2[2];
+                            rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrNew2, p2);    // simd loads
+                            p2[0] = _mm256_add_ps(p1, p2[0]);
+                            p2[1] = _mm256_add_ps(p1, p2[1]);
+                            rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrNew, p2);    // simd stores
+                            srcPtrNew2 += vectorIncrement;
+                            dstPtrNew += vectorIncrement;
+                        }
+#endif
+                        for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                        {
+                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            srcPtrNew1++;
+                            dstPtrNew++;
+                        }
+
+                        srcPtrTest1 += src1BroadcastDescPtr->strides[2];
+                        srcPtrTest2 += src2BroadcastDescPtr->strides[2];
+                        dstPtrTest += dstBroadcastDescPtr->strides[2];
+                    }
+
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+            else if (src2shape == 1)
+            {
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    for (int j = 0; j < length[1]; j++)
+                    {
+                        Rpp32f *srcPtrNew1 = srcPtrTest1;
+                        Rpp32f *srcPtrNew2 = srcPtrTest2;
+                        Rpp32f *dstPtrNew = dstPtrTest;
+
+                        int vectorLoopCount = 0;
+                        __m256 p2 = _mm256_set1_ps(srcPtrNew2[0]);
+#if __AVX2__
+                        for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                        {
+                            __m256 p1[2];
+                            rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrNew1, p1);    // simd loads
+                            p1[0] = _mm256_add_ps(p1[0], p2);
+                            p1[1] = _mm256_add_ps(p1[0], p2);
+                            rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrNew, p1);    // simd stores
+                            srcPtrNew1 += vectorIncrement;
+                            dstPtrNew += vectorIncrement;
+                        }
+#endif
+                        for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                        {
+                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            srcPtrNew1++;
+                            dstPtrNew++;
+                        }
+
+                        srcPtrTest1 += src1BroadcastDescPtr->strides[2];
+                        srcPtrTest2 += src2BroadcastDescPtr->strides[2];
+                        dstPtrTest += dstBroadcastDescPtr->strides[2];
+                    }
+
+                    srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
+                    srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
+                    dstPtrTemp += dstBroadcastDescPtr->strides[1];
+                }
+            }
+            else
+            {
+                for (int i = 0; i < length[0]; i++)
+                {
+                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp32f *dstPtrTest = dstPtrTemp;
+
+                    for (int j = 0; j < length[1]; j++)
+                    {
+                        Rpp32f *srcPtrNew1 = srcPtrTest1;
+                        Rpp32f *srcPtrNew2 = srcPtrTest2;
+                        Rpp32f *dstPtrNew = dstPtrTest;
+
+                        int vectorLoopCount = 0;
+#if __AVX2__
+                        for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
+                        {
+                            __m256 p1[2], p2[2];
+                            rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrNew1, p1);    // simd loads
+                            rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrNew2, p2);    // simd loads
+                            p2[0] = _mm256_add_ps(p1[0], p2[0]);
+                            p2[1] = _mm256_add_ps(p1[0], p2[1]);
+                            rpp_simd_store(rpp_store16_f32_to_f32_avx, dstPtrNew, p2);    // simd stores
+                            srcPtrNew1 += vectorIncrement;
+                            srcPtrNew2 += vectorIncrement;
+                            dstPtrNew += vectorIncrement;
+                        }
+#endif
+                        for (; vectorLoopCount < length[1]; vectorLoopCount++)
+                        {
+                            *dstPtrNew = *srcPtrNew1 + *srcPtrNew2;
+                            srcPtrNew1++;
+                            srcPtrNew2++;
+                            dstPtrNew++;
+                        }
+
+                        srcPtrTest1 += src1BroadcastDescPtr->strides[2];
+                        srcPtrTest2 += src2BroadcastDescPtr->strides[2];
+                        dstPtrTest += dstBroadcastDescPtr->strides[2];
+                    }
+
                     srcPtrTemp1 += src1BroadcastDescPtr->strides[1];
                     srcPtrTemp2 += src2BroadcastDescPtr->strides[1];
                     dstPtrTemp += dstBroadcastDescPtr->strides[1];
