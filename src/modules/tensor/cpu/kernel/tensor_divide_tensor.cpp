@@ -74,10 +74,8 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
         Rpp32u *length = dstBroadcastDescPtr->dims + 1;
         Rpp32u *src1length = src1BroadcastDescPtr->dims + 1;
         Rpp32u *src2length = src2BroadcastDescPtr->dims + 1;
-        printf("Length, src1Length, and src2Length is %d %d %d\n", length[0], src1length[0], src2length[0]);
 
         Rpp32u vectorIncrement = 16;
-        printf("broadcastNDim is %d\n", broadcastNDim);
 
         if (broadcastNDim == 1)
         {
@@ -87,12 +85,10 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             Rpp32u vectorLoopCount = 0;
             if (src1shape == 1)
             {
-                printf("src1shape is %d\n", src1shape);
 #if __AVX2__
                 __m256 p1 = _mm256_set1_ps(srcPtrTemp1[0]);
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-                    printf("Goes inside vectorLoopCount loop 1\n");
                     __m256 p2[2];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp2, p2);    // simd loads
                     p2[0] = _mm256_div_ps(p1, p2[0]);
@@ -111,12 +107,10 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             }
             else if (src2shape == 1)
             {
-                printf("src2shape is %d\n", src2shape);
 #if __AVX2__
                 __m256 p2 = _mm256_set1_ps(srcPtrTemp2[0]);
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-                    printf("Goes inside vectorLoopCount loop 2\n");
                     __m256 p1[2];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp1, p1);    // simd loads
                     p1[0] = _mm256_div_ps(p1[0], p2);
@@ -135,11 +129,9 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             }
             else
             {
-                printf("src1shape and src2shape are %d %d\n", src1shape, src2shape);
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-                    printf("Inside loop with vectorLoopCount %d\n", vectorLoopCount);
                     __m256 p1[2], p2[2];
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp1, p1);    // simd loads
                     rpp_simd_load(rpp_load16_f32_to_f32_avx, srcPtrTemp2, p2);    // simd loads
@@ -153,7 +145,6 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
 #endif
                 for (; vectorLoopCount < length[0]; vectorLoopCount++)
                 {
-                    printf("Inside loop with vectorLoopCount %d\n", vectorLoopCount);
                     *dstPtrTemp = *srcPtrTemp1 / *srcPtrTemp2;
                     srcPtrTemp1++;
                     srcPtrTemp2++;
@@ -166,11 +157,8 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             Rpp32u alignedLength = length[1] & ~15;
             Rpp32u src1shape = src1length[1];
             Rpp32u src2shape = src2length[1];
-            printf("Alignedlength, src1shape and src2shape is %d %d %d\n", alignedLength, src1shape, src2shape);
             if(src1shape == 1)
             {
-                printf("src1Shape is %d\n", src1shape);
-                //exit(0);
                 for (int i = 0; i < length[0]; i++)
                 {
                     Rpp32f *srcPtrTest1 = srcPtrTemp1;
@@ -204,8 +192,6 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             }
             else if (src2shape == 1)
             {
-                printf("src2Shape is %d\n", src2shape);
-                //exit(0);
                 for (int i = 0; i < length[0]; i++)
                 {
                     Rpp32f *srcPtrTest1 = srcPtrTemp1;
@@ -280,7 +266,6 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             Rpp32u src2shape = src2length[2];
             if(src1shape == 1)
             {
-                printf("Goes inside src1shape is 1\n");
                 for (int i = 0; i < length[0]; i++)
                 {
                     Rpp32f *srcPtrTest1 = srcPtrTemp1;
@@ -326,7 +311,6 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             }
             else if (src2shape == 1)
             {
-                printf("Goes inside src2shape is 1\n");
                 for (int i = 0; i < length[0]; i++)
                 {
                     Rpp32f *srcPtrTest1 = srcPtrTemp1;
@@ -372,7 +356,6 @@ RppStatus tensor_divide_tensor_f32_f32_host_tensor(Rpp32f *srcPtr1,
             }
             else
             {
-                printf("Goes inside src1shape == src2shape\n");
                 for (int i = 0; i < length[0]; i++)
                 {
                     Rpp32f *srcPtrTest1 = srcPtrTemp1;

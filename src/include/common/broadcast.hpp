@@ -44,7 +44,6 @@ inline void BroadcastDstShape(RpptGenericDescPtr src1DescriptorPtrND, RpptGeneri
         dstDescriptorPtrND->dims[ndim - 1 - i] = 1;
         UpdateDstDimension(src1DescriptorPtrND, dstDescriptorPtrND, i);
         UpdateDstDimension(src2DescriptorPtrND, dstDescriptorPtrND, i);
-        printf("Dest Shape at index %d after calculation is %d\n", ndim - 1 - i, dstDescriptorPtrND->dims[ndim - 1 - i]);
     }
 }
 

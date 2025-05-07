@@ -156,12 +156,14 @@ int main(int argc, char **argv)
     // read input data
     if(qaMode)
     {
+        printf("Goes into QA mode\n");
         read_data(inputF32, nDim, 0, scriptPath, funcName);
         if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
             read_data(inputF32Second, nDim, 0, scriptPath, funcName);
     }
     else
     {
+        printf("Goes inside random generation\n");
         std::srand(0);
         for(int i = 0; i < iBufferSize; i++)
             inputF32[i] = static_cast<float>(std::rand() % 255);
@@ -297,7 +299,6 @@ int main(int argc, char **argv)
             }
             case TENSOR_ADD_TENSOR:
             {
-                printf("Inside tensor add tensor\n");
                 testCaseName  = "tensor_add_tensor";
 
                 startWallTime = omp_get_wtime();
@@ -305,29 +306,10 @@ int main(int argc, char **argv)
                     rppt_tensor_add_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
-                printf("After run of tensor add tensor\n");
-                float* in  = (float*)input;
-                float* in2 = (float*)inputSecond;
-                float* out = (float*)output;
-                printf("Input 1 : ");
-                for(int i1 = 0; i1 < iBufferSize; i1++)
-                    printf("%f ", in[i1]);
-                printf("\n");
-                printf("Input 2  of size %d: ", iBufferSizeSecond);
-                for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
-                    printf("%f ", in2[i1]);
-                printf("\n");
-                printf("Output : ");
-                for(int i1 = 0; i1 < oBufferSize; i1++)
-                    printf("%f ", out[i1]);
-                printf("\n");
-                //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
-                exit(0);
                 break;
             }
             case TENSOR_SUBTRACT_TENSOR:
             {
-                printf("Inside tensor subtract tensor\n");
                 testCaseName  = "tensor_subtract_tensor";
 
                 startWallTime = omp_get_wtime();
@@ -335,24 +317,6 @@ int main(int argc, char **argv)
                     rppt_tensor_subtract_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
-                printf("After run of tensor subtract tensor\n");
-                float* in  = (float*)input;
-                float* in2 = (float*)inputSecond;
-                float* out = (float*)output;
-                printf("Input 1 : ");
-                for(int i1 = 0; i1 < iBufferSize; i1++)
-                    printf("%f ", in[i1]);
-                printf("\n");
-                printf("Input 2  of size %d: ", iBufferSizeSecond);
-                for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
-                    printf("%f ", in2[i1]);
-                printf("\n");
-                printf("Output : ");
-                for(int i1 = 0; i1 < oBufferSize; i1++)
-                    printf("%f ", out[i1]);
-                printf("\n");
-                //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
-                exit(0);
                 break;
             }
             case TENSOR_MULTIPLY_TENSOR:
@@ -365,29 +329,10 @@ int main(int argc, char **argv)
                     rppt_tensor_multiply_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
-                printf("After run of tensor multiply tensor\n");
-                float* in  = (float*)input;
-                float* in2 = (float*)inputSecond;
-                float* out = (float*)output;
-                printf("Input 1 : ");
-                for(int i1 = 0; i1 < iBufferSize; i1++)
-                    printf("%f ", in[i1]);
-                printf("\n");
-                printf("Input 2  of size %d: ", iBufferSizeSecond);
-                for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
-                    printf("%f ", in2[i1]);
-                printf("\n");
-                printf("Output : ");
-                for(int i1 = 0; i1 < oBufferSize; i1++)
-                    printf("%f ", out[i1]);
-                printf("\n");
-                //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
-                exit(0);
                 break;
             }
             case TENSOR_DIVIDE_TENSOR:
             {
-                printf("Inside tensor divide tensor\n");
                 testCaseName  = "tensor_divide_tensor";
 
                 startWallTime = omp_get_wtime();
@@ -395,23 +340,6 @@ int main(int argc, char **argv)
                     rppt_tensor_divide_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
-                printf("After run of tensor add tensor\n");
-                float* in  = (float*)input;
-                float* in2 = (float*)inputSecond;
-                float* out = (float*)output;
-                printf("Input 1 : ");
-                for(int i1 = 0; i1 < iBufferSize; i1++)
-                    printf("%f ", in[i1]);
-                printf("\n");
-                printf("Input 2  of size %d: ", iBufferSizeSecond);
-                for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
-                    printf("%f ", in2[i1]);
-                printf("\n");
-                printf("Output : ");
-                for(int i1 = 0; i1 < oBufferSize; i1++)
-                    printf("%f ", out[i1]);
-                printf("\n");
-                //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
                 exit(0);
                 break;
             }
