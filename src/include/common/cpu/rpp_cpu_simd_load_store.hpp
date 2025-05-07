@@ -171,12 +171,17 @@ const __m256i avx_pxMaskB = _mm256_setr_epi8(0x80, 0x80, 2, 0x80, 0x80, 5, 0x80,
 
 inline void rpp_mm_print_epi8(__m128i vPrintArray)
 {
-    char printArray[16];
-    _mm_storeu_si128((__m128i *)printArray, vPrintArray);
+    union {
+        __m128i vec;
+        char arr[16];
+    } u;
+
+    u.vec = vPrintArray;
+
     printf("\n");
     for (int ct = 0; ct < 16; ct++)
     {
-        printf("%d ", printArray[ct]);
+        printf("%d ", u.arr[ct]);
     }
 }
 
@@ -198,78 +203,98 @@ inline void rpp_storeu_si64(void *__p,
 
 inline void rpp_mm_print_epi32(__m128i vPrintArray)
 {
-    int printArray[4];
-    _mm_storeu_si128((__m128i *)printArray, vPrintArray);
+    union {
+        __m128i vec;
+        int arr[4];
+    } u;
+
+    u.vec = vPrintArray;
+
     printf("\n");
     for (int ct = 0; ct < 4; ct++)
     {
-        printf("%d ", printArray[ct]);
+        printf("%d ", u.arr[ct]);
     }
 }
 
 inline void rpp_mm_print_epi16(__m128i vPrintArray)
 {
-    unsigned short int printArray[8];
-    _mm_storeu_si128((__m128i *)printArray, vPrintArray);
+    union {
+        __m128i vec;
+        unsigned short int arr[8];
+    } u;
+    u.vec = vPrintArray;
+
     printf("\n");
     for (int ct = 0; ct < 8; ct++)
-    {
-        printf("%hu ", printArray[ct]);
-    }
+        printf("%hu ", u.arr[ct]);
 }
 
 inline void rpp_mm_print_ps(__m128 vPrintArray)
 {
-    float printArray[4];
-    _mm_storeu_ps(printArray, vPrintArray);
+    union {
+        __m128 vec;
+        float arr[4];
+    } u;
+    u.vec = vPrintArray;
+
     printf("\n");
     for (int ct = 0; ct < 4; ct++)
-    {
-        printf("%0.6f ", printArray[ct]);
-    }
+        printf("%0.6f ", u.arr[ct]);
 }
 
 inline void rpp_mm256_print_epi8(__m256i vPrintArray)
 {
-    unsigned char printArray[32];
-    _mm256_storeu_si256((__m256i *)printArray, vPrintArray);
+    union {
+        __m256i vec;
+        unsigned char arr[32];
+    } u;
+    u.vec = vPrintArray;
+
     printf("\n");
     for (int ct = 0; ct < 32; ct++)
-    {
-        printf("%d ", (unsigned char)printArray[ct]);
-    }
+        printf("%u ", u.arr[ct]);
 }
 
 inline void rpp_mm256_print_epi32(__m256i vPrintArray)
 {
-    int printArray[8];
-    _mm256_storeu_si256((__m256i *)printArray, vPrintArray);
+    union {
+        __m256i vec;
+        int arr[8];
+    } u;
+    u.vec = vPrintArray;
+
     printf("\n");
     for (int ct = 0; ct < 8; ct++)
-    {
-        printf("%d ", printArray[ct]);
-    }
+        printf("%d ", u.arr[ct]);
 }
 
 inline void rpp_mm256_print_epi16(__m256i vPrintArray)
 {
-    unsigned short int printArray[8];
-    _mm256_storeu_si256((__m256i *)printArray, vPrintArray);
+    union {
+        __m256i vec;
+        unsigned short int arr[16];
+    } u;
+    u.vec = vPrintArray;
+
     printf("\n");
     for (int ct = 0; ct < 16; ct++)
-    {
-        printf("%hu ", printArray[ct]);
-    }
+        printf("%hu ", u.arr[ct]);
 }
 
 inline void rpp_mm256_print_ps(__m256 vPrintArray)
 {
-    float printArray[8];
-    _mm256_storeu_ps(printArray, vPrintArray);
+    union {
+        __m256 vec;
+        float arr[8];
+    } u;
+
+    u.vec = vPrintArray;
+
     printf("\n");
-    for (int ct = 0; ct < 8; ct++)
+    for (int i = 0; i < 8; ++i)
     {
-        printf("%0.6f ", printArray[ct]);
+        printf("%0.6f ", u.arr[i]);
     }
 }
 
