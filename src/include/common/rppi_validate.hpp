@@ -72,17 +72,6 @@ inline void copy_host_maxSrcSize(RppiSize maxSrcSize, rpp::Handle& handle)
     }
 }
 
-inline void copy_host_roi(RppiROI roiPoints, rpp::Handle& handle)
-{
-    for(int i = 0; i < handle.GetBatchSize(); i++)
-    {
-        handle.GetInitHandle()->mem.mcpu.roiPoints[i].roiHeight = roiPoints.roiHeight;
-        handle.GetInitHandle()->mem.mcpu.roiPoints[i].roiWidth = roiPoints.roiWidth;
-        handle.GetInitHandle()->mem.mcpu.roiPoints[i].x = roiPoints.x;
-        handle.GetInitHandle()->mem.mcpu.roiPoints[i].y = roiPoints.y;
-    }
-}
-
 #ifdef LEGACY_SUPPORT
 inline void copy_host_maxDstSize(RppiSize maxDstSize, rpp::Handle& handle)
 {
@@ -93,6 +82,17 @@ inline void copy_host_maxDstSize(RppiSize maxDstSize, rpp::Handle& handle)
     }
 }
 #endif
+
+inline void copy_host_roi(RppiROI roiPoints, rpp::Handle& handle)
+{
+    for(int i = 0; i < handle.GetBatchSize(); i++)
+    {
+        handle.GetInitHandle()->mem.mcpu.roiPoints[i].roiHeight = roiPoints.roiHeight;
+        handle.GetInitHandle()->mem.mcpu.roiPoints[i].roiWidth = roiPoints.roiWidth;
+        handle.GetInitHandle()->mem.mcpu.roiPoints[i].x = roiPoints.x;
+        handle.GetInitHandle()->mem.mcpu.roiPoints[i].y = roiPoints.y;
+    }
+}
 
 #ifdef GPU_SUPPORT
 inline void copy_srcSize(RppiSize *srcSize, rpp::Handle& handle)
@@ -110,6 +110,24 @@ inline void copy_srcSize(RppiSize *srcSize, rpp::Handle& handle)
     clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.srcSize.width, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.csrcSize.width, 0, NULL, NULL);
 #endif // backend
 }
+
+#ifdef LEGACY_SUPPORT
+inline void copy_dstSize(RppiSize *dstSize, rpp::Handle& handle)
+{
+    for(int i = 0; i < handle.GetBatchSize(); i++)
+    {
+           handle.GetInitHandle()->mem.mgpu.cdstSize.height[i] = dstSize[i].height;
+           handle.GetInitHandle()->mem.mgpu.cdstSize.width[i] = dstSize[i].width;
+    }
+#ifdef HIP_COMPILE
+    hipMemcpy(handle.GetInitHandle()->mem.mgpu.dstSize.height, handle.GetInitHandle()->mem.mgpu.cdstSize.height, sizeof(Rpp32u) * handle.GetBatchSize(), hipMemcpyHostToDevice);
+    hipMemcpy(handle.GetInitHandle()->mem.mgpu.dstSize.width, handle.GetInitHandle()->mem.mgpu.cdstSize.width, sizeof(Rpp32u) * handle.GetBatchSize(), hipMemcpyHostToDevice);
+#elif defined(OCL_COMPILE)
+    clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.dstSize.height, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.cdstSize.height, 0, NULL, NULL);
+    clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.dstSize.width, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.cdstSize.width, 0, NULL, NULL);
+#endif // backend
+}
+#endif
 
 inline void copy_roi(RppiROI roiPoints, rpp::Handle& handle)
 {
@@ -141,24 +159,6 @@ inline void copy_roi(RppiROI roiPoints, rpp::Handle& handle)
     clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.roiPoints.y, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.croiPoints.y, 0, NULL, NULL);
 #endif // backend
 }
-
-#ifdef LEGACY_SUPPORT
-inline void copy_dstSize(RppiSize *dstSize, rpp::Handle& handle)
-{
-    for(int i = 0; i < handle.GetBatchSize(); i++)
-    {
-           handle.GetInitHandle()->mem.mgpu.cdstSize.height[i] = dstSize[i].height;
-           handle.GetInitHandle()->mem.mgpu.cdstSize.width[i] = dstSize[i].width;
-    }
-#ifdef HIP_COMPILE
-    hipMemcpy(handle.GetInitHandle()->mem.mgpu.dstSize.height, handle.GetInitHandle()->mem.mgpu.cdstSize.height, sizeof(Rpp32u) * handle.GetBatchSize(), hipMemcpyHostToDevice);
-    hipMemcpy(handle.GetInitHandle()->mem.mgpu.dstSize.width, handle.GetInitHandle()->mem.mgpu.cdstSize.width, sizeof(Rpp32u) * handle.GetBatchSize(), hipMemcpyHostToDevice);
-#elif defined(OCL_COMPILE)
-    clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.dstSize.height, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.cdstSize.height, 0, NULL, NULL);
-    clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.dstSize.width, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.cdstSize.width, 0, NULL, NULL);
-#endif // backend
-}
-#endif
 
 inline void copy_param_float(float *param, rpp::Handle& handle, Rpp32u paramIndex)
 {
@@ -259,6 +259,24 @@ inline void copy_srcMaxSize(RppiSize maxSrcSize, rpp::Handle& handle)
 #endif // backend
 }
 
+#ifdef LEGACY_SUPPORT
+inline void copy_dstMaxSize(RppiSize maxDstSize, rpp::Handle& handle)
+{
+    for(int i = 0; i < handle.GetBatchSize(); i++)
+    {
+        handle.GetInitHandle()->mem.mgpu.cmaxDstSize.height[i] = maxDstSize.height;
+        handle.GetInitHandle()->mem.mgpu.cmaxDstSize.width[i] = maxDstSize.width;
+    }
+#ifdef HIP_COMPILE
+    hipMemcpy(handle.GetInitHandle()->mem.mgpu.maxDstSize.height, handle.GetInitHandle()->mem.mgpu.cmaxDstSize.height, sizeof(Rpp32u) * handle.GetBatchSize(), hipMemcpyHostToDevice);
+    hipMemcpy(handle.GetInitHandle()->mem.mgpu.maxDstSize.width, handle.GetInitHandle()->mem.mgpu.cmaxDstSize.width, sizeof(Rpp32u) * handle.GetBatchSize(), hipMemcpyHostToDevice);
+#elif defined(OCL_COMPILE)
+    clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.maxDstSize.height, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.cmaxDstSize.height, 0, NULL, NULL);
+    clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.maxDstSize.width, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.cmaxDstSize.width, 0, NULL, NULL);
+#endif // backend
+}
+#endif
+
 inline void get_srcBatchIndex(rpp::Handle& handle, unsigned int channel, RppiChnFormat chnFormat, bool is_padded = true)
 {
     int i;
@@ -291,21 +309,6 @@ inline void get_srcBatchIndex(rpp::Handle& handle, unsigned int channel, RppiChn
 }
 
 #ifdef LEGACY_SUPPORT
-inline void copy_dstMaxSize(RppiSize maxDstSize, rpp::Handle& handle)
-{
-    for(int i = 0; i < handle.GetBatchSize(); i++)
-    {
-        handle.GetInitHandle()->mem.mgpu.cmaxDstSize.height[i] = maxDstSize.height;
-        handle.GetInitHandle()->mem.mgpu.cmaxDstSize.width[i] = maxDstSize.width;
-    }
-#ifdef HIP_COMPILE
-    hipMemcpy(handle.GetInitHandle()->mem.mgpu.maxDstSize.height, handle.GetInitHandle()->mem.mgpu.cmaxDstSize.height, sizeof(Rpp32u) * handle.GetBatchSize(), hipMemcpyHostToDevice);
-    hipMemcpy(handle.GetInitHandle()->mem.mgpu.maxDstSize.width, handle.GetInitHandle()->mem.mgpu.cmaxDstSize.width, sizeof(Rpp32u) * handle.GetBatchSize(), hipMemcpyHostToDevice);
-#elif defined(OCL_COMPILE)
-    clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.maxDstSize.height, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.cmaxDstSize.height, 0, NULL, NULL);
-    clEnqueueWriteBuffer(handle.GetStream(), handle.GetInitHandle()->mem.mgpu.maxDstSize.width, CL_FALSE, 0, sizeof(Rpp32u) * handle.GetBatchSize(), handle.GetInitHandle()->mem.mgpu.cmaxDstSize.width, 0, NULL, NULL);
-#endif // backend
-}
 
 inline void get_dstBatchIndex(rpp::Handle& handle, unsigned int channel, RppiChnFormat chnFormat, bool is_padded = true)
 {
