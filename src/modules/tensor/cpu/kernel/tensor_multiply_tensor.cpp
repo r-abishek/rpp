@@ -579,9 +579,9 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                 //exit(0);
                 for (int i = 0; i < length[0]; i++)
                 {
-                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
-                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
-                    Rpp32f *dstPtrTest = dstPtrTemp;
+                    Rpp16f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp16f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp16f *dstPtrTest = dstPtrTemp;
 
                     int vectorLoopCount = 0;
                     __m256 p1 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTest1[0]));
@@ -614,9 +614,9 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                 //exit(0);
                 for (int i = 0; i < length[0]; i++)
                 {
-                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
-                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
-                    Rpp32f *dstPtrTest = dstPtrTemp;
+                    Rpp16f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp16f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp16f *dstPtrTest = dstPtrTemp;
 
                     int vectorLoopCount = 0;
                     __m256 p2 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTest2[0]));
@@ -647,9 +647,9 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
             {
                 for (int i = 0; i < length[0]; i++)
                 {
-                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
-                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
-                    Rpp32f *dstPtrTest = dstPtrTemp;
+                    Rpp16f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp16f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp16f *dstPtrTest = dstPtrTemp;
 
                     int vectorLoopCount = 0;
 #if __AVX2__
@@ -689,15 +689,15 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                 printf("Goes inside src1shape is 1\n");
                 for (int i = 0; i < length[0]; i++)
                 {
-                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
-                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
-                    Rpp32f *dstPtrTest = dstPtrTemp;
+                    Rpp16f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp16f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp16f *dstPtrTest = dstPtrTemp;
 
                     for (int j = 0; j < length[1]; j++)
                     {
-                        Rpp32f *srcPtrNew1 = srcPtrTest1;
-                        Rpp32f *srcPtrNew2 = srcPtrTest2;
-                        Rpp32f *dstPtrNew = dstPtrTest;
+                        Rpp16f *srcPtrNew1 = srcPtrTest1;
+                        Rpp16f *srcPtrNew2 = srcPtrTest2;
+                        Rpp16f *dstPtrNew = dstPtrTest;
 
                         int vectorLoopCount = 0;
                         __m256 p1 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrNew1[0]));
@@ -735,15 +735,15 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                 printf("Goes inside src2shape is 1\n");
                 for (int i = 0; i < length[0]; i++)
                 {
-                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
-                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
-                    Rpp32f *dstPtrTest = dstPtrTemp;
+                    Rpp16f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp16f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp16f *dstPtrTest = dstPtrTemp;
 
                     for (int j = 0; j < length[1]; j++)
                     {
-                        Rpp32f *srcPtrNew1 = srcPtrTest1;
-                        Rpp32f *srcPtrNew2 = srcPtrTest2;
-                        Rpp32f *dstPtrNew = dstPtrTest;
+                        Rpp16f *srcPtrNew1 = srcPtrTest1;
+                        Rpp16f *srcPtrNew2 = srcPtrTest2;
+                        Rpp16f *dstPtrNew = dstPtrTest;
 
                         int vectorLoopCount = 0;
                         __m256 p2 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrNew2[0]));
@@ -781,15 +781,15 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                 printf("Goes inside src1shape == src2shape\n");
                 for (int i = 0; i < length[0]; i++)
                 {
-                    Rpp32f *srcPtrTest1 = srcPtrTemp1;
-                    Rpp32f *srcPtrTest2 = srcPtrTemp2;
-                    Rpp32f *dstPtrTest = dstPtrTemp;
+                    Rpp16f *srcPtrTest1 = srcPtrTemp1;
+                    Rpp16f *srcPtrTest2 = srcPtrTemp2;
+                    Rpp16f *dstPtrTest = dstPtrTemp;
 
                     for (int j = 0; j < length[1]; j++)
                     {
-                        Rpp32f *srcPtrNew1 = srcPtrTest1;
-                        Rpp32f *srcPtrNew2 = srcPtrTest2;
-                        Rpp32f *dstPtrNew = dstPtrTest;
+                        Rpp16f *srcPtrNew1 = srcPtrTest1;
+                        Rpp16f *srcPtrNew2 = srcPtrTest2;
+                        Rpp16f *dstPtrNew = dstPtrTest;
 
                         int vectorLoopCount = 0;
 #if __AVX2__
