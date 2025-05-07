@@ -95,6 +95,7 @@ inline void copy_host_roi(RppiROI roiPoints, rpp::Handle& handle)
 }
 
 #ifdef GPU_SUPPORT
+
 inline void copy_srcSize(RppiSize *srcSize, rpp::Handle& handle)
 {
     for(int i = 0; i < handle.GetBatchSize(); i++)
@@ -309,7 +310,6 @@ inline void get_srcBatchIndex(rpp::Handle& handle, unsigned int channel, RppiChn
 }
 
 #ifdef LEGACY_SUPPORT
-
 inline void get_dstBatchIndex(rpp::Handle& handle, unsigned int channel, RppiChnFormat chnFormat, bool is_padded = true)
 {
     int i;
