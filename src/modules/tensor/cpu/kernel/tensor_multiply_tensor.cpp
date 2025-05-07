@@ -495,7 +495,7 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
             {
                 printf("src1shape is %d\n", src1shape);
 #if __AVX2__
-                __m256 p1 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTemp1[0]));
+                __m256 p1 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTemp1)[0]);
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
                     printf("Goes inside vectorLoopCount loop 1\n");
@@ -519,7 +519,7 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
             {
                 printf("src2shape is %d\n", src2shape);
 #if __AVX2__
-                __m256 p2 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTemp2[0]));
+                __m256 p2 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTemp2)[0]);
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
                     printf("Goes inside vectorLoopCount loop 2\n");
@@ -584,7 +584,7 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                     Rpp16f *dstPtrTest = dstPtrTemp;
 
                     int vectorLoopCount = 0;
-                    __m256 p1 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTest1[0]));
+                    __m256 p1 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTest1)[0]);
 #if __AVX2__
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                     {
@@ -619,7 +619,7 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                     Rpp16f *dstPtrTest = dstPtrTemp;
 
                     int vectorLoopCount = 0;
-                    __m256 p2 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTest2[0]));
+                    __m256 p2 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrTest2)[0]);
 #if __AVX2__
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                     {
@@ -700,7 +700,7 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                         Rpp16f *dstPtrNew = dstPtrTest;
 
                         int vectorLoopCount = 0;
-                        __m256 p1 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrNew1[0]));
+                        __m256 p1 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrNew1)[0]);
 #if __AVX2__
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                         {
@@ -746,7 +746,7 @@ RppStatus tensor_multiply_tensor_f16_f16_host_tensor(Rpp16f *srcPtr1,
                         Rpp16f *dstPtrNew = dstPtrTest;
 
                         int vectorLoopCount = 0;
-                        __m256 p2 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrNew2[0]));
+                        __m256 p2 = _mm256_set1_ps(reinterpret_cast<Rpp16s*>(srcPtrNew2)[0]);
 #if __AVX2__
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                         {
