@@ -93,6 +93,7 @@ inline void GroupShapes(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescP
     for(int i = 0; i < 3; i++)
         volumes[i] = 1;
     std::vector<int> updated_dims;
+    updated_dims.reserve(ndim * 3);
 
     for(; d < ndim; d++) {
         if (!SkipIndexForBroadcasting(dstDescriptorPtrND, d))
@@ -153,7 +154,7 @@ inline void GroupShapes(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescP
 inline void StridesForBroadcasting(RpptGenericDescPtr srcDescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND) {
     int ndim = dstDescriptorPtrND->numDims;
     for(int i = 0; i < ndim - 1; i++) {
-        if((srcDescriptorPtrND->dims[ndim - 1 - i] != dstDescriptorPtrND->dims[ndim - 1 - 1]) && (srcDescriptorPtrND->dims[ndim - 1 - i] == 1)) {
+        if((srcDescriptorPtrND->dims[ndim - 1 - i] != dstDescriptorPtrND->dims[ndim - 1 - i]) && (srcDescriptorPtrND->dims[ndim - 1 - i] == 1)) {
             srcDescriptorPtrND->strides[ndim - 1 - i] = 0;
         }
     }
