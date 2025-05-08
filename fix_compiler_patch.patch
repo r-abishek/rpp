@@ -1,0 +1,13 @@
+diff --git a/src/include/common/broadcast.hpp b/src/include/common/broadcast.hpp
+index cb36ed831..beb0e6e3d 100644
+--- a/src/include/common/broadcast.hpp
++++ b/src/include/common/broadcast.hpp
+@@ -65,7 +65,7 @@ inline bool SkipIndexForBroadcasting(RpptGenericDescPtr dstDescriptorPtrND, int
+ inline bool CanCollapse(int src1StartShape, int src2StartShape, int src1IndexShape, int src2IndexShape) {
+     bool src1IndexFlag = src1IndexShape == 1;
+     bool src1StartFlag = src1StartShape == 1;
+-    if(src1IndexFlag != src2IndexFlag)
++    if(src1IndexFlag != src1StartFlag)
+         return false;
+     bool src2IndexFlag = src2IndexShape == 1;
+     bool src2StartFlag = src2StartShape == 1;
