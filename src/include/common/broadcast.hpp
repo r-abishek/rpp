@@ -112,7 +112,7 @@ inline void GroupShapes(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescP
             if(dstIndexShape == 1)
                 continue;
             int src1IndexShape = GetShapeAtIndex(src1DescriptorPtrND, d, ndim);
-            int src2IndexShape = GetShapeAtIndex(src1DescriptorPtrND, d, ndim);
+            int src2IndexShape = GetShapeAtIndex(src2DescriptorPtrND, d, ndim);
 
             if (CanCollapse(src1StartShape, src2StartShape, src1IndexShape, src2IndexShape)) {
                 volumes[0] *= src1IndexShape;
