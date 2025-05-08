@@ -62,29 +62,15 @@ inline bool SkipIndexForBroadcasting(RpptGenericDescPtr dstDescriptorPtrND, int 
     return true;
 }
 
-inline bool CanCollapse(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND, int index, int group_start, int* volumes) {
-    int ndim = dstDescriptorPtrND->numDims;
-    int dst_index_shape = GetShapeAtIndex(dstDescriptorPtrND, index, ndim);
-    int dst_start_shape = GetShapeAtIndex(dstDescriptorPtrND, group_start, ndim);
-    bool dst_index_flag = dst_index_shape == 1;
-    bool dst_start_flag = dst_start_shape == 1;
-    if(dst_index_flag != dst_start_flag)
+inline bool CanCollapse(int src1StartShape, int src2StartShape, int src1IndexShape, int src2IndexShape) {
+    bool src1IndexFlag = src1IndexShape == 1;
+    bool src1StartFlag = src1StartShape == 1;
+    if(src1IndexFlag != src2IndexFlag)
         return false;
-    int src1_index_shape = GetShapeAtIndex(src1DescriptorPtrND, index, ndim);
-    int src1_start_shape = GetShapeAtIndex(src1DescriptorPtrND, group_start, ndim);
-    bool src1_index_flag = src1_index_shape == 1;
-    bool src1_start_flag = src1_start_shape == 1;
-    if(src1_index_flag != src1_start_flag)
+    bool src2IndexFlag = src2IndexShape == 1;
+    bool src2StartFlag = src2StartShape == 1;
+    if(src2IndexFlag != src2StartFlag)
         return false;
-    int src2_index_shape = GetShapeAtIndex(src2DescriptorPtrND, index, ndim);
-    int src2_start_shape = GetShapeAtIndex(src2DescriptorPtrND, group_start, ndim);
-    bool src2_index_flag = src2_index_shape == 1;
-    bool src2_start_flag = src2_start_shape == 1;
-    if(src2_index_flag != src2_start_flag)
-        return false;
-    volumes[0] *= src1_index_shape;
-    volumes[1] *= src2_index_shape;
-    volumes[2] *= dst_index_shape;
     return true;
 }
 
@@ -101,7 +87,6 @@ inline void AddGroupDimension(RpptGenericDescPtr src1DescriptorPtrND, RpptGeneri
 inline void GroupShapes(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescPtr src2DescriptorPtrND, RpptGenericDescPtr dstDescriptorPtrND) {
     int ndim = dstDescriptorPtrND->numDims;
     int d = 1;
-    int group_start;
     int n_groups = 1;
 
     int volumes[3];
@@ -115,21 +100,34 @@ inline void GroupShapes(RpptGenericDescPtr src1DescriptorPtrND, RpptGenericDescP
     }
 
     if(d < ndim) {
-        group_start = d;
-        volumes[0] *= GetShapeAtIndex(src1DescriptorPtrND, d, ndim);
-        volumes[1] *= GetShapeAtIndex(src2DescriptorPtrND, d, ndim);
-        volumes[2] *= GetShapeAtIndex(dstDescriptorPtrND, d, ndim);
+        int src1StartShape = GetShapeAtIndex(src1DescriptorPtrND, d, ndim);
+        int src2StartShape = GetShapeAtIndex(src2DescriptorPtrND, d, ndim);
+        int dstStartShape = GetShapeAtIndex(dstDescriptorPtrND, d, ndim);
+        volumes[0] *= src1StartShape;
+        volumes[1] *= src2StartShape;
+        volumes[2] *= dstStartShape;
 
         for (d++; d < ndim; d++) {
-            if (SkipIndexForBroadcasting(dstDescriptorPtrND, d)) {
+            int dstIndexShape = GetShapeAtIndex(dstDescriptorPtrND, d, ndim);
+            if(dstIndexShape == 1)
                 continue;
+            int src1IndexShape = GetShapeAtIndex(src1DescriptorPtrND, d, ndim);
+            int src2IndexShape = GetShapeAtIndex(src1DescriptorPtrND, d, ndim);
+
+            if (CanCollapse(src1StartShape, src2StartShape, src1IndexShape, src2IndexShape)) {
+                volumes[0] *= src1IndexShape;
+                volumes[1] *= src2IndexShape;
+                volumes[2] *= dstIndexShape;
             }
-            if (CanCollapse(src1DescriptorPtrND, src2DescriptorPtrND, dstDescriptorPtrND, d, group_start, volumes)) {
-                continue;
+            else {
+                updated_dims.push_back(volumes[0]);
+                updated_dims.push_back(volumes[1]);
+                updated_dims.push_back(volumes[2]);
+                volumes[0] = src1StartShape = src1IndexShape;
+                volumes[1] = src2StartShape = src2IndexShape;
+                volumes[2] = dstStartShape = dstIndexShape;
+                n_groups++;
             }
-            AddGroupDimension(src1DescriptorPtrND, src2DescriptorPtrND, dstDescriptorPtrND, volumes, d, n_groups, updated_dims);
-            group_start = d;
-            n_groups++;
         }
         updated_dims.push_back(volumes[0]);
         updated_dims.push_back(volumes[1]);
