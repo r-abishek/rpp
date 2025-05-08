@@ -65,7 +65,7 @@ inline bool SkipIndexForBroadcasting(RpptGenericDescPtr dstDescriptorPtrND, int 
 inline bool CanCollapse(int src1StartShape, int src2StartShape, int src1IndexShape, int src2IndexShape) {
     bool src1IndexFlag = src1IndexShape == 1;
     bool src1StartFlag = src1StartShape == 1;
-    if(src1IndexFlag != src2IndexFlag)
+    if(src1IndexFlag != src1StartFlag)
         return false;
     bool src2IndexFlag = src2IndexShape == 1;
     bool src2StartFlag = src2StartShape == 1;
