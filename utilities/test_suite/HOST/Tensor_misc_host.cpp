@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     bitDepth = atoi(argv[7]);
     string dst = argv[9];
     string scriptPath = argv[10];
-    qaMode = 0;//(testType == 0);
+    qaMode = (testType == 0);//0;
     bool axisMaskCase = (testCase == NORMALIZE || testCase == CONCAT);
     bool permOrderCase = (testCase == TRANSPOSE);
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
@@ -89,7 +89,13 @@ int main(int argc, char **argv)
     fill_roi_values(nDim, batchSize, roiTensor, qaMode, 0);
     //memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
     fill_roi_values(nDim, batchSize, dstRoiTensor, qaMode, 2);
-    if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
+    if (testCase == CONCAT)
+    {
+        roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
+        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
+        dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask];
+    }
+    if (testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode, 1);
@@ -114,7 +120,6 @@ int main(int argc, char **argv)
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
         set_generic_descriptor_layout(srcDescriptorPtrNDSecond, dstDescriptorPtrND, nDim, toggle, qaMode);
     }
-    printf("\nAfter set descriptor");
 
     Rpp32u iBufferSize = 1;
     Rpp32u oBufferSize = 1;
@@ -156,14 +161,12 @@ int main(int argc, char **argv)
     // read input data
     if(qaMode)
     {
-        printf("Goes into QA mode\n");
         read_data(inputF32, nDim, 0, scriptPath, funcName);
         if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
             read_data(inputF32Second, nDim, 0, scriptPath, funcName);
     }
     else
     {
-        printf("Goes inside random generation\n");
         std::srand(0);
         for(int i = 0; i < iBufferSize; i++)
             inputF32[i] = static_cast<float>(std::rand() % 255);
@@ -174,8 +177,6 @@ int main(int argc, char **argv)
         }
     }
 
-    printf("\nAfter setting input buffers");
-    //exit(0);
 
     if(testCase == LOG1P)
     {
@@ -321,7 +322,6 @@ int main(int argc, char **argv)
             }
             case TENSOR_MULTIPLY_TENSOR:
             {
-                printf("Inside tensor multiply tensor\n");
                 testCaseName  = "tensor_multiply_tensor";
 
                 startWallTime = omp_get_wtime();
@@ -340,7 +340,6 @@ int main(int argc, char **argv)
                     rppt_tensor_divide_tensor_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
-                exit(0);
                 break;
             }
             default:
