@@ -38,7 +38,7 @@ scriptPath = os.path.dirname(os.path.realpath(__file__))
 outFolderPath = os.getcwd()
 buildFolderPath = os.getcwd()
 caseMin = 0
-caseMax = 4
+caseMax = 8
 errorLog = [{"notExecutedFunctionality" : 0}]
 
 # Get a list of log files based on a flag for preserving output
@@ -69,7 +69,7 @@ def run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize,
         run_unit_test_cmd(numDims, case, numRuns, testType, toggle, batchSize, outFilePath, additionalArg)
     elif testType == 1:
         print("\n")
-        bitDepths = range(7)
+        bitDepths = range(2, 3)
         for bitDepth in bitDepths:
             run_performance_test_cmd(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, bitDepth, outFilePath, additionalArg)
 
