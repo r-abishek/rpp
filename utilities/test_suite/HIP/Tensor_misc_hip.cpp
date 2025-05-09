@@ -85,14 +85,16 @@ int main(int argc, char **argv)
     Rpp32u *roiTensor, *dstRoiTensor, *roiTensorSecond;
     CHECK_RETURN_STATUS(hipHostMalloc(&roiTensor, nDim * 2 * batchSize, sizeof(Rpp32u)));
     CHECK_RETURN_STATUS(hipHostMalloc(&dstRoiTensor, nDim * 2 * batchSize, sizeof(Rpp32u)));
-    fill_roi_values(nDim, batchSize, roiTensor, qaMode);
+    fill_roi_values(nDim, batchSize, roiTensor, qaMode, 1);
     memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
     if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
-        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
-        dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask]; 
+        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode, 2);
     }
+
+    if(testCase == CONCAT)
+        dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask];
 
     // set src/dst generic tensor descriptors
     RpptGenericDescPtr srcDescriptorPtrND, srcDescriptorPtrNDSecond, dstDescriptorPtrND;
@@ -181,7 +183,7 @@ int main(int argc, char **argv)
     }
 
     // Convert inputs to correponding bit depth specified by user
-    convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeInBytes, srcDescriptorPtrND, testCase);
+    convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeInBytes, iBufferSizeInBytes, srcDescriptorPtrND, testCase);
 
     // copy data from HOST to HIP
     CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
@@ -316,9 +318,32 @@ int main(int argc, char **argv)
                 testCaseName = "tensor_add_tensor";
 
                 startWallTime = omp_get_wtime();
+                std::cerr<<"\n before kernel ";
                 rppt_tensor_add_tensor_gpu(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, roiTensor, roiTensorSecond, handle);
+                // CHECK_RETURN_STATUS(hipMemcpy(output, d_output, oBufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost));
 
+                // printf("After run of tensor add tensor\n");
+                // float* in  = (float*)input;
+                // float* in2 = (float*)inputSecond;
+                // float* out = (float*)output;
+                // printf("\n buffer size %ld", iBufferSize);
+                // printf("\n obuffer size %u", oBufferSize);
+                // printf("Input 1 : ");
+                // for(int i1 = 0; i1 < iBufferSize; i1++)
+                //     printf("%f ", in[i1]);
+                // printf("\n");
+                // printf("Input 2  of size %d: ", iBufferSizeSecond);
+                // for(int i1 = 0; i1 < iBufferSizeSecond; i1++)
+                //     printf("%f ", in2[i1]);
+                // printf("\n");
+                // printf("Output : ");
+                // for(int i1 = 0; i1 < oBufferSize; i1++)
+                //     printf("%f ", out[i1]);
+                // printf("\n");
+                // //printf("%f, %f, %f\n", in[i1], in2[i1], out[i1]);
+                // exit(0);
                 break;
+
             }
             default:
             {

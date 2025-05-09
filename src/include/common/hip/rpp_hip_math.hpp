@@ -118,6 +118,14 @@ __device__ __forceinline__ void rpp_hip_math_add24_const(d_float24 *src_f24, d_f
     dst_f24->f4[5] = src_f24->f4[5] + addend_f4;
 }
 
+// d_float8 subtract
+
+__device__ __forceinline__ void rpp_hip_math_subtract8(d_float8 *src1Ptr_f8, d_float8 *src2Ptr_f8, d_float8 *dstPtr_f8)
+{
+    dstPtr_f8->f4[0] = src1Ptr_f8->f4[0] - src2Ptr_f8->f4[0];
+    dstPtr_f8->f4[1] = src1Ptr_f8->f4[1] - src2Ptr_f8->f4[1];
+}
+
 // d_float16 subtract
 
 __device__ __forceinline__ void rpp_hip_math_subtract16(d_float16 *src1Ptr_f16, d_float16 *src2Ptr_f16, d_float16 *dstPtr_f16)

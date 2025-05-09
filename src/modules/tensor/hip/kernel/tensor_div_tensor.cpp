@@ -3,7 +3,7 @@
 #include "rpp_hip_math.hpp"
 
 template <typename T>
-__global__ void tensor_add_tensor_1d_hip_tensor(T *srcPtr1,
+__global__ void tensor_div_tensor_1d_hip_tensor(T *srcPtr1,
                                                 T *srcPtr2,
                                                 uint srcStrides1,
                                                 uint srcStrides2,
@@ -34,12 +34,12 @@ __global__ void tensor_add_tensor_1d_hip_tensor(T *srcPtr1,
         src2_f8.f4[0] = src2_f8.f4[1] = (float4)srcPtr2[srcIdx2];
     else
         rpp_hip_load8_and_unpack_to_float8(srcPtr2 + srcIdx2, &src2_f8);
-    rpp_hip_math_add8(&src1_f8, &src2_f8, &dst_f8);
+    rpp_hip_math_divide8(&src1_f8, &src2_f8, &dst_f8);
     rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
 }
 
 template <typename T>
-__global__ void tensor_add_tensor_2d_hip_tensor(T *srcPtr1,
+__global__ void tensor_div_tensor_2d_hip_tensor(T *srcPtr1,
                                                 T *srcPtr2,
                                                 uint2 srcStrides1NH,
                                                 uint2 srcStrides2NH,
@@ -71,12 +71,12 @@ __global__ void tensor_add_tensor_2d_hip_tensor(T *srcPtr1,
         src2_f8.f4[0] = src2_f8.f4[1] = (float4)srcPtr2[srcIdx2];
     else
         rpp_hip_load8_and_unpack_to_float8(srcPtr2 + srcIdx2, &src2_f8);
-    rpp_hip_math_add8(&src1_f8, &src2_f8, &dst_f8);
+    rpp_hip_math_divide8(&src1_f8, &src2_f8, &dst_f8);
     rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
 }
 
 template <typename T>
-__global__ void tensor_add_tensor_3d_hip_tensor(T *srcPtr1,
+__global__ void tensor_div_tensor_3d_hip_tensor(T *srcPtr1,
                                                 T *srcPtr2,
                                                 uint2 srcStrides1DH,
                                                 uint2 srcStrides2DH,
@@ -108,12 +108,12 @@ __global__ void tensor_add_tensor_3d_hip_tensor(T *srcPtr1,
         src2_f8.f4[0] = src2_f8.f4[1] = (float4)srcPtr2[srcIdx2];
     else
         rpp_hip_load8_and_unpack_to_float8(srcPtr2 + srcIdx2, &src2_f8);
-    rpp_hip_math_add8(&src1_f8, &src2_f8, &dst_f8);
+    rpp_hip_math_divide8(&src1_f8, &src2_f8, &dst_f8);
     rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &dst_f8);
 }
 
 template <typename T>
-__global__ void tensor_add_tensor_nd_hip_tensor(T *srcPtr1,
+__global__ void tensor_div_tensor_nd_hip_tensor(T *srcPtr1,
                                                 T *srcPtr2,
                                                 uint *srcStrides1,
                                                 uint *srcStrides2,
@@ -135,11 +135,11 @@ __global__ void tensor_add_tensor_nd_hip_tensor(T *srcPtr1,
     uint srcIdx1 = (id_z * *srcStrides1++) + id_x;
     uint srcIdx2 = (id_z * *srcStrides2++) + id_x;
 
-    dstPtr[dstIdx] = srcPtr1[srcIdx1] + srcPtr2[srcIdx2];
+    dstPtr[dstIdx] = srcPtr1[srcIdx1] / srcPtr2[srcIdx2];
 }
 
 template <typename T>
-RppStatus hip_exec_tensor_add_tensor_generic_tensor(T *srcPtr1,
+RppStatus hip_exec_tensor_div_tensor_generic_tensor(T *srcPtr1,
                                                     T *srcPtr2,
                                                     RpptGenericDescPtr srcGenericDescPtr1,
                                                     RpptGenericDescPtr srcGenericDescPtr2,
@@ -166,12 +166,13 @@ RppStatus hip_exec_tensor_add_tensor_generic_tensor(T *srcPtr1,
 
     if (numDims == 1)
     {
+        printf("\n ************************ 1 *****************");
         // NW
         int globalThreads_x = dstBroadcastDescPtr->dims[1];
         int globalThreads_y = 1;
         int globalThreads_z = dstBroadcastDescPtr->dims[0];
 
-        hipLaunchKernelGGL(tensor_add_tensor_1d_hip_tensor,
+        hipLaunchKernelGGL(tensor_div_tensor_1d_hip_tensor,
                            dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
                            0,
@@ -190,12 +191,13 @@ RppStatus hip_exec_tensor_add_tensor_generic_tensor(T *srcPtr1,
     }
     else if (numDims == 2)
     {
+        printf("\n ************************ 2 *****************");
         // NHW
         int globalThreads_x = dstBroadcastDescPtr->dims[2];
         int globalThreads_y = dstBroadcastDescPtr->dims[1];
         int globalThreads_z = dstBroadcastDescPtr->dims[0];
 
-        hipLaunchKernelGGL(tensor_add_tensor_2d_hip_tensor,
+        hipLaunchKernelGGL(tensor_div_tensor_2d_hip_tensor,
                            dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
                            0,
@@ -221,7 +223,7 @@ RppStatus hip_exec_tensor_add_tensor_generic_tensor(T *srcPtr1,
 
         for(int batchCount = 0; batchCount < dstBroadcastDescPtr->dims[0]; batchCount++)
         {
-            hipLaunchKernelGGL(tensor_add_tensor_3d_hip_tensor,
+            hipLaunchKernelGGL(tensor_div_tensor_3d_hip_tensor,
                                dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
                                0,
@@ -246,7 +248,7 @@ RppStatus hip_exec_tensor_add_tensor_generic_tensor(T *srcPtr1,
         int globalThreads_y = 1;
         int globalThreads_z = dstBroadcastDescPtr->dims[0];
 
-        hipLaunchKernelGGL(tensor_add_tensor_nd_hip_tensor,
+        hipLaunchKernelGGL(tensor_div_tensor_nd_hip_tensor,
                         dim3(ceil((float)globalThreads_x/1024), ceil((float)globalThreads_y/LOCAL_THREADS_Y_1DIM), ceil((float)globalThreads_z/LOCAL_THREADS_Z_1DIM)),
                         dim3(1024, LOCAL_THREADS_Y_1DIM, LOCAL_THREADS_Z_1DIM),
                         0,
@@ -267,7 +269,7 @@ RppStatus hip_exec_tensor_add_tensor_generic_tensor(T *srcPtr1,
     return RPP_SUCCESS;
 }
 
-template RppStatus hip_exec_tensor_add_tensor_generic_tensor<Rpp8u>(Rpp8u*,
+template RppStatus hip_exec_tensor_div_tensor_generic_tensor<Rpp8u>(Rpp8u*,
                                                                     Rpp8u*,
                                                                     RpptGenericDescPtr,
                                                                     RpptGenericDescPtr,
@@ -277,7 +279,7 @@ template RppStatus hip_exec_tensor_add_tensor_generic_tensor<Rpp8u>(Rpp8u*,
                                                                     Rpp32u*,
                                                                     rpp::Handle&);
 
-template RppStatus hip_exec_tensor_add_tensor_generic_tensor<Rpp32f>(Rpp32f*,
+template RppStatus hip_exec_tensor_div_tensor_generic_tensor<Rpp32f>(Rpp32f*,
                                                                      Rpp32f*,
                                                                      RpptGenericDescPtr,
                                                                      RpptGenericDescPtr,
@@ -287,7 +289,7 @@ template RppStatus hip_exec_tensor_add_tensor_generic_tensor<Rpp32f>(Rpp32f*,
                                                                      Rpp32u*,
                                                                      rpp::Handle&);
 
-template RppStatus hip_exec_tensor_add_tensor_generic_tensor<half>(half*,
+template RppStatus hip_exec_tensor_div_tensor_generic_tensor<half>(half*,
                                                                    half*,
                                                                    RpptGenericDescPtr,
                                                                    RpptGenericDescPtr,
@@ -297,7 +299,7 @@ template RppStatus hip_exec_tensor_add_tensor_generic_tensor<half>(half*,
                                                                    Rpp32u*,
                                                                    rpp::Handle&);
 
-template RppStatus hip_exec_tensor_add_tensor_generic_tensor<Rpp8s>(Rpp8s*,
+template RppStatus hip_exec_tensor_div_tensor_generic_tensor<Rpp8s>(Rpp8s*,
                                                                     Rpp8s*,
                                                                     RpptGenericDescPtr,
                                                                     RpptGenericDescPtr,
