@@ -17,7 +17,7 @@ inline T divide_op(T src1, T src2) { return src1 / src2; }
 inline __m256 simd_add_ps(__m256 a, __m256 b) { return _mm256_add_ps(a, b); }
 inline __m256 simd_subtract_ps(__m256 a, __m256 b) { return _mm256_sub_ps(a, b); }
 inline __m256 simd_multiply_ps(__m256 a, __m256 b) { return _mm256_mul_ps(a, b); }
-inline __m256 simd_divide_ps(__m256 a, __m256 b) { return _mm256_mul_ps(a, b); }
+inline __m256 simd_divide_ps(__m256 a, __m256 b) { return _mm256_div_ps(a, b); }
 
 template<typename T, typename Operation>
 inline void tensor_binary_op_recursive(T *src1, T *src2, Rpp32u *src1Strides, Rpp32u *src2Strides, T *dst, Rpp32u *dstStrides, Rpp32u *dstShape, Rpp32u nDim, Operation op)
@@ -48,7 +48,6 @@ RppStatus tensor_binary_op_f32_f32_host_tensor(Rpp32f *srcPtr1,
                                                Rpp32u *srcPtr1roiTensor,
                                                Rpp32u *srcPtr2roiTensor,
                                                rpp::Handle& handle) {
-    printf("Inside tensor binary operations\n");
     checkEqualBatchSize(srcPtr1GenericDescPtr, srcPtr2GenericDescPtr);
     BroadcastDstShape(srcPtr1GenericDescPtr, srcPtr2GenericDescPtr, dstGenericDescPtr);
     RpptGenericDesc src1BroadcastDesc, src2BroadcastDesc, dstBroadcastDesc;

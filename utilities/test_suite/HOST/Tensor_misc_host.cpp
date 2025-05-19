@@ -46,7 +46,7 @@ int main(int argc, char **argv)
     bitDepth = atoi(argv[7]);
     string dst = argv[9];
     string scriptPath = argv[10];
-    qaMode = (testType == 0);//0;
+    qaMode = 0;//(testType == 0);//0;
     bool axisMaskCase = (testCase == NORMALIZE || testCase == CONCAT);
     bool permOrderCase = (testCase == TRANSPOSE);
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     if (testCase == CONCAT)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
-        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
+        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode, 0);
         dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask];
     }
     if (testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
