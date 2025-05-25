@@ -1642,6 +1642,22 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case POSTERIZE:
+                {
+                    testCaseName = "posterize";
+
+                    Rpp32u posterizeLevelBits = 3;
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+
+                    if (inputBitDepth == 0)
+                        rppt_posterize_host(input, srcDescPtr, output, dstDescPtr, posterizeLevelBits, roiTensor, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 default:
                 {
                     missingFuncFlag = 1;

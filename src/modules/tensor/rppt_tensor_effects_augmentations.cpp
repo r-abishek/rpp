@@ -1347,6 +1347,35 @@ RppStatus rppt_rain_host(RppPtr_t srcPtr,
     return RPP_SUCCESS;
 }
 
+/******************** posterize ********************/
+
+RppStatus rppt_posterize_host(RppPtr_t srcPtr,
+                              RpptDescPtr srcDescPtr,
+                              RppPtr_t dstPtr,
+                              RpptDescPtr dstDescPtr,
+                              Rpp32u posterizeLevelBits,
+                              RpptROIPtr roiTensorPtrSrc,
+                              RpptRoiType roiType,
+                              rppHandle_t rppHandle)
+{
+    RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
+
+    if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+    {
+        posterize_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                    srcDescPtr,
+                                    static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                    dstDescPtr,
+                                    posterizeLevelBits,
+                                    roiTensorPtrSrc,
+                                    roiType,
+                                    layoutParams,
+                                    rpp::deref(rppHandle));
+    }
+
+    return RPP_SUCCESS;
+}
+
 /********************************************************************************************************************/
 /*********************************************** RPP_GPU_SUPPORT = ON ***********************************************/
 /********************************************************************************************************************/
