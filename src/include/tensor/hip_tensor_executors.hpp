@@ -572,6 +572,17 @@ RppStatus hip_exec_water_tensor(T *srcPtr,
                                 RpptRoiType roiType,
                                 rpp::Handle& handle);
 
+// -------------------- posterize --------------------
+
+RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
+                                         RpptDescPtr srcDescPtr,
+                                         Rpp8u *dstPtr,
+                                         RpptDescPtr dstDescPtr,
+                                         Rpp32u posterizeLevelBits,
+                                         RpptROIPtr roiTensorPtrSrc,
+                                         RpptRoiType roiType,
+                                         rpp::Handle& handle);
+
 /**************************************** FILTER AUGMENTATIONS ****************************************/
 
 // -------------------- box_filter --------------------

@@ -1542,6 +1542,18 @@ RppStatus rain_i8_i8_host_tensor(Rpp8s *srcPtr,
                                  RppLayoutParams layoutParams,
                                  rpp::Handle& handle);
 
+// -------------------- posterize --------------------
+
+RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
+                                     RpptDescPtr srcDescPtr,
+                                     Rpp8u *dstPtr,
+                                     RpptDescPtr dstDescPtr,
+                                     Rpp32u posterizeLevelBits,
+                                     RpptROIPtr roiTensorPtrSrc,
+                                     RpptRoiType roiType,
+                                     RppLayoutParams layoutParams,
+                                     rpp::Handle& handle);
+
 /**************************************** FILTER AUGMENTATIONS ****************************************/
 
 // -------------------- gaussian_filter --------------------
@@ -2702,18 +2714,6 @@ RppStatus concat_generic_host_tensor(T1 *srcPtr1,
                                      Rpp32u axisMask,
                                      Rpp32u *srcPtr1roiTensor,
                                      Rpp32u *srcPtr2roiTensor,
-                                     RppLayoutParams layoutParams,
-                                     rpp::Handle& handle);
-
-// -------------------- posterize --------------------
-
-RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
-                                     RpptDescPtr srcDescPtr,
-                                     Rpp8u *dstPtr,
-                                     RpptDescPtr dstDescPtr,
-                                     Rpp32u posterizeLevelBits,
-                                     RpptROIPtr roiTensorPtrSrc,
-                                     RpptRoiType roiType,
                                      RppLayoutParams layoutParams,
                                      rpp::Handle& handle);
 
