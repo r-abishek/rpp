@@ -25,7 +25,7 @@ SOFTWARE.
 #include "host_tensor_executors.hpp"
 
 
-inline void compute_brightness_32_host(__m256& p, __m256& pBrightnessParams)
+inline void compute_posterize_32_host(__m256& p, __m256& pPosterizeMask)
 {
     p = _mm256_and_si256(p, pPosterizeMask);    // brightness adjustment
 }
