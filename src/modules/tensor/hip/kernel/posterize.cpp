@@ -52,8 +52,8 @@ __global__ void posterize_pkd_hip_tensor(Rpp8u *srcPtr,
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
 
     d_uchar8 src_mask_u8;
-    src_mask_u8[0] = (uchar4)(posterizeBitsMask);
-    src_mask_u8[1] = (uchar4)(posterizeBitsMask);
+    src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
+    src_mask_u8.uc4[1] = (uchar4)(posterizeBitsMask);
 
     d_uchar24 src_uc24, dst_uc24;
 
@@ -85,8 +85,8 @@ __global__ void posterize_pln_hip_tensor(Rpp8u *srcPtr,
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
 
     d_uchar8 src_mask_u8;
-    src_mask_u8[0] = (uchar4)(posterizeBitsMask);
-    src_mask_u8[1] = (uchar4)(posterizeBitsMask);
+    src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
+    src_mask_u8.uc4[1] = (uchar4)(posterizeBitsMask);
 
     d_uchar8 src_uc8, dst_uc8;
     uchar* srcPtr_uc8 = (uchar*)&src_uc8;
@@ -133,8 +133,8 @@ __global__ void posterize_pkd3_pln3_hip_tensor(Rpp8u *srcPtr,
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
 
     d_uchar8 src_mask_u8;
-    src_mask_u8[0] = (uchar4)(posterizeBitsMask);
-    src_mask_u8[1] = (uchar4)(posterizeBitsMask);
+    src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
+    src_mask_u8.uc4[1] = (uchar4)(posterizeBitsMask);
 
     d_uchar24 src_uc24, dst_uc24;
 
@@ -165,8 +165,8 @@ __global__ void posterize_pln3_pkd3_hip_tensor(Rpp8u *srcPtr,
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
 
     d_uchar8 src_mask_u8;
-    src_mask_u8[0] = (uchar4)(posterizeBitsMask);
-    src_mask_u8[1] = (uchar4)(posterizeBitsMask);
+    src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
+    src_mask_u8.uc4[1] = (uchar4)(posterizeBitsMask);
 
     d_uchar24 src_uc24, dst_uc24;
 
@@ -193,7 +193,7 @@ RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = dstDescPtr->n;
 
-    Rpp8u posterizeBitsMask = (1 << posterizeLevelBits - 1) << (8 - posterizeLevelBits);
+    Rpp8u posterizeBitsMask = ((1 << posterizeLevelBits) - 1) << (8 - posterizeLevelBits);
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
     {

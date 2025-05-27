@@ -25,12 +25,12 @@ SOFTWARE.
 #include "host_tensor_executors.hpp"
 
 
-inline void compute_posterize_32_host(__m256& p, __m256& pPosterizeMask)
+inline void compute_posterize_32_host(__m256i& p, __m256i& pPosterizeMask)
 {
     p = _mm256_and_si256(p, pPosterizeMask);    // brightness adjustment
 }
 
-inline void compute_posterize_96_host(__m256 *p, __m256& pPosterizeMask)
+inline void compute_posterize_96_host(__m256i *p, __m256i& pPosterizeMask)
 {
     p[0] = _mm256_and_si256(p[0], pPosterizeMask);    // brightness adjustment
     p[1] = _mm256_and_si256(p[1], pPosterizeMask);    // brightness adjustment
@@ -76,8 +76,8 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
         Rpp32u vectorIncrement = 96;
         Rpp32u vectorIncrementPerChannel = 32;
 
-        Rpp8u posterizeBitsMask = (1 << posterizeLevelBits - 1) << (8 - posterizeLevelBits);
-        __m256 pPosterizeBitsMask = _mm256_set1_epi8(posterizeLevelBits);
+        Rpp8u posterizeBitsMask = ((1 << posterizeLevelBits) - 1) << (8 - posterizeLevelBits);
+        __m256i pPosterizeBitsMask = _mm256_set1_epi8(posterizeLevelBits);
 
         // Brightness with fused output-layout toggle (NHWC -> NCHW)
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
@@ -149,9 +149,9 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     __m256i p[3];
-                    rpp_simd_load(rpp_load96_u8pln3_to_u8pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
+                    rpp_simd_load(rpp_load96_u8_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
                     compute_posterize_96_host(p, pPosterizeBitsMask);  // brightness adjustment
-                    rpp_simd_store(rpp_store96_u8pln3_to_u8pkd3_avx, dstPtrTemp, p);    // simd stores
+                    rpp_simd_store(rpp_store96_u8pln3_to_u8pkd3, dstPtrTemp, p);    // simd stores
 
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;
@@ -206,9 +206,9 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                 {
                     __m256i p[3];
 
-                    rpp_simd_load(rpp_load96_u8_avx, srcPtr1TempR, srcPtr1TempG, srcPtr1TempB, p1);    // simd loads
+                    rpp_simd_load(rpp_load96_u8_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
                     compute_posterize_96_host(p, pPosterizeBitsMask);
-                    rpp_simd_store(rpp_store96_u8pln3_to_u8pln3, dstPtrTempR, dstPtrTempG, dstPtrTempB, p1);
+                    rpp_simd_store(rpp_store96_u8pln3_to_u8pln3, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);
 
                     srcPtrTempR += vectorIncrementPerChannel;
                     srcPtrTempG += vectorIncrementPerChannel;

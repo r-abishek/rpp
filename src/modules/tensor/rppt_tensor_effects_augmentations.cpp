@@ -1360,7 +1360,7 @@ RppStatus rppt_posterize_host(RppPtr_t srcPtr,
 {
     RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
 
-    if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+    if (((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8)) || ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8)))
     {
         posterize_char_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                    srcDescPtr,
@@ -1372,18 +1372,7 @@ RppStatus rppt_posterize_host(RppPtr_t srcPtr,
                                    layoutParams,
                                    rpp::deref(rppHandle));
     }
-    else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
-    {
-        posterize_char_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
-                                   srcDescPtr,
-                                   static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
-                                   dstDescPtr,
-                                   posterizeLevelBits,
-                                   roiTensorPtrSrc,
-                                   roiType,
-                                   layoutParams,
-                                   rpp::deref(rppHandle));
-    }
+
     return RPP_SUCCESS;
 }
 
@@ -2807,22 +2796,11 @@ RppStatus rppt_posterize_gpu(RppPtr_t srcPtr,
                              rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
-    if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+    if (((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8)) || ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8)))
     {
         hip_exec_char_posterize_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                   srcDescPtr,
                                   static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
-                                  dstDescPtr,
-                                  posterizeLevelBits,
-                                  roiTensorPtrSrc,
-                                  roiType,
-                                  rpp::deref(rppHandle));
-    }
-    else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
-    {
-        hip_exec_char_posterize_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
-                                  srcDescPtr,
-                                  static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                   dstDescPtr,
                                   posterizeLevelBits,
                                   roiTensorPtrSrc,

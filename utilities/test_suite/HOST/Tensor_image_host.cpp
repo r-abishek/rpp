@@ -1652,7 +1652,7 @@ int main(int argc, char **argv)
                     startCpuTime = clock();
 
                     if (inputBitDepth == 0 || inputBitDepth == 5)
-                        rppt_posterize_host(input, srcDescPtr, output, dstDescPtr, posterizeLevelBits, roiTensor, roiTypeSrc, handle);
+                        rppt_posterize_host(input, srcDescPtr, output, dstDescPtr, posterizeLevelBits, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
