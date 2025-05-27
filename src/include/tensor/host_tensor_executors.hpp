@@ -2707,14 +2707,14 @@ RppStatus concat_generic_host_tensor(T1 *srcPtr1,
 
 // -------------------- posterize --------------------
 
-RppStatus posterize_u8_u8_host_tensor(Rpp8u *srcPtr,
-                                      RpptDescPtr srcDescPtr,
-                                      Rpp8u *dstPtr,
-                                      RpptDescPtr dstDescPtr,
-                                      Rpp32u posterizeLevelBits,
-                                      RpptROIPtr roiTensorPtrSrc,
-                                      RpptRoiType roiType,
-                                      RppLayoutParams layoutParams,
-                                      rpp::Handle& handle);
+RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
+                                     RpptDescPtr srcDescPtr,
+                                     Rpp8u *dstPtr,
+                                     RpptDescPtr dstDescPtr,
+                                     Rpp32u posterizeLevelBits,
+                                     RpptROIPtr roiTensorPtrSrc,
+                                     RpptRoiType roiType,
+                                     RppLayoutParams layoutParams,
+                                     rpp::Handle& handle);
 
 #endif // HOST_TENSOR_EXECUTORS_HPP

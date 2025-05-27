@@ -37,15 +37,19 @@ inline void compute_posterize_96_host(__m256 *p, __m256& pPosterizeMask)
     p[2] = _mm256_and_si256(p[2], pPosterizeMask);    // brightness adjustment
 }
 
-RppStatus posterize_u8_u8_host_tensor(Rpp8u *srcPtr,
-                                      RpptDescPtr srcDescPtr,
-                                      Rpp8u *dstPtr,
-                                      RpptDescPtr dstDescPtr,
-                                      Rpp32u posterizeLevelBits,
-                                      RpptROIPtr roiTensorPtrSrc,
-                                      RpptRoiType roiType,
-                                      RppLayoutParams layoutParams,
-                                      rpp::Handle& handle)
+// Both u8 and i8 use the same function for execution.
+// Bitwise operation in the context of posterize gives the same output irrespective of sign
+// So additional operations for conversion b/w u8 and i8 is avoided
+// Inputs although in int8 is interpreted in calculation hence in uint8 as its the underlying bit representation that matters
+RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
+                                     RpptDescPtr srcDescPtr,
+                                     Rpp8u *dstPtr,
+                                     RpptDescPtr dstDescPtr,
+                                     Rpp32u posterizeLevelBits,
+                                     RpptROIPtr roiTensorPtrSrc,
+                                     RpptRoiType roiType,
+                                     RppLayoutParams layoutParams,
+                                     rpp::Handle& handle)
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
