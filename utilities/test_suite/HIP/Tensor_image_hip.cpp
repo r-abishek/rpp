@@ -1626,7 +1626,7 @@ int main(int argc, char **argv)
                     Rpp32u posterizeLevelBits = 3;
 
                     startWallTime = omp_get_wtime();
-                    if (inputBitDepth == 0)
+                    if (inputBitDepth == 0 || inputBitDepth == 5)
                         rppt_posterize_gpu(d_input, srcDescPtr, d_output, dstDescPtr, posterizeLevelBits, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
