@@ -36,7 +36,11 @@ std::map<int, string> augmentationMiscMap =
     {1, "normalize"},
     {2, "log"},
     {3, "concat"},
-    {4, "log1p"}
+    {4, "log1p"},
+    {5, "tensor_add_tensor"},
+    {6, "tensor_subtract_tensor"},
+    {7, "tensor_multiply_tensor"},
+    {8, "tensor_divide_tensor"}
 };
 
 enum Augmentation {
@@ -44,7 +48,11 @@ enum Augmentation {
     NORMALIZE = 1,
     LOG = 2,
     CONCAT = 3,
-    LOG1P = 4
+    LOG1P = 4,
+    TENSOR_ADD_TENSOR = 5,
+    TENSOR_SUBTRACT_TENSOR = 6,
+    TENSOR_MULTIPLY_TENSOR = 7,
+    TENSOR_DIVIDE_TENSOR = 8
 };
 
 // Compute strides given Generic Tensor
@@ -98,7 +106,7 @@ void read_data(Rpp32f *data, Rpp32u nDim, Rpp32u readType, string scriptPath, st
 }
 
 // Fill the starting indices and length of ROI values
-void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMode)
+void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMode, Rpp32u flag)
 {
     if(qaMode)
     {
@@ -136,20 +144,28 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             case 2:
             {
                 std::array<Rpp32u, 4> roi = {0, 0, 1920, 1080};
+                if(flag == 1)
+                    roi = {0, 0, 1920, 1080};
+                if(flag == 2)
+                    roi = {0, 0, 1920, 1080};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 4)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
             }
             case 3:
             {
-                std::array<Rpp32u, 6> roi = {0, 0, 0, 1920, 1080, 3};
+                std::array<Rpp32u, 6> roi = {0, 0, 0, 2, 2, 4};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 6)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
             }
             case 4:
             {
-                std::array<Rpp32u, 8> roi = {0, 0, 0, 0, 1, 128, 128, 128};
+                std::array<Rpp32u, 8> roi = {0, 0, 0, 0, 1, 2, 1, 20};
+                if(flag == 1)
+                    roi = {0, 0, 0, 0, 3, 1, 2, 1};
+                if(flag == 2)
+                    roi = {0, 0, 0, 0, 3, 2, 2, 20};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 8)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -376,7 +392,7 @@ inline size_t get_size_of_data_type(RpptDataType dataType)
 
 // Convert input from F32 to corresponding bit depth specified by user
 inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, void *output, void *outputSecond,
-                                   Rpp32s outputBitDepth, Rpp64u ioBufferSize, Rpp64u outputBufferSize,
+                                   Rpp32s outputBitDepth, Rpp64u ioBufferSize, Rpp64u outputBufferSize, Rpp64u outputBufferSize2,
                                    RpptGenericDescPtr srcGenericDescPtr, Rpp32s testCase)
 {
     if (outputBitDepth == 0 || outputBitDepth == 3 || outputBitDepth == 4) // U8 case
@@ -385,7 +401,7 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
         for (Rpp32s i = 0; i < ioBufferSize; i++)
             outputU8[i] = static_cast<Rpp8u>(std::clamp(std::round(inputF32[i]), 0.0f, 255.0f));
 
-        if (testCase == CONCAT)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
         {
             Rpp8u *outputU8Second = static_cast<Rpp8u *>(outputSecond) + srcGenericDescPtr->offsetInBytes;
             for (Rpp32s i = 0; i < ioBufferSize; i++)
@@ -398,7 +414,7 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
         for (Rpp32s i = 0; i < ioBufferSize; i++)
             outputF16[i] = static_cast<Rpp16f>(std::clamp(inputF32[i], -65504.0f, 65504.0f)); // F16 range
 
-        if (testCase == CONCAT)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
         {
             Rpp16f *outputF16Second = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(outputSecond) + srcGenericDescPtr->offsetInBytes);
             for (Rpp32s i = 0; i < ioBufferSize; i++)
@@ -408,8 +424,8 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
     else if (outputBitDepth == 2) // F32 case (No conversion needed)
     {
         memcpy(output, inputF32, outputBufferSize);
-        if (testCase == CONCAT)
-            memcpy(outputSecond, inputF32Second, outputBufferSize);
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
+            memcpy(outputSecond, inputF32Second, outputBufferSize2);
     }
     else if (outputBitDepth == 5) // I8 case
     {
@@ -417,7 +433,7 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
         for (int i = 0; i < ioBufferSize; i++)
             outputI8[i] = static_cast<Rpp8s>(std::clamp(std::round(inputF32[i]) - 128, -128.0f, 127.0f));
 
-        if (testCase == CONCAT)
+        if (testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
         {
             Rpp8s *outputI8Second = static_cast<Rpp8s *>(outputSecond) + srcGenericDescPtr->offsetInBytes;
             for (int i = 0; i < ioBufferSize; i++)

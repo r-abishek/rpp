@@ -121,7 +121,11 @@ miscAugmentationMap  = {
     1: ["normalize", "HOST", "HIP"],
     2: ["log", "HOST", "HIP"],
     3: ["concat","HOST","HIP"],
-    4: ["log1p", "HOST", "HIP"]
+    4: ["log1p", "HOST", "HIP"],
+    5: ["tensor_add_tensor", "HOST", "HIP"],
+    6: ["tensor_subtract_tensor", "HOST", "HIP"],
+    7: ["tensor_multiply_tensor", "HOST", "HIP"],
+    8: ["tensor_divide_tensor", "HOST", "HIP"]
 }
 
 ImageAugmentationGroupMap = {

@@ -2706,4 +2706,28 @@ RppStatus concat_generic_host_tensor(T1 *srcPtr1,
                                      rpp::Handle& handle);
 
 
+// -------------------- tensor_binary_operation --------------------
+
+RppStatus tensor_binary_op_dispatch_f16_f16_host_tensor(Rpp16f *srcPtr1,
+                                                        Rpp16f *srcPtr2,
+                                                        RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                        RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                        Rpp16f *dstPtr,
+                                                        RpptGenericDescPtr dstGenericDescPtr,
+                                                        RpptOp tensorOp,
+                                                        Rpp32u *srcPtr1roiTensor,
+                                                        Rpp32u *srcPtr2roiTensor,
+                                                        rpp::Handle& handle);
+
+RppStatus tensor_binary_op_dispatch_f32_f32_host_tensor(Rpp32f *srcPtr1,
+                                                        Rpp32f *srcPtr2,
+                                                        RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                        RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                        Rpp32f *dstPtr,
+                                                        RpptGenericDescPtr dstGenericDescPtr,
+                                                        RpptOp tensorOp,
+                                                        Rpp32u *srcPtr1roiTensor,
+                                                        Rpp32u *srcPtr2roiTensor,
+                                                        rpp::Handle& handle);
+
 #endif // HOST_TENSOR_EXECUTORS_HPP

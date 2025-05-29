@@ -221,6 +221,17 @@ typedef enum
     RPP_SCALAR_OP_MAX,
 } RppOp;
 
+/*! \brief RPP Tensor Operations type enum
+ * \ingroup group_rppdefs
+*/
+typedef enum
+{
+    RPP_TENSOR_OP_ADD,
+    RPP_TENSOR_OP_SUBTRACT,
+    RPP_TENSOR_OP_MULTIPLY,
+    RPP_TENSOR_OP_DIVIDE
+} RpptOp;
+
 /*! \brief RPP BitDepth Conversion type enum
  * \ingroup group_rppdefs
  */
