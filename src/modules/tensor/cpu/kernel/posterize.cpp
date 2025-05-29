@@ -45,7 +45,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                                      RpptDescPtr srcDescPtr,
                                      Rpp8u *dstPtr,
                                      RpptDescPtr dstDescPtr,
-                                     Rpp32u posterizeLevelBits,
+                                     Rpp32u *posterizeLevelBits,
                                      RpptROIPtr roiTensorPtrSrc,
                                      RpptRoiType roiType,
                                      RppLayoutParams layoutParams,
@@ -76,7 +76,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
         Rpp32u vectorIncrement = 96;
         Rpp32u vectorIncrementPerChannel = 32;
 
-        Rpp8u posterizeBitsMask = ((1 << posterizeLevelBits) - 1) << (8 - posterizeLevelBits);
+        Rpp8u posterizeBitsMask = ((1 << posterizeLevelBits[batchCount]) - 1) << (8 - posterizeLevelBits[batchCount]);
         __m256i pPosterizeBitsMask = _mm256_set1_epi8(posterizeBitsMask);
 
         // Brightness with fused output-layout toggle (NHWC -> NCHW)

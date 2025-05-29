@@ -36,7 +36,7 @@ __global__ void posterize_pkd_hip_tensor(Rpp8u *srcPtr,
                                          uint2 srcStridesNH,
                                          Rpp8u *dstPtr,
                                          uint2 dstStridesNH,
-                                         Rpp8u posterizeBitsMask,
+                                         Rpp32u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -52,6 +52,9 @@ __global__ void posterize_pkd_hip_tensor(Rpp8u *srcPtr,
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
 
     d_uchar8 src_mask_u8;
+
+    uchar posterizeBitsMask = ((1 << posterizeLevelBits[id_z]) - 1) << (8 - posterizeLevelBits[id_z]);
+
     src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
     src_mask_u8.uc4[1] = (uchar4)(posterizeBitsMask);
 
@@ -69,7 +72,7 @@ __global__ void posterize_pln_hip_tensor(Rpp8u *srcPtr,
                                            Rpp8u *dstPtr,
                                            uint3 dstStridesNCH,
                                            int channelsDst,
-                                           Rpp8u posterizeBitsMask,
+                                           Rpp32u *posterizeLevelBits,
                                            RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -83,6 +86,8 @@ __global__ void posterize_pln_hip_tensor(Rpp8u *srcPtr,
 
     uint srcIdx = (id_z * srcStridesNCH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
+
+    uchar posterizeBitsMask = ((1 << posterizeLevelBits[id_z]) - 1) << (8 - posterizeLevelBits[id_z]);
 
     d_uchar8 src_mask_u8;
     src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
@@ -117,7 +122,7 @@ __global__ void posterize_pkd3_pln3_hip_tensor(Rpp8u *srcPtr,
                                                  uint2 srcStridesNH,
                                                  Rpp8u *dstPtr,
                                                  uint3 dstStridesNCH,
-                                                 Rpp8u posterizeBitsMask,
+                                                 Rpp32u *posterizeLevelBits,
                                                  RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -131,6 +136,8 @@ __global__ void posterize_pkd3_pln3_hip_tensor(Rpp8u *srcPtr,
 
     uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
+
+    uchar posterizeBitsMask = ((1 << posterizeLevelBits[id_z]) - 1) << (8 - posterizeLevelBits[id_z]);
 
     d_uchar8 src_mask_u8;
     src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
@@ -149,7 +156,7 @@ __global__ void posterize_pln3_pkd3_hip_tensor(Rpp8u *srcPtr,
                                                  uint3 srcStridesNCH,
                                                  Rpp8u *dstPtr,
                                                  uint2 dstStridesNH,
-                                                 Rpp8u posterizeBitsMask,
+                                                 Rpp32u *posterizeLevelBits,
                                                  RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -163,6 +170,8 @@ __global__ void posterize_pln3_pkd3_hip_tensor(Rpp8u *srcPtr,
 
     uint srcIdx = (id_z * srcStridesNCH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
+
+    uchar posterizeBitsMask = ((1 << posterizeLevelBits[id_z]) - 1) << (8 - posterizeLevelBits[id_z]);
 
     d_uchar8 src_mask_u8;
     src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
@@ -181,7 +190,7 @@ RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
                                          RpptDescPtr srcDescPtr,
                                          Rpp8u *dstPtr,
                                          RpptDescPtr dstDescPtr,
-                                         Rpp32u posterizeLevelBits,
+                                         Rpp32u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc,
                                          RpptRoiType roiType,
                                          rpp::Handle& handle)
@@ -193,7 +202,7 @@ RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = dstDescPtr->n;
 
-    Rpp8u posterizeBitsMask = ((1 << posterizeLevelBits) - 1) << (8 - posterizeLevelBits);
+    //Rpp8u posterizeBitsMask = ((1 << posterizeLevelBits) - 1) << (8 - posterizeLevelBits);
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
     {
@@ -206,7 +215,7 @@ RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
                            dstPtr,
                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                           posterizeBitsMask,
+                           posterizeLevelBits,
                            roiTensorPtrSrc);
     }
     else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
@@ -221,7 +230,7 @@ RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
                            dstPtr,
                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                            dstDescPtr->c,
-                           posterizeBitsMask,
+                           posterizeLevelBits,
                            roiTensorPtrSrc);
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
@@ -237,7 +246,7 @@ RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
                                make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
                                dstPtr,
                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                               posterizeBitsMask,
+                               posterizeLevelBits,
                                roiTensorPtrSrc);
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
@@ -251,7 +260,7 @@ RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
                                dstPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                               posterizeBitsMask,
+                               posterizeLevelBits,
                                roiTensorPtrSrc);
         }
     }
