@@ -1372,6 +1372,18 @@ RppStatus rppt_posterize_host(RppPtr_t srcPtr,
                                    layoutParams,
                                    rpp::deref(rppHandle));
     }
+    else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+    {
+        posterize_f32_f32_host_tensor(reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                      srcDescPtr,
+                                      reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                      dstDescPtr,
+                                      posterizeLevelBits,
+                                      roiTensorPtrSrc,
+                                      roiType,
+                                      layoutParams,
+                                      rpp::deref(rppHandle));
+    }
 
     return RPP_SUCCESS;
 }

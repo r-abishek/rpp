@@ -1655,7 +1655,7 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
 
-                    if (inputBitDepth == 0 || inputBitDepth == 5)
+                    if (inputBitDepth == 0 || inputBitDepth == 2 || inputBitDepth == 5)
                         rppt_posterize_host(input, srcDescPtr, output, dstDescPtr, posterizeLevelBits, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
