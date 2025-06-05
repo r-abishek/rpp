@@ -1564,6 +1564,16 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
                                         RppLayoutParams layoutParams,
                                         rpp::Handle& handle);
 
+RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
+                                        RpptDescPtr srcDescPtr,
+                                        Rpp16f *dstPtr,
+                                        RpptDescPtr dstDescPtr,
+                                        Rpp32u *posterizeLevelBits,
+                                        RpptROIPtr roiTensorPtrSrc,
+                                        RpptRoiType roiType,
+                                        RppLayoutParams layoutParams,
+                                        rpp::Handle& handle);
+
 /**************************************** FILTER AUGMENTATIONS ****************************************/
 
 // -------------------- gaussian_filter --------------------
