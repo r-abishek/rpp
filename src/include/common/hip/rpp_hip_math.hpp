@@ -42,6 +42,20 @@ __device__ __forceinline__ void rpp_hip_math_max8(d_float8 *srcPtr_f8, float *ds
     *dstPtr = fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(fmaxf(srcPtr_f8->f1[0], srcPtr_f8->f1[1]), srcPtr_f8->f1[2]), srcPtr_f8->f1[3]), srcPtr_f8->f1[4]), srcPtr_f8->f1[5]), srcPtr_f8->f1[6]), srcPtr_f8->f1[7]);
 }
 
+// d_float8 floor
+
+__device__ __forceinline__ void rpp_hip_math_floor8(d_float8 *srcPtr_f8, d_float8 *dstPtr_f8)
+{
+    dstPtr_f8->f1[ 0] = floorf(srcPtr_f8->f1[ 0]);
+    dstPtr_f8->f1[ 1] = floorf(srcPtr_f8->f1[ 1]);
+    dstPtr_f8->f1[ 2] = floorf(srcPtr_f8->f1[ 2]);
+    dstPtr_f8->f1[ 3] = floorf(srcPtr_f8->f1[ 3]);
+    dstPtr_f8->f1[ 4] = floorf(srcPtr_f8->f1[ 4]);
+    dstPtr_f8->f1[ 5] = floorf(srcPtr_f8->f1[ 5]);
+    dstPtr_f8->f1[ 6] = floorf(srcPtr_f8->f1[ 6]);
+    dstPtr_f8->f1[ 7] = floorf(srcPtr_f8->f1[ 7]);
+}
+
 // d_float16 floor
 
 __device__ __forceinline__ void rpp_hip_math_floor16(d_float16 *srcPtr_f16, d_float16 *dstPtr_f16)

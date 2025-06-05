@@ -294,7 +294,7 @@ int main(int argc, char **argv)
     Rpp32f conversionFactor = 1.0f / 255.0;
     if(testCase == CROP_MIRROR_NORMALIZE)
         conversionFactor = 1.0;
-    Rpp32f invConversionFactor = 1.0f / conversionFactor;
+    Rpp32f invConversionFactor = 255.0;
 
     // Set buffer sizes in pixels for src/dst
     ioBufferSize = (Rpp64u)srcDescPtr->h * (Rpp64u)srcDescPtr->w * (Rpp64u)srcDescPtr->c * (Rpp64u)batchSize;
@@ -1633,7 +1633,7 @@ int main(int argc, char **argv)
                         posterizeLevelBits[i] = 3;
 
                     startWallTime = omp_get_wtime();
-                    if (inputBitDepth == 0 || inputBitDepth == 5)
+                    if (inputBitDepth == 0 || inputBitDepth == 2 || inputBitDepth == 5)
                         rppt_posterize_gpu(d_input, srcDescPtr, d_output, dstDescPtr, posterizeLevelBits, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;

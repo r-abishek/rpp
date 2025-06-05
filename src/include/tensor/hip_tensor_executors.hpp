@@ -574,9 +574,10 @@ RppStatus hip_exec_water_tensor(T *srcPtr,
 
 // -------------------- posterize --------------------
 
-RppStatus hip_exec_char_posterize_tensor(Rpp8u *srcPtr,
+template <typename T>
+RppStatus hip_exec_char_posterize_tensor(T *srcPtr,
                                          RpptDescPtr srcDescPtr,
-                                         Rpp8u *dstPtr,
+                                         T *dstPtr,
                                          RpptDescPtr dstDescPtr,
                                          Rpp32u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc,
