@@ -488,20 +488,20 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount)
+    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         Rpp16f *srcPtrImage, *dstPtrImage;
-        srcPtrImage = srcPtr  batchCount * srcDescPtr->strides.nStride;
-        dstPtrImage = dstPtr  batchCount * dstDescPtr->strides.nStride;
+        srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
+        dstPtrImage = dstPtr + batchCount * dstDescPtr->strides.nStride;
 
         Rpp32u bufferLength = roi.xywhROI.roiWidth * layoutParams.bufferMultiplier;
 
         Rpp16f *srcPtrChannel, *dstPtrChannel;
-        srcPtrChannel = srcPtrImage  (roi.xywhROI.xy.y * srcDescPtr->strides.hStride)  (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
+        srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
 
         Rpp32u alignedLength = (bufferLength / 24) * 24;
@@ -517,10 +517,10 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
             Rpp16f *srcPtrRow, *dstPtrRowR, *dstPtrRowG, *dstPtrRowB;
             srcPtrRow = srcPtrChannel;
             dstPtrRowR = dstPtrChannel;
-            dstPtrRowG = dstPtrRowR  dstDescPtr->strides.cStride;
-            dstPtrRowB = dstPtrRowG  dstDescPtr->strides.cStride;
+            dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
+            dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i)
+            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
                 srcPtrTemp = srcPtrRow;
@@ -529,7 +529,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 int vectorLoopCount = 0;
-                for (; vectorLoopCount < alignedLength; vectorLoopCount = vectorIncrement)
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f16pkd3_to_f32pln3_avx, srcPtrTemp, p);
@@ -538,27 +538,27 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                     p[2] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[2], pPosterizeBitsFactor)), pPosterizeBitsFactor);
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
-                    srcPtrTemp = vectorIncrement;
-                    dstPtrTempR = vectorIncrementPerChannel;
-                    dstPtrTempG = vectorIncrementPerChannel;
-                    dstPtrTempB = vectorIncrementPerChannel;
+                    srcPtrTemp += vectorIncrement;
+                    dstPtrTempR += vectorIncrementPerChannel;
+                    dstPtrTempG += vectorIncrementPerChannel;
+                    dstPtrTempB += vectorIncrementPerChannel;
                 }
-                for (; vectorLoopCount < bufferLength; vectorLoopCount = 3)
+                for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     *dstPtrTempR = (Rpp16f)(std::floor((Rpp32f)srcPtrTemp[0] * posterizeBitsFactor)/posterizeBitsFactor);
                     *dstPtrTempG = (Rpp16f)(std::floor((Rpp32f)srcPtrTemp[1] * posterizeBitsFactor)/posterizeBitsFactor);
                     *dstPtrTempB = (Rpp16f)(std::floor((Rpp32f)srcPtrTemp[2] * posterizeBitsFactor)/posterizeBitsFactor);
 
-                    srcPtrTemp = 3;
-                    dstPtrTempR;
-                    dstPtrTempG;
-                    dstPtrTempB;
+                    srcPtrTemp += 3;
+                    dstPtrTempR++;
+                    dstPtrTempG++;
+                    dstPtrTempB++;
                 }
 
-                srcPtrRow = srcDescPtr->strides.hStride;
-                dstPtrRowR = dstDescPtr->strides.hStride;
-                dstPtrRowG = dstDescPtr->strides.hStride;
-                dstPtrRowB = dstDescPtr->strides.hStride;
+                srcPtrRow += srcDescPtr->strides.hStride;
+                dstPtrRowR += dstDescPtr->strides.hStride;
+                dstPtrRowG += dstDescPtr->strides.hStride;
+                dstPtrRowB += dstDescPtr->strides.hStride;
             }
         }
 
@@ -567,11 +567,11 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
         {
             Rpp16f *srcPtrRowR, *srcPtrRowG, *srcPtrRowB, *dstPtrRow;
             srcPtrRowR = srcPtrChannel;
-            srcPtrRowG = srcPtrRowR  srcDescPtr->strides.cStride;
-            srcPtrRowB = srcPtrRowG  srcDescPtr->strides.cStride;
+            srcPtrRowG = srcPtrRowR + srcDescPtr->strides.cStride;
+            srcPtrRowB = srcPtrRowG + srcDescPtr->strides.cStride;
             dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i)
+            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 Rpp16f *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
                 srcPtrTempR = srcPtrRowR;
@@ -580,7 +580,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 int vectorLoopCount = 0;
-                for (; vectorLoopCount < alignedLength; vectorLoopCount = vectorIncrementPerChannel)
+                for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f16pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
@@ -589,47 +589,47 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                     p[2] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[2], pPosterizeBitsFactor)), pPosterizeBitsFactor);
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pkd3_avx, dstPtrTemp, p);    // simd stores
 
-                    srcPtrTempR = vectorIncrementPerChannel;
-                    srcPtrTempG = vectorIncrementPerChannel;
-                    srcPtrTempB = vectorIncrementPerChannel;
-                    dstPtrTemp = vectorIncrement;
+                    srcPtrTempR += vectorIncrementPerChannel;
+                    srcPtrTempG += vectorIncrementPerChannel;
+                    srcPtrTempB += vectorIncrementPerChannel;
+                    dstPtrTemp += vectorIncrement;
                 }
-                for (; vectorLoopCount < bufferLength; vectorLoopCount)
+                for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     dstPtrTemp[0] = (Rpp16f)(std::floor((Rpp32f)*srcPtrTempR * posterizeBitsFactor)/posterizeBitsFactor);
                     dstPtrTemp[1] = (Rpp16f)(std::floor((Rpp32f)*srcPtrTempG * posterizeBitsFactor)/posterizeBitsFactor);
                     dstPtrTemp[2] = (Rpp16f)(std::floor((Rpp32f)*srcPtrTempB * posterizeBitsFactor)/posterizeBitsFactor);
 
-                    srcPtrTempR;
-                    srcPtrTempG;
-                    srcPtrTempB;
-                    dstPtrTemp = 3;
+                    srcPtrTempR++;
+                    srcPtrTempG++;
+                    srcPtrTempB++;
+                    dstPtrTemp += 3;
                 }
 
-                srcPtrRowR = srcDescPtr->strides.hStride;
-                srcPtrRowG = srcDescPtr->strides.hStride;
-                srcPtrRowB = srcDescPtr->strides.hStride;
-                dstPtrRow = dstDescPtr->strides.hStride;
+                srcPtrRowR += srcDescPtr->strides.hStride;
+                srcPtrRowG += srcDescPtr->strides.hStride;
+                srcPtrRowB += srcDescPtr->strides.hStride;
+                dstPtrRow += dstDescPtr->strides.hStride;
             }
         }
         // Brightness without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
         else
         {
             Rpp32u alignedLength = bufferLength & ~(vectorIncrementPerChannel-1);
-            for(int c = 0; c < layoutParams.channelParam; c)
+            for(int c = 0; c < layoutParams.channelParam; c++)
             {
                 Rpp16f *srcPtrRow, *dstPtrRow;
                 srcPtrRow = srcPtrChannel;
                 dstPtrRow = dstPtrChannel;
 
-                for(int i = 0; i < roi.xywhROI.roiHeight; i)
+                for(int i = 0; i < roi.xywhROI.roiHeight; i++)
                 {
                     Rpp16f *srcPtrTemp, *dstPtrTemp;
                     srcPtrTemp = srcPtrRow;
                     dstPtrTemp = dstPtrRow;
 
                     int vectorLoopCount = 0;
-                    for (; vectorLoopCount < alignedLength; vectorLoopCount = vectorIncrementPerChannel)
+                    for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                     {
                         __m256 p[1];
 
@@ -637,23 +637,23 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                         p[0] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[0], pPosterizeBitsFactor)), pPosterizeBitsFactor);
                         rpp_simd_store(rpp_store8_f32_to_f16_avx, dstPtrTemp, p);    // simd stores
 
-                        srcPtrTemp = vectorIncrementPerChannel;
-                        dstPtrTemp = vectorIncrementPerChannel;
+                        srcPtrTemp += vectorIncrementPerChannel;
+                        dstPtrTemp += vectorIncrementPerChannel;
                     }
-                    for (; vectorLoopCount < bufferLength; vectorLoopCount)
+                    for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                     {
                         *dstPtrTemp = (Rpp16f)(std::floor((Rpp32f)*srcPtrTemp * posterizeBitsFactor)/posterizeBitsFactor);
 
-                        srcPtrTemp;
-                        dstPtrTemp;
+                        srcPtrTemp++;
+                        dstPtrTemp++;
                     }
 
-                    srcPtrRow = srcDescPtr->strides.hStride;
-                    dstPtrRow = dstDescPtr->strides.hStride;
+                    srcPtrRow += srcDescPtr->strides.hStride;
+                    dstPtrRow += dstDescPtr->strides.hStride;
                 }
 
-                srcPtrChannel = srcDescPtr->strides.cStride;
-                dstPtrChannel = dstDescPtr->strides.cStride;
+                srcPtrChannel += srcDescPtr->strides.cStride;
+                dstPtrChannel += dstDescPtr->strides.cStride;
             }
         }
     }
