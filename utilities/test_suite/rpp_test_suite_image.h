@@ -707,7 +707,7 @@ inline void convert_output_bitdepth_to_u8(void *output, Rpp8u *outputu8, int inp
         Rpp16f *outputf16Temp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(output) + dstDescPtr->offsetInBytes);
         for (int i = 0; i < oBufferSize; i++)
         {
-            *outputTemp = static_cast<Rpp8u>(validate_pixel_range(static_cast<float>(*outputf16Temp) * invConversionFactor));
+            *outputTemp = static_cast<Rpp8u>(std::nearbyintf(validate_pixel_range(static_cast<float>(*outputf16Temp) * invConversionFactor)));
             outputf16Temp++;
             outputTemp++;
         }
@@ -961,6 +961,10 @@ inline void write_image_batch_opencv(string outputFolder, Rpp8u *output, RpptDes
         }
 
         fs::path pathObj(outputImagePath);
+        size_t pos = outputImagePath.rfind(".jpg");
+        if (pos != std::string::npos) {
+            outputImagePath.replace(pos, 4, ".png"); // Replace ".jpg" with ".png"
+        }
         if (fs::exists(pathObj))
         {
             std::string outPath = outputImagePath.substr(0, outputImagePath.find_last_of('.')) + "_" + to_string(cnt) + outputImagePath.substr(outputImagePath.find_last_of('.'));
