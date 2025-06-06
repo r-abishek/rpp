@@ -508,8 +508,8 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
         Rpp32u vectorIncrement = 24;
         Rpp32u vectorIncrementPerChannel = 8;
 
-        Rpp32f posterizeBitsFactor = 255.0/(1 << (8 - posterizeLevelBits[batchCount]));
-        __m256 pPosterizeBitsFactor = _mm256_set1_ps(posterizeBitsFactor);
+        Rpp32u posterizeBitsMask = ((1 << posterizeLevelBits[batchCount]) - 1) << (8 - posterizeLevelBits[batchCount]);
+        __m256i pPosterizeBitsMask = _mm256_set1_epi32(posterizeBitsMask);
 
         // Brightness with fused output-layout toggle (NHWC -> NCHW)
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
@@ -533,9 +533,12 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 {
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f16pkd3_to_f32pln3_avx, srcPtrTemp, p);
-                    p[0] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[0], pPosterizeBitsFactor)), pPosterizeBitsFactor);
-                    p[1] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[1], pPosterizeBitsFactor)), pPosterizeBitsFactor);
-                    p[2] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[2], pPosterizeBitsFactor)), pPosterizeBitsFactor);
+                    p[0] = _mm256_cvtepi32_ps(_mm256_and_si256(_mm256_cvtps_epi32(_mm256_mul_ps(p[0], avx_p255)), pPosterizeBitsMask));    // bitwise_and computation
+                    p[1] = _mm256_cvtepi32_ps(_mm256_and_si256(_mm256_cvtps_epi32(_mm256_mul_ps(p[1], avx_p255)), pPosterizeBitsMask));    // bitwise_and computation
+                    p[2] = _mm256_cvtepi32_ps(_mm256_and_si256(_mm256_cvtps_epi32(_mm256_mul_ps(p[2], avx_p255)), pPosterizeBitsMask));    // bitwise_and computation
+                    p[0] = _mm256_mul_ps(p[0], avx_p1op255);
+                    p[1] = _mm256_mul_ps(p[1], avx_p1op255);
+                    p[2] = _mm256_mul_ps(p[2], avx_p1op255);
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pln3_avx, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTemp += vectorIncrement;
@@ -545,9 +548,9 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 }
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
-                    *dstPtrTempR = (Rpp16f)(std::floor((Rpp32f)srcPtrTemp[0] * posterizeBitsFactor)/posterizeBitsFactor);
-                    *dstPtrTempG = (Rpp16f)(std::floor((Rpp32f)srcPtrTemp[1] * posterizeBitsFactor)/posterizeBitsFactor);
-                    *dstPtrTempB = (Rpp16f)(std::floor((Rpp32f)srcPtrTemp[2] * posterizeBitsFactor)/posterizeBitsFactor);
+                    *dstPtrTempR = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[0] * 255) & posterizeBitsMask) / 255));
+                    *dstPtrTempG = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[1] * 255) & posterizeBitsMask) / 255));
+                    *dstPtrTempB = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[1] * 255) & posterizeBitsMask) / 255));
 
                     srcPtrTemp += 3;
                     dstPtrTempR++;
@@ -584,9 +587,12 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 {
                     __m256 p[3];
                     rpp_simd_load(rpp_load24_f16pln3_to_f32pln3_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    p[0] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[0], pPosterizeBitsFactor)), pPosterizeBitsFactor);
-                    p[1] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[1], pPosterizeBitsFactor)), pPosterizeBitsFactor);
-                    p[2] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[2], pPosterizeBitsFactor)), pPosterizeBitsFactor);
+                    p[0] = _mm256_cvtepi32_ps(_mm256_and_si256(_mm256_cvtps_epi32(_mm256_mul_ps(p[0], avx_p255)), pPosterizeBitsMask));    // bitwise_and computation
+                    p[1] = _mm256_cvtepi32_ps(_mm256_and_si256(_mm256_cvtps_epi32(_mm256_mul_ps(p[1], avx_p255)), pPosterizeBitsMask));    // bitwise_and computation
+                    p[2] = _mm256_cvtepi32_ps(_mm256_and_si256(_mm256_cvtps_epi32(_mm256_mul_ps(p[2], avx_p255)), pPosterizeBitsMask));    // bitwise_and computation
+                    p[0] = _mm256_mul_ps(p[0], avx_p1op255);
+                    p[1] = _mm256_mul_ps(p[1], avx_p1op255);
+                    p[2] = _mm256_mul_ps(p[2], avx_p1op255);
                     rpp_simd_store(rpp_store24_f32pln3_to_f16pkd3_avx, dstPtrTemp, p);    // simd stores
 
                     srcPtrTempR += vectorIncrementPerChannel;
@@ -596,9 +602,9 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 }
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    dstPtrTemp[0] = (Rpp16f)(std::floor((Rpp32f)*srcPtrTempR * posterizeBitsFactor)/posterizeBitsFactor);
-                    dstPtrTemp[1] = (Rpp16f)(std::floor((Rpp32f)*srcPtrTempG * posterizeBitsFactor)/posterizeBitsFactor);
-                    dstPtrTemp[2] = (Rpp16f)(std::floor((Rpp32f)*srcPtrTempB * posterizeBitsFactor)/posterizeBitsFactor);
+                    dstPtrTemp[0] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempR * 255) & posterizeBitsMask) / 255));
+                    dstPtrTemp[1] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempG * 255) & posterizeBitsMask) / 255));
+                    dstPtrTemp[2] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempB * 255) & posterizeBitsMask) / 255));
 
                     srcPtrTempR++;
                     srcPtrTempG++;
@@ -634,7 +640,8 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                         __m256 p[1];
 
                         rpp_simd_load(rpp_load8_f16_to_f32_avx, srcPtrTemp, p);    // simd loads
-                        p[0] = _mm256_div_ps(_mm256_floor_ps(_mm256_mul_ps(p[0], pPosterizeBitsFactor)), pPosterizeBitsFactor);
+                        p[0] = _mm256_cvtepi32_ps(_mm256_and_si256(_mm256_cvtps_epi32(_mm256_mul_ps(p[0], avx_p255)), pPosterizeBitsMask));    // bitwise_and computation
+                        p[0] = _mm256_mul_ps(p[0], avx_p1op255);
                         rpp_simd_store(rpp_store8_f32_to_f16_avx, dstPtrTemp, p);    // simd stores
 
                         srcPtrTemp += vectorIncrementPerChannel;
@@ -642,7 +649,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                     }
                     for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                     {
-                        *dstPtrTemp = (Rpp16f)(std::floor((Rpp32f)*srcPtrTemp * posterizeBitsFactor)/posterizeBitsFactor);
+                        *dstPtrTemp = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTemp * 255) & posterizeBitsMask) / 255));
 
                         srcPtrTemp++;
                         dstPtrTemp++;
