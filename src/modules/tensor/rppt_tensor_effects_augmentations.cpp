@@ -2831,11 +2831,22 @@ RppStatus rppt_posterize_gpu(RppPtr_t srcPtr,
                                   roiType,
                                   rpp::deref(rppHandle));
     }
-    else if (((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32)) || ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8)))
+    else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
     {
         hip_exec_char_posterize_tensor(reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
                                   srcDescPtr,
                                   reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                  dstDescPtr,
+                                  posterizeLevelBits,
+                                  roiTensorPtrSrc,
+                                  roiType,
+                                  rpp::deref(rppHandle));
+    }
+    else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+    {
+        hip_exec_char_posterize_tensor(reinterpret_cast<half*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                  srcDescPtr,
+                                  reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                   dstDescPtr,
                                   posterizeLevelBits,
                                   roiTensorPtrSrc,

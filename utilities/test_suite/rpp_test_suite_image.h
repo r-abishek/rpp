@@ -707,7 +707,7 @@ inline void convert_output_bitdepth_to_u8(void *output, Rpp8u *outputu8, int inp
         Rpp16f *outputf16Temp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(output) + dstDescPtr->offsetInBytes);
         for (int i = 0; i < oBufferSize; i++)
         {
-            *outputTemp = static_cast<Rpp8u>(std::nearbyintf(validate_pixel_range(static_cast<float>(*outputf16Temp) * invConversionFactor)));
+            *outputTemp = static_cast<Rpp8u>(validate_pixel_range(static_cast<float>(*outputf16Temp) * invConversionFactor));
             outputf16Temp++;
             outputTemp++;
         }
