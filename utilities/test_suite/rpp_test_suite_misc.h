@@ -86,7 +86,7 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
 // Read data from Bin file
 void read_data(Rpp32f *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, bool isMeanStd = false)
 {
-    if(nDim != 2 && nDim != 3)
+    if(nDim < 2 && nDim > 4)
     {
         if(nDim != 4 || (testCase != "log" && testCase != "log1p")) {
             std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
@@ -334,6 +334,42 @@ void fill_perm_values(Rpp32u nDim, Rpp32u *permTensor, bool qaMode, int permOrde
                     permTensor[1] = 2;
                     permTensor[2] = 1;
 
+                }
+                break;
+            }
+            case 4:
+            {
+                // NHWC -> NCHW
+                if (permOrder == 1)
+                {
+                    permTensor[0] = 0; // N
+                    permTensor[1] = 3; // C
+                    permTensor[2] = 1; // H
+                    permTensor[3] = 2; // W
+                }
+                // NCHW -> NHWC
+                else if (permOrder == 2)
+                {
+                    permTensor[0] = 0; // N
+                    permTensor[1] = 2; // H
+                    permTensor[2] = 3; // W
+                    permTensor[3] = 1; // C
+                }
+                // NHWC -> HWCN
+                else if (permOrder == 3)
+                {
+                    permTensor[0] = 1; // H
+                    permTensor[1] = 2; // W
+                    permTensor[2] = 3; // C
+                    permTensor[3] = 0; // N
+                }
+                // Identity permutation (no change)
+                else
+                {
+                    permTensor[0] = 0;
+                    permTensor[1] = 1;
+                    permTensor[2] = 2;
+                    permTensor[3] = 3;
                 }
                 break;
             }
