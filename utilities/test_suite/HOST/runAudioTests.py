@@ -35,8 +35,8 @@ scriptPath = os.path.dirname(os.path.realpath(__file__))
 inFilePath = scriptPath + "/../TEST_AUDIO_FILES/three_samples_single_channel_src1"
 outFolderPath = os.getcwd()
 buildFolderPath = os.getcwd()
-caseMin = 0
-caseMax = 7
+caseMin = min(audioAugmentationMap.keys())
+caseMax = max(audioAugmentationMap.keys())
 errorLog = [{"notExecutedFunctionality" : 0}]
 
 # Get a list of log files based on a flag for preserving output
@@ -144,6 +144,7 @@ numRuns = args.num_runs
 preserveOutput = args.preserve_output
 batchSize = args.batch_size
 outFilePath = " "
+is_rhel8 = detect_rhel8()
 
 # Override testType to 0 if testType is 1 and qaMode is 1
 if testType == 1 and qaMode == 1:
@@ -194,12 +195,15 @@ if noCaseSupported:
 
 for case in caseList:
     if "--input_path" not in sys.argv:
-        if case == "3":
+        if audioAugmentationMap[int(case)][0] == "down_mixing":
             srcPath = scriptPath + "/../TEST_AUDIO_FILES/three_sample_multi_channel_src1"
         else:
             srcPath = inFilePath
 
     if int(case) not in audioAugmentationMap:
+        continue
+    if is_rhel8 and int(case) in (4, 6):
+        print(audioAugmentationMap[int(case)][0] + " HOST is not supported on RHEL 8 OS")
         continue
     run_test(loggingFolder, srcPath, case, numRuns, testType, batchSize, outFilePath)
 
