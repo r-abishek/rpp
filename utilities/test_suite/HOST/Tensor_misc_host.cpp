@@ -315,7 +315,7 @@ int main(int argc, char **argv)
         refFile.open(refFileName);
         for (int i = 0; i < oBufferSize; i++)
         {
-            refFile << *(outputF32 + i) << ",";
+            refFile << *((float*)output + i) << ",";
         }
         refFile.close();
     }
