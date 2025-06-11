@@ -398,6 +398,19 @@ RppStatus blend_i8_i8_host_tensor(Rpp8s *srcPtr1,
                                   RppLayoutParams layoutParams,
                                   rpp::Handle& handle);
 
+// -------------------- dropout --------------------
+
+template<typename T>
+RppStatus dropout_host_tensor(T *srcPtr,
+                                        RpptDescPtr srcDescPtr,
+                                        T *dstPtr,
+                                        RpptDescPtr dstDescPtr,
+                                        Rpp32f *dropProb,
+                                        RpptROIPtr roiTensorPtrSrc,
+                                        RpptRoiType roiType,
+                                        RppLayoutParams layoutParams,
+                                        rpp::Handle& handle);
+
 // -------------------- color_cast --------------------
 
 RppStatus color_cast_u8_u8_host_tensor(Rpp8u *srcPtr,

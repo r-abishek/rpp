@@ -1630,6 +1630,25 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case DROPOUT:
+                {
+                    testCaseName = "dropout";
+                    Rpp32f dropProb[batchSize];
+                    Rpp32u seed = 1255459;
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        dropProb[i] = 1.0f;
+                    }
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_dropout_host(input, srcDescPtr, output, dstDescPtr, dropProb, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 default:
                 {
                     missingFuncFlag = 1;
