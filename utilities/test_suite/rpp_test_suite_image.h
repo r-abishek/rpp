@@ -179,7 +179,7 @@ enum Augmentation {
     DROPOUT = 94
 };
 
-const unordered_set<int> additionalParamCases = {NOISE, RESIZE, ROTATE, WARP_AFFINE, WARP_PERSPECTIVE, BOX_FILTER, GAUSSIAN_FILTER, REMAP};
+const unordered_set<int> additionalParamCases = {NOISE, RESIZE, ROTATE, WARP_AFFINE, WARP_PERSPECTIVE, BOX_FILTER, GAUSSIAN_FILTER, REMAP, DROPOUT};
 const unordered_set<int> kernelSizeCases = {BOX_FILTER, GAUSSIAN_FILTER};
 const unordered_set<int> dualInputCases = {BLEND, NON_LINEAR_BLEND, CROP_AND_PATCH, MAGNITUDE, PHASE, BITWISE_AND, BITWISE_XOR, BITWISE_OR};
 const unordered_set<int> randomOutputCases = {JITTER, NOISE, FOG, RAIN, SPATTER};
@@ -187,6 +187,7 @@ const unordered_set<int> nonQACases = {WARP_AFFINE, WARP_PERSPECTIVE, GAUSSIAN_F
 const unordered_set<int> interpolationTypeCases = {RESIZE, ROTATE, WARP_AFFINE, WARP_PERSPECTIVE, REMAP};
 const unordered_set<int> reductionTypeCases = {TENSOR_SUM, TENSOR_MIN, TENSOR_MAX, TENSOR_MEAN, TENSOR_STDDEV};
 const unordered_set<int> noiseTypeCases = {NOISE};
+const unordered_set<int> dropoutTypeCases = {DROPOUT};
 const unordered_set<int> pln1OutTypeCases = {COLOR_TO_GREYSCALE};
 
 // Golden outputs for Tensor min Kernel
@@ -292,6 +293,19 @@ inline std::string get_noise_type(unsigned int val)
         case 1: return "Gaussian";
         case 2: return "Shot";
         default:return "SaltAndPepper";
+    }
+}
+
+// returns the dropout type applied to an image
+inline std::string get_dropout_type(unsigned int val)
+{
+    switch(val)
+    {
+        case 0: return "Cutout";
+        case 1: return "RandomErasing";
+        case 2: return "Coarse";
+        case 3: return "Channel";
+        default:return "Channel";
     }
 }
 
@@ -1572,6 +1586,110 @@ void inline init_erase(int batchSize, int boxesInEachImage, Rpp32u* numOfBoxes, 
                     colors32f[idx + j] = (Rpp32f)(colorBuffer[idx + j] * ONE_OVER_255);
                 else if (inputBitDepth == 5)
                     colors8s[idx + j] = (Rpp8s)(colorBuffer[idx + j] - 128);
+            }
+        }
+    }
+}
+
+enum DropoutType {
+    DROPOUT_CUTOUT = 0,
+    DROPOUT_RANDOM_ERASING = 1,
+    DROPOUT_COARSE = 2,
+    DROPOUT_CHANNEL = 3
+};
+
+// Dropout Region initializer for unit and performance testing
+void inline init_dropout_erase(int batchSize, int maxBoxesPerImage, Rpp32u* numOfBoxes, RpptRoiLtrb* anchorBoxInfoTensor,
+                                RpptROIPtr roiTensorPtrSrc, int channels, Rpp32f *colorBuffer, int inputBitDepth, int dropoutType)
+{
+    std::mt19937 rng(std::chrono::high_resolution_clock::now().time_since_epoch().count());
+    std::uniform_int_distribution<int> color_dist(0, 0);
+    std::uniform_real_distribution<float> pos_ratio(0.0f, 0.9f);
+    std::uniform_real_distribution<float> w_ratio(0.2f, 0.4f);
+    std::uniform_real_distribution<float> h_ratio(0.2f, 0.6f);
+    std::uniform_real_distribution<float> wh_ratio_cutout(0.4f, 0.6f);
+    std::uniform_real_distribution<float> wh_ratio_random(0.1f, 0.5f);
+    std::uniform_real_distribution<float> wh_ratio_coarse(0.05f, 0.1f);
+    std::uniform_int_distribution<int> coarse_box_count_dist(5, maxBoxesPerImage);
+
+    Rpp8u *colors8u = reinterpret_cast<Rpp8u *>(colorBuffer);
+    Rpp16f *colors16f = reinterpret_cast<Rpp16f *>(colorBuffer);
+    Rpp32f *colors32f = colorBuffer;
+    Rpp8s *colors8s = reinterpret_cast<Rpp8s *>(colorBuffer);
+
+    for (int i = 0; i < batchSize; i++)
+    {
+        int roiW = roiTensorPtrSrc[i].xywhROI.roiWidth;
+        int roiH = roiTensorPtrSrc[i].xywhROI.roiHeight;
+
+        int actualBoxCount = 1;
+        std::uniform_real_distribution<float> *curr_wh_ratio = &wh_ratio_cutout;
+
+        if (dropoutType == 2) // Coarse
+        {
+            actualBoxCount = coarse_box_count_dist(rng);
+            curr_wh_ratio = &wh_ratio_coarse;
+        }
+        else if (dropoutType == 1) // Random Erasing
+        {
+            curr_wh_ratio = &wh_ratio_random;
+        }
+
+        numOfBoxes[i] = actualBoxCount;
+        int boxOffset = i * maxBoxesPerImage;
+
+        for (int b = 0; b < actualBoxCount; b++)
+        {
+            float boxW, boxH;
+
+            if (dropoutType == 0) // Cutout: Perfect square
+            {
+                float squareSize = (*curr_wh_ratio)(rng) * std::min(roiW, roiH);
+                boxW = boxH = squareSize;
+            }
+            else
+            {
+                float sizeRatioW = (*curr_wh_ratio)(rng);
+                float sizeRatioH = (*curr_wh_ratio)(rng);
+                boxW = sizeRatioW * roiW;
+                boxH = sizeRatioH * roiH;
+            }
+
+            float x_start = pos_ratio(rng) * (roiW - boxW);
+            float y_start = pos_ratio(rng) * (roiH - boxH);
+
+            anchorBoxInfoTensor[boxOffset + b].lt.x = x_start;
+            anchorBoxInfoTensor[boxOffset + b].lt.y = y_start;
+            anchorBoxInfoTensor[boxOffset + b].rb.x = x_start + boxW;
+            anchorBoxInfoTensor[boxOffset + b].rb.y = y_start + boxH;
+
+            int colorOffset = (boxOffset + b) * channels;
+            std::uniform_int_distribution<int> noise_dist(0, 255);
+
+            for (int c = 0; c < channels; c++)
+            {
+                Rpp32f randColor;
+
+                if (dropoutType == 1) // DROPOUT_RANDOM_ERASING
+                {
+                    // Use noise: full 0–255 range
+                    randColor = static_cast<Rpp32f>(rng() % 256);
+                }
+                else
+                {
+                    // Use constant color (e.g., black)
+                    randColor = 0.0f;
+                }
+
+                // Store based on bit depth
+                if (!inputBitDepth)
+                    colors8u[colorOffset + c] = static_cast<Rpp8u>(randColor);
+                else if (inputBitDepth == 1)
+                    colors16f[colorOffset + c] = static_cast<Rpp16f>(randColor * ONE_OVER_255);
+                else if (inputBitDepth == 2)
+                    colors32f[colorOffset + c] = randColor * ONE_OVER_255;
+                else if (inputBitDepth == 5)
+                    colors8s[colorOffset + c] = static_cast<Rpp8s>(randColor - 128);
             }
         }
     }

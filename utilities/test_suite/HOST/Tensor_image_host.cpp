@@ -68,6 +68,7 @@ int main(int argc, char **argv)
     bool interpolationTypeCase = (interpolationTypeCases.find(testCase) != interpolationTypeCases.end());
     bool reductionTypeCase = (reductionTypeCases.find(testCase) != reductionTypeCases.end());
     bool noiseTypeCase = (noiseTypeCases.find(testCase) != noiseTypeCases.end());
+    bool dropoutTypeCase = (dropoutTypeCases.find(testCase) != dropoutTypeCases.end());
     bool pln1OutTypeCase = (pln1OutTypeCases.find(testCase) != pln1OutTypeCases.end());
 
     unsigned int verbosity = atoi(argv[11]);
@@ -195,6 +196,7 @@ int main(int argc, char **argv)
     RpptInterpolationType interpolationType = RpptInterpolationType::BILINEAR;
     std::string interpolationTypeName = "";
     std::string noiseTypeName = "";
+    std::string dropoutTypeName = "";
 
     if (interpolationTypeCase)
     {
@@ -207,6 +209,12 @@ int main(int argc, char **argv)
         noiseTypeName = get_noise_type(additionalParam);
         func += "_noiseType";
         func += noiseTypeName.c_str();
+    }
+    else if (dropoutTypeCase)
+    {
+        dropoutTypeName = get_dropout_type(additionalParam);
+        func += "_dropoutType";
+        func += dropoutTypeName.c_str();
     }
     else if (kernelSizeCase)
     {
@@ -1633,19 +1641,93 @@ int main(int argc, char **argv)
                 case DROPOUT:
                 {
                     testCaseName = "dropout";
-                    Rpp32f dropProb[batchSize];
-                    Rpp32u seed = 1255459;
-                    for (i = 0; i < batchSize; i++)
-                    {
-                        dropProb[i] = 1.0f;
-                    }
 
-                    startWallTime = omp_get_wtime();
-                    startCpuTime = clock();
-                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                        rppt_dropout_host(input, srcDescPtr, output, dstDescPtr, dropProb, roiTensorPtrSrc, roiTypeSrc, handle);
-                    else
-                        missingFuncFlag = 1;
+                    switch(additionalParam)
+                    {
+                        case 0:
+                        {
+                            testCaseName = "cutout";
+                            Rpp32u boxesInEachImage = 1;
+                            Rpp32f colorBuffer[batchSize * boxesInEachImage];
+                            RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
+                            Rpp32u numOfBoxes[batchSize];
+                            int idx;
+
+                            init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 0);
+
+                            startWallTime = omp_get_wtime();
+                            startCpuTime = clock();
+                            if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                                rppt_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                            else
+                                missingFuncFlag = 1;
+
+                            break;
+                        }
+                        case 1:
+                        {
+                            testCaseName = "randomErasing";
+                            Rpp32u boxesInEachImage = 1;
+                            Rpp32f colorBuffer[batchSize * boxesInEachImage];
+                            RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
+                            Rpp32u numOfBoxes[batchSize];
+                            int idx;
+
+                            init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 1);
+
+                            startWallTime = omp_get_wtime();
+                            startCpuTime = clock();
+                            if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                                rppt_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                            else
+                                missingFuncFlag = 1;
+
+                            break;
+                        }
+                        case 2:
+                        {
+                            testCaseName = "coarse";
+                            Rpp32u boxesInEachImage = 8;
+                            Rpp32f colorBuffer[batchSize * boxesInEachImage];
+                            RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
+                            Rpp32u numOfBoxes[batchSize];
+                            int idx;
+
+                            init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 2);
+
+                            startWallTime = omp_get_wtime();
+                            startCpuTime = clock();
+                            if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                                rppt_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                            else
+                                missingFuncFlag = 1;
+
+                            break;
+                        }
+                        case 3:
+                        {
+                            testCaseName = "channel";
+                            Rpp32f dropProb[batchSize];
+                            for (i = 0; i < batchSize; i++)
+                            {
+                                dropProb[i] = 0.4f;
+                            }
+
+                            startWallTime = omp_get_wtime();
+                            startCpuTime = clock();
+                            if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                                rppt_dropout_host(input, srcDescPtr, output, dstDescPtr, dropProb, roiTensorPtrSrc, roiTypeSrc, handle);
+                            else
+                                missingFuncFlag = 1;
+
+                            break;
+                        }
+                        default:
+                        {
+                            missingFuncFlag = 1;
+                            break;
+                        }
+                    }
 
                     break;
                 }
