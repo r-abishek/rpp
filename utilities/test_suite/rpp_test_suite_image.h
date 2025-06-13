@@ -119,7 +119,8 @@ std::map<int, string> augmentationMap =
     {90, "tensor_mean"},
     {91, "tensor_stddev"},
     {92, "slice"},
-    {93, "jpeg_compression_distortion"}
+    {93, "jpeg_compression_distortion"},
+    {94, "posterize"}
 };
 
 enum Augmentation {
@@ -178,7 +179,8 @@ enum Augmentation {
     TENSOR_MEAN = 90,
     TENSOR_STDDEV = 91,
     SLICE = 92,
-    JPEG_COMPRESSION_DISTORTION = 93
+    JPEG_COMPRESSION_DISTORTION = 93,
+    POSTERIZE = 94
 };
 
 const unordered_set<int> additionalParamCases = {NOISE, RESIZE, ROTATE, WARP_AFFINE, WARP_PERSPECTIVE, ERODE, DILATE, BOX_FILTER, GAUSSIAN_FILTER, REMAP, CHANNEL_PERMUTE};
@@ -962,7 +964,6 @@ inline void write_image_batch_opencv(string outputFolder, Rpp8u *output, RpptDes
             cvtColor(matOutputImageRgb, matOutputImage, COLOR_RGB2BGR);
         }
 
-        fs::path pathObj(outputImagePath);
         if (fs::exists(pathObj))
         {
             std::string outPath = outputImagePath.substr(0, outputImagePath.find_last_of('.')) + "_" + to_string(cnt) + outputImagePath.substr(outputImagePath.find_last_of('.'));
