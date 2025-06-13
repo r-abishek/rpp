@@ -1668,19 +1668,6 @@ void inline init_dropout_erase(int batchSize, int maxBoxesPerImage, Rpp32u* numO
 
             for (int c = 0; c < channels; c++)
             {
-                Rpp32f randColor;
-
-                if (dropoutType == 1) // DROPOUT_RANDOM_ERASING
-                {
-                    // Use noise: full 0–255 range
-                    randColor = static_cast<Rpp32f>(rng() % 256);
-                }
-                else
-                {
-                    // Use constant color (e.g., black)
-                    randColor = 0.0f;
-                }
-
                 // Store based on bit depth
                 if (!inputBitDepth)
                     colors8u[colorOffset + c] = static_cast<Rpp8u>(randColor);
