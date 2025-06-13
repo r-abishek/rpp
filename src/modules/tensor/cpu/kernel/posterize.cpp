@@ -25,19 +25,6 @@ SOFTWARE.
 #include "host_tensor_executors.hpp"
 #include "rpp_cpu_simd_math.hpp"
 
-
-inline void compute_posterize_32_host(__m256i& p, __m256i& pPosterizeMask)
-{
-    p = _mm256_and_si256(p, pPosterizeMask);    // brightness adjustment
-}
-
-inline void compute_posterize_96_host(__m256i *p, __m256i& pPosterizeMask)
-{
-    p[0] = _mm256_and_si256(p[0], pPosterizeMask);    // brightness adjustment
-    p[1] = _mm256_and_si256(p[1], pPosterizeMask);    // brightness adjustment
-    p[2] = _mm256_and_si256(p[2], pPosterizeMask);    // brightness adjustment
-}
-
 // Both u8 and i8 use the same function for execution.
 // Bitwise operation in the context of posterize gives the same output irrespective of sign
 // So additional operations for conversion b/w u8 and i8 is avoided
@@ -80,7 +67,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
         Rpp8u posterizeBitsMask = ((1 << posterizeLevelBits[batchCount]) - 1) << (8 - posterizeLevelBits[batchCount]);
         __m256i pPosterizeBitsMask = _mm256_set1_epi8(posterizeBitsMask);
 
-        // Brightness with fused output-layout toggle (NHWC -> NCHW)
+        // Posterize with fused output-layout toggle (NHWC -> NCHW)
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
             Rpp8u *srcPtrRow, *dstPtrRowR, *dstPtrRowG, *dstPtrRowB;
@@ -102,7 +89,9 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                 {
                     __m256i p[3];
                     rpp_simd_load(rpp_load96_u8pkd3_to_u8pln3, srcPtrTemp, p);
-                    compute_posterize_96_host(p, pPosterizeBitsMask);  // brightness adjustment
+                    p[0] = _mm256_and_si256(p[0], pPosterizeMask);
+                    p[1] = _mm256_and_si256(p[1], pPosterizeMask);
+                    p[2] = _mm256_and_si256(p[2], pPosterizeMask);
                     rpp_simd_store(rpp_store96_u8pln3_to_u8pln3, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTemp += vectorIncrement;
@@ -129,7 +118,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
             }
         }
 
-        // Brightness with fused output-layout toggle (NCHW -> NHWC)
+        // Posterize with fused output-layout toggle (NCHW -> NHWC)
         else if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
             Rpp8u *srcPtrRowR, *srcPtrRowG, *srcPtrRowB, *dstPtrRow;
@@ -151,7 +140,9 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                 {
                     __m256i p[3];
                     rpp_simd_load(rpp_load96_u8_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    compute_posterize_96_host(p, pPosterizeBitsMask);  // brightness adjustment
+                    p[0] = _mm256_and_si256(p[0], pPosterizeMask);
+                    p[1] = _mm256_and_si256(p[1], pPosterizeMask);
+                    p[2] = _mm256_and_si256(p[2], pPosterizeMask);
                     rpp_simd_store(rpp_store96_u8pln3_to_u8pkd3, dstPtrTemp, p);    // simd stores
 
                     srcPtrTempR += vectorIncrementPerChannel;
@@ -178,6 +169,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
             }
         }
 
+        // Posterize without fused output-layout toggle (NCHW -> NHWC)
         else if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
 #if __AVX2__
@@ -208,7 +200,9 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                     __m256i p[3];
 
                     rpp_simd_load(rpp_load96_u8_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    compute_posterize_96_host(p, pPosterizeBitsMask);
+                    p[0] = _mm256_and_si256(p[0], pPosterizeMask);
+                    p[1] = _mm256_and_si256(p[1], pPosterizeMask);
+                    p[2] = _mm256_and_si256(p[2], pPosterizeMask);
                     rpp_simd_store(rpp_store96_u8pln3_to_u8pln3, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);
 
                     srcPtrTempR += vectorIncrementPerChannel;
@@ -241,7 +235,8 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                 dstPtrRowB += dstDescPtr->strides.hStride;
             }
         }
-        // Brightness without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
+
+        // Posterize without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
         else
         {
             Rpp32u alignedLength = bufferLength & ~31;
@@ -263,7 +258,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                         __m256i p;
 
                         p = _mm256_loadu_si256((const __m256i *)srcPtrTemp);    // simd loads
-                        compute_posterize_32_host(p, pPosterizeBitsMask);  // brightness adjustment
+                        p = _mm256_and_si256(p, pPosterizeMask);
                         _mm256_storeu_si256((__m256i *)dstPtrTemp, p);    // simd stores
 
                         srcPtrTemp +=32;
@@ -326,7 +321,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
         __m256 pPosterizeBitsFactor = _mm256_set1_ps(posterizeBitsFactor);
         __m256 pPosterizeBitsInverseFactor = _mm256_set1_ps(1 / posterizeBitsFactor);
 
-        // Brightness with fused output-layout toggle (NHWC -> NCHW)
+        // Posterize with fused output-layout toggle (NHWC -> NCHW)
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
             Rpp32f *srcPtrRow, *dstPtrRowR, *dstPtrRowG, *dstPtrRowB;
@@ -377,7 +372,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
             }
         }
 
-        // Brightness with fused output-layout toggle (NCHW -> NHWC)
+        // Posterize with fused output-layout toggle (NCHW -> NHWC)
         else if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
             Rpp32f *srcPtrRowR, *srcPtrRowG, *srcPtrRowB, *dstPtrRow;
@@ -427,7 +422,8 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrRow += dstDescPtr->strides.hStride;
             }
         }
-        // Brightness without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
+
+        // Posterize without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
         else
         {
             Rpp32u alignedLength = bufferLength & ~(vectorIncrementPerChannel-1);
@@ -476,6 +472,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
     return RPP_SUCCESS;
 }
 
+// Pixel values are scaled up to range of 0 - 255 before bitwise and is performed on the values
 RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                                         RpptDescPtr srcDescPtr,
                                         Rpp16f *dstPtr,
@@ -513,7 +510,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
         Rpp32u posterizeBitsMask = ((1 << posterizeLevelBits[batchCount]) - 1) << (8 - posterizeLevelBits[batchCount]);
         __m256i pPosterizeBitsMask = _mm256_set1_epi32(posterizeBitsMask);
 
-        // Brightness with fused output-layout toggle (NHWC -> NCHW)
+        // Posterize with fused output-layout toggle (NHWC -> NCHW)
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
             Rpp16f *srcPtrRow, *dstPtrRowR, *dstPtrRowG, *dstPtrRowB;
@@ -567,7 +564,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
             }
         }
 
-        // Brightness with fused output-layout toggle (NCHW -> NHWC)
+        // Posterize with fused output-layout toggle (NCHW -> NHWC)
         else if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
             Rpp16f *srcPtrRowR, *srcPtrRowG, *srcPtrRowB, *dstPtrRow;
@@ -620,7 +617,8 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrRow += dstDescPtr->strides.hStride;
             }
         }
-        // Brightness without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
+
+        // Posterize without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
         else
         {
             Rpp32u alignedLength = bufferLength & ~(vectorIncrementPerChannel-1);

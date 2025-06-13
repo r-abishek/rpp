@@ -25,13 +25,13 @@ SOFTWARE.
 #include "hip_tensor_executors.hpp"
 #include "rpp_hip_math.hpp"
 
-/* BitwiseNOT is logical operation only on U8 types. */
-
+// Typically called for U8 and I8 data types - Bitwise AND with mask to represent with lesser number of bits
 __device__ void posterize_hip_compute(d_uchar8 *src_uc8, d_uchar8* src_mask_u8, d_uchar8 *dst_uc8)
 {
     rpp_hip_math_bitwiseAnd8(src_uc8, src_mask_u8, dst_uc8);
 }
 
+// Typically called for F16 data type - Scaled up to 0-255, bitwise and is performed, and normalized back to 0-1
 __device__ void posterize_hip_compute(d_float8 *src_f8, d_uchar8* src_mask_u8, d_float8 *dst_f8)
 {
     rpp_hip_math_multiply8_const(src_f8, src_f8, (float4)255);
@@ -39,6 +39,7 @@ __device__ void posterize_hip_compute(d_float8 *src_f8, d_uchar8* src_mask_u8, d
     rpp_hip_math_multiply8_const(dst_f8, dst_f8, (float4)ONE_OVER_255);
 }
 
+// Typically called for F32 data type - Scaled up by posterize factor, floored and normalized back to 0-1
 __device__ void posterize_hip_compute(d_float8 *src_f8, d_float8* src_factor_f8, d_float8 *dst_f8)
 {
     d_float8 scaled_src_f8, floored_src_f8;
@@ -89,7 +90,6 @@ __global__ void posterize_pkd_hip_tensor(half *srcPtr,
                                          Rpp32u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc)
 {
-    printf("Inside posterize half F16\n");
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
     int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
@@ -459,7 +459,6 @@ __global__ void posterize_pln3_pkd3_hip_tensor(half *srcPtr,
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
 
     uchar posterizeBitsMask = ((1 << posterizeLevelBits[id_z]) - 1) << (8 - posterizeLevelBits[id_z]);
-    //float posterizeBitsFactor = 255.0/(1 << (8 - posterizeLevelBits[id_z]));
 
     d_uchar8 src_mask_u8;
     src_mask_u8.uc4[0] = (uchar4)(posterizeBitsMask);
@@ -493,7 +492,6 @@ __global__ void posterize_pln3_pkd3_hip_tensor(Rpp32f *srcPtr,
     uint srcIdx = (id_z * srcStridesNCH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
 
-    //uchar posterizeBitsMask = ((1 << posterizeLevelBits[id_z]) - 1) << (8 - posterizeLevelBits[id_z]);
     float posterizeBitsFactor = 255.0/(1 << (8 - posterizeLevelBits[id_z]));
 
     d_float8 src_factor_f8;
@@ -526,8 +524,6 @@ RppStatus hip_exec_char_posterize_tensor(T *srcPtr,
     int globalThreads_x = (dstDescPtr->w + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = dstDescPtr->n;
-
-    //Rpp8u posterizeBitsMask = ((1 << posterizeLevelBits) - 1) << (8 - posterizeLevelBits);
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
     {
