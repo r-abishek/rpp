@@ -60,7 +60,9 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
 
+#if __AVX2__
         Rpp32u alignedLength = (bufferLength / 96) * 96;
+#endif
         Rpp32u vectorIncrement = 96;
         Rpp32u vectorIncrementPerChannel = 32;
 
@@ -85,6 +87,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 int vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
                     __m256i p[3];
@@ -99,6 +102,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     *dstPtrTempR = srcPtrTemp[0] & posterizeBitsMask;
@@ -136,6 +140,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 int vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     __m256i p[3];
@@ -150,6 +155,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                     srcPtrTempB += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     dstPtrTemp[0] = (*srcPtrTempR) & posterizeBitsMask;
@@ -239,7 +245,9 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
         // Posterize without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
         else
         {
+#if __AVX2__
             Rpp32u alignedLength = bufferLength & ~31;
+#endif
             for(int c = 0; c < layoutParams.channelParam; c++)
             {
                 Rpp8u *srcPtrRow, *dstPtrRow;
@@ -253,6 +261,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                     dstPtrTemp = dstPtrRow;
 
                     int vectorLoopCount = 0;
+#if __AVX2__
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 32)
                     {
                         __m256i p;
@@ -264,6 +273,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
                         srcPtrTemp +=32;
                         dstPtrTemp +=32;
                     }
+#endif
                     for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                     {
                         *dstPtrTemp = (*srcPtrTemp) & posterizeBitsMask;
@@ -313,7 +323,9 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
 
+#if __AVX2__
         Rpp32u alignedLength = (bufferLength / 24) * 24;
+#endif
         Rpp32u vectorIncrement = 24;
         Rpp32u vectorIncrementPerChannel = 8;
 
@@ -339,6 +351,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 int vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
                     __m256 p[3];
@@ -353,6 +366,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     *dstPtrTempR = std::floor(srcPtrTemp[0] * posterizeBitsFactor)/posterizeBitsFactor;
@@ -390,6 +404,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 int vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     __m256 p[3];
@@ -404,6 +419,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
                     srcPtrTempB += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     dstPtrTemp[0] = std::floor(*srcPtrTempR * posterizeBitsFactor)/posterizeBitsFactor;
@@ -426,7 +442,9 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
         // Posterize without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
         else
         {
+#if __AVX2__
             Rpp32u alignedLength = bufferLength & ~(vectorIncrementPerChannel-1);
+#endif
             for(int c = 0; c < layoutParams.channelParam; c++)
             {
                 Rpp32f *srcPtrRow, *dstPtrRow;
@@ -440,6 +458,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
                     dstPtrTemp = dstPtrRow;
 
                     int vectorLoopCount = 0;
+#if __AVX2__
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                     {
                         __m256 p[1];
@@ -451,6 +470,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
                         srcPtrTemp += vectorIncrementPerChannel;
                         dstPtrTemp += vectorIncrementPerChannel;
                     }
+#endif
                     for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                     {
                         *dstPtrTemp = std::floor(*srcPtrTemp * posterizeBitsFactor)/posterizeBitsFactor;
@@ -503,7 +523,9 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
         srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         dstPtrChannel = dstPtrImage;
 
+#if __AVX2__
         Rpp32u alignedLength = (bufferLength / 24) * 24;
+#endif
         Rpp32u vectorIncrement = 24;
         Rpp32u vectorIncrementPerChannel = 8;
 
@@ -528,6 +550,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTempB = dstPtrRowB;
 
                 int vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
                     __m256 p[3];
@@ -545,6 +568,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                     dstPtrTempG += vectorIncrementPerChannel;
                     dstPtrTempB += vectorIncrementPerChannel;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
                     *dstPtrTempR = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[0] * 255) & posterizeBitsMask) / 255));
@@ -582,6 +606,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                 dstPtrTemp = dstPtrRow;
 
                 int vectorLoopCount = 0;
+#if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
                     __m256 p[3];
@@ -599,6 +624,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                     srcPtrTempB += vectorIncrementPerChannel;
                     dstPtrTemp += vectorIncrement;
                 }
+#endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
                     dstPtrTemp[0] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempR * 255) & posterizeBitsMask) / 255));
@@ -621,7 +647,9 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
         // Posterize without fused output-layout toggle (NHWC -> NHWC or NCHW -> NCHW)
         else
         {
+#if __AVX2__
             Rpp32u alignedLength = bufferLength & ~(vectorIncrementPerChannel-1);
+#endif
             for(int c = 0; c < layoutParams.channelParam; c++)
             {
                 Rpp16f *srcPtrRow, *dstPtrRow;
@@ -635,6 +663,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                     dstPtrTemp = dstPtrRow;
 
                     int vectorLoopCount = 0;
+#if __AVX2__
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                     {
                         __m256 p[1];
@@ -647,6 +676,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
                         srcPtrTemp += vectorIncrementPerChannel;
                         dstPtrTemp += vectorIncrementPerChannel;
                     }
+#endif
                     for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                     {
                         *dstPtrTemp = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTemp * 255) & posterizeBitsMask) / 255));
