@@ -1583,18 +1583,6 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                                       RppLayoutParams layoutParams,
                                       rpp::Handle& handle);
 
-// F32 and F16 bitdepth
-template<typename T>
-RppStatus box_filter_float_host_tensor(T *srcPtr,
-                                       RpptDescPtr srcDescPtr,
-                                       T *dstPtr,
-                                       RpptDescPtr dstDescPtr,
-                                       Rpp32u kernelSize,
-                                       RpptROIPtr roiTensorPtrSrc,
-                                       RpptRoiType roiType,
-                                       RppLayoutParams layoutParams,
-                                       rpp::Handle& handle);
-
 /**************************************** GEOMETRIC AUGMENTATIONS ****************************************/
 
 // -------------------- crop --------------------

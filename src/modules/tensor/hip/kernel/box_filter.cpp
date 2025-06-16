@@ -348,6 +348,9 @@ __global__ void box_filter_3x3_pkd_hip_tensor(T *srcPtr,
         *(uint2 *)src_smem_channel[1] = (uint2)0;
         *(uint2 *)src_smem_channel[2] = (uint2)0;
     }
+    // change if conditions
+    // change 0 setting
+    // filled shared mem and loading from that
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
         (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
