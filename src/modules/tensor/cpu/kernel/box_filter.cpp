@@ -94,18 +94,18 @@ inline void box_filter_generic_tensor(T **srcPtrTemp, T *dstPtrTemp, Rpp32s colu
         Rpp32s rowOverflowPixels = (kernelSize - rowKernelLoopLimit);
         Rpp32s columnOverflowPixels = (kernelSize - columnKernelLoopLimit);
 
-        Rpp32u rowClampIndex = (horizontalDirection == 1) ? columnKernelLoopLimit - 1 : 0;
-        Rpp32u columnClampIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
+        Rpp32u rowClampIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
+        Rpp32u columnClampIndex = (horizontalDirection == 1) ? columnKernelLoopLimit - 1 : 0;
 
-        accum += static_cast<Rpp32f>(srcPtrTemp[columnClampIndex][rowClampIndex * channels] * rowOverflowPixels * columnOverflowPixels);
+        accum += static_cast<Rpp32f>(srcPtrTemp[rowClampIndex][columnClampIndex * channels] * rowOverflowPixels * columnOverflowPixels);
 
         for(int i = 0; i < rowKernelLoopLimit; i++)
-            rowaccum += static_cast<Rpp32f>(srcPtrTemp[i][rowClampIndex * channels]);
+            rowaccum += static_cast<Rpp32f>(srcPtrTemp[i][columnClampIndex * channels]);
 
         accum += static_cast<Rpp32f>(rowaccum * columnOverflowPixels);
 
         for(int i = 0, k = 0; i < columnKernelLoopLimit; i++, k += channels)
-            columnaccum += static_cast<Rpp32f>(srcPtrTemp[columnClampIndex][k]);
+            columnaccum += static_cast<Rpp32f>(srcPtrTemp[rowClampIndex][k]);
 
         accum += static_cast<Rpp32f>(columnaccum * rowOverflowPixels);
 
