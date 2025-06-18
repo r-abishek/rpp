@@ -2647,6 +2647,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     // get the number of rows needs to be loaded for the corresponding row
                     Rpp32s rowKernelLoopLimit = kernelSize;
                     get_kernel_loop_limit(i, rowKernelLoopLimit, padLength, unpaddedHeight);
+                    Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     for (int k = 0; k < padLength; k++)
                     {
                         for (int c = 0; c < 3; c++)
@@ -2903,6 +2904,7 @@ RppStatus box_filter_generic_host_tensor(T *srcPtr,
                 Rpp32s rowKernelLoopLimit = kernelSize;
                 get_kernel_loop_limit(i, rowKernelLoopLimit, padLength, unpaddedHeight);
 
+                Rpp32s verticalDirection = i < padLength ? 0 : 1;
                 // process padLength number of columns in each row
                 for (int k = 0; k < padLength; k++)
                 {
