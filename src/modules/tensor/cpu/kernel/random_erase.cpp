@@ -56,7 +56,6 @@ RppStatus random_erase_host_tensor(T *srcPtr,
 
         Rpp32u numBoxes = numBoxesTensor[batchCount];
         RpptRoiLtrb *anchorBoxInfo = anchorBoxInfoTensor + batchCount * numBoxes;
-        T *colors = colorsTensor + batchCount * numBoxes * srcDescPtr->c;
 
         T *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -94,6 +93,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                         Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
                         Rpp32u y1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.y, roi.xywhROI.xy.y, roi.xywhROI.roiHeight));
                         Rpp32u x2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.x, x1, roi.xywhROI.roiWidth));
+                        Rpp32u y2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.y, y1, roi.xywhROI.roiHeight));
                         if(i >= y1 && i <= y2 && j >= x1 && j <= x2)
                         {
                             isErase = true;
@@ -355,7 +355,6 @@ template RppStatus random_erase_host_tensor<Rpp8u>(Rpp8u*,
                                                    Rpp8u*,
                                                    RpptDescPtr,
                                                    RpptRoiLtrb*,
-                                                   Rpp8u*,
                                                    Rpp32u*,
                                                    RpptROIPtr,
                                                    RpptRoiType,
@@ -367,7 +366,6 @@ template RppStatus random_erase_host_tensor<Rpp16f>(Rpp16f*,
                                                     Rpp16f*,
                                                     RpptDescPtr,
                                                     RpptRoiLtrb*,
-                                                    Rpp16f*,
                                                     Rpp32u*,
                                                     RpptROIPtr,
                                                     RpptRoiType,
@@ -379,7 +377,6 @@ template RppStatus random_erase_host_tensor<Rpp32f>(Rpp32f*,
                                                     Rpp32f*,
                                                     RpptDescPtr,
                                                     RpptRoiLtrb*,
-                                                    Rpp32f*,
                                                     Rpp32u*,
                                                     RpptROIPtr,
                                                     RpptRoiType,
@@ -391,7 +388,6 @@ template RppStatus random_erase_host_tensor<Rpp8s>(Rpp8s*,
                                                    Rpp8s*,
                                                    RpptDescPtr,
                                                    RpptRoiLtrb*,
-                                                   Rpp8s*,
                                                    Rpp32u*,
                                                    RpptROIPtr,
                                                    RpptRoiType,

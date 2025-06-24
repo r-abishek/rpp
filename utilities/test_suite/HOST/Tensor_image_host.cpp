@@ -1678,7 +1678,7 @@ int main(int argc, char **argv)
                             startWallTime = omp_get_wtime();
                             startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                                rppt_random_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
@@ -1717,6 +1717,33 @@ int main(int argc, char **argv)
                             startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
                                 rppt_dropout_host(input, srcDescPtr, output, dstDescPtr, dropProb, roiTensorPtrSrc, roiTypeSrc, handle);
+                            else
+                                missingFuncFlag = 1;
+
+                            break;
+                        }
+                        case 4:
+                        {
+                            testCaseName = "grid";
+                            Rpp32u gridH = 10, gridW = 10;
+                            Rpp32f holeRatio = 0.4f;
+                            bool randomOffset = false;
+                            Rpp32u numOfBoxes[batchSize];
+                            Rpp32f colorBuffer[batchSize * 3];
+                            for (int i = 0; i < batchSize; ++i)
+                            {
+                                colorBuffer[i * 3 + 0] = 0.0f; 
+                                colorBuffer[i * 3 + 1] = 0.0f; 
+                                colorBuffer[i * 3 + 2] = 0.0f; 
+                            }
+                            RpptRoiLtrb anchorBoxInfoTensor[batchSize * gridH * gridW];
+
+                            init_grid_dropout(batchSize, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, gridH, gridW, holeRatio, randomOffset);
+
+                            startWallTime = omp_get_wtime();
+                            startCpuTime = clock();
+                            if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                                rppt_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
