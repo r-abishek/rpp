@@ -1720,8 +1720,13 @@ inline void init_grid_dropout(int batchSize, Rpp32u* numOfBoxes, RpptRoiLtrb* an
                 Rpp32s cellX = x_base + col * cellW;
                 Rpp32s cellY = y_base + row * cellH;
 
-                Rpp32s offsetX = randomOffset ? rng() % (cellW - holeW + 1) : (cellW - holeW) / 2;
-                Rpp32s offsetY = randomOffset ? rng() % (cellH - holeH + 1) : (cellH - holeH) / 2;
+                // Compute offset inside the cell
+                Rpp32s offsetX = 0, offsetY = 0;
+                if (randomOffset && (cellW > holeW) && (cellH > holeH))
+                {
+                    offsetX = rng() % (cellW - holeW + 1);
+                    offsetY = rng() % (cellH - holeH + 1);
+                }
 
                 Rpp32s x1 = std::min(cellX + offsetX, x_base + (Rpp32s)roiW - 1);
                 Rpp32s y1 = std::min(cellY + offsetY, y_base + (Rpp32s)roiH - 1);

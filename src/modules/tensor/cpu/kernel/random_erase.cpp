@@ -78,16 +78,16 @@ RppStatus random_erase_host_tensor(T *srcPtr,
 
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
-                T *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
-                srcPtrTemp = srcPtrRow;
-                dstPtrTempR = dstPtrRowR;
-                dstPtrTempG = dstPtrRowG;
-                dstPtrTempB = dstPtrRowB;
-                bool isErase = false;
-                Rpp32u bufferLength = 0;
+                T *srcPtrTemp = srcPtrRow;
+                T *dstPtrTempR = dstPtrRowR;
+                T *dstPtrTempG = dstPtrRowG;
+                T *dstPtrTempB = dstPtrRowB;
 
                 for (int j = 0; j < roi.xywhROI.roiWidth;)
                 {
+                    bool isErase = false;
+                    Rpp32u bufferLength = 0;
+
                     for(int count = 0; count < numBoxes; count++)
                     {
                         Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
@@ -106,24 +106,23 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                         for (int k = 0; k < bufferLength; k++)
                         {
                             if constexpr (std::is_floating_point<T>::value) {
-                                dstPtrTempR[j + k] = static_cast<T>(dist_float(gen));
-                                dstPtrTempG[j + k] = static_cast<T>(dist_float(gen));
-                                dstPtrTempB[j + k] = static_cast<T>(dist_float(gen));
+                                *dstPtrTempR++ = static_cast<T>(dist_float(gen));
+                                *dstPtrTempG++ = static_cast<T>(dist_float(gen));
+                                *dstPtrTempB++ = static_cast<T>(dist_float(gen));
                             } else {
-                                dstPtrTempR[j + k] = static_cast<T>(dist_int(gen));
-                                dstPtrTempG[j + k] = static_cast<T>(dist_int(gen));
-                                dstPtrTempB[j + k] = static_cast<T>(dist_int(gen));
+                                *dstPtrTempR++ = static_cast<T>(dist_int(gen));
+                                *dstPtrTempG++ = static_cast<T>(dist_int(gen));
+                                *dstPtrTempB++ = static_cast<T>(dist_int(gen));
                             }
+                            srcPtrTemp += 3;
                         }
-                        srcPtrTemp += 3 * bufferLength;
                         j += bufferLength;
                     }
                     else
                     {
-                        dstPtrTempR[j] = srcPtrTemp[0];
-                        dstPtrTempG[j] = srcPtrTemp[1];
-                        dstPtrTempB[j] = srcPtrTemp[2];
-                        srcPtrTemp += 3;
+                        *dstPtrTempR++ = *srcPtrTemp++;
+                        *dstPtrTempG++ = *srcPtrTemp++;
+                        *dstPtrTempB++ = *srcPtrTemp++;
                         j++;
                     }
                 }
@@ -134,7 +133,6 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                 dstPtrRowB += dstDescPtr->strides.hStride;
             }
         }
-
         // Erase with fused output-layout toggle (NCHW -> NHWC)
         else if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
@@ -151,11 +149,11 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                 srcPtrTempG = srcPtrRowG;
                 srcPtrTempB = srcPtrRowB;
                 dstPtrTemp = dstPtrRow;
-                bool isErase = false;
-                Rpp32u bufferLengthPerChannel = 0;
 
                 for (int j = 0; j < roi.xywhROI.roiWidth;)
                 {
+                    bool isErase = false;
+                    Rpp32u bufferLengthPerChannel = 0;
                     for(int count = 0; count < numBoxes; count++)
                     {
                         Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
@@ -175,20 +173,19 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                         for (int k = 0; k < bufferLengthPerChannel; k++)
                         {
                             if constexpr (std::is_floating_point<T>::value) {
-                                dstPtrTemp[0] = static_cast<T>(dist_float(gen));
-                                dstPtrTemp[1] = static_cast<T>(dist_float(gen));
-                                dstPtrTemp[2] = static_cast<T>(dist_float(gen));
+                                *dstPtrTemp++ = static_cast<T>(dist_float(gen));  // R
+                                *dstPtrTemp++ = static_cast<T>(dist_float(gen));  // G
+                                *dstPtrTemp++ = static_cast<T>(dist_float(gen));  // B
                             } else {
-                                dstPtrTemp[0] = static_cast<T>(dist_int(gen));
-                                dstPtrTemp[1] = static_cast<T>(dist_int(gen));
-                                dstPtrTemp[2] = static_cast<T>(dist_int(gen));
+                                *dstPtrTemp++ = static_cast<T>(dist_int(gen));
+                                *dstPtrTemp++ = static_cast<T>(dist_int(gen));
+                                *dstPtrTemp++ = static_cast<T>(dist_int(gen));
                             }
-                            dstPtrTemp += 3;
+                            srcPtrTempR++;
+                            srcPtrTempG++;
+                            srcPtrTempB++;
                         }
                         j += bufferLengthPerChannel;
-                        srcPtrTempR += bufferLengthPerChannel;
-                        srcPtrTempG += bufferLengthPerChannel;
-                        srcPtrTempB += bufferLengthPerChannel;
                     }
                     else
                     {
@@ -206,7 +203,6 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                 dstPtrRow += dstDescPtr->strides.hStride;
             }
         }
-
         // Erase without fused output-layout toggle 3 channel(NCHW -> NCHW)
         else if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
