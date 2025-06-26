@@ -117,7 +117,8 @@ std::map<int, string> augmentationMap =
     {90, "tensor_mean"},
     {91, "tensor_stddev"},
     {92, "slice"},
-    {93, "jpeg_compression_distortion"}
+    {93, "jpeg_compression_distortion"},
+    {94, "solarize"}
 };
 
 enum Augmentation {
@@ -174,7 +175,8 @@ enum Augmentation {
     TENSOR_MEAN = 90,
     TENSOR_STDDEV = 91,
     SLICE = 92,
-    JPEG_COMPRESSION_DISTORTION = 93
+    JPEG_COMPRESSION_DISTORTION = 93,
+    SOLARIZE = 94
 };
 
 const unordered_set<int> additionalParamCases = {NOISE, RESIZE, ROTATE, WARP_AFFINE, WARP_PERSPECTIVE, BOX_FILTER, GAUSSIAN_FILTER, REMAP, CHANNEL_PERMUTE};
