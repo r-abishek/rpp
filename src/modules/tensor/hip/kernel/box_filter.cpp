@@ -1069,7 +1069,6 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
             (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
             rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-        else
         {
             // Nearest-neighbor padding
             T tempBuffer[8]; // Temporary storage for 8 pixels
