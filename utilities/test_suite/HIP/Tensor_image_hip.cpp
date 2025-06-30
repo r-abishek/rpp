@@ -391,12 +391,22 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&distortionCoeffs, batchSize * 8 * sizeof(Rpp32f)));
     }
 
-    Rpp32u boxesInEachImage = 3;
+    Rpp32u boxesInEachImage = 3; 
     Rpp32f *colorBuffer;
     RpptRoiLtrb *anchorBoxInfoTensor;
     Rpp32u *numOfBoxes;
+
     if(testCase == ERASE)
     {
+        CHECK_RETURN_STATUS(hipHostMalloc(&colorBuffer, batchSize * boxesInEachImage * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipMemset(colorBuffer, 0, batchSize * boxesInEachImage * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&anchorBoxInfoTensor, batchSize * boxesInEachImage * sizeof(RpptRoiLtrb)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&numOfBoxes, batchSize * sizeof(Rpp32u)));
+    }
+
+    if(dropoutTypeCase)
+    {
+        boxesInEachImage = 100;
         CHECK_RETURN_STATUS(hipHostMalloc(&colorBuffer, batchSize * boxesInEachImage * sizeof(Rpp32f)));
         CHECK_RETURN_STATUS(hipMemset(colorBuffer, 0, batchSize * boxesInEachImage * sizeof(Rpp32f)));
         CHECK_RETURN_STATUS(hipHostMalloc(&anchorBoxInfoTensor, batchSize * boxesInEachImage * sizeof(RpptRoiLtrb)));
@@ -1616,108 +1626,104 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "dropout";
 
-                    switch(additionalParam)
+                    switch (additionalParam)
                     {
-                        case 0:
+                        case 0: // Cutout
                         {
                             testCaseName = "cutout";
-                            Rpp32u boxesInEachImage = 1;
-                            Rpp32f colorBuffer[batchSize * boxesInEachImage];
-                            RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
-                            Rpp32u numOfBoxes[batchSize];
-                            int idx;
+                            boxesInEachImage = 1;
 
                             init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 0);
-
                             startWallTime = omp_get_wtime();
-                            startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_erase_gpu(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                                rppt_erase_gpu(d_input, srcDescPtr, d_output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
                             break;
                         }
-                        case 1:
+
+                        case 1: // Random Erasing
                         {
                             testCaseName = "randomErasing";
-                            Rpp32u boxesInEachImage = 1;
-                            Rpp32f colorBuffer[batchSize * boxesInEachImage];
-                            RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
-                            Rpp32u numOfBoxes[batchSize];
-                            int idx;
+                            boxesInEachImage = 1;
 
                             init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 1);
-
                             startWallTime = omp_get_wtime();
-                            startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_random_erase_gpu(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                                rppt_random_erase_gpu(d_input, srcDescPtr, d_output, dstDescPtr, anchorBoxInfoTensor, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
                             break;
                         }
-                        case 2:
+                        case 2: // Coarse Dropout
                         {
                             testCaseName = "coarse";
-                            Rpp32u boxesInEachImage = 8;
-                            Rpp32f colorBuffer[batchSize * boxesInEachImage];
-                            RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
-                            Rpp32u numOfBoxes[batchSize];
-                            int idx;
+                            boxesInEachImage = 8;
 
                             init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 2);
-
                             startWallTime = omp_get_wtime();
-                            startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_erase_gpu(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                                rppt_erase_gpu(d_input, srcDescPtr, d_output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
                             break;
                         }
-                        case 3:
+                        case 3: // Channel Dropout
                         {
                             testCaseName = "channel";
-                            Rpp32f dropProb[batchSize];
-                            for (i = 0; i < batchSize; i++)
-                            {
-                                dropProb[i] = 0.4f;
-                            }
+
+                            Rpp32f dropProb = 0.4f;
+                            int numChannels = srcDescPtr->c;
+                            int totalChannels = batchSize * numChannels;
+
+                            // Allocate and initialize host mask
+                            bool *channelMaskHost = new bool[totalChannels];
+                            std::mt19937 gen(42);
+                            std::uniform_real_distribution<float> dist(0.0f, 1.0f);
+                            for (int i = 0; i < totalChannels; i++)
+                                channelMaskHost[i] = (dist(gen) >= dropProb);
+
+                            // Allocate device memory and copy mask
+                            bool *channelMaskDevice = nullptr;
+                            hipMalloc(&channelMaskDevice, totalChannels * sizeof(bool));
+                            hipMemcpy(channelMaskDevice, channelMaskHost, totalChannels * sizeof(bool), hipMemcpyHostToDevice);
 
                             startWallTime = omp_get_wtime();
-                            startCpuTime = clock();
-                            if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_dropout_gpu(input, srcDescPtr, output, dstDescPtr, dropProb, roiTensorPtrSrc, roiTypeSrc, handle);
-                            else
-                                missingFuncFlag = 1;
 
+                            if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                            {
+                                rppt_channel_dropout_gpu(d_input, srcDescPtr,
+                                                        d_output,
+                                                        dstDescPtr,
+                                                        channelMaskDevice,
+                                                        roiTensorPtrSrc,
+                                                        roiTypeSrc,
+                                                        handle);
+                            }
+                            else
+                            {
+                                missingFuncFlag = 1;
+                            }
+
+                            hipFree(channelMaskDevice);
                             break;
                         }
-                        case 4:
+                        case 4: // Grid Dropout
                         {
                             testCaseName = "grid";
                             Rpp32u gridH = 10, gridW = 10;
                             Rpp32f holeRatio = 0.4f;
                             bool randomOffset = false;
-                            Rpp32u numOfBoxes[batchSize];
-                            Rpp32f colorBuffer[batchSize * 3];
-                            for (int i = 0; i < batchSize; ++i)
-                            {
-                                colorBuffer[i * 3 + 0] = 0.0f; 
-                                colorBuffer[i * 3 + 1] = 0.0f; 
-                                colorBuffer[i * 3 + 2] = 0.0f; 
-                            }
-                            RpptRoiLtrb anchorBoxInfoTensor[batchSize * gridH * gridW];
 
-                            init_grid_dropout(batchSize, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, gridH, gridW, holeRatio, randomOffset);
+                            boxesInEachImage = gridH * gridW;
 
+                            init_grid_dropout(batchSize, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, gridH, gridW, holeRatio, randomOffset, colorBuffer, srcDescPtr->c, inputBitDepth);
                             startWallTime = omp_get_wtime();
-                            startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_erase_gpu(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                               rppt_erase_gpu(d_input, srcDescPtr, d_output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
@@ -1730,11 +1736,6 @@ int main(int argc, char **argv)
                         }
                     }
 
-                    break;
-                }
-                default:
-                {
-                    missingFuncFlag = 1;
                     break;
                 }
             }
@@ -1947,7 +1948,7 @@ int main(int argc, char **argv)
         if(testCase == TENSOR_STDDEV)
             CHECK_RETURN_STATUS(hipHostFree(mean));
     }
-    if(testCase == ERASE)
+    if(testCase == ERASE || testCase == DROPOUT)
     {
         CHECK_RETURN_STATUS(hipHostFree(colorBuffer));
         CHECK_RETURN_STATUS(hipHostFree(anchorBoxInfoTensor));

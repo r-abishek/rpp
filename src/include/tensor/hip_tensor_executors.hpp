@@ -391,6 +391,31 @@ RppStatus hip_exec_erase_tensor(T *srcPtr,
                                 RpptRoiType roiType,
                                 rpp::Handle& handle);
 
+// -------------------- random_erase --------------------
+
+template <typename T>
+RppStatus hip_exec_random_erase_tensor(T *srcPtr,
+                                       RpptDescPtr srcDescPtr,
+                                       T *dstPtr,
+                                       RpptDescPtr dstDescPtr,
+                                       RpptRoiLtrb *anchorBoxInfoTensor,
+                                       Rpp32u *numBoxesTensor,
+                                       RpptROIPtr roiTensorPtrSrc,
+                                       RpptRoiType roiType,
+                                       rpp::Handle& handle);
+
+// -------------------- channel_dropout --------------------
+
+template <typename T>
+RppStatus hip_exec_channel_dropout_tensor(T *srcPtr,
+                                          RpptDescPtr srcDescPtr,
+                                          T *dstPtr,
+                                          RpptDescPtr dstDescPtr,
+                                          bool *channelMaskTensor,
+                                          RpptROIPtr roiTensorPtrSrc,
+                                          RpptRoiType roiType,
+                                          rpp::Handle &handle); 
+
 // -------------------- fog --------------------
 
 template <typename T>

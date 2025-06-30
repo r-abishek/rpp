@@ -957,7 +957,6 @@ int main(int argc, char **argv)
                     Rpp32f colorBuffer[batchSize * boxesInEachImage];
                     RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
                     Rpp32u numOfBoxes[batchSize];
-                    int idx;
 
                     init_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth);
 
@@ -1651,7 +1650,6 @@ int main(int argc, char **argv)
                             Rpp32f colorBuffer[batchSize * boxesInEachImage];
                             RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
                             Rpp32u numOfBoxes[batchSize];
-                            int idx;
 
                             init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 0);
 
@@ -1671,7 +1669,6 @@ int main(int argc, char **argv)
                             Rpp32f colorBuffer[batchSize * boxesInEachImage];
                             RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
                             Rpp32u numOfBoxes[batchSize];
-                            int idx;
 
                             init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 1);
 
@@ -1691,7 +1688,6 @@ int main(int argc, char **argv)
                             Rpp32f colorBuffer[batchSize * boxesInEachImage];
                             RpptRoiLtrb anchorBoxInfoTensor[batchSize * boxesInEachImage];
                             Rpp32u numOfBoxes[batchSize];
-                            int idx;
 
                             init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 2);
 
