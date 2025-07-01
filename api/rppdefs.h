@@ -464,6 +464,13 @@ typedef enum
     REFLECT
 } RpptAudioBorderType;
 
+typedef enum
+{
+    REPLICATE = 0, // Similar to Nearest Neighbors
+    CONSTANT,      // Unsupported Border Type
+    REFLECT        // Unsupported Border Type
+} RpptImageBorderType;
+
 /*! \brief RPPT Mel Scale Formula
  * \ingroup group_rppdefs
  */
