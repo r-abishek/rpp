@@ -34,25 +34,25 @@ SOFTWARE.
 /******************** brightness ********************/
 
 RppStatus rppt_brightness_host(RppPtr_t srcPtr,
-                               RpptDescPtr srcDescPtr,
+                               RpptDescPtr *srcDescPtr,
                                RppPtr_t dstPtr,
-                               RpptDescPtr dstDescPtr,
+                               RpptDescPtr *dstDescPtr,
                                Rpp32f *alphaTensor,
                                Rpp32f *betaTensor,
                                RpptROIPtr roiTensorPtrSrc,
                                RpptRoiType roiType,
                                rppHandle_t rppHandle)
 {
-    RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
-    if (srcDescPtr->dataType != dstDescPtr->dataType) return RPP_ERROR_INVALID_SRC_OR_DST_DATATYPE;
-    if ((srcDescPtr->layout == RpptLayout::NCDHW) || (srcDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
-    if ((dstDescPtr->layout == RpptLayout::NCDHW) || (dstDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
+    RppLayoutParams layoutParams = get_layout_params(srcDescPtr[0]->layout, srcDescPtr[0]->c);
+    if (srcDescPtr[0]->dataType != dstDescPtr[0]->dataType) return RPP_ERROR_INVALID_SRC_OR_DST_DATATYPE;
+    if ((srcDescPtr[0]->layout == RpptLayout::NCDHW) || (srcDescPtr[0]->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
+    if ((dstDescPtr[0]->layout == RpptLayout::NCDHW) || (dstDescPtr[0]->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
 
-    if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+    if ((srcDescPtr[0]->dataType == RpptDataType::U8) && (dstDescPtr[0]->dataType == RpptDataType::U8))
     {
-        brightness_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+        brightness_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                      srcDescPtr,
-                                     static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                     static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                      dstDescPtr,
                                      alphaTensor,
                                      betaTensor,
@@ -61,11 +61,11 @@ RppStatus rppt_brightness_host(RppPtr_t srcPtr,
                                      layoutParams,
                                      rpp::deref(rppHandle));
     }
-    else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+    else if ((srcDescPtr[0]->dataType == RpptDataType::F16) && (dstDescPtr[0]->dataType == RpptDataType::F16))
     {
-        brightness_f16_f16_host_tensor((Rpp16f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+        brightness_f16_f16_host_tensor((Rpp16f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes),
                                        srcDescPtr,
-                                       (Rpp16f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                       (Rpp16f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes),
                                        dstDescPtr,
                                        alphaTensor,
                                        betaTensor,
@@ -74,11 +74,11 @@ RppStatus rppt_brightness_host(RppPtr_t srcPtr,
                                        layoutParams,
                                        rpp::deref(rppHandle));
     }
-    else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+    else if ((srcDescPtr[0]->dataType == RpptDataType::F32) && (dstDescPtr[0]->dataType == RpptDataType::F32))
     {
-        brightness_f32_f32_host_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+        brightness_f32_f32_host_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes),
                                        srcDescPtr,
-                                       (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                       (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes),
                                        dstDescPtr,
                                        alphaTensor,
                                        betaTensor,
@@ -87,11 +87,11 @@ RppStatus rppt_brightness_host(RppPtr_t srcPtr,
                                        layoutParams,
                                        rpp::deref(rppHandle));
     }
-    else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+    else if ((srcDescPtr[0]->dataType == RpptDataType::I8) && (dstDescPtr[0]->dataType == RpptDataType::I8))
     {
-        brightness_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+        brightness_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                      srcDescPtr,
-                                     static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                     static_cast<Rpp8s*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                      dstDescPtr,
                                      alphaTensor,
                                      betaTensor,

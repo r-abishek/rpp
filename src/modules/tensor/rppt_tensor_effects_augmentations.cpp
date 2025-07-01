@@ -1033,127 +1033,127 @@ RppStatus rppt_pixelate_host(RppPtr_t srcPtr,
     // The bilinear step reduces the image dimensions smoothly, and the nearest neighbor step enlarges it back,
     // resulting in a pixelated effect as the intermediate pixels are repeated in the final image.
 
-    if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
-    if ((dstDescPtr->layout != RpptLayout::NCHW) && (dstDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
-    if (pixelationPercentage < 0 || pixelationPercentage > 100)
-        return RPP_ERROR_INVALID_ARGUMENTS;
+    // if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
+    // if ((dstDescPtr->layout != RpptLayout::NCHW) && (dstDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
+    // if (pixelationPercentage < 0 || pixelationPercentage > 100)
+    //     return RPP_ERROR_INVALID_ARGUMENTS;
 
-    RppLayoutParams srcLayoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
-    RpptImagePatchPtr internalDstImgSizes = reinterpret_cast<RpptImagePatch *>(rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.scratchBufferHost);
-    RpptROI *internalRoiTensorPtrSrc = reinterpret_cast<RpptROI *>(internalDstImgSizes + dstDescPtr->n);
+    // RppLayoutParams srcLayoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
+    // RpptImagePatchPtr internalDstImgSizes = reinterpret_cast<RpptImagePatch *>(rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.scratchBufferHost);
+    // RpptROI *internalRoiTensorPtrSrc = reinterpret_cast<RpptROI *>(internalDstImgSizes + dstDescPtr->n);
 
-    for(int i = 0; i < dstDescPtr->n; i++)
-    {
-        internalDstImgSizes[i].width = internalRoiTensorPtrSrc[i].xywhROI.roiWidth = (roiTensorPtrSrc[i].xywhROI.roiWidth * (100 - pixelationPercentage)) / 100;
-        internalDstImgSizes[i].height = internalRoiTensorPtrSrc[i].xywhROI.roiHeight = (roiTensorPtrSrc[i].xywhROI.roiHeight * (100 - pixelationPercentage)) / 100;
-        internalRoiTensorPtrSrc[i].xywhROI.xy.x = (roiTensorPtrSrc[i].xywhROI.xy.x * (100 - pixelationPercentage)) / 100;
-        internalRoiTensorPtrSrc[i].xywhROI.xy.y = (roiTensorPtrSrc[i].xywhROI.xy.y * (100 - pixelationPercentage)) / 100;
-    }
+    // for(int i = 0; i < dstDescPtr->n; i++)
+    // {
+    //     internalDstImgSizes[i].width = internalRoiTensorPtrSrc[i].xywhROI.roiWidth = (roiTensorPtrSrc[i].xywhROI.roiWidth * (100 - pixelationPercentage)) / 100;
+    //     internalDstImgSizes[i].height = internalRoiTensorPtrSrc[i].xywhROI.roiHeight = (roiTensorPtrSrc[i].xywhROI.roiHeight * (100 - pixelationPercentage)) / 100;
+    //     internalRoiTensorPtrSrc[i].xywhROI.xy.x = (roiTensorPtrSrc[i].xywhROI.xy.x * (100 - pixelationPercentage)) / 100;
+    //     internalRoiTensorPtrSrc[i].xywhROI.xy.y = (roiTensorPtrSrc[i].xywhROI.xy.y * (100 - pixelationPercentage)) / 100;
+    // }
 
-    if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
-    {
-        resize_bilinear_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
-                                          srcDescPtr,
-                                          static_cast<Rpp8u*>(interDstPtr),
-                                          srcDescPtr,
-                                          internalDstImgSizes,
-                                          roiTensorPtrSrc,
-                                          roiType,
-                                          srcLayoutParams,
-                                          rpp::deref(rppHandle));
-        for(int i = 0; i < dstDescPtr->n; i++)
-        {
-            internalDstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth;
-            internalDstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight;
-        }
-        resize_nn_u8_u8_host_tensor(static_cast<Rpp8u*>(interDstPtr),
-                                    srcDescPtr,
-                                    static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
-                                    dstDescPtr,
-                                    internalDstImgSizes,
-                                    internalRoiTensorPtrSrc,
-                                    roiType,
-                                    srcLayoutParams,
-                                    rpp::deref(rppHandle));
-    }
-    else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
-    {
-        resize_bilinear_f16_f16_host_tensor(reinterpret_cast<Rpp16f*>(srcPtr) + srcDescPtr->offsetInBytes,
-                                            srcDescPtr,
-                                            reinterpret_cast<Rpp16f*>(interDstPtr),
-                                            srcDescPtr,
-                                            internalDstImgSizes,
-                                            roiTensorPtrSrc,
-                                            roiType,
-                                            srcLayoutParams,
-                                            rpp::deref(rppHandle));
-        for(int i = 0; i < dstDescPtr->n; i++)
-        {
-            internalDstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth;
-            internalDstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight;
-        }
-        resize_nn_f16_f16_host_tensor(reinterpret_cast<Rpp16f*>(interDstPtr),
-                                      srcDescPtr,
-                                      reinterpret_cast<Rpp16f*>(dstPtr) + dstDescPtr->offsetInBytes,
-                                      dstDescPtr,
-                                      internalDstImgSizes,
-                                      internalRoiTensorPtrSrc,
-                                      roiType,
-                                      srcLayoutParams,
-                                      rpp::deref(rppHandle));
-    }
-    else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
-    {
-        resize_bilinear_f32_f32_host_tensor(reinterpret_cast<Rpp32f*>(srcPtr) + srcDescPtr->offsetInBytes,
-                                            srcDescPtr,
-                                            reinterpret_cast<Rpp32f*>(interDstPtr),
-                                            srcDescPtr,
-                                            internalDstImgSizes,
-                                            roiTensorPtrSrc,
-                                            roiType,
-                                            srcLayoutParams,
-                                            rpp::deref(rppHandle));
-        for(int i = 0; i < dstDescPtr->n; i++)
-        {
-            internalDstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth;
-            internalDstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight;
-        }
-        resize_nn_f32_f32_host_tensor(reinterpret_cast<Rpp32f*>(interDstPtr),
-                                     srcDescPtr,
-                                     reinterpret_cast<Rpp32f*>(dstPtr) + dstDescPtr->offsetInBytes,
-                                     dstDescPtr,
-                                     internalDstImgSizes,
-                                     internalRoiTensorPtrSrc,
-                                     roiType,
-                                     srcLayoutParams,
-                                     rpp::deref(rppHandle));
-    }
-    else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
-    {
-        resize_bilinear_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
-                                          srcDescPtr,
-                                          static_cast<Rpp8s*>(interDstPtr),
-                                          srcDescPtr,
-                                          internalDstImgSizes,
-                                          roiTensorPtrSrc,
-                                          roiType,
-                                          srcLayoutParams,
-                                          rpp::deref(rppHandle));
-        for(int i = 0; i < dstDescPtr->n; i++)
-        {
-            internalDstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth;
-            internalDstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight;
-        }
-        resize_nn_i8_i8_host_tensor(static_cast<Rpp8s*>(interDstPtr),
-                                    srcDescPtr,
-                                    static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
-                                    dstDescPtr,
-                                    internalDstImgSizes,
-                                    internalRoiTensorPtrSrc,
-                                    roiType,
-                                    srcLayoutParams,
-                                    rpp::deref(rppHandle));
-    }
+    // if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+    // {
+    //     resize_bilinear_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+    //                                       srcDescPtr,
+    //                                       static_cast<Rpp8u*>(interDstPtr),
+    //                                       srcDescPtr,
+    //                                       internalDstImgSizes,
+    //                                       roiTensorPtrSrc,
+    //                                       roiType,
+    //                                       srcLayoutParams,
+    //                                       rpp::deref(rppHandle));
+    //     for(int i = 0; i < dstDescPtr->n; i++)
+    //     {
+    //         internalDstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth;
+    //         internalDstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight;
+    //     }
+    //     resize_nn_u8_u8_host_tensor(static_cast<Rpp8u*>(interDstPtr),
+    //                                 srcDescPtr,
+    //                                 static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+    //                                 dstDescPtr,
+    //                                 internalDstImgSizes,
+    //                                 internalRoiTensorPtrSrc,
+    //                                 roiType,
+    //                                 srcLayoutParams,
+    //                                 rpp::deref(rppHandle));
+    // }
+    // else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+    // {
+    //     resize_bilinear_f16_f16_host_tensor(reinterpret_cast<Rpp16f*>(srcPtr) + srcDescPtr->offsetInBytes,
+    //                                         srcDescPtr,
+    //                                         reinterpret_cast<Rpp16f*>(interDstPtr),
+    //                                         srcDescPtr,
+    //                                         internalDstImgSizes,
+    //                                         roiTensorPtrSrc,
+    //                                         roiType,
+    //                                         srcLayoutParams,
+    //                                         rpp::deref(rppHandle));
+    //     for(int i = 0; i < dstDescPtr->n; i++)
+    //     {
+    //         internalDstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth;
+    //         internalDstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight;
+    //     }
+    //     resize_nn_f16_f16_host_tensor(reinterpret_cast<Rpp16f*>(interDstPtr),
+    //                                   srcDescPtr,
+    //                                   reinterpret_cast<Rpp16f*>(dstPtr) + dstDescPtr->offsetInBytes,
+    //                                   dstDescPtr,
+    //                                   internalDstImgSizes,
+    //                                   internalRoiTensorPtrSrc,
+    //                                   roiType,
+    //                                   srcLayoutParams,
+    //                                   rpp::deref(rppHandle));
+    // }
+    // else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+    // {
+    //     resize_bilinear_f32_f32_host_tensor(reinterpret_cast<Rpp32f*>(srcPtr) + srcDescPtr->offsetInBytes,
+    //                                         srcDescPtr,
+    //                                         reinterpret_cast<Rpp32f*>(interDstPtr),
+    //                                         srcDescPtr,
+    //                                         internalDstImgSizes,
+    //                                         roiTensorPtrSrc,
+    //                                         roiType,
+    //                                         srcLayoutParams,
+    //                                         rpp::deref(rppHandle));
+    //     for(int i = 0; i < dstDescPtr->n; i++)
+    //     {
+    //         internalDstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth;
+    //         internalDstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight;
+    //     }
+    //     resize_nn_f32_f32_host_tensor(reinterpret_cast<Rpp32f*>(interDstPtr),
+    //                                  srcDescPtr,
+    //                                  reinterpret_cast<Rpp32f*>(dstPtr) + dstDescPtr->offsetInBytes,
+    //                                  dstDescPtr,
+    //                                  internalDstImgSizes,
+    //                                  internalRoiTensorPtrSrc,
+    //                                  roiType,
+    //                                  srcLayoutParams,
+    //                                  rpp::deref(rppHandle));
+    // }
+    // else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+    // {
+    //     resize_bilinear_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+    //                                       srcDescPtr,
+    //                                       static_cast<Rpp8s*>(interDstPtr),
+    //                                       srcDescPtr,
+    //                                       internalDstImgSizes,
+    //                                       roiTensorPtrSrc,
+    //                                       roiType,
+    //                                       srcLayoutParams,
+    //                                       rpp::deref(rppHandle));
+    //     for(int i = 0; i < dstDescPtr->n; i++)
+    //     {
+    //         internalDstImgSizes[i].width = roiTensorPtrSrc[i].xywhROI.roiWidth;
+    //         internalDstImgSizes[i].height = roiTensorPtrSrc[i].xywhROI.roiHeight;
+    //     }
+    //     resize_nn_i8_i8_host_tensor(static_cast<Rpp8s*>(interDstPtr),
+    //                                 srcDescPtr,
+    //                                 static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+    //                                 dstDescPtr,
+    //                                 internalDstImgSizes,
+    //                                 internalRoiTensorPtrSrc,
+    //                                 roiType,
+    //                                 srcLayoutParams,
+    //                                 rpp::deref(rppHandle));
+    // }
 
     return RPP_SUCCESS;
 }
@@ -1196,7 +1196,7 @@ RppStatus rppt_fog_host(RppPtr_t srcPtr,
     Rpp32f *resizedFogIntensityMaskPtr = resizedFogAlphaMaskPtr + (srcDescPtr->h * srcDescPtr->w);
 
     // Resize the mask to the maximum size present in the batch
-    rppt_resize_host(&fogMask_1920_1080[0], fogMaskSrcDescPtr, resizedFogAlphaMaskPtr, fogMaskDstDescPtr, internalDstImgSizes, interpolationType, internalRoiTensorPtrSrc, roiType, rppHandle);
+    // rppt_resize_host(&fogMask_1920_1080[0], fogMaskSrcDescPtr, resizedFogAlphaMaskPtr, fogMaskDstDescPtr, internalDstImgSizes, interpolationType, internalRoiTensorPtrSrc, roiType, rppHandle);
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {

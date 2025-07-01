@@ -309,9 +309,9 @@ RppStatus bitwise_xor_u8_u8_host_tensor(Rpp8u *srcPtr1,
 // -------------------- brightness --------------------
 
 RppStatus brightness_u8_u8_host_tensor(Rpp8u *srcPtr,
-                                       RpptDescPtr srcDescPtr,
+                                       RpptDescPtr *srcDescPtr,
                                        Rpp8u *dstPtr,
-                                       RpptDescPtr dstDescPtr,
+                                       RpptDescPtr *dstDescPtr,
                                        Rpp32f *alphaTensor,
                                        Rpp32f *betaTensor,
                                        RpptROIPtr roiTensorPtrSrc,
@@ -320,9 +320,9 @@ RppStatus brightness_u8_u8_host_tensor(Rpp8u *srcPtr,
                                        rpp::Handle& handle);
 
 RppStatus brightness_f32_f32_host_tensor(Rpp32f *srcPtr,
-                                         RpptDescPtr srcDescPtr,
+                                         RpptDescPtr *srcDescPtr,
                                          Rpp32f *dstPtr,
-                                         RpptDescPtr dstDescPtr,
+                                         RpptDescPtr *dstDescPtr,
                                          Rpp32f *alphaTensor,
                                          Rpp32f *betaTensor,
                                          RpptROIPtr roiTensorPtrSrc,
@@ -331,9 +331,9 @@ RppStatus brightness_f32_f32_host_tensor(Rpp32f *srcPtr,
                                          rpp::Handle& handle);
 
 RppStatus brightness_f16_f16_host_tensor(Rpp16f *srcPtr,
-                                         RpptDescPtr srcDescPtr,
+                                         RpptDescPtr *srcDescPtr,
                                          Rpp16f *dstPtr,
-                                         RpptDescPtr dstDescPtr,
+                                         RpptDescPtr *dstDescPtr,
                                          Rpp32f *alphaTensor,
                                          Rpp32f *betaTensor,
                                          RpptROIPtr roiTensorPtrSrc,
@@ -342,9 +342,9 @@ RppStatus brightness_f16_f16_host_tensor(Rpp16f *srcPtr,
                                          rpp::Handle& handle);
 
 RppStatus brightness_i8_i8_host_tensor(Rpp8s *srcPtr,
-                                       RpptDescPtr srcDescPtr,
+                                       RpptDescPtr *srcDescPtr,
                                        Rpp8s *dstPtr,
-                                       RpptDescPtr dstDescPtr,
+                                       RpptDescPtr *dstDescPtr,
                                        Rpp32f *alphaTensor,
                                        Rpp32f *betaTensor,
                                        RpptROIPtr roiTensorPtrSrc,
@@ -1583,18 +1583,6 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                                       RppLayoutParams layoutParams,
                                       rpp::Handle& handle);
 
-// F32 and F16 bitdepth
-template<typename T>
-RppStatus box_filter_float_host_tensor(T *srcPtr,
-                                       RpptDescPtr srcDescPtr,
-                                       T *dstPtr,
-                                       RpptDescPtr dstDescPtr,
-                                       Rpp32u kernelSize,
-                                       RpptROIPtr roiTensorPtrSrc,
-                                       RpptRoiType roiType,
-                                       RppLayoutParams layoutParams,
-                                       rpp::Handle& handle);
-
 /**************************************** GEOMETRIC AUGMENTATIONS ****************************************/
 
 // -------------------- crop --------------------
@@ -1936,9 +1924,9 @@ RppStatus remap_bilinear_f16_f16_host_tensor(Rpp16f *srcPtr,
 /************* NEAREST NEIGHBOR INTERPOLATION *************/
 
 RppStatus resize_nn_u8_u8_host_tensor(Rpp8u *srcPtr,
-                                      RpptDescPtr srcDescPtr,
+                                      RpptDescPtr *srcDescPtr,
                                       Rpp8u *dstPtr,
-                                      RpptDescPtr dstDescPtr,
+                                      RpptDescPtr *dstDescPtr,
                                       RpptImagePatchPtr dstImgSize,
                                       RpptROIPtr roiTensorPtrSrc,
                                       RpptRoiType roiType,
@@ -1946,9 +1934,9 @@ RppStatus resize_nn_u8_u8_host_tensor(Rpp8u *srcPtr,
                                       rpp::Handle& handle);
 
 RppStatus resize_nn_f32_f32_host_tensor(Rpp32f *srcPtr,
-                                        RpptDescPtr srcDescPtr,
+                                        RpptDescPtr *srcDescPtr,
                                         Rpp32f *dstPtr,
-                                        RpptDescPtr dstDescPtr,
+                                        RpptDescPtr *dstDescPtr,
                                         RpptImagePatchPtr dstImgSize,
                                         RpptROIPtr roiTensorPtrSrc,
                                         RpptRoiType roiType,
@@ -1956,9 +1944,9 @@ RppStatus resize_nn_f32_f32_host_tensor(Rpp32f *srcPtr,
                                         rpp::Handle& handle);
 
 RppStatus resize_nn_i8_i8_host_tensor(Rpp8s *srcPtr,
-                                      RpptDescPtr srcDescPtr,
+                                      RpptDescPtr *srcDescPtr,
                                       Rpp8s *dstPtr,
-                                      RpptDescPtr dstDescPtr,
+                                      RpptDescPtr *dstDescPtr,
                                       RpptImagePatchPtr dstImgSize,
                                       RpptROIPtr roiTensorPtrSrc,
                                       RpptRoiType roiType,
@@ -1966,9 +1954,9 @@ RppStatus resize_nn_i8_i8_host_tensor(Rpp8s *srcPtr,
                                       rpp::Handle& handle);
 
 RppStatus resize_nn_f16_f16_host_tensor(Rpp16f *srcPtr,
-                                        RpptDescPtr srcDescPtr,
+                                        RpptDescPtr *srcDescPtr,
                                         Rpp16f *dstPtr,
-                                        RpptDescPtr dstDescPtr,
+                                        RpptDescPtr *dstDescPtr,
                                         RpptImagePatchPtr dstImgSize,
                                         RpptROIPtr roiTensorPtrSrc,
                                         RpptRoiType roiType,
@@ -1978,9 +1966,9 @@ RppStatus resize_nn_f16_f16_host_tensor(Rpp16f *srcPtr,
 /************* BILINEAR INTERPOLATION *************/
 
 RppStatus resize_bilinear_u8_u8_host_tensor(Rpp8u *srcPtr,
-                                            RpptDescPtr srcDescPtr,
+                                            RpptDescPtr *srcDescPtr,
                                             Rpp8u *dstPtr,
-                                            RpptDescPtr dstDescPtr,
+                                            RpptDescPtr *dstDescPtr,
                                             RpptImagePatchPtr dstImgSize,
                                             RpptROIPtr roiTensorPtrSrc,
                                             RpptRoiType roiType,
@@ -1988,9 +1976,9 @@ RppStatus resize_bilinear_u8_u8_host_tensor(Rpp8u *srcPtr,
                                             rpp::Handle& handle);
 
 RppStatus resize_bilinear_f32_f32_host_tensor(Rpp32f *srcPtr,
-                                              RpptDescPtr srcDescPtr,
+                                              RpptDescPtr *srcDescPtr,
                                               Rpp32f *dstPtr,
-                                              RpptDescPtr dstDescPtr,
+                                              RpptDescPtr *dstDescPtr,
                                               RpptImagePatchPtr dstImgSize,
                                               RpptROIPtr roiTensorPtrSrc,
                                               RpptRoiType roiType,
@@ -1998,9 +1986,9 @@ RppStatus resize_bilinear_f32_f32_host_tensor(Rpp32f *srcPtr,
                                               rpp::Handle& handle);
 
 RppStatus resize_bilinear_f16_f16_host_tensor(Rpp16f *srcPtr,
-                                              RpptDescPtr srcDescPtr,
+                                              RpptDescPtr *srcDescPtr,
                                               Rpp16f *dstPtr,
-                                              RpptDescPtr dstDescPtr,
+                                              RpptDescPtr *dstDescPtr,
                                               RpptImagePatchPtr dstImgSize,
                                               RpptROIPtr roiTensorPtrSrc,
                                               RpptRoiType roiType,
@@ -2008,9 +1996,9 @@ RppStatus resize_bilinear_f16_f16_host_tensor(Rpp16f *srcPtr,
                                               rpp::Handle& handle);
 
 RppStatus resize_bilinear_i8_i8_host_tensor(Rpp8s *srcPtr,
-                                            RpptDescPtr srcDescPtr,
+                                            RpptDescPtr *srcDescPtr,
                                             Rpp8s *dstPtr,
-                                            RpptDescPtr dstDescPtr,
+                                            RpptDescPtr *dstDescPtr,
                                             RpptImagePatchPtr dstImgSize,
                                             RpptROIPtr roiTensorPtrSrc,
                                             RpptRoiType roiType,
@@ -2019,9 +2007,9 @@ RppStatus resize_bilinear_i8_i8_host_tensor(Rpp8s *srcPtr,
 
 template <typename T>
 RppStatus resize_separable_host_tensor(T *srcPtr,
-                                       RpptDescPtr srcDescPtr,
+                                       RpptDescPtr *srcDescPtr,
                                        T *dstPtr,
-                                       RpptDescPtr dstDescPtr,
+                                       RpptDescPtr *dstDescPtr,
                                        Rpp32f * tempPtr,
                                        RpptDescPtr tempDescPtr,
                                        RpptImagePatchPtr dstImgSize,

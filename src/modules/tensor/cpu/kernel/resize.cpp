@@ -609,24 +609,26 @@ inline void compute_col_coefficients(RpptInterpolationType interpolationType, Ge
 /************* NEAREST NEIGHBOR INTERPOLATION *************/
 
 RppStatus resize_nn_u8_u8_host_tensor(Rpp8u *srcPtr,
-                                      RpptDescPtr srcDescPtr,
+                                      RpptDescPtr *srcDescPtrs,
                                       Rpp8u *dstPtr,
-                                      RpptDescPtr dstDescPtr,
+                                      RpptDescPtr *dstDescPtrs,
                                       RpptImagePatchPtr dstImgSize,
                                       RpptROIPtr roiTensorPtrSrc,
                                       RpptRoiType roiType,
                                       RppLayoutParams srcLayoutParams,
                                       rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);
@@ -830,24 +832,26 @@ RppStatus resize_nn_u8_u8_host_tensor(Rpp8u *srcPtr,
 }
 
 RppStatus resize_nn_f32_f32_host_tensor(Rpp32f *srcPtr,
-                                        RpptDescPtr srcDescPtr,
+                                        RpptDescPtr *srcDescPtrs,
                                         Rpp32f *dstPtr,
-                                        RpptDescPtr dstDescPtr,
+                                        RpptDescPtr *dstDescPtrs,
                                         RpptImagePatchPtr dstImgSize,
                                         RpptROIPtr roiTensorPtrSrc,
                                         RpptRoiType roiType,
                                         RppLayoutParams srcLayoutParams,
                                         rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);
@@ -1043,24 +1047,26 @@ RppStatus resize_nn_f32_f32_host_tensor(Rpp32f *srcPtr,
 }
 
 RppStatus resize_nn_i8_i8_host_tensor(Rpp8s *srcPtr,
-                                      RpptDescPtr srcDescPtr,
+                                      RpptDescPtr *srcDescPtrs,
                                       Rpp8s *dstPtr,
-                                      RpptDescPtr dstDescPtr,
+                                      RpptDescPtr *dstDescPtrs,
                                       RpptImagePatchPtr dstImgSize,
                                       RpptROIPtr roiTensorPtrSrc,
                                       RpptRoiType roiType,
                                       RppLayoutParams srcLayoutParams,
                                       rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);
@@ -1264,24 +1270,26 @@ RppStatus resize_nn_i8_i8_host_tensor(Rpp8s *srcPtr,
 }
 
 RppStatus resize_nn_f16_f16_host_tensor(Rpp16f *srcPtr,
-                                        RpptDescPtr srcDescPtr,
+                                        RpptDescPtr *srcDescPtrs,
                                         Rpp16f *dstPtr,
-                                        RpptDescPtr dstDescPtr,
+                                        RpptDescPtr *dstDescPtrs,
                                         RpptImagePatchPtr dstImgSize,
                                         RpptROIPtr roiTensorPtrSrc,
                                         RpptRoiType roiType,
                                         RppLayoutParams srcLayoutParams,
                                         rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);
@@ -1374,24 +1382,26 @@ RppStatus resize_nn_f16_f16_host_tensor(Rpp16f *srcPtr,
 /************* BILINEAR INTERPOLATION *************/
 
 RppStatus resize_bilinear_u8_u8_host_tensor(Rpp8u *srcPtr,
-                                            RpptDescPtr srcDescPtr,
+                                            RpptDescPtr *srcDescPtrs,
                                             Rpp8u *dstPtr,
-                                            RpptDescPtr dstDescPtr,
+                                            RpptDescPtr *dstDescPtrs,
                                             RpptImagePatchPtr dstImgSize,
                                             RpptROIPtr roiTensorPtrSrc,
                                             RpptRoiType roiType,
                                             RppLayoutParams srcLayoutParams,
                                             rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);     // Check if the dstImgSize exceeds dst buffer size
@@ -1615,24 +1625,26 @@ RppStatus resize_bilinear_u8_u8_host_tensor(Rpp8u *srcPtr,
 }
 
 RppStatus resize_bilinear_f32_f32_host_tensor(Rpp32f *srcPtr,
-                                              RpptDescPtr srcDescPtr,
+                                              RpptDescPtr *srcDescPtrs,
                                               Rpp32f *dstPtr,
-                                              RpptDescPtr dstDescPtr,
+                                              RpptDescPtr *dstDescPtrs,
                                               RpptImagePatchPtr dstImgSize,
                                               RpptROIPtr roiTensorPtrSrc,
                                               RpptRoiType roiType,
                                               RppLayoutParams srcLayoutParams,
                                               rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);     // Check if the dstImgSize exceeds dst buffer size
@@ -1858,24 +1870,26 @@ RppStatus resize_bilinear_f32_f32_host_tensor(Rpp32f *srcPtr,
 }
 
 RppStatus resize_bilinear_f16_f16_host_tensor(Rpp16f *srcPtr,
-                                              RpptDescPtr srcDescPtr,
+                                              RpptDescPtr *srcDescPtrs,
                                               Rpp16f *dstPtr,
-                                              RpptDescPtr dstDescPtr,
+                                              RpptDescPtr *dstDescPtrs,
                                               RpptImagePatchPtr dstImgSize,
                                               RpptROIPtr roiTensorPtrSrc,
                                               RpptRoiType roiType,
                                               RppLayoutParams srcLayoutParams,
                                               rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);     // Check if the dstImgSize exceeds dst buffer size
@@ -2102,24 +2116,26 @@ RppStatus resize_bilinear_f16_f16_host_tensor(Rpp16f *srcPtr,
 }
 
 RppStatus resize_bilinear_i8_i8_host_tensor(Rpp8s *srcPtr,
-                                            RpptDescPtr srcDescPtr,
+                                            RpptDescPtr *srcDescPtrs,
                                             Rpp8s *dstPtr,
-                                            RpptDescPtr dstDescPtr,
+                                            RpptDescPtr *dstDescPtrs,
                                             RpptImagePatchPtr dstImgSize,
                                             RpptROIPtr roiTensorPtrSrc,
                                             RpptRoiType roiType,
                                             RppLayoutParams srcLayoutParams,
                                             rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);     // Check if the dstImgSize exceeds dst buffer size
@@ -2345,9 +2361,9 @@ RppStatus resize_bilinear_i8_i8_host_tensor(Rpp8s *srcPtr,
 
 template <typename T>
 RppStatus resize_separable_host_tensor(T *srcPtr,
-                                       RpptDescPtr srcDescPtr,
+                                       RpptDescPtr *srcDescPtrs,
                                        T *dstPtr,
-                                       RpptDescPtr dstDescPtr,
+                                       RpptDescPtr *dstDescPtrs,
                                        Rpp32f * tempPtr,
                                        RpptDescPtr tempDescPtr,
                                        RpptImagePatchPtr dstImgSize,
@@ -2357,15 +2373,17 @@ RppStatus resize_separable_host_tensor(T *srcPtr,
                                        RpptInterpolationType interpolationType,
                                        rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         compute_dst_size_cap_host(&dstImgSize[batchCount], dstDescPtr);
@@ -2419,9 +2437,9 @@ RppStatus resize_separable_host_tensor(T *srcPtr,
 }
 
 template RppStatus resize_separable_host_tensor<Rpp8u>(Rpp8u*,
-                                                       RpptDescPtr,
+                                                       RpptDescPtr*,
                                                        Rpp8u*,
-                                                       RpptDescPtr,
+                                                       RpptDescPtr*,
                                                        Rpp32f*,
                                                        RpptDescPtr,
                                                        RpptImagePatchPtr,
@@ -2432,9 +2450,9 @@ template RppStatus resize_separable_host_tensor<Rpp8u>(Rpp8u*,
                                                        rpp::Handle&);
 
 template RppStatus resize_separable_host_tensor<Rpp32f>(Rpp32f*,
-                                                        RpptDescPtr,
+                                                        RpptDescPtr*,
                                                         Rpp32f*,
-                                                        RpptDescPtr,
+                                                        RpptDescPtr*,
                                                         Rpp32f*,
                                                         RpptDescPtr,
                                                         RpptImagePatchPtr,
@@ -2445,9 +2463,9 @@ template RppStatus resize_separable_host_tensor<Rpp32f>(Rpp32f*,
                                                         rpp::Handle&);
 
 template RppStatus resize_separable_host_tensor<Rpp8s>(Rpp8s*,
-                                                       RpptDescPtr,
+                                                       RpptDescPtr*,
                                                        Rpp8s*,
-                                                       RpptDescPtr,
+                                                       RpptDescPtr*,
                                                        Rpp32f*,
                                                        RpptDescPtr,
                                                        RpptImagePatchPtr,
@@ -2458,9 +2476,9 @@ template RppStatus resize_separable_host_tensor<Rpp8s>(Rpp8s*,
                                                        rpp::Handle&);
 
 template RppStatus resize_separable_host_tensor<Rpp16f>(Rpp16f*,
-                                                        RpptDescPtr,
+                                                        RpptDescPtr*,
                                                         Rpp16f*,
-                                                        RpptDescPtr,
+                                                        RpptDescPtr*,
                                                         Rpp32f*,
                                                         RpptDescPtr,
                                                         RpptImagePatchPtr,

@@ -477,24 +477,24 @@ RppStatus rppt_flip_host(RppPtr_t srcPtr,
 /******************** resize ********************/
 
 RppStatus rppt_resize_host(RppPtr_t srcPtr,
-                           RpptDescPtr srcDescPtr,
+                           RpptDescPtr *srcDescPtr,
                            RppPtr_t dstPtr,
-                           RpptDescPtr dstDescPtr,
+                           RpptDescPtr *dstDescPtr,
                            RpptImagePatchPtr dstImgSizes,
                            RpptInterpolationType interpolationType,
                            RpptROIPtr roiTensorPtrSrc,
                            RpptRoiType roiType,
                            rppHandle_t rppHandle)
 {
-    RppLayoutParams srcLayoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
+    RppLayoutParams srcLayoutParams = get_layout_params(srcDescPtr[0]->layout, srcDescPtr[0]->c);
 
     if(interpolationType == RpptInterpolationType::NEAREST_NEIGHBOR)
     {
-        if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+        if ((srcDescPtr[0]->dataType == RpptDataType::U8) && (dstDescPtr[0]->dataType == RpptDataType::U8))
         {
-            resize_nn_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+            resize_nn_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                         srcDescPtr,
-                                        static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                        static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                         dstDescPtr,
                                         dstImgSizes,
                                         roiTensorPtrSrc,
@@ -502,11 +502,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                         srcLayoutParams,
                                         rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::F16) && (dstDescPtr[0]->dataType == RpptDataType::F16))
         {
-            resize_nn_f16_f16_host_tensor((Rpp16f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+            resize_nn_f16_f16_host_tensor((Rpp16f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes),
                                           srcDescPtr,
-                                          (Rpp16f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                          (Rpp16f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes),
                                           dstDescPtr,
                                           dstImgSizes,
                                           roiTensorPtrSrc,
@@ -514,11 +514,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                           srcLayoutParams,
                                           rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::F32) && (dstDescPtr[0]->dataType == RpptDataType::F32))
         {
-            resize_nn_f32_f32_host_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+            resize_nn_f32_f32_host_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes),
                                           srcDescPtr,
-                                          (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                          (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes),
                                           dstDescPtr,
                                           dstImgSizes,
                                           roiTensorPtrSrc,
@@ -526,11 +526,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                           srcLayoutParams,
                                           rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::I8) && (dstDescPtr[0]->dataType == RpptDataType::I8))
         {
-            resize_nn_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+            resize_nn_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                         srcDescPtr,
-                                        static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                        static_cast<Rpp8s*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                         dstDescPtr,
                                         dstImgSizes,
                                         roiTensorPtrSrc,
@@ -541,11 +541,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
     }
     else if(interpolationType == RpptInterpolationType::BILINEAR)
     {
-        if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+        if ((srcDescPtr[0]->dataType == RpptDataType::U8) && (dstDescPtr[0]->dataType == RpptDataType::U8))
         {
-            resize_bilinear_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+            resize_bilinear_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                               srcDescPtr,
-                                              static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                              static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                               dstDescPtr,
                                               dstImgSizes,
                                               roiTensorPtrSrc,
@@ -553,11 +553,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                               srcLayoutParams,
                                               rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::F16) && (dstDescPtr[0]->dataType == RpptDataType::F16))
         {
-            resize_bilinear_f16_f16_host_tensor((Rpp16f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+            resize_bilinear_f16_f16_host_tensor((Rpp16f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes),
                                                 srcDescPtr,
-                                                (Rpp16f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                                (Rpp16f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes),
                                                 dstDescPtr,
                                                 dstImgSizes,
                                                 roiTensorPtrSrc,
@@ -565,11 +565,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                                 srcLayoutParams,
                                                 rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::F32) && (dstDescPtr[0]->dataType == RpptDataType::F32))
         {
-            resize_bilinear_f32_f32_host_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+            resize_bilinear_f32_f32_host_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes),
                                                 srcDescPtr,
-                                                (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                                (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes),
                                                 dstDescPtr,
                                                 dstImgSizes,
                                                 roiTensorPtrSrc,
@@ -577,11 +577,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                                 srcLayoutParams,
                                                 rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::I8) && (dstDescPtr[0]->dataType == RpptDataType::I8))
         {
-            resize_bilinear_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+            resize_bilinear_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                                srcDescPtr,
-                                               static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                               static_cast<Rpp8s*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                                dstDescPtr,
                                                dstImgSizes,
                                                roiTensorPtrSrc,
@@ -593,20 +593,20 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
     else
     {
         RpptDesc tempDesc;
-        tempDesc = *srcDescPtr;
+        tempDesc = *srcDescPtr[0];
         RpptDescPtr tempDescPtr = &tempDesc;
-        tempDescPtr->h = dstDescPtr->h;
-        tempDescPtr->strides.nStride = srcDescPtr->w * dstDescPtr->h * srcDescPtr->c;
+        tempDescPtr->h = dstDescPtr[0]->h;
+        tempDescPtr->strides.nStride = srcDescPtr[0]->w * dstDescPtr[0]->h * srcDescPtr[0]->c;
 
         // The channel stride changes with the change in the height for PLN images
-        if(srcDescPtr->layout == RpptLayout::NCHW)
-            tempDescPtr->strides.cStride = srcDescPtr->w * dstDescPtr->h;
+        if(srcDescPtr[0]->layout == RpptLayout::NCHW)
+            tempDescPtr->strides.cStride = srcDescPtr[0]->w * dstDescPtr[0]->h;
 
-        if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+        if ((srcDescPtr[0]->dataType == RpptDataType::U8) && (dstDescPtr[0]->dataType == RpptDataType::U8))
         {
-            resize_separable_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+            resize_separable_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                          srcDescPtr,
-                                         static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                         static_cast<Rpp8u*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                          dstDescPtr,
                                          rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.scratchBufferHost,
                                          tempDescPtr,
@@ -617,11 +617,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                          interpolationType,
                                          rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::F32) && (dstDescPtr[0]->dataType == RpptDataType::F32))
         {
-            resize_separable_host_tensor(static_cast<Rpp32f*>(srcPtr) + srcDescPtr->offsetInBytes,
+            resize_separable_host_tensor(static_cast<Rpp32f*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                          srcDescPtr,
-                                         static_cast<Rpp32f*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                         static_cast<Rpp32f*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                          dstDescPtr,
                                          rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.scratchBufferHost,
                                          tempDescPtr,
@@ -632,11 +632,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                          interpolationType,
                                          rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::I8) && (dstDescPtr[0]->dataType == RpptDataType::I8))
         {
-            resize_separable_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+            resize_separable_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                          srcDescPtr,
-                                         static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                         static_cast<Rpp8s*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                          dstDescPtr,
                                          rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.scratchBufferHost,
                                          tempDescPtr,
@@ -647,11 +647,11 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr,
                                          interpolationType,
                                          rpp::deref(rppHandle));
         }
-        else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+        else if ((srcDescPtr[0]->dataType == RpptDataType::F16) && (dstDescPtr[0]->dataType == RpptDataType::F16))
         {
-            resize_separable_host_tensor(static_cast<Rpp16f*>(srcPtr) + srcDescPtr->offsetInBytes,
+            resize_separable_host_tensor(static_cast<Rpp16f*>(srcPtr) + srcDescPtr[0]->offsetInBytes,
                                          srcDescPtr,
-                                         static_cast<Rpp16f*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                         static_cast<Rpp16f*>(dstPtr) + dstDescPtr[0]->offsetInBytes,
                                          dstDescPtr,
                                          rpp::deref(rppHandle).GetInitHandle()->mem.mcpu.scratchBufferHost,
                                          tempDescPtr,
