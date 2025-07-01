@@ -105,9 +105,9 @@ inline void compute_brightness_4_host(__m128 *p, __m128 *pBrightnessParams)
 }
 
 RppStatus brightness_u8_u8_host_tensor(Rpp8u *srcPtr,
-                                       RpptDescPtr srcDescPtr,
+                                       RpptDescPtr *srcDescPtrs,
                                        Rpp8u *dstPtr,
-                                       RpptDescPtr dstDescPtr,
+                                       RpptDescPtr *dstDescPtrs,
                                        Rpp32f *alphaTensor,
                                        Rpp32f *betaTensor,
                                        RpptROIPtr roiTensorPtrSrc,
@@ -115,16 +115,18 @@ RppStatus brightness_u8_u8_host_tensor(Rpp8u *srcPtr,
                                        RppLayoutParams layoutParams,
                                        rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtrs[batchCount]->w, (Rpp32s)srcDescPtrs[batchCount]->h};
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
 
         Rpp32f alpha = alphaTensor[batchCount];
         Rpp32f beta = betaTensor[batchCount];
@@ -319,9 +321,9 @@ RppStatus brightness_u8_u8_host_tensor(Rpp8u *srcPtr,
 }
 
 RppStatus brightness_f32_f32_host_tensor(Rpp32f *srcPtr,
-                                         RpptDescPtr srcDescPtr,
+                                         RpptDescPtr *srcDescPtrs,
                                          Rpp32f *dstPtr,
-                                         RpptDescPtr dstDescPtr,
+                                         RpptDescPtr *dstDescPtrs,
                                          Rpp32f *alphaTensor,
                                          Rpp32f *betaTensor,
                                          RpptROIPtr roiTensorPtrSrc,
@@ -329,14 +331,16 @@ RppStatus brightness_f32_f32_host_tensor(Rpp32f *srcPtr,
                                          RppLayoutParams layoutParams,
                                          rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
@@ -545,9 +549,9 @@ RppStatus brightness_f32_f32_host_tensor(Rpp32f *srcPtr,
 }
 
 RppStatus brightness_f16_f16_host_tensor(Rpp16f *srcPtr,
-                                         RpptDescPtr srcDescPtr,
+                                         RpptDescPtr *srcDescPtrs,
                                          Rpp16f *dstPtr,
-                                         RpptDescPtr dstDescPtr,
+                                         RpptDescPtr *dstDescPtrs,
                                          Rpp32f *alphaTensor,
                                          Rpp32f *betaTensor,
                                          RpptROIPtr roiTensorPtrSrc,
@@ -555,15 +559,17 @@ RppStatus brightness_f16_f16_host_tensor(Rpp16f *srcPtr,
                                          RppLayoutParams layoutParams,
                                          rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         Rpp32f alpha = alphaTensor[batchCount];
@@ -807,9 +813,9 @@ RppStatus brightness_f16_f16_host_tensor(Rpp16f *srcPtr,
 }
 
 RppStatus brightness_i8_i8_host_tensor(Rpp8s *srcPtr,
-                                       RpptDescPtr srcDescPtr,
+                                       RpptDescPtr *srcDescPtrs,
                                        Rpp8s *dstPtr,
-                                       RpptDescPtr dstDescPtr,
+                                       RpptDescPtr *dstDescPtrs,
                                        Rpp32f *alphaTensor,
                                        Rpp32f *betaTensor,
                                        RpptROIPtr roiTensorPtrSrc,
@@ -817,15 +823,17 @@ RppStatus brightness_i8_i8_host_tensor(Rpp8s *srcPtr,
                                        RppLayoutParams layoutParams,
                                        rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
+    for(int batchCount = 0; batchCount < dstDescPtrs[0]->n; batchCount++)
     {
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptDescPtr srcDescPtr = srcDescPtrs[batchCount];
+        RpptDescPtr dstDescPtr = dstDescPtrs[batchCount];
+        RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         Rpp32f alpha = alphaTensor[batchCount];
