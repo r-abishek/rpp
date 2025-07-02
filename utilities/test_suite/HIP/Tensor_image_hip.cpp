@@ -294,7 +294,7 @@ int main(int argc, char **argv)
     Rpp32f conversionFactor = 1.0f / 255.0;
     if(testCase == CROP_MIRROR_NORMALIZE)
         conversionFactor = 1.0;
-    Rpp32f invConversionFactor = 255.0;  //1.0f / conversionFactor;
+    Rpp32f invConversionFactor = 255.0;  // 1.0f / conversionFactor
 
     // Set buffer sizes in pixels for src/dst
     ioBufferSize = (Rpp64u)srcDescPtr->h * (Rpp64u)srcDescPtr->w * (Rpp64u)srcDescPtr->c * (Rpp64u)batchSize;
@@ -453,9 +453,7 @@ int main(int argc, char **argv)
 
     Rpp32u *posterizeLevelBits = nullptr;
     if(testCase == POSTERIZE)
-    {
         CHECK_RETURN_STATUS(hipHostMalloc(&posterizeLevelBits, batchSize * sizeof(Rpp32u)));
-    }
 
     // case-wise RPP API and measure time script for Unit and Performance test
     cout << "\nRunning " << func << " " << numRuns << " times (each time with a batch size of " << batchSize << " images) and computing mean statistics...";
