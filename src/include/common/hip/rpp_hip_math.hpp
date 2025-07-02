@@ -46,14 +46,14 @@ __device__ __forceinline__ void rpp_hip_math_max8(d_float8 *srcPtr_f8, float *ds
 
 __device__ __forceinline__ void rpp_hip_math_floor8(d_float8 *srcPtr_f8, d_float8 *dstPtr_f8)
 {
-    dstPtr_f8->f1[ 0] = floorf(srcPtr_f8->f1[ 0]);
-    dstPtr_f8->f1[ 1] = floorf(srcPtr_f8->f1[ 1]);
-    dstPtr_f8->f1[ 2] = floorf(srcPtr_f8->f1[ 2]);
-    dstPtr_f8->f1[ 3] = floorf(srcPtr_f8->f1[ 3]);
-    dstPtr_f8->f1[ 4] = floorf(srcPtr_f8->f1[ 4]);
-    dstPtr_f8->f1[ 5] = floorf(srcPtr_f8->f1[ 5]);
-    dstPtr_f8->f1[ 6] = floorf(srcPtr_f8->f1[ 6]);
-    dstPtr_f8->f1[ 7] = floorf(srcPtr_f8->f1[ 7]);
+    dstPtr_f8->f1[0] = floorf(srcPtr_f8->f1[0]);
+    dstPtr_f8->f1[1] = floorf(srcPtr_f8->f1[1]);
+    dstPtr_f8->f1[2] = floorf(srcPtr_f8->f1[2]);
+    dstPtr_f8->f1[3] = floorf(srcPtr_f8->f1[3]);
+    dstPtr_f8->f1[4] = floorf(srcPtr_f8->f1[4]);
+    dstPtr_f8->f1[5] = floorf(srcPtr_f8->f1[5]);
+    dstPtr_f8->f1[6] = floorf(srcPtr_f8->f1[6]);
+    dstPtr_f8->f1[7] = floorf(srcPtr_f8->f1[7]);
 }
 
 // d_float16 floor
@@ -235,14 +235,14 @@ __device__ __forceinline__ void rpp_hip_math_bitwiseAnd8(d_uchar8 *src1_uc8, d_u
 // Used to do bitwise and of the scaled float image representations - Values scaled from 0 to 255 with constant mask
 __device__ __forceinline__ void rpp_hip_math_scaled_bitwiseAnd8(d_float8 *src_f8, d_uchar8 *src_mask_u8, d_float8 *dst_f8)
 {
-        dst_f8->f1[0] = (float)((uchar)(std::nearbyintf)(src_f8->f1[0]) & src_mask_u8->uc1[0]);
-        dst_f8->f1[1] = (float)((uchar)(std::nearbyintf)(src_f8->f1[1]) & src_mask_u8->uc1[1]);
-        dst_f8->f1[2] = (float)((uchar)(std::nearbyintf)(src_f8->f1[2]) & src_mask_u8->uc1[2]);
-        dst_f8->f1[3] = (float)((uchar)(std::nearbyintf)(src_f8->f1[3]) & src_mask_u8->uc1[3]);
-        dst_f8->f1[4] = (float)((uchar)(std::nearbyintf)(src_f8->f1[4]) & src_mask_u8->uc1[4]);
-        dst_f8->f1[5] = (float)((uchar)(std::nearbyintf)(src_f8->f1[5]) & src_mask_u8->uc1[5]);
-        dst_f8->f1[6] = (float)((uchar)(std::nearbyintf)(src_f8->f1[6]) & src_mask_u8->uc1[6]);
-        dst_f8->f1[7] = (float)((uchar)(std::nearbyintf)(src_f8->f1[7]) & src_mask_u8->uc1[7]);
+        dst_f8->f1[0] = (float)((uchar)nearbyintf(src_f8->f1[0]) & src_mask_u8->uc1[0]);
+        dst_f8->f1[1] = (float)((uchar)nearbyintf(src_f8->f1[1]) & src_mask_u8->uc1[1]);
+        dst_f8->f1[2] = (float)((uchar)nearbyintf(src_f8->f1[2]) & src_mask_u8->uc1[2]);
+        dst_f8->f1[3] = (float)((uchar)nearbyintf(src_f8->f1[3]) & src_mask_u8->uc1[3]);
+        dst_f8->f1[4] = (float)((uchar)nearbyintf(src_f8->f1[4]) & src_mask_u8->uc1[4]);
+        dst_f8->f1[5] = (float)((uchar)nearbyintf(src_f8->f1[5]) & src_mask_u8->uc1[5]);
+        dst_f8->f1[6] = (float)((uchar)nearbyintf(src_f8->f1[6]) & src_mask_u8->uc1[6]);
+        dst_f8->f1[7] = (float)((uchar)nearbyintf(src_f8->f1[7]) & src_mask_u8->uc1[7]);
 }
 
 // d_uchar8 bitwiseOR

@@ -509,14 +509,14 @@ __global__ void posterize_pln3_pkd3_hip_tensor(Rpp32f *srcPtr,
 
 
 template <typename T>
-RppStatus hip_exec_char_posterize_tensor(T *srcPtr,
-                                         RpptDescPtr srcDescPtr,
-                                         T *dstPtr,
-                                         RpptDescPtr dstDescPtr,
-                                         Rpp32u *posterizeLevelBits,
-                                         RpptROIPtr roiTensorPtrSrc,
-                                         RpptRoiType roiType,
-                                         rpp::Handle& handle)
+RppStatus hip_exec_posterize_tensor(T *srcPtr,
+                                    RpptDescPtr srcDescPtr,
+                                    T *dstPtr,
+                                    RpptDescPtr dstDescPtr,
+                                    Rpp32u *posterizeLevelBits,
+                                    RpptROIPtr roiTensorPtrSrc,
+                                    RpptRoiType roiType,
+                                    rpp::Handle& handle)
 {
     if (roiType == RpptRoiType::LTRB)
         hip_exec_roi_converison_ltrb_to_xywh(roiTensorPtrSrc, handle);
@@ -589,29 +589,29 @@ RppStatus hip_exec_char_posterize_tensor(T *srcPtr,
     return RPP_SUCCESS;
 }
 
-template RppStatus hip_exec_char_posterize_tensor<Rpp8u>(Rpp8u*,
-                                                        RpptDescPtr,
-                                                        Rpp8u*,
-                                                        RpptDescPtr,
-                                                        Rpp32u*,
-                                                        RpptROIPtr,
-                                                        RpptRoiType,
-                                                        rpp::Handle&);
+template RppStatus hip_exec_posterize_tensor<Rpp8u>(Rpp8u*,
+                                                    RpptDescPtr,
+                                                    Rpp8u*,
+                                                    RpptDescPtr,
+                                                    Rpp32u*,
+                                                    RpptROIPtr,
+                                                    RpptRoiType,
+                                                    rpp::Handle&);
 
-template RppStatus hip_exec_char_posterize_tensor<half>(half*,
-                                                        RpptDescPtr,
-                                                        half*,
-                                                        RpptDescPtr,
-                                                        Rpp32u*,
-                                                        RpptROIPtr,
-                                                        RpptRoiType,
-                                                        rpp::Handle&);
+template RppStatus hip_exec_posterize_tensor<half>(half*,
+                                                    RpptDescPtr,
+                                                    half*,
+                                                    RpptDescPtr,
+                                                    Rpp32u*,
+                                                    RpptROIPtr,
+                                                    RpptRoiType,
+                                                    rpp::Handle&);
 
-template RppStatus hip_exec_char_posterize_tensor<Rpp32f>(Rpp32f*,
-                                                          RpptDescPtr,
-                                                          Rpp32f*,
-                                                          RpptDescPtr,
-                                                          Rpp32u*,
-                                                          RpptROIPtr,
-                                                          RpptRoiType,
-                                                          rpp::Handle&);
+template RppStatus hip_exec_posterize_tensor<Rpp32f>(Rpp32f*,
+                                                    RpptDescPtr,
+                                                    Rpp32f*,
+                                                    RpptDescPtr,
+                                                    Rpp32u*,
+                                                    RpptROIPtr,
+                                                    RpptRoiType,
+                                                    rpp::Handle&);
