@@ -90,11 +90,11 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrement)
                 {
-                    __m256i p[3];
+                    __m256i px[3];
                     rpp_simd_load(rpp_load96_u8pkd3_to_u8pln3, srcPtrTemp, p);
-                    p[0] = _mm256_and_si256(p[0], pxPosterizeBitsMask);
-                    p[1] = _mm256_and_si256(p[1], pxPosterizeBitsMask);
-                    p[2] = _mm256_and_si256(p[2], pxPosterizeBitsMask);
+                    px[0] = _mm256_and_si256(px[0], pxPosterizeBitsMask);
+                    px[1] = _mm256_and_si256(px[1], pxPosterizeBitsMask);
+                    px[2] = _mm256_and_si256(px[2], pxPosterizeBitsMask);
                     rpp_simd_store(rpp_store96_u8pln3_to_u8pln3, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);    // simd stores
 
                     srcPtrTemp += vectorIncrement;
@@ -143,11 +143,11 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-                    __m256i p[3];
+                    __m256i px[3];
                     rpp_simd_load(rpp_load96_u8_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    p[0] = _mm256_and_si256(p[0], pxPosterizeBitsMask);
-                    p[1] = _mm256_and_si256(p[1], pxPosterizeBitsMask);
-                    p[2] = _mm256_and_si256(p[2], pxPosterizeBitsMask);
+                    px[0] = _mm256_and_si256(px[0], pxPosterizeBitsMask);
+                    px[1] = _mm256_and_si256(px[1], pxPosterizeBitsMask);
+                    px[2] = _mm256_and_si256(px[2], pxPosterizeBitsMask);
                     rpp_simd_store(rpp_store96_u8pln3_to_u8pkd3, dstPtrTemp, p);    // simd stores
 
                     srcPtrTempR += vectorIncrementPerChannel;
@@ -203,12 +203,12 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
 #if __AVX2__
                 for (; vectorLoopCount < alignedLength; vectorLoopCount += vectorIncrementPerChannel)
                 {
-                    __m256i p[3];
+                    __m256i px[3];
 
                     rpp_simd_load(rpp_load96_u8_avx, srcPtrTempR, srcPtrTempG, srcPtrTempB, p);    // simd loads
-                    p[0] = _mm256_and_si256(p[0], pxPosterizeBitsMask);
-                    p[1] = _mm256_and_si256(p[1], pxPosterizeBitsMask);
-                    p[2] = _mm256_and_si256(p[2], pxPosterizeBitsMask);
+                    px[0] = _mm256_and_si256(px[0], pxPosterizeBitsMask);
+                    px[1] = _mm256_and_si256(px[1], pxPosterizeBitsMask);
+                    px[2] = _mm256_and_si256(px[2], pxPosterizeBitsMask);
                     rpp_simd_store(rpp_store96_u8pln3_to_u8pln3, dstPtrTempR, dstPtrTempG, dstPtrTempB, p);
 
                     srcPtrTempR += vectorIncrementPerChannel;
@@ -264,10 +264,10 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
 #if __AVX2__
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 32)
                     {
-                        __m256i p;
+                        __m256i px;
 
-                        p = _mm256_loadu_si256((const __m256i *)srcPtrTemp);    // simd loads
-                        p = _mm256_and_si256(p, pxPosterizeBitsMask);
+                        px = _mm256_loadu_si256((const __m256i *)srcPtrTemp);    // simd loads
+                        px = _mm256_and_si256(px, pxPosterizeBitsMask);
                         _mm256_storeu_si256((__m256i *)dstPtrTemp, p);    // simd stores
 
                         srcPtrTemp +=32;

@@ -964,6 +964,7 @@ inline void write_image_batch_opencv(string outputFolder, Rpp8u *output, RpptDes
             cvtColor(matOutputImageRgb, matOutputImage, COLOR_RGB2BGR);
         }
 
+        fs::path pathObj(outputImagePath);
         if (fs::exists(pathObj))
         {
             std::string outPath = outputImagePath.substr(0, outputImagePath.find_last_of('.')) + "_" + to_string(cnt) + outputImagePath.substr(outputImagePath.find_last_of('.'));
