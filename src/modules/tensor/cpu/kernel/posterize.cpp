@@ -105,14 +105,11 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
-                    *dstPtrTempR = srcPtrTemp[0] & posterizeBitsMask;
-                    *dstPtrTempG = srcPtrTemp[1] & posterizeBitsMask;
-                    *dstPtrTempB = srcPtrTemp[2] & posterizeBitsMask;
+                    *dstPtrTempR++ = srcPtrTemp[0] & posterizeBitsMask;
+                    *dstPtrTempG++ = srcPtrTemp[1] & posterizeBitsMask;
+                    *dstPtrTempB++ = srcPtrTemp[2] & posterizeBitsMask;
 
                     srcPtrTemp += 3;
-                    dstPtrTempR++;
-                    dstPtrTempG++;
-                    dstPtrTempB++;
                 }
 
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -158,13 +155,10 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    dstPtrTemp[0] = (*srcPtrTempR) & posterizeBitsMask;
-                    dstPtrTemp[1] = (*srcPtrTempG) & posterizeBitsMask;
-                    dstPtrTemp[2] = (*srcPtrTempB) & posterizeBitsMask;
+                    dstPtrTemp[0] = (*srcPtrTempR++) & posterizeBitsMask;
+                    dstPtrTemp[1] = (*srcPtrTempG++) & posterizeBitsMask;
+                    dstPtrTemp[2] = (*srcPtrTempB++) & posterizeBitsMask;
 
-                    srcPtrTempR++;
-                    srcPtrTempG++;
-                    srcPtrTempB++;
                     dstPtrTemp += 3;
                 }
 
@@ -221,16 +215,9 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    *dstPtrTempR = *srcPtrTempR & posterizeBitsMask;
-                    *dstPtrTempG = *srcPtrTempG & posterizeBitsMask;
-                    *dstPtrTempB = *srcPtrTempB & posterizeBitsMask;
-
-                    srcPtrTempR++;
-                    srcPtrTempG++;
-                    srcPtrTempB++;
-                    dstPtrTempR++;
-                    dstPtrTempG++;
-                    dstPtrTempB++;
+                    *dstPtrTempR++ = *srcPtrTempR++ & posterizeBitsMask;
+                    *dstPtrTempG++ = *srcPtrTempG++ & posterizeBitsMask;
+                    *dstPtrTempB++ = *srcPtrTempB++ & posterizeBitsMask;
                 }
 
                 srcPtrRowR += srcDescPtr->strides.hStride;
@@ -276,10 +263,7 @@ RppStatus posterize_char_host_tensor(Rpp8u *srcPtr,
 #endif
                     for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                     {
-                        *dstPtrTemp = (*srcPtrTemp) & posterizeBitsMask;
-
-                        srcPtrTemp++;
-                        dstPtrTemp++;
+                        *dstPtrTemp++ = (*srcPtrTemp++) & posterizeBitsMask;
                     }
                     srcPtrRow += srcDescPtr->strides.hStride;
                     dstPtrRow += dstDescPtr->strides.hStride;
@@ -369,14 +353,11 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
-                    *dstPtrTempR = std::floor(srcPtrTemp[0] * posterizeBitsFactor)/posterizeBitsFactor;
-                    *dstPtrTempG = std::floor(srcPtrTemp[1] * posterizeBitsFactor)/posterizeBitsFactor;
-                    *dstPtrTempB = std::floor(srcPtrTemp[2] * posterizeBitsFactor)/posterizeBitsFactor;
+                    *dstPtrTempR++ = std::floor(srcPtrTemp[0] * posterizeBitsFactor)/posterizeBitsFactor;
+                    *dstPtrTempG++ = std::floor(srcPtrTemp[1] * posterizeBitsFactor)/posterizeBitsFactor;
+                    *dstPtrTempB++ = std::floor(srcPtrTemp[2] * posterizeBitsFactor)/posterizeBitsFactor;
 
                     srcPtrTemp += 3;
-                    dstPtrTempR++;
-                    dstPtrTempG++;
-                    dstPtrTempB++;
                 }
 
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -422,13 +403,10 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    dstPtrTemp[0] = std::floor(*srcPtrTempR * posterizeBitsFactor)/posterizeBitsFactor;
-                    dstPtrTemp[1] = std::floor(*srcPtrTempG * posterizeBitsFactor)/posterizeBitsFactor;
-                    dstPtrTemp[2] = std::floor(*srcPtrTempB * posterizeBitsFactor)/posterizeBitsFactor;
+                    dstPtrTemp[0] = std::floor(*srcPtrTempR++ * posterizeBitsFactor)/posterizeBitsFactor;
+                    dstPtrTemp[1] = std::floor(*srcPtrTempG++ * posterizeBitsFactor)/posterizeBitsFactor;
+                    dstPtrTemp[2] = std::floor(*srcPtrTempB++ * posterizeBitsFactor)/posterizeBitsFactor;
 
-                    srcPtrTempR++;
-                    srcPtrTempG++;
-                    srcPtrTempB++;
                     dstPtrTemp += 3;
                 }
 
@@ -473,10 +451,7 @@ RppStatus posterize_f32_f32_host_tensor(Rpp32f *srcPtr,
 #endif
                     for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                     {
-                        *dstPtrTemp = std::floor(*srcPtrTemp * posterizeBitsFactor)/posterizeBitsFactor;
-
-                        srcPtrTemp++;
-                        dstPtrTemp++;
+                        *dstPtrTemp++ = std::floor(*srcPtrTemp++ * posterizeBitsFactor)/posterizeBitsFactor;
                     }
 
                     srcPtrRow += srcDescPtr->strides.hStride;
@@ -571,14 +546,11 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount += 3)
                 {
-                    *dstPtrTempR = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[0] * 255) & posterizeBitsMask) / 255));
-                    *dstPtrTempG = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[1] * 255) & posterizeBitsMask) / 255));
-                    *dstPtrTempB = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[2] * 255) & posterizeBitsMask) / 255));
+                    *dstPtrTempR++ = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[0] * 255) & posterizeBitsMask) / 255));
+                    *dstPtrTempG++ = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[1] * 255) & posterizeBitsMask) / 255));
+                    *dstPtrTempB++ = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(srcPtrTemp[2] * 255) & posterizeBitsMask) / 255));
 
                     srcPtrTemp += 3;
-                    dstPtrTempR++;
-                    dstPtrTempG++;
-                    dstPtrTempB++;
                 }
 
                 srcPtrRow += srcDescPtr->strides.hStride;
@@ -627,13 +599,10 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
 #endif
                 for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                 {
-                    dstPtrTemp[0] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempR * 255) & posterizeBitsMask) / 255));
-                    dstPtrTemp[1] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempG * 255) & posterizeBitsMask) / 255));
-                    dstPtrTemp[2] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempB * 255) & posterizeBitsMask) / 255));
+                    dstPtrTemp[0] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempR++ * 255) & posterizeBitsMask) / 255));
+                    dstPtrTemp[1] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempG++ * 255) & posterizeBitsMask) / 255));
+                    dstPtrTemp[2] = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTempB++ * 255) & posterizeBitsMask) / 255));
 
-                    srcPtrTempR++;
-                    srcPtrTempG++;
-                    srcPtrTempB++;
                     dstPtrTemp += 3;
                 }
 
@@ -679,10 +648,7 @@ RppStatus posterize_f16_f16_host_tensor(Rpp16f *srcPtr,
 #endif
                     for (; vectorLoopCount < bufferLength; vectorLoopCount++)
                     {
-                        *dstPtrTemp = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTemp * 255) & posterizeBitsMask) / 255));
-
-                        srcPtrTemp++;
-                        dstPtrTemp++;
+                        *dstPtrTemp++ = static_cast<Rpp16f>(RPPPIXELCHECKF32((float)((uint)(std::nearbyintf)(*srcPtrTemp++ * 255) & posterizeBitsMask) / 255));
                     }
 
                     srcPtrRow += srcDescPtr->strides.hStride;
