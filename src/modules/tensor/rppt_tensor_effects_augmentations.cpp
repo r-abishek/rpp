@@ -1358,6 +1358,13 @@ RppStatus rppt_posterize_host(RppPtr_t srcPtr,
                               RpptRoiType roiType,
                               rppHandle_t rppHandle)
 {
+    if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
+    if ((dstDescPtr->layout != RpptLayout::NCHW) && (dstDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
+    for(int i = 0; i < srcDescPtr->n; i++)
+        if((posterizeLevelBits[i] < 0) && (posterizeLevelBits[i] > 8))
+            return RPP_ERROR_INVALID_ARGUMENTS;
+
+
     RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
 
     if (((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8)) || ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8)))
@@ -2820,6 +2827,11 @@ RppStatus rppt_posterize_gpu(RppPtr_t srcPtr,
                              rppHandle_t rppHandle)
 {
 #ifdef HIP_COMPILE
+    if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
+    if ((dstDescPtr->layout != RpptLayout::NCHW) && (dstDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
+    for(int i = 0; i < srcDescPtr->n; i++)
+        if((posterizeLevelBits[i] < 0) && (posterizeLevelBits[i] > 8))
+            return RPP_ERROR_INVALID_ARGUMENTS;
     if (((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8)) || ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8)))
     {
         hip_exec_posterize_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
