@@ -155,6 +155,51 @@ __device__ void box_filter_5x5_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
     dst_f8->f1[7] = fmaf(src_f1, 0.04f, dst_f8->f1[7]);
 }
 
+__device__ void box_filter_5x5_float_row_hip_compute(float *srcPtr, d_float8 *dst_f8)
+{
+    d_float12 *src_f12 = (d_float12 *)srcPtr;
+    dst_f8->f1[0] = fmaf(src_f12->f1[0], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[1], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[1], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[2], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[2], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[2], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[3], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[3], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[3], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[3], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[7]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[8], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[8], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[8], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[8], 0.04f, dst_f8->f1[7]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[9], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[9], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[9], 0.04f, dst_f8->f1[7]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[10], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[10], 0.04f, dst_f8->f1[7]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[11], 0.04f, dst_f8->f1[7]);
+}
+
 __device__ void box_filter_7x7_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
 {
     float src_f1;
@@ -230,6 +275,68 @@ __device__ void box_filter_7x7_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
     src_f1 = rpp_hip_unpack1(src_ui4.w);
     dst_f8->f1[7] = fmaf(src_f1, 0.02040816f, dst_f8->f1[7]);
 }
+
+__device__ void box_filter_7x7_float_row_hip_compute_test(float *srcPtr, d_float8 *dst_f8)
+{
+    d_float16 *src_f16 = (d_float16 *)srcPtr;
+    dst_f8->f1[0] = fmaf(src_f16->f1[0], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[1], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[1], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[2], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[2], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[2], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[3], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[3], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[3], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[3], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[10], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[10], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[10], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[10], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[11], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[11], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[11], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[12], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[12], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[13], 0.02040816f, dst_f8->f1[7]);
+}
+
 
 __device__ void box_filter_9x9_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
 {
@@ -323,6 +430,83 @@ __device__ void box_filter_9x9_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
     dst_f8->f1[7] = fmaf(src_f1, 0.01234568f, dst_f8->f1[7]);
     src_f1 = rpp_hip_unpack3(src_ui4.w);
     dst_f8->f1[7] = fmaf(src_f1, 0.01234568f, dst_f8->f1[7]);
+}
+
+__device__ void box_filter_9x9_row_hip_compute_test(float *srcPtr, d_float8 *dst_f8)
+{
+    d_float16 *src_f16 = (d_float16 *)srcPtr;
+    dst_f8->f1[0] = fmaf(src_f16->f1[0], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[1], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[1], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[2], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[2], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[2], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[3], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[3], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[3], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[3], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[12], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[12], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[12], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[12], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[13], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[13], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[13], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[14], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[14], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[15], 0.01234568f, dst_f8->f1[7]);
 }
 
 // -------------------- Set 1 - PKD3->PKD3 for T = U8/F32/F16/I8 --------------------
@@ -844,6 +1028,7 @@ __global__ void box_filter_3x3_pln_char_hip_tensor(T *srcPtr,
     }
 }
 
+// kernelSize = 3
 template <typename T>
 __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
                                                    uint3 srcStridesNCH,
@@ -870,7 +1055,7 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
     sum_f8.f4[1] = (float4) 0;
     if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
         (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
     else
     {
         // Nearest-neighbor padding
@@ -885,7 +1070,7 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
-        rpp_hip_load8_and_unpack_to_float8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -896,7 +1081,6 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
         box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
         box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
         box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
-        rpp_hip_adjust_range(dstPtr, &sum_f8);
         rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
     }
 
@@ -909,7 +1093,7 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
         sum_f8.f4[1] = (float4) 0;
         if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
         else
         {
             // Nearest-neighbor padding
@@ -924,7 +1108,7 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            rpp_hip_load8_and_unpack_to_float8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -935,7 +1119,6 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
             box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
             box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
             box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
             rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
         }
 
@@ -946,7 +1129,7 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
         sum_f8.f4[1] = (float4) 0;
         if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
         else
         {
             // Nearest-neighbor padding
@@ -961,7 +1144,7 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            rpp_hip_load8_and_unpack_to_float8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -972,22 +1155,22 @@ __global__ void box_filter_3x3_pln_float_hip_tensor(T *srcPtr,
             box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
             box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
             box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
             rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
         }
     }
 }
 
+
 // kernelSize = 5
 template <typename T>
-__global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
-                                          uint3 srcStridesNCH,
-                                          T *dstPtr,
-                                          uint3 dstStridesNCH,
-                                          int channelsDst,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+__global__ void box_filter_5x5_pln_char_hip_tensor(T *srcPtr,
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint3 dstStridesNCH,
+                                                    int channelsDst,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -1119,9 +1302,147 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
     }
 }
 
+// kernelSize = 5
+template <typename T>
+__global__ void box_filter_5x5_pln_float_hip_tensor(T *srcPtr,
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint3 dstStridesNCH,
+                                                    int channelsDst,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
+{
+    int hipThreadIdx_x8 = hipThreadIdx_x << 3;
+    int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
+    int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
+    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+    int id_x_i = id_x_o - padLength;
+    int id_y_i = id_y_o - padLength;
+    d_float8 sum_f8;
+    __shared__ float src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
+
+    int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
+    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    sum_f8.f4[0] = (float4) 0;
+    sum_f8.f4[1] = (float4) 0;
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+    else
+    {
+        // Nearest-neighbor padding
+        T tempBuffer[8]; // Temporary storage for 8 pixels
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+        }
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+    }
+    __syncthreads();
+    if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+        (hipThreadIdx_x < tileSize.x) &&
+        (hipThreadIdx_y < tileSize.y))
+    {
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+        rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+    }
+
+    if (channelsDst == 3)
+    {
+        __syncthreads();
+        srcIdx += srcStridesNCH.y;
+        dstIdx += dstStridesNCH.y;
+        sum_f8.f4[0] = (float4) 0;
+        sum_f8.f4[1] = (float4) 0;
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+        else
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+        }
+        __syncthreads();
+        if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+            (hipThreadIdx_x < tileSize.x) &&
+            (hipThreadIdx_y < tileSize.y))
+        {
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        }
+
+        __syncthreads();
+        srcIdx += srcStridesNCH.y;
+        dstIdx += dstStridesNCH.y;
+        sum_f8.f4[0] = (float4) 0;
+        sum_f8.f4[1] = (float4) 0;
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+        else
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+        }
+        __syncthreads();
+        if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+            (hipThreadIdx_x < tileSize.x) &&
+            (hipThreadIdx_y < tileSize.y))
+        {
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+            box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        }
+    }
+}
+
 // kernelSize = 7
 template <typename T>
-__global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
+__global__ void box_filter_7x7_pln_char_hip_tensor(T *srcPtr,
                                               uint3 srcStridesNCH,
                                               T *dstPtr,
                                               uint3 dstStridesNCH,
@@ -1266,9 +1587,153 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
     }
 }
 
+// kernelSize = 7
+template <typename T>
+__global__ void box_filter_7x7_pln_float_hip_tensor(T *srcPtr,
+                                              uint3 srcStridesNCH,
+                                              T *dstPtr,
+                                              uint3 dstStridesNCH,
+                                              int channelsDst,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
+{
+    int hipThreadIdx_x8 = hipThreadIdx_x << 3;
+    int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
+    int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
+    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+    int id_x_i = id_x_o - padLength;
+    int id_y_i = id_y_o - padLength;
+    d_float8 sum_f8;
+    __shared__ float src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
+
+    int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
+    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    sum_f8.f4[0] = (float4) 0;
+    sum_f8.f4[1] = (float4) 0;
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+    else
+    {
+        // Nearest-neighbor padding
+        T tempBuffer[8]; // Temporary storage for 8 pixels
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+        }
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+    }
+    __syncthreads();
+    if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+        (hipThreadIdx_x < tileSize.x) &&
+        (hipThreadIdx_y < tileSize.y))
+    {
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
+        rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+    }
+
+    if (channelsDst == 3)
+    {
+        __syncthreads();
+        srcIdx += srcStridesNCH.y;
+        dstIdx += dstStridesNCH.y;
+        sum_f8.f4[0] = (float4) 0;
+        sum_f8.f4[1] = (float4) 0;
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+        else
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+        }
+        __syncthreads();
+        if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+            (hipThreadIdx_x < tileSize.x) &&
+            (hipThreadIdx_y < tileSize.y))
+        {
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
+            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        }
+
+        __syncthreads();
+        srcIdx += srcStridesNCH.y;
+        dstIdx += dstStridesNCH.y;
+        sum_f8.f4[0] = (float4) 0;
+        sum_f8.f4[1] = (float4) 0;
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+        else
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+        }
+        __syncthreads();
+        if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+            (hipThreadIdx_x < tileSize.x) &&
+            (hipThreadIdx_y < tileSize.y))
+        {
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
+            box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
+            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        }
+    }
+}
+
 // kernelSize = 9
 template <typename T>
-__global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
+__global__ void box_filter_9x9_pln_char_hip_tensor(T *srcPtr,
                                               uint3 srcStridesNCH,
                                               T *dstPtr,
                                               uint3 dstStridesNCH,
@@ -1414,6 +1879,155 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
             box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 7][hipThreadIdx_x8], &sum_f8);
             box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 8][hipThreadIdx_x8], &sum_f8);
             rpp_hip_adjust_range(dstPtr, &sum_f8);
+            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        }
+    }
+}
+
+template <typename T>
+__global__ void box_filter_9x9_pln_float_hip_tensor(T *srcPtr,
+                                              uint3 srcStridesNCH,
+                                              T *dstPtr,
+                                              uint3 dstStridesNCH,
+                                              int channelsDst,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
+{
+    int hipThreadIdx_x8 = hipThreadIdx_x << 3;
+    int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
+    int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
+    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+    int id_x_i = id_x_o - padLength;
+    int id_y_i = id_y_o - padLength;
+    d_float8 sum_f8;
+    __shared__ float src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
+
+    int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
+    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    sum_f8.f4[0] = (float4) 0;
+    sum_f8.f4[1] = (float4) 0;
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+    else
+    {
+        // Nearest-neighbor padding
+        T tempBuffer[8]; // Temporary storage for 8 pixels
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+        }
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+    }
+    __syncthreads();
+    if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+        (hipThreadIdx_x < tileSize.x) &&
+        (hipThreadIdx_y < tileSize.y))
+    {
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 7][hipThreadIdx_x8], &sum_f8);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 8][hipThreadIdx_x8], &sum_f8);
+        rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+    }
+
+    if (channelsDst == 3)
+    {
+        __syncthreads();
+        srcIdx += srcStridesNCH.y;
+        dstIdx += dstStridesNCH.y;
+        sum_f8.f4[0] = (float4) 0;
+        sum_f8.f4[1] = (float4) 0;
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+        else
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+        }
+        __syncthreads();
+        if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+            (hipThreadIdx_x < tileSize.x) &&
+            (hipThreadIdx_y < tileSize.y))
+        {
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 7][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 8][hipThreadIdx_x8], &sum_f8);
+            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        }
+
+        __syncthreads();
+        srcIdx += srcStridesNCH.y;
+        dstIdx += dstStridesNCH.y;
+        sum_f8.f4[0] = (float4) 0;
+        sum_f8.f4[1] = (float4) 0;
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8]));
+        else
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            rpp_hip_load8_and_unpack_to_float8(tempBuffer, (d_float8*)(&src_smem[hipThreadIdx_y][hipThreadIdx_x8])); // Convert to uchar8
+        }
+        __syncthreads();
+        if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+            (hipThreadIdx_x < tileSize.x) &&
+            (hipThreadIdx_y < tileSize.y))
+        {
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 7][hipThreadIdx_x8], &sum_f8);
+            box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y + 8][hipThreadIdx_x8], &sum_f8);
             rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
         }
     }
@@ -2325,51 +2939,108 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
         }
         else if (kernelSize == 5)
         {
-            hipLaunchKernelGGL(box_filter_5x5_pln_hip_tensor,
-                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                               0,
-                               handle.GetStream(),
-                               srcPtr,
-                               make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                               dstPtr,
-                               make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                               dstDescPtr->c,
-                               padLength,
-                               tileSize,
-                               roiTensorPtrSrc);
+            if((srcDescPtr->dataType == RpptDataType::F32) || (srcDescPtr->dataType == RpptDataType::F16))
+            {
+                hipLaunchKernelGGL(box_filter_5x5_pln_float_hip_tensor,
+                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                0,
+                                handle.GetStream(),
+                                srcPtr,
+                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                dstPtr,
+                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                dstDescPtr->c,
+                                padLength,
+                                tileSize,
+                                roiTensorPtrSrc);
+                }
+            else
+            {
+                hipLaunchKernelGGL(box_filter_5x5_pln_char_hip_tensor,
+                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                0,
+                                handle.GetStream(),
+                                srcPtr,
+                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                dstPtr,
+                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                dstDescPtr->c,
+                                padLength,
+                                tileSize,
+                                roiTensorPtrSrc);
+            }
         }
         else if (kernelSize == 7)
         {
-            hipLaunchKernelGGL(box_filter_7x7_pln_hip_tensor,
-                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                               0,
-                               handle.GetStream(),
-                               srcPtr,
-                               make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                               dstPtr,
-                               make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                               dstDescPtr->c,
-                               padLength,
-                               tileSize,
-                               roiTensorPtrSrc);
+            if((srcDescPtr->dataType == RpptDataType::F32) || (srcDescPtr->dataType == RpptDataType::F16))
+            {
+                hipLaunchKernelGGL(box_filter_7x7_pln_float_hip_tensor,
+                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                0,
+                                handle.GetStream(),
+                                srcPtr,
+                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                dstPtr,
+                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                dstDescPtr->c,
+                                padLength,
+                                tileSize,
+                                roiTensorPtrSrc);
+            }
+            else
+            {
+                hipLaunchKernelGGL(box_filter_7x7_pln_char_hip_tensor,
+                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                0,
+                                handle.GetStream(),
+                                srcPtr,
+                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                dstPtr,
+                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                dstDescPtr->c,
+                                padLength,
+                                tileSize,
+                                roiTensorPtrSrc);
+                }
         }
         else if (kernelSize == 9)
         {
-            hipLaunchKernelGGL(box_filter_9x9_pln_hip_tensor,
-                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                               0,
-                               handle.GetStream(),
-                               srcPtr,
-                               make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                               dstPtr,
-                               make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                               dstDescPtr->c,
-                               padLength,
-                               tileSize,
-                               roiTensorPtrSrc);
+            if((srcDescPtr->dataType == RpptDataType::F32) || (srcDescPtr->dataType == RpptDataType::F16))
+            {
+                hipLaunchKernelGGL(box_filter_9x9_pln_float_hip_tensor,
+                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                0,
+                                handle.GetStream(),
+                                srcPtr,
+                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                dstPtr,
+                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                dstDescPtr->c,
+                                padLength,
+                                tileSize,
+                                roiTensorPtrSrc);
+                }
+                else
+                {
+                hipLaunchKernelGGL(box_filter_9x9_pln_char_hip_tensor,
+                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                0,
+                                handle.GetStream(),
+                                srcPtr,
+                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                dstPtr,
+                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                dstDescPtr->c,
+                                padLength,
+                                tileSize,
+                                roiTensorPtrSrc);
+                }
         }
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))

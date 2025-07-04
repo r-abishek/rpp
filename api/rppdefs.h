@@ -466,9 +466,9 @@ typedef enum
 
 typedef enum
 {
-    REPLICATE = 0, // Similar to Nearest Neighbors
-    CONSTANT,      // Unsupported Border Type
-    REFLECT        // Unsupported Border Type
+    REPLICATE = 0,     // Similar to Nearest Neighbors
+    CONSTANT,          // Unsupported Border Type
+    REFLECT_NO_EDGE    // Unsupported Border Type
 } RpptImageBorderType;
 
 /*! \brief RPPT Mel Scale Formula
