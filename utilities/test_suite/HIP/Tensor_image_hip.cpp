@@ -395,6 +395,7 @@ int main(int argc, char **argv)
     Rpp32f *colorBuffer;
     RpptRoiLtrb *anchorBoxInfoTensor;
     Rpp32u *numOfBoxes;
+    bool *channelMaskHostPinned = nullptr;
 
     if(testCase == ERASE)
     {
@@ -404,12 +405,14 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&numOfBoxes, batchSize * sizeof(Rpp32u)));
     }
 
-    if(dropoutTypeCase)
+    if(testCase == DROPOUT)
     {
-        boxesInEachImage = 100;
-        CHECK_RETURN_STATUS(hipHostMalloc(&colorBuffer, batchSize * boxesInEachImage * sizeof(Rpp32f)));
+        boxesInEachImage = 100; 
+        CHECK_RETURN_STATUS(hipHostMalloc(&colorBuffer, batchSize * boxesInEachImage * srcDescPtr->c * sizeof(Rpp32f)));
         CHECK_RETURN_STATUS(hipMemset(colorBuffer, 0, batchSize * boxesInEachImage * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&channelMaskHostPinned, batchSize * srcDescPtr->c * sizeof(bool)));
         CHECK_RETURN_STATUS(hipHostMalloc(&anchorBoxInfoTensor, batchSize * boxesInEachImage * sizeof(RpptRoiLtrb)));
+        // memset(&anchorBoxInfoTensor, 0, batchSize * maxBoxesPerImage * sizeof(RpptRoiLtrb));
         CHECK_RETURN_STATUS(hipHostMalloc(&numOfBoxes, batchSize * sizeof(Rpp32u)));
     }
 
@@ -1660,12 +1663,12 @@ int main(int argc, char **argv)
                         case 2: // Coarse Dropout
                         {
                             testCaseName = "coarse";
-                            boxesInEachImage = 8;
+                            int maxBoxesPerImage = 8;
 
-                            init_dropout_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 2);
+                            init_dropout_erase(batchSize, maxBoxesPerImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, inputBitDepth, 2);
                             startWallTime = omp_get_wtime();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_erase_gpu(d_input, srcDescPtr, d_output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                                rppt_coarse_dropout_gpu(d_input, srcDescPtr, d_output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, maxBoxesPerImage, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
@@ -1675,40 +1678,31 @@ int main(int argc, char **argv)
                         {
                             testCaseName = "channel";
 
+                            // Initialize pinned host memory
                             Rpp32f dropProb = 0.4f;
-                            int numChannels = srcDescPtr->c;
-                            int totalChannels = batchSize * numChannels;
-
-                            // Allocate and initialize host mask
-                            bool *channelMaskHost = new bool[totalChannels];
+                            int totalChannels = batchSize * srcDescPtr->c;
                             std::mt19937 gen(42);
-                            std::uniform_real_distribution<float> dist(0.0f, 1.0f);
-                            for (int i = 0; i < totalChannels; i++)
-                                channelMaskHost[i] = (dist(gen) >= dropProb);
-
-                            // Allocate device memory and copy mask
-                            bool *channelMaskDevice = nullptr;
-                            hipMalloc(&channelMaskDevice, totalChannels * sizeof(bool));
-                            hipMemcpy(channelMaskDevice, channelMaskHost, totalChannels * sizeof(bool), hipMemcpyHostToDevice);
+                            std::bernoulli_distribution keepDist(1.0f - dropProb); // true = keep, false = drop
+                            for (int b = 0; b < batchSize; b++)
+                            {
+                                bool anyKept = false;
+                                int base = b * srcDescPtr->c;
+                                for (int c = 0; c < srcDescPtr->c; c++)
+                                {
+                                    channelMaskHostPinned[base + c] = keepDist(gen);
+                                    anyKept |= channelMaskHostPinned[base + c];
+                                }
+                                // Ensure at least one channel is kept
+                                if (!anyKept)
+                                    channelMaskHostPinned[base + (gen() % srcDescPtr->c)] = true;
+                            }
 
                             startWallTime = omp_get_wtime();
-
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                            {
-                                rppt_channel_dropout_gpu(d_input, srcDescPtr,
-                                                        d_output,
-                                                        dstDescPtr,
-                                                        channelMaskDevice,
-                                                        roiTensorPtrSrc,
-                                                        roiTypeSrc,
-                                                        handle);
-                            }
+                                rppt_channel_dropout_gpu(d_input, srcDescPtr, d_output, dstDescPtr, channelMaskHostPinned, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
-                            {
                                 missingFuncFlag = 1;
-                            }
 
-                            hipFree(channelMaskDevice);
                             break;
                         }
                         case 4: // Grid Dropout
@@ -1948,11 +1942,18 @@ int main(int argc, char **argv)
         if(testCase == TENSOR_STDDEV)
             CHECK_RETURN_STATUS(hipHostFree(mean));
     }
-    if(testCase == ERASE || testCase == DROPOUT)
+    if(testCase == ERASE)
     {
         CHECK_RETURN_STATUS(hipHostFree(colorBuffer));
         CHECK_RETURN_STATUS(hipHostFree(anchorBoxInfoTensor));
         CHECK_RETURN_STATUS(hipHostFree(numOfBoxes));
+    }
+    if(testCase == DROPOUT)
+    {
+        CHECK_RETURN_STATUS(hipHostFree(colorBuffer));
+        CHECK_RETURN_STATUS(hipHostFree(anchorBoxInfoTensor));
+        CHECK_RETURN_STATUS(hipHostFree(numOfBoxes));
+        CHECK_RETURN_STATUS(hipHostFree(channelMaskHostPinned));
     }
     if(anchorTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(anchorTensor));

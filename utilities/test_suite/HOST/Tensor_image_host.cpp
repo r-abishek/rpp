@@ -1694,25 +1694,23 @@ int main(int argc, char **argv)
                             startWallTime = omp_get_wtime();
                             startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                                rppt_coarse_dropout_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, boxesInEachImage, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
                             break;
                         }
                         case 3:
-                        {
+                    {
                             testCaseName = "channel";
                             Rpp32f dropProb[batchSize];
                             for (i = 0; i < batchSize; i++)
-                            {
                                 dropProb[i] = 0.4f;
-                            }
 
                             startWallTime = omp_get_wtime();
                             startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_dropout_host(input, srcDescPtr, output, dstDescPtr, dropProb, roiTensorPtrSrc, roiTypeSrc, handle);
+                                rppt_channel_dropout_host(input, srcDescPtr, output, dstDescPtr, dropProb, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
@@ -1725,21 +1723,15 @@ int main(int argc, char **argv)
                             Rpp32f holeRatio = 0.4f;
                             bool randomOffset = false;
                             Rpp32u numOfBoxes[batchSize];
-                            Rpp32f colorBuffer[batchSize * 3];
-                            for (int i = 0; i < batchSize; ++i)
-                            {
-                                colorBuffer[i * 3 + 0] = 0.0f; 
-                                colorBuffer[i * 3 + 1] = 0.0f; 
-                                colorBuffer[i * 3 + 2] = 0.0f; 
-                            }
+                            Rpp32u boxesInEachImage = gridH * gridW;
+                            Rpp32f colorBuffer[batchSize * 3 * boxesInEachImage];
                             RpptRoiLtrb anchorBoxInfoTensor[batchSize * gridH * gridW];
 
-                            init_grid_dropout(batchSize, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, gridH, gridW, holeRatio, randomOffset);
-
+                            init_grid_dropout(batchSize, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, gridH, gridW, holeRatio, randomOffset, colorBuffer, srcDescPtr->c, inputBitDepth);
                             startWallTime = omp_get_wtime();
                             startCpuTime = clock();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                               rppt_erase_host(input, srcDescPtr, output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 
@@ -1848,8 +1840,8 @@ int main(int argc, char **argv)
                     std::ofstream refFile;
                     refFile.open(func + ".csv");
                     for (int i = 0; i < oBufferSize; i++)
-                        refFile << static_cast<int>(*(outputu8 + i)) << ",";
-                    refFile.close();
+                    refFile << static_cast<int>(*(outputu8 + i)) << ",";
+                                            refFile.close();
                 }
 
                 // if test case is slice and qaFlag is set, update the dstImgSizes with shapeTensor values

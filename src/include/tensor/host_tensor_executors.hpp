@@ -398,18 +398,18 @@ RppStatus blend_i8_i8_host_tensor(Rpp8s *srcPtr1,
                                   RppLayoutParams layoutParams,
                                   rpp::Handle& handle);
 
-// -------------------- dropout --------------------
+// -------------------- channel_dropout --------------------
 
 template<typename T>
-RppStatus dropout_host_tensor(T *srcPtr,
-                                        RpptDescPtr srcDescPtr,
-                                        T *dstPtr,
-                                        RpptDescPtr dstDescPtr,
-                                        Rpp32f *dropProb,
-                                        RpptROIPtr roiTensorPtrSrc,
-                                        RpptRoiType roiType,
-                                        RppLayoutParams layoutParams,
-                                        rpp::Handle& handle);
+RppStatus channel_dropout_host_tensor(T *srcPtr,
+                                      RpptDescPtr srcDescPtr,
+                                      T *dstPtr,
+                                      RpptDescPtr dstDescPtr,
+                                      Rpp32f *dropProb,
+                                      RpptROIPtr roiTensorPtrSrc,
+                                      RpptRoiType roiType,
+                                      RppLayoutParams layoutParams,
+                                      rpp::Handle& handle);
 
 // -------------------- color_cast --------------------
 
@@ -1452,6 +1452,22 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                                    RpptRoiType roiType,
                                    RppLayoutParams layoutParams,
                                    rpp::Handle& handle);
+
+// -------------------- coarse_dropout --------------------
+
+template <typename T>
+RppStatus coarse_dropout_host_tensor(T *srcPtr,
+                                     RpptDescPtr srcDescPtr,
+                                     T *dstPtr,
+                                     RpptDescPtr dstDescPtr,
+                                     RpptRoiLtrb *anchorBoxInfoTensor,
+                                     T *colorsTensor,
+                                     Rpp32u *numBoxesTensor,
+                                     int maxBoxesPerImage,       
+                                     RpptROIPtr roiTensorPtrSrc,
+                                     RpptRoiType roiType,
+                                     RppLayoutParams layoutParams,
+                                     rpp::Handle& handle);
 
 // -------------------- fog --------------------
 
