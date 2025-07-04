@@ -67,7 +67,7 @@ __device__ void box_filter_3x3_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
     dst_f8->f1[7] = fmaf(src_f1, 0.1111111f, dst_f8->f1[7]);
 }
 
-__device__ void box_filter_3x3_row_hip_compute_test(float *srcPtr, d_float8 *dst_f8)
+__device__ void box_filter_3x3_float_row_hip_compute(float *srcPtr, d_float8 *dst_f8)
 {
     d_float12 *src_f12 = (d_float12 *)srcPtr;
     dst_f8->f1[0] = fmaf(src_f12->f1[0], 0.1111111f, dst_f8->f1[0]);
