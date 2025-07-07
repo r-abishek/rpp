@@ -3174,7 +3174,7 @@ __global__ void box_filter_9x9_pkd3_pln3_float_hip_tensor(T *srcPtr,
 
 // kernelSize = 3
 template <typename T>
-__global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
+__global__ void box_filter_3x3_pln3_pkd3_char_hip_tensor(T *srcPtr,
                                                     uint3 srcStridesNCH,
                                                     T *dstPtr,
                                                     uint2 dstStridesNH,
@@ -3261,9 +3261,97 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
     }
 }
 
+// kernelSize = 3
+template <typename T>
+__global__ void box_filter_3x3_pln3_pkd3_float_hip_tensor(T *srcPtr,
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
+{
+    int hipThreadIdx_x8 = hipThreadIdx_x << 3;
+    int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
+    int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
+    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+    int id_x_i = id_x_o - padLength;
+    int id_y_i = id_y_o - padLength;
+    d_float24 sum_f24;
+    __shared__ float src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+
+    int3 srcIdx;
+    srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
+    srcIdx.y = srcIdx.x + srcStridesNCH.y;
+    srcIdx.z = srcIdx.y + srcStridesNCH.y;
+    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    sum_f24.f4[0] = (float4) 0;
+    sum_f24.f4[1] = (float4) 0;
+    sum_f24.f4[2] = (float4) 0;
+    sum_f24.f4[3] = (float4) 0;
+    sum_f24.f4[4] = (float4) 0;
+    sum_f24.f4[5] = (float4) 0;
+
+    int3 hipThreadIdx_y_channel;
+    hipThreadIdx_y_channel.x = hipThreadIdx_y;
+    hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
+    hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
+
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    {
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.x, (d_float8*)(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.y, (d_float8*)(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.z, (d_float8*)(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]));
+    }
+    else
+    {
+        // Nearest-neighbor padding
+        T tempBuffer0[8], tempBuffer1[8], tempBuffer2[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
+            int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
+
+            tempBuffer0[i] = srcPtr[clampedIdx0];
+            tempBuffer1[i] = srcPtr[clampedIdx1];
+            tempBuffer2[i] = srcPtr[clampedIdx2];
+        }
+
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer0, (d_float8*)(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer1, (d_float8*)(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer2, (d_float8*)(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]));
+    }
+    __syncthreads();
+    if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+        (hipThreadIdx_x < tileSize.x) &&
+        (hipThreadIdx_y < tileSize.y))
+    {
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x    ][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y    ][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z    ][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 1][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 1][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 1][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 2][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 2][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_3x3_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 2][hipThreadIdx_x8], &sum_f24.f8[2]);
+        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+    }
+}
+
 // kernelSize = 5
 template <typename T>
-__global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
+__global__ void box_filter_5x5_pln3_pkd3_char_hip_tensor(T *srcPtr,
                                                     uint3 srcStridesNCH,
                                                     T *dstPtr,
                                                     uint2 dstStridesNH,
@@ -3356,9 +3444,103 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
     }
 }
 
+// kernelSize = 5
+template <typename T>
+__global__ void box_filter_5x5_pln3_pkd3_float_hip_tensor(T *srcPtr,
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
+{
+    int hipThreadIdx_x8 = hipThreadIdx_x << 3;
+    int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
+    int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
+    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+    int id_x_i = id_x_o - padLength;
+    int id_y_i = id_y_o - padLength;
+    d_float24 sum_f24;
+    __shared__ float src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+
+    int3 srcIdx;
+    srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
+    srcIdx.y = srcIdx.x + srcStridesNCH.y;
+    srcIdx.z = srcIdx.y + srcStridesNCH.y;
+    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    sum_f24.f4[0] = (float4) 0;
+    sum_f24.f4[1] = (float4) 0;
+    sum_f24.f4[2] = (float4) 0;
+    sum_f24.f4[3] = (float4) 0;
+    sum_f24.f4[4] = (float4) 0;
+    sum_f24.f4[5] = (float4) 0;
+
+    int3 hipThreadIdx_y_channel;
+    hipThreadIdx_y_channel.x = hipThreadIdx_y;
+    hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
+    hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
+
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    {
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.x, (d_float8*)(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.y, (d_float8*)(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.z, (d_float8*)(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]));
+    }
+    else
+    {
+        // Nearest-neighbor padding
+        T tempBuffer0[8], tempBuffer1[8], tempBuffer2[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
+            int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
+
+            tempBuffer0[i] = srcPtr[clampedIdx0];
+            tempBuffer1[i] = srcPtr[clampedIdx1];
+            tempBuffer2[i] = srcPtr[clampedIdx2];
+        }
+
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer0, (d_float8*)(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer1, (d_float8*)(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer2, (d_float8*)(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]));
+    }
+    __syncthreads();
+    if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+        (hipThreadIdx_x < tileSize.x) &&
+        (hipThreadIdx_y < tileSize.y))
+    {
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x    ][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y    ][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z    ][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 1][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 1][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 1][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 2][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 2][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 2][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 3][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 3][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 3][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 4][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 4][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_5x5_float_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 4][hipThreadIdx_x8], &sum_f24.f8[2]);
+        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+    }
+}
+
 // kernelSize = 7
 template <typename T>
-__global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
+__global__ void box_filter_7x7_pln3_pkd3_char_hip_tensor(T *srcPtr,
                                                     uint3 srcStridesNCH,
                                                     T *dstPtr,
                                                     uint2 dstStridesNH,
@@ -3457,9 +3639,108 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
     }
 }
 
+template <typename T>
+__global__ void box_filter_7x7_pln3_pkd3_float_hip_tensor(T *srcPtr,
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
+{
+    int hipThreadIdx_x8 = hipThreadIdx_x << 3;
+    int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
+    int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
+    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+    int id_x_i = id_x_o - padLength;
+    int id_y_i = id_y_o - padLength;
+    d_float24 sum_f24;
+    __shared__ float src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+
+    int3 srcIdx;
+    srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
+    srcIdx.y = srcIdx.x + srcStridesNCH.y;
+    srcIdx.z = srcIdx.y + srcStridesNCH.y;
+    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    sum_f24.f4[0] = (float4) 0;
+    sum_f24.f4[1] = (float4) 0;
+    sum_f24.f4[2] = (float4) 0;
+    sum_f24.f4[3] = (float4) 0;
+    sum_f24.f4[4] = (float4) 0;
+    sum_f24.f4[5] = (float4) 0;
+
+    int3 hipThreadIdx_y_channel;
+    hipThreadIdx_y_channel.x = hipThreadIdx_y;
+    hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
+    hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
+
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    {
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.x, (d_float8*)(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.y, (d_float8*)(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.z, (d_float8*)(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]));
+    }
+    else
+    {
+        // Nearest-neighbor padding
+        T tempBuffer0[8], tempBuffer1[8], tempBuffer2[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
+            int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
+
+            tempBuffer0[i] = srcPtr[clampedIdx0];
+            tempBuffer1[i] = srcPtr[clampedIdx1];
+            tempBuffer2[i] = srcPtr[clampedIdx2];
+        }
+
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer0, (d_float8*)(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer1, (d_float8*)(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer2, (d_float8*)(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]));
+    }
+    __syncthreads();
+    if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+        (hipThreadIdx_x < tileSize.x) &&
+        (hipThreadIdx_y < tileSize.y))
+    {
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x    ][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y    ][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z    ][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 1][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 1][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 1][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 2][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 2][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 2][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 3][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 3][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 3][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 4][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 4][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 4][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 5][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 5][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 5][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 6][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 6][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_7x7_float_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 6][hipThreadIdx_x8], &sum_f24.f8[2]);
+        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+    }
+}
+
 // kernelSize = 9
 template <typename T>
-__global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
+__global__ void box_filter_9x9_pln3_pkd3_char_hip_tensor(T *srcPtr,
                                                     uint3 srcStridesNCH,
                                                     T *dstPtr,
                                                     uint2 dstStridesNH,
@@ -3560,6 +3841,112 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 8][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 8][hipThreadIdx_x8], &sum_f24.f8[2]);
         rpp_hip_adjust_range(dstPtr, &sum_f24);
+        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+    }
+}
+
+// kernelSize = 9
+template <typename T>
+__global__ void box_filter_9x9_pln3_pkd3_float_hip_tensor(T *srcPtr,
+                                                    uint3 srcStridesNCH,
+                                                    T *dstPtr,
+                                                    uint2 dstStridesNH,
+                                                    uint padLength,
+                                                    uint2 tileSize,
+                                                    RpptROIPtr roiTensorPtrSrc)
+{
+    int hipThreadIdx_x8 = hipThreadIdx_x << 3;
+    int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
+    int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
+    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+
+    int id_x_i = id_x_o - padLength;
+    int id_y_i = id_y_o - padLength;
+    d_float24 sum_f24;
+    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+
+    int3 srcIdx;
+    srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
+    srcIdx.y = srcIdx.x + srcStridesNCH.y;
+    srcIdx.z = srcIdx.y + srcStridesNCH.y;
+    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    sum_f24.f4[0] = (float4) 0;
+    sum_f24.f4[1] = (float4) 0;
+    sum_f24.f4[2] = (float4) 0;
+    sum_f24.f4[3] = (float4) 0;
+    sum_f24.f4[4] = (float4) 0;
+    sum_f24.f4[5] = (float4) 0;
+
+    int3 hipThreadIdx_y_channel;
+    hipThreadIdx_y_channel.x = hipThreadIdx_y;
+    hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
+    hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
+
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    {
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.x, (d_float8*)(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.y, (d_float8*)(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(srcPtr + srcIdx.z, (d_float8*)(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]));
+    }
+    else
+    {
+        // Nearest-neighbor padding
+        T tempBuffer0[8], tempBuffer1[8], tempBuffer2[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
+            int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
+
+            tempBuffer0[i] = srcPtr[clampedIdx0];
+            tempBuffer1[i] = srcPtr[clampedIdx1];
+            tempBuffer2[i] = srcPtr[clampedIdx2];
+        }
+
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer0, (d_float8*)(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer1, (d_float8*)(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]));
+        rpp_hip_load8_and_unpack_to_float8(tempBuffer2, (d_float8*)(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]));
+    }
+    __syncthreads();
+    if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
+        (hipThreadIdx_x < tileSize.x) &&
+        (hipThreadIdx_y < tileSize.y))
+    {
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x    ][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y    ][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z    ][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 1][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 1][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 1][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 2][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 2][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 2][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 3][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 3][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 3][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 4][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 4][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 4][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 5][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 5][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 5][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 6][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 6][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 6][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 7][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 7][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 7][hipThreadIdx_x8], &sum_f24.f8[2]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.x + 8][hipThreadIdx_x8], &sum_f24.f8[0]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.y + 8][hipThreadIdx_x8], &sum_f24.f8[1]);
+        box_filter_9x9_row_hip_compute_test(&src_smem[hipThreadIdx_y_channel.z + 8][hipThreadIdx_x8], &sum_f24.f8[2]);
         rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
@@ -4012,63 +4399,135 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
 
             if (kernelSize == 3)
             {
-                hipLaunchKernelGGL(box_filter_3x3_pln3_pkd3_hip_tensor,
-                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                   0,
-                                   handle.GetStream(),
-                                   srcPtr,
-                                   make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                                   dstPtr,
-                                   make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                                   padLength,
-                                   tileSize,
-                                   roiTensorPtrSrc);
+                if((srcDescPtr->dataType == RpptDataType::F32) || (srcDescPtr->dataType == RpptDataType::F16))
+                {
+                    hipLaunchKernelGGL(box_filter_3x3_pln3_pkd3_float_hip_tensor,
+                                    dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                    0,
+                                    handle.GetStream(),
+                                    srcPtr,
+                                    make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                    dstPtr,
+                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                    padLength,
+                                    tileSize,
+                                    roiTensorPtrSrc);
+                }
+                else
+                {
+                    hipLaunchKernelGGL(box_filter_3x3_pln3_pkd3_char_hip_tensor,
+                                    dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                    0,
+                                    handle.GetStream(),
+                                    srcPtr,
+                                    make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                    dstPtr,
+                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                    padLength,
+                                    tileSize,
+                                    roiTensorPtrSrc);
+                }
             }
             else if (kernelSize == 5)
             {
-                hipLaunchKernelGGL(box_filter_5x5_pln3_pkd3_hip_tensor,
-                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                   0,
-                                   handle.GetStream(),
-                                   srcPtr,
-                                   make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                                   dstPtr,
-                                   make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                                   padLength,
-                                   tileSize,
-                                   roiTensorPtrSrc);
+                if((srcDescPtr->dataType == RpptDataType::F32) || (srcDescPtr->dataType == RpptDataType::F16))
+                {
+                    hipLaunchKernelGGL(box_filter_5x5_pln3_pkd3_float_hip_tensor,
+                                    dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                    0,
+                                    handle.GetStream(),
+                                    srcPtr,
+                                    make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                    dstPtr,
+                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                    padLength,
+                                    tileSize,
+                                    roiTensorPtrSrc);
+                }
+                else
+                {
+                    hipLaunchKernelGGL(box_filter_5x5_pln3_pkd3_char_hip_tensor,
+                                    dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                    0,
+                                    handle.GetStream(),
+                                    srcPtr,
+                                    make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                    dstPtr,
+                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                    padLength,
+                                    tileSize,
+                                    roiTensorPtrSrc);
+                }
             }
             else if (kernelSize == 7)
             {
-                hipLaunchKernelGGL(box_filter_7x7_pln3_pkd3_hip_tensor,
-                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                   0,
-                                   handle.GetStream(),
-                                   srcPtr,
-                                   make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                                   dstPtr,
-                                   make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                                   padLength,
-                                   tileSize,
-                                   roiTensorPtrSrc);
+                if((srcDescPtr->dataType == RpptDataType::F32) || (srcDescPtr->dataType == RpptDataType::F16))
+                {
+                    hipLaunchKernelGGL(box_filter_7x7_pln3_pkd3_float_hip_tensor,
+                                    dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                    0,
+                                    handle.GetStream(),
+                                    srcPtr,
+                                    make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                    dstPtr,
+                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                    padLength,
+                                    tileSize,
+                                    roiTensorPtrSrc);
+                }
+                else
+                {
+                    hipLaunchKernelGGL(box_filter_7x7_pln3_pkd3_char_hip_tensor,
+                                    dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                    0,
+                                    handle.GetStream(),
+                                    srcPtr,
+                                    make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                    dstPtr,
+                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                    padLength,
+                                    tileSize,
+                                    roiTensorPtrSrc);
+                }
             }
             else if (kernelSize == 9)
             {
-                hipLaunchKernelGGL(box_filter_9x9_pln3_pkd3_hip_tensor,
-                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                   0,
-                                   handle.GetStream(),
-                                   srcPtr,
-                                   make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                                   dstPtr,
-                                   make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                                   padLength,
-                                   tileSize,
-                                   roiTensorPtrSrc);
+                if((srcDescPtr->dataType == RpptDataType::F32) || (srcDescPtr->dataType == RpptDataType::F16))
+                {
+                    hipLaunchKernelGGL(box_filter_9x9_pln3_pkd3_float_hip_tensor,
+                                    dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                    0,
+                                    handle.GetStream(),
+                                    srcPtr,
+                                    make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                    dstPtr,
+                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                    padLength,
+                                    tileSize,
+                                    roiTensorPtrSrc);
+                }
+                else
+                {
+                    hipLaunchKernelGGL(box_filter_9x9_pln3_pkd3_char_hip_tensor,
+                                    dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                    0,
+                                    handle.GetStream(),
+                                    srcPtr,
+                                    make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                    dstPtr,
+                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                    padLength,
+                                    tileSize,
+                                    roiTensorPtrSrc);
+                }
             }
         }
     }
