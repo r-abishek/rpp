@@ -3863,7 +3863,7 @@ __global__ void box_filter_9x9_pln3_pkd3_float_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ float src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
     srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
