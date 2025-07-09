@@ -40,19 +40,17 @@ RppStatus random_erase_host_tensor(T *srcPtr,
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
-    // Random number generator setup (thread-safe)
-    std::random_device rd;
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
     for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
-        std::mt19937 gen(rd() + batchCount * 4096 + omp_get_thread_num());
-        std::uniform_int_distribution<int> dist_int(0, std::numeric_limits<T>::max());
-        std::uniform_real_distribution<float> dist_float(0.0f, 1.0f);
-
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
+
+        std::mt19937 gen(std::random_device{}() + batchCount);
+        std::uniform_int_distribution<int> dist_int(std::numeric_limits<T>::is_signed ? std::numeric_limits<T>::min() : 0, std::numeric_limits<T>::max());
+        std::uniform_real_distribution<float> dist_float(0.0f, 1.0f);
 
         Rpp32u numBoxes = numBoxesTensor[batchCount];
         RpptRoiLtrb *anchorBoxInfo = anchorBoxInfoTensor + batchCount * numBoxes;
@@ -105,7 +103,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                     {
                         for (int k = 0; k < bufferLength; k++)
                         {
-                            if constexpr (std::is_floating_point<T>::value) {
+                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) {
                                 *dstPtrTempR++ = static_cast<T>(dist_float(gen));
                                 *dstPtrTempG++ = static_cast<T>(dist_float(gen));
                                 *dstPtrTempB++ = static_cast<T>(dist_float(gen));
@@ -172,7 +170,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                     {
                         for (int k = 0; k < bufferLengthPerChannel; k++)
                         {
-                            if constexpr (std::is_floating_point<T>::value) {
+                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) {
                                 *dstPtrTemp++ = static_cast<T>(dist_float(gen));  // R
                                 *dstPtrTemp++ = static_cast<T>(dist_float(gen));  // G
                                 *dstPtrTemp++ = static_cast<T>(dist_float(gen));  // B
@@ -243,7 +241,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                 {
                     for (int j = 0; j < boxWidth; j++)
                     {
-                        if constexpr (std::is_floating_point<T>::value) {
+                        if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) {
                             dstPtrTempR[j] = static_cast<T>(dist_float(gen));
                             dstPtrTempG[j] = static_cast<T>(dist_float(gen));
                             dstPtrTempB[j] = static_cast<T>(dist_float(gen));
@@ -288,7 +286,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                 {
                     for (int j = 0; j < boxWidth; j++)
                     {
-                        if constexpr (std::is_floating_point<T>::value)
+                        if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
                             dstPtrTemp[j] = static_cast<T>(dist_float(gen));
                         else
                             dstPtrTemp[j] = static_cast<T>(dist_int(gen));
@@ -330,7 +328,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                     {
                         for (int c = 0; c < srcDescPtr->c; c++)
                         {
-                            if constexpr (std::is_floating_point<T>::value)
+                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
                                 dstPtrRow[c] = static_cast<T>(dist_float(gen));
                             else
                                 dstPtrRow[c] = static_cast<T>(dist_int(gen));

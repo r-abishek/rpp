@@ -25,6 +25,29 @@ SOFTWARE.
 #include "host_tensor_executors.hpp"
 #include <random>
 
+inline void generate_channel_masks(std::vector<std::vector<bool>> &channelMasks,
+                                   Rpp32f *dropProb,
+                                   Rpp32u batchSize,
+                                   Rpp32u numChannels)
+{
+    std::mt19937 rng(std::random_device{}());
+
+    for (Rpp32u batchIdx = 0; batchIdx < batchSize; batchIdx++)
+    {
+        std::bernoulli_distribution keepDist(1.0f - dropProb[batchIdx]);
+        bool anyKept = false;
+
+        for (Rpp32u c = 0; c < numChannels; c++)
+        {
+            channelMasks[batchIdx][c] = keepDist(rng);
+            anyKept |= channelMasks[batchIdx][c];
+        }
+
+        if (!anyKept)
+            channelMasks[batchIdx][rng() % numChannels] = true;
+    }
+}
+
 template<typename T>
 RppStatus channel_dropout_host_tensor(T *srcPtr,
                                       RpptDescPtr srcDescPtr,
@@ -39,39 +62,18 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
     Rpp32u numThreads = handle.GetNumThreads();
 
-   // Thread-local RNG for reproducibility and thread safety
-    std::random_device rd;
-    std::mt19937 gen(rd() + batchCount + omp_get_thread_num());
+    // Generate channel mask for this batch
+    std::vector<std::vector<bool>> channelMasks(dstDescPtr->n, std::vector<bool>(srcDescPtr->c));
+    generate_channel_masks(channelMasks, dropProb, dstDescPtr->n, srcDescPtr->c);
 
     omp_set_dynamic(0);
 #pragma omp parallel for num_threads(numThreads)
     for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
+        const std::vector<bool> &channelMask = channelMasks[batchCount];
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
-
-        // Generate channel mask for this batch
-        bool channelMask[3] = {true, true, true};
-        if (srcDescPtr->c == 3)
-        {
-            // Use keepDist so true = keep, with probability 1-dropProb
-            std::bernoulli_distribution keepDist(1.0f - *dropProb);
-            for (int c = 0; c < 3; c++)
-            {
-                channelMask[c] = keepDist(gen);
-            }
-            // Ensure at least one channel remains
-            if (!channelMask[0] && !channelMask[1] && !channelMask[2])
-            {
-                channelMask[gen() % 3] = true;
-            }
-        }
-        else if (srcDescPtr->c == 1)
-        {
-            std::bernoulli_distribution keepDist(1.0f - *dropProb);
-            channelMask[0] = keepDist(gen);
-        }
 
         T *srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
         T *dstPtrImage = dstPtr + batchCount * dstDescPtr->strides.nStride;

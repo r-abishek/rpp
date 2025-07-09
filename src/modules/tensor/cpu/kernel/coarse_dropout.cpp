@@ -64,13 +64,12 @@ RppStatus coarse_dropout_host_tensor(T *srcPtr,
         // NHWC -> NCHW
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
-            T *srcPtrRow, *dstPtrRowR, *dstPtrRowG, *dstPtrRowB;
-            srcPtrRow = srcPtrChannel;
-            dstPtrRowR = dstPtrChannel;
-            dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
-            dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
+            T *srcPtrRow = srcPtrChannel;
+            T *dstPtrRowR = dstPtrChannel;
+            T *dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
+            T *dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for (int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 T *srcPtrTemp = srcPtrRow;
                 T *dstPtrTempR = dstPtrRowR;
@@ -80,22 +79,26 @@ RppStatus coarse_dropout_host_tensor(T *srcPtr,
                 for (int j = 0; j < roi.xywhROI.roiWidth;)
                 {
                     bool erased = false;
-                    for(int count = 0; count < numBoxes; count++)
+                    for (int count = 0; count < numBoxes; count++)
                     {
                         Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
                         Rpp32u y1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.y, roi.xywhROI.xy.y, roi.xywhROI.roiHeight));
                         Rpp32u x2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.x, x1, roi.xywhROI.roiWidth));
                         Rpp32u y2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.y, y1, roi.xywhROI.roiHeight));
-                        Rpp32u countMul3 = count * 3;
-                        T userPixelR = colors[countMul3];
-                        T userPixelG = colors[countMul3 + 1];
-                        T userPixelB = colors[countMul3 + 2];
-                        if(i >= y1 && i <= y2 && j == x1)
+
+                        if (i >= y1 && i <= y2 && j >= x1 && j <= x2)
                         {
-                            Rpp32u bufferLength = x2 - x1 + 1;
+                            Rpp32u bufferLength = x2 - j + 1;
+                            Rpp32u countMul3 = count * 3;
+
+                            T userPixelR = colors[countMul3];
+                            T userPixelG = colors[countMul3 + 1];
+                            T userPixelB = colors[countMul3 + 2];
+
                             std::fill_n(dstPtrTempR, bufferLength, userPixelR);
                             std::fill_n(dstPtrTempG, bufferLength, userPixelG);
                             std::fill_n(dstPtrTempB, bufferLength, userPixelB);
+
                             srcPtrTemp += 3 * bufferLength;
                             dstPtrTempR += bufferLength;
                             dstPtrTempG += bufferLength;
@@ -105,6 +108,7 @@ RppStatus coarse_dropout_host_tensor(T *srcPtr,
                             break;
                         }
                     }
+
                     if (!erased)
                     {
                         *dstPtrTempR++ = srcPtrTemp[0];
@@ -114,12 +118,14 @@ RppStatus coarse_dropout_host_tensor(T *srcPtr,
                         j++;
                     }
                 }
+
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRowR += dstDescPtr->strides.hStride;
                 dstPtrRowG += dstDescPtr->strides.hStride;
                 dstPtrRowB += dstDescPtr->strides.hStride;
             }
         }
+
         // NCHW -> NHWC
         else if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
@@ -128,7 +134,7 @@ RppStatus coarse_dropout_host_tensor(T *srcPtr,
             T *srcPtrRowB = srcPtrRowG + srcDescPtr->strides.cStride;
             T *dstPtrRow = dstPtrChannel;
 
-            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for (int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
                 T *srcPtrTempR = srcPtrRowR;
                 T *srcPtrTempG = srcPtrRowG;
@@ -138,22 +144,27 @@ RppStatus coarse_dropout_host_tensor(T *srcPtr,
                 for (int j = 0; j < roi.xywhROI.roiWidth;)
                 {
                     bool erased = false;
-                    for(int count = 0; count < numBoxes; count++)
+                    for (int count = 0; count < numBoxes; count++)
                     {
                         Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
                         Rpp32u y1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.y, roi.xywhROI.xy.y, roi.xywhROI.roiHeight));
                         Rpp32u x2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.x, x1, roi.xywhROI.roiWidth));
                         Rpp32u y2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.y, y1, roi.xywhROI.roiHeight));
-                        Rpp32u countMul3 = count * 3;
-                        T userPixel3[3] = {colors[countMul3], colors[countMul3 + 1], colors[countMul3 + 2]};
-                        if(i >= y1 && i <= y2 && j == x1)
+
+                        if (i >= y1 && i <= y2 && j >= x1 && j <= x2)
                         {
-                            Rpp32u bufferLength = x2 - x1 + 1;
+                            Rpp32u bufferLength = x2 - j + 1;
+                            Rpp32u countMul3 = count * 3;
+                            T userPixel3[3] = {colors[countMul3], colors[countMul3 + 1], colors[countMul3 + 2]};
+
                             for (int k = 0; k < bufferLength; k++)
                             {
-                                memcpy(dstPtrTemp, userPixel3, sizeof(T) * 3);
+                                dstPtrTemp[0] = userPixel3[0];
+                                dstPtrTemp[1] = userPixel3[1];
+                                dstPtrTemp[2] = userPixel3[2];
                                 dstPtrTemp += 3;
                             }
+
                             srcPtrTempR += bufferLength;
                             srcPtrTempG += bufferLength;
                             srcPtrTempB += bufferLength;
@@ -162,6 +173,7 @@ RppStatus coarse_dropout_host_tensor(T *srcPtr,
                             break;
                         }
                     }
+
                     if (!erased)
                     {
                         dstPtrTemp[0] = *srcPtrTempR++;
@@ -171,6 +183,7 @@ RppStatus coarse_dropout_host_tensor(T *srcPtr,
                         j++;
                     }
                 }
+
                 srcPtrRowR += srcDescPtr->strides.hStride;
                 srcPtrRowG += srcDescPtr->strides.hStride;
                 srcPtrRowB += srcDescPtr->strides.hStride;

@@ -1679,27 +1679,16 @@ int main(int argc, char **argv)
                             testCaseName = "channel";
 
                             // Initialize pinned host memory
-                            Rpp32f dropProb = 0.4f;
-                            int totalChannels = batchSize * srcDescPtr->c;
-                            std::mt19937 gen(42);
-                            std::bernoulli_distribution keepDist(1.0f - dropProb); // true = keep, false = drop
-                            for (int b = 0; b < batchSize; b++)
+                            Rpp32f dropProb[batchSize];
+                            Rpp32u seed = 42;
+                            for (i = 0; i < batchSize; i++)
                             {
-                                bool anyKept = false;
-                                int base = b * srcDescPtr->c;
-                                for (int c = 0; c < srcDescPtr->c; c++)
-                                {
-                                    channelMaskHostPinned[base + c] = keepDist(gen);
-                                    anyKept |= channelMaskHostPinned[base + c];
-                                }
-                                // Ensure at least one channel is kept
-                                if (!anyKept)
-                                    channelMaskHostPinned[base + (gen() % srcDescPtr->c)] = true;
+                                dropProb[i] = 0.4f;
                             }
-
+                            
                             startWallTime = omp_get_wtime();
                             if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
-                                rppt_channel_dropout_gpu(d_input, srcDescPtr, d_output, dstDescPtr, channelMaskHostPinned, roiTensorPtrSrc, roiTypeSrc, handle);
+                                rppt_channel_dropout_gpu(d_input, srcDescPtr, d_output, dstDescPtr, dropProb, roiTensorPtrSrc, roiTypeSrc, handle);
                             else
                                 missingFuncFlag = 1;
 

@@ -23,13 +23,30 @@ SOFTWARE.
 */
 
 #include "hip_tensor_executors.hpp"
+#include <random>
 
 // -------------------- Set 0 - Dropout main kernels --------------------
+template <typename T>
+__device__ __forceinline__ T channel_dropout_zero();
+
+template <>
+__device__ __forceinline__ Rpp8u channel_dropout_zero<Rpp8u>() { return 0; }
+
+template <>
+__device__ __forceinline__ Rpp8s channel_dropout_zero<Rpp8s>() { return static_cast<Rpp8s>(-128); }
+
+template <>
+__device__ __forceinline__ Rpp32f channel_dropout_zero<Rpp32f>() { return 0.0f; }
+
+template <>
+__device__ __forceinline__ half channel_dropout_zero<half>() { return __float2half(0.0f); }
+
+// PKD3 kernel
 template <typename T>
 __global__ void channel_dropout_pkd_hip_tensor(T *srcPtr,
                                                T *dstPtr,
                                                uint2 dstStridesNH,
-                                               bool *channelMask,
+                                               const uint8_t *channelMask,
                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -47,15 +64,16 @@ __global__ void channel_dropout_pkd_hip_tensor(T *srcPtr,
         if (channelMask[maskBase + c])
             dstPtr[dstIdx + c] = srcPtr[dstIdx + c];
         else
-            dstPtr[dstIdx + c] = static_cast<T>(0);
+            dstPtr[dstIdx + c] = channel_dropout_zero<T>();
     }
 }
 
+// PLN kernel
 template <typename T>
 __global__ void channel_dropout_pln_hip_tensor(T *srcPtr,
                                                T *dstPtr,
                                                uint3 dstStridesNCH,
-                                               bool *channelMask,
+                                               const uint8_t *channelMask,
                                                int channels,
                                                RpptROIPtr roiTensorPtrSrc)
 {
@@ -72,15 +90,16 @@ __global__ void channel_dropout_pln_hip_tensor(T *srcPtr,
         int maskIdx = id_z * channels + c;
 
         T val = srcPtr[dstIdx];
-        dstPtr[dstIdx] = channelMask[maskIdx] ? val : static_cast<T>(0);
+        dstPtr[dstIdx] = channelMask[maskIdx] ? val : channel_dropout_zero<T>();
     }
 }
 
+// PLN3 kernel
 template <typename T>
 __global__ void channel_dropout_pln3_hip_tensor(T *srcPtr,
                                                 T *dstPtr,
                                                 uint3 dstStridesNCH,
-                                                bool *channelMask,
+                                                const uint8_t *channelMask,
                                                 RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -94,15 +113,15 @@ __global__ void channel_dropout_pln3_hip_tensor(T *srcPtr,
     int maskBase = id_z * 3;
 
     // Channel 0
-    dstPtr[baseIdx] = channelMask[maskBase + 0] ? srcPtr[baseIdx] : static_cast<T>(0);
+    dstPtr[baseIdx] = channelMask[maskBase + 0] ? srcPtr[baseIdx] : channel_dropout_zero<T>();
 
     // Channel 1
     uint ch1Idx = baseIdx + dstStridesNCH.y;
-    dstPtr[ch1Idx] = channelMask[maskBase + 1] ? srcPtr[ch1Idx] : static_cast<T>(0);
+    dstPtr[ch1Idx] = channelMask[maskBase + 1] ? srcPtr[ch1Idx] : channel_dropout_zero<T>();
 
     // Channel 2
     uint ch2Idx = ch1Idx + dstStridesNCH.y;
-    dstPtr[ch2Idx] = channelMask[maskBase + 2] ? srcPtr[ch2Idx] : static_cast<T>(0);
+    dstPtr[ch2Idx] = channelMask[maskBase + 2] ? srcPtr[ch2Idx] : channel_dropout_zero<T>();
 }
 
 // -------------------- Set 1 - Kernel Executors --------------------
@@ -111,7 +130,7 @@ RppStatus hip_exec_channel_dropout_tensor(T *srcPtr,
                                           RpptDescPtr srcDescPtr,
                                           T *dstPtr,
                                           RpptDescPtr dstDescPtr,
-                                          bool *channelMask,
+                                          Rpp32f *dropProb,
                                           RpptROIPtr roiTensorPtrSrc,
                                           RpptRoiType roiType,
                                           rpp::Handle &handle)
@@ -123,152 +142,164 @@ RppStatus hip_exec_channel_dropout_tensor(T *srcPtr,
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = handle.GetBatchSize();
 
+    // Generate channel mask on host
+    std::mt19937 gen(std::random_device{}());
+    std::vector<uint8_t> channelMaskHost(globalThreads_z * srcDescPtr->c);
+    for (int b = 0; b < globalThreads_z; b++)
+    {
+        std::bernoulli_distribution keepDist(1.0f - dropProb[b]);
+        bool anyKept = false;
+        int base = b * srcDescPtr->c;
+        for (int c = 0; c < srcDescPtr->c; c++)
+        {
+            channelMaskHost[base + c] = keepDist(gen);
+            anyKept |= channelMaskHost[base + c];
+        }
+        // Ensure at least one channel is kept
+        if (!anyKept)
+            channelMaskHost[base + (gen() % srcDescPtr->c)] = 1;
+    }
+
+    uint8_t *d_channelMask = nullptr;
+    hipMalloc(&d_channelMask, channelMaskHost.size() * sizeof(uint8_t));
+    hipMemcpy(d_channelMask, channelMaskHost.data(), channelMaskHost.size() * sizeof(uint8_t), hipMemcpyHostToDevice);
+
     // PKD3 -> PKD3 (NHWC -> NHWC)
     if (srcDescPtr->layout == RpptLayout::NHWC && dstDescPtr->layout == RpptLayout::NHWC && srcDescPtr->c == 3)
     {
         hipMemcpyAsync(dstPtr, srcPtr, srcDescPtr->n * srcDescPtr->strides.nStride * sizeof(T), hipMemcpyDeviceToDevice, handle.GetStream());
         hipStreamSynchronize(handle.GetStream());
         hipLaunchKernelGGL(channel_dropout_pkd_hip_tensor<T>,
-            dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X),
-                 ceil((float)globalThreads_y / LOCAL_THREADS_Y),
-                 ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
-            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-            0, handle.GetStream(),
-            dstPtr, dstPtr,
-            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-            channelMask, roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X), ceil((float)globalThreads_y / LOCAL_THREADS_Y), ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0, handle.GetStream(),
+                           dstPtr, dstPtr,
+                           make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                           d_channelMask, roiTensorPtrSrc);
         hipStreamSynchronize(handle.GetStream());
+        hipFree(d_channelMask);
         return RPP_SUCCESS;
     }
-
     // PLN3 -> PLN3 (NCHW -> NCHW)
-    if (srcDescPtr->layout == RpptLayout::NCHW && dstDescPtr->layout == RpptLayout::NCHW && srcDescPtr->c == 3)
+    else if (srcDescPtr->layout == RpptLayout::NCHW && dstDescPtr->layout == RpptLayout::NCHW && srcDescPtr->c == 3)
     {
         hipMemcpyAsync(dstPtr, srcPtr, srcDescPtr->n * srcDescPtr->strides.nStride * sizeof(T), hipMemcpyDeviceToDevice, handle.GetStream());
         hipStreamSynchronize(handle.GetStream());
         hipLaunchKernelGGL(channel_dropout_pln3_hip_tensor<T>,
-            dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X),
-                 ceil((float)globalThreads_y / LOCAL_THREADS_Y),
-                 ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
-            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-            0, handle.GetStream(),
-            dstPtr, dstPtr,
-            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-            channelMask, roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X), ceil((float)globalThreads_y / LOCAL_THREADS_Y), ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0, handle.GetStream(),
+                           dstPtr, dstPtr,
+                           make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                           d_channelMask, roiTensorPtrSrc);
         hipStreamSynchronize(handle.GetStream());
+        hipFree(d_channelMask);
         return RPP_SUCCESS;
     }
-
     // PLN1 -> PLN1 (NCHW -> NCHW, c==1)
-    if (srcDescPtr->layout == RpptLayout::NCHW && dstDescPtr->layout == RpptLayout::NCHW && srcDescPtr->c == 1)
+    else if (srcDescPtr->layout == RpptLayout::NCHW && dstDescPtr->layout == RpptLayout::NCHW && srcDescPtr->c == 1)
     {
         hipMemcpyAsync(dstPtr, srcPtr, srcDescPtr->n * srcDescPtr->strides.nStride * sizeof(T), hipMemcpyDeviceToDevice, handle.GetStream());
         hipStreamSynchronize(handle.GetStream());
         hipLaunchKernelGGL(channel_dropout_pln_hip_tensor<T>,
-            dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X),
-                 ceil((float)globalThreads_y / LOCAL_THREADS_Y),
-                 ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
-            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-            0, handle.GetStream(),
-            dstPtr, dstPtr,
-            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-            channelMask, dstDescPtr->c, roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X), ceil((float)globalThreads_y / LOCAL_THREADS_Y), ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0, 
+                           handle.GetStream(),
+                           dstPtr, dstPtr,
+                           make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                           d_channelMask, dstDescPtr->c, roiTensorPtrSrc);
         hipStreamSynchronize(handle.GetStream());
+        hipFree(d_channelMask);
         return RPP_SUCCESS;
     }
-
     // PKD3 -> PLN3 (NHWC -> NCHW)
-    if (srcDescPtr->layout == RpptLayout::NHWC && dstDescPtr->layout == RpptLayout::NCHW && srcDescPtr->c == 3)
+    else if (srcDescPtr->layout == RpptLayout::NHWC && dstDescPtr->layout == RpptLayout::NCHW && srcDescPtr->c == 3)
     {
-        // Convert PKD3 to PLN3
         hipLaunchKernelGGL(convert_pkd3_pln3_hip_tensor,
-            dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X),
-                 ceil((float)globalThreads_y / LOCAL_THREADS_Y),
-                 ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
-            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-            0, handle.GetStream(),
-            srcPtr,
-            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-            dstPtr,
-            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-            roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X), ceil((float)globalThreads_y / LOCAL_THREADS_Y), ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0, 
+                           handle.GetStream(),
+                           srcPtr,
+                           make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                           dstPtr,
+                           make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                           roiTensorPtrSrc);
         hipStreamSynchronize(handle.GetStream());
-        // Apply dropout in PLN3
         hipLaunchKernelGGL(channel_dropout_pln3_hip_tensor<T>,
-            dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X),
-                 ceil((float)globalThreads_y / LOCAL_THREADS_Y),
-                 ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
-            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-            0, handle.GetStream(),
-            dstPtr, dstPtr,
-            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-            channelMask, roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X), ceil((float)globalThreads_y / LOCAL_THREADS_Y), globalThreads_z),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0, handle.GetStream(),
+                           dstPtr, dstPtr,
+                           make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                           d_channelMask, roiTensorPtrSrc);
         hipStreamSynchronize(handle.GetStream());
+        hipFree(d_channelMask);
         return RPP_SUCCESS;
     }
-
     // PLN3 -> PKD3 (NCHW -> NHWC)
-    if (srcDescPtr->layout == RpptLayout::NCHW && dstDescPtr->layout == RpptLayout::NHWC && srcDescPtr->c == 3)
+    else if (srcDescPtr->layout == RpptLayout::NCHW && dstDescPtr->layout == RpptLayout::NHWC && srcDescPtr->c == 3)
     {
-        // Convert PLN3 to PKD3
         hipLaunchKernelGGL(convert_pln3_pkd3_hip_tensor,
-            dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X),
-                 ceil((float)globalThreads_y / LOCAL_THREADS_Y),
-                 ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
-            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-            0, handle.GetStream(),
-            srcPtr,
-            make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-            dstPtr,
-            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-            roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X), ceil((float)globalThreads_y / LOCAL_THREADS_Y), ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0, 
+                           handle.GetStream(),
+                           srcPtr,
+                           make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                           dstPtr,
+                           make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                           roiTensorPtrSrc);
         hipStreamSynchronize(handle.GetStream());
-        // Apply dropout in PKD3
         hipLaunchKernelGGL(channel_dropout_pkd_hip_tensor<T>,
-            dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X),
-                 ceil((float)globalThreads_y / LOCAL_THREADS_Y),
-                 ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
-            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-            0, handle.GetStream(),
-            dstPtr, dstPtr,
-            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-            channelMask, roiTensorPtrSrc);
+                           dim3(ceil((float)globalThreads_x / LOCAL_THREADS_X), ceil((float)globalThreads_y / LOCAL_THREADS_Y), ceil((float)globalThreads_z / LOCAL_THREADS_Z)),
+                           dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                           0, 
+                           handle.GetStream(),
+                           dstPtr, dstPtr,
+                           make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                           d_channelMask, roiTensorPtrSrc);
         hipStreamSynchronize(handle.GetStream());
+        hipFree(d_channelMask);
         return RPP_SUCCESS;
     }
-    
-    return RPP_ERROR;
+    else
+    {
+        hipFree(d_channelMask);
+        return RPP_ERROR;
+    }
 }
 
 template RppStatus hip_exec_channel_dropout_tensor<Rpp8u>(Rpp8u*,
-                                                         RpptDescPtr,
-                                                         Rpp8u*,
-                                                         RpptDescPtr,
-                                                         bool*,
-                                                         RpptROIPtr,
-                                                         RpptRoiType,
-                                                         rpp::Handle&);
-template RppStatus hip_exec_channel_dropout_tensor<Rpp8s>(Rpp8s*,
-                                                         RpptDescPtr,
-                                                         Rpp8s*,
-                                                         RpptDescPtr,
-                                                         bool*,
-                                                         RpptROIPtr,
-                                                         RpptRoiType,
-                                                         rpp::Handle&);
-template RppStatus hip_exec_channel_dropout_tensor<Rpp32f>(Rpp32f*,
+                                                          RpptDescPtr,
+                                                          Rpp8u*,
                                                           RpptDescPtr,
                                                           Rpp32f*,
-                                                          RpptDescPtr,
-                                                          bool*,
                                                           RpptROIPtr,
                                                           RpptRoiType,
                                                           rpp::Handle&);
+template RppStatus hip_exec_channel_dropout_tensor<Rpp8s>(Rpp8s*,
+                                                          RpptDescPtr,
+                                                          Rpp8s*,
+                                                          RpptDescPtr,
+                                                          Rpp32f*,
+                                                          RpptROIPtr,
+                                                          RpptRoiType,
+                                                          rpp::Handle&);
+template RppStatus hip_exec_channel_dropout_tensor<Rpp32f>(Rpp32f*,
+                                                           RpptDescPtr,
+                                                           Rpp32f*,
+                                                           RpptDescPtr,
+                                                           Rpp32f*,
+                                                           RpptROIPtr,
+                                                           RpptRoiType,
+                                                           rpp::Handle&);
 template RppStatus hip_exec_channel_dropout_tensor<half>(half*,
-                                                        RpptDescPtr,
-                                                        half*,
-                                                        RpptDescPtr,
-                                                        bool*,
-                                                        RpptROIPtr,
-                                                        RpptRoiType,
-                                                        rpp::Handle&);
+                                                         RpptDescPtr,
+                                                         half*,
+                                                         RpptDescPtr,
+                                                         Rpp32f*,
+                                                         RpptROIPtr,
+                                                         RpptRoiType,
+                                                         rpp::Handle&);
