@@ -23,50 +23,258 @@ SOFTWARE.
 */
 
 #include "hip_tensor_executors.hpp"
+#include "rpp_hip_math.hpp"
 
 // -------------------- median_filter device helpers --------------------
+
+__device__ void median_filter_3x3_row_hip_compute(uchar* src_smem, d_float8* out)
+{
+    uint4 pix0 = *((uint4*)&src_smem[0 * SMEM_LENGTH_X]);
+    uint4 pix1 = *((uint4*)&src_smem[1 * SMEM_LENGTH_X]);
+    uint4 pix2 = *((uint4*)&src_smem[2 * SMEM_LENGTH_X]);
+
+    float4 val0, val1, val2, valz;
+
+    // pixel 0
+    valz.x = rpp_hip_unpack0(pix0.x);
+    valz.y = rpp_hip_unpack1(pix0.x);
+    valz.z = rpp_hip_unpack2(pix0.x);
+    val0.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val0.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val0.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack0(pix1.x);
+    valz.y = rpp_hip_unpack1(pix1.x);
+    valz.z = rpp_hip_unpack2(pix1.x);
+    val1.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val1.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val1.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack0(pix2.x);
+    valz.y = rpp_hip_unpack1(pix2.x);
+    valz.z = rpp_hip_unpack2(pix2.x);
+    val2.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val2.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val2.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_max3(val0.x, val1.x, val2.x);
+    valz.y = rpp_hip_median3(val0.y, val1.y, val2.y);
+    valz.z = rpp_hip_min3(val0.z, val1.z, val2.z);
+    out->f1[0] = rpp_hip_median3(valz.x, valz.y, valz.z);
+
+    // pixel 1
+    valz.x = rpp_hip_unpack1(pix0.x);
+    valz.y = rpp_hip_unpack2(pix0.x);
+    valz.z = rpp_hip_unpack3(pix0.x);
+    val0.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val0.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val0.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack1(pix1.x);
+    valz.y = rpp_hip_unpack2(pix1.x);
+    valz.z = rpp_hip_unpack3(pix1.x);
+    val1.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val1.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val1.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack1(pix2.x);
+    valz.y = rpp_hip_unpack2(pix2.x);
+    valz.z = rpp_hip_unpack3(pix2.x);
+    val2.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val2.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val2.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_max3(val0.x, val1.x, val2.x);
+    valz.y = rpp_hip_median3(val0.y, val1.y, val2.y);
+    valz.z = rpp_hip_min3(val0.z, val1.z, val2.z);
+    out->f1[1] = rpp_hip_median3(valz.x, valz.y, valz.z);
+
+    // pixel 2
+    valz.x = rpp_hip_unpack2(pix0.x);
+    valz.y = rpp_hip_unpack3(pix0.x);
+    valz.z = rpp_hip_unpack0(pix0.y);
+    val0.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val0.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val0.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack2(pix1.x);
+    valz.y = rpp_hip_unpack3(pix1.x);
+    valz.z = rpp_hip_unpack0(pix1.y);
+    val1.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val1.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val1.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack2(pix2.x);
+    valz.y = rpp_hip_unpack3(pix2.x);
+    valz.z = rpp_hip_unpack0(pix2.y);
+    val2.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val2.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val2.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_max3(val0.x, val1.x, val2.x);
+    valz.y = rpp_hip_median3(val0.y, val1.y, val2.y);
+    valz.z = rpp_hip_min3(val0.z, val1.z, val2.z);
+    out->f1[2] = rpp_hip_median3(valz.x, valz.y, valz.z);
+
+    // pixel 3
+    valz.x = rpp_hip_unpack3(pix0.x);
+    valz.y = rpp_hip_unpack0(pix0.y);
+    valz.z = rpp_hip_unpack1(pix0.y);
+    val0.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val0.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val0.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack3(pix1.x);
+    valz.y = rpp_hip_unpack0(pix1.y);
+    valz.z = rpp_hip_unpack1(pix1.y);
+    val1.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val1.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val1.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack3(pix2.x);
+    valz.y = rpp_hip_unpack0(pix2.y);
+    valz.z = rpp_hip_unpack1(pix2.y);
+    val2.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val2.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val2.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_max3(val0.x, val1.x, val2.x);
+    valz.y = rpp_hip_median3(val0.y, val1.y, val2.y);
+    valz.z = rpp_hip_min3(val0.z, val1.z, val2.z);
+    out->f1[3] = rpp_hip_median3(valz.x, valz.y, valz.z);
+
+    // pixel 4
+    valz.x = rpp_hip_unpack0(pix0.y);
+    valz.y = rpp_hip_unpack1(pix0.y);
+    valz.z = rpp_hip_unpack2(pix0.y);
+    val0.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val0.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val0.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack0(pix1.y);
+    valz.y = rpp_hip_unpack1(pix1.y);
+    valz.z = rpp_hip_unpack2(pix1.y);
+    val1.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val1.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val1.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack0(pix2.y);
+    valz.y = rpp_hip_unpack1(pix2.y);
+    valz.z = rpp_hip_unpack2(pix2.y);
+    val2.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val2.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val2.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_max3(val0.x, val1.x, val2.x);
+    valz.y = rpp_hip_median3(val0.y, val1.y, val2.y);
+    valz.z = rpp_hip_min3(val0.z, val1.z, val2.z);
+    out->f1[4] = rpp_hip_median3(valz.x, valz.y, valz.z);
+
+    // pixel 5
+    valz.x = rpp_hip_unpack1(pix0.y);
+    valz.y = rpp_hip_unpack2(pix0.y);
+    valz.z = rpp_hip_unpack3(pix0.y);
+    val0.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val0.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val0.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack1(pix1.y);
+    valz.y = rpp_hip_unpack2(pix1.y);
+    valz.z = rpp_hip_unpack3(pix1.y);
+    val1.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val1.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val1.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack1(pix2.y);
+    valz.y = rpp_hip_unpack2(pix2.y);
+    valz.z = rpp_hip_unpack3(pix2.y);
+    val2.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val2.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val2.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_max3(val0.x, val1.x, val2.x);
+    valz.y = rpp_hip_median3(val0.y, val1.y, val2.y);
+    valz.z = rpp_hip_min3(val0.z, val1.z, val2.z);
+    out->f1[5] = rpp_hip_median3(valz.x, valz.y, valz.z);
+
+    // pixel 6
+    valz.x = rpp_hip_unpack2(pix0.y);
+    valz.y = rpp_hip_unpack3(pix0.y);
+    valz.z = rpp_hip_unpack0(pix0.z);
+    val0.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val0.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val0.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack2(pix1.y);
+    valz.y = rpp_hip_unpack3(pix1.y);
+    valz.z = rpp_hip_unpack0(pix1.z);
+    val1.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val1.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val1.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack2(pix2.y);
+    valz.y = rpp_hip_unpack3(pix2.y);
+    valz.z = rpp_hip_unpack0(pix2.z);
+    val2.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val2.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val2.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_max3(val0.x, val1.x, val2.x);
+    valz.y = rpp_hip_median3(val0.y, val1.y, val2.y);
+    valz.z = rpp_hip_min3(val0.z, val1.z, val2.z);
+    out->f1[6] = rpp_hip_median3(valz.x, valz.y, valz.z);
+
+    // pixel 7
+    valz.x = rpp_hip_unpack3(pix0.y);
+    valz.y = rpp_hip_unpack0(pix0.z);
+    valz.z = rpp_hip_unpack1(pix0.z);
+    val0.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val0.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val0.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack3(pix1.y);
+    valz.y = rpp_hip_unpack0(pix1.z);
+    valz.z = rpp_hip_unpack1(pix1.z);
+    val1.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val1.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val1.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_unpack3(pix2.y);
+    valz.y = rpp_hip_unpack0(pix2.z);
+    valz.z = rpp_hip_unpack1(pix2.z);
+    val2.x = rpp_hip_min3(valz.x, valz.y, valz.z);
+    val2.y = rpp_hip_median3(valz.x, valz.y, valz.z);
+    val2.z = rpp_hip_max3(valz.x, valz.y, valz.z);
+
+    valz.x = rpp_hip_max3(val0.x, val1.x, val2.x);
+    valz.y = rpp_hip_median3(val0.y, val1.y, val2.y);
+    valz.z = rpp_hip_min3(val0.z, val1.z, val2.z);
+    out->f1[7] = rpp_hip_median3(valz.x, valz.y, valz.z);
+}
 
 template<int kernelSize>
 __device__ float compute_median(float *window)
 {
     constexpr int windowSize = kernelSize * kernelSize;
     constexpr int medianIndex = (windowSize - 1) / 2;
-    if constexpr (kernelSize == 3)
+    // Partial selection sort for median - sufficient to find median without full sorting
+    int sortSteps = medianIndex + 1;
+
+    for (int i = 0; i < sortSteps; ++i)
     {
-        // Sorting network for 3x3 (9 elements) median
-        #define SWAP(i, j) if (window[i] > window[j]) { float tmp = window[i]; window[i] = window[j]; window[j] = tmp; }
-
-        SWAP(1, 2); SWAP(4, 5); SWAP(7, 8); SWAP(0, 1);
-        SWAP(3, 4); SWAP(6, 7); SWAP(1, 2); SWAP(4, 5);
-        SWAP(7, 8); SWAP(0, 3); SWAP(5, 8); SWAP(4, 7);
-        SWAP(3, 6); SWAP(1, 4); SWAP(2, 5);SWAP(4, 7);
-        SWAP(4, 2); SWAP(6, 4); SWAP(4, 2);
-
-        #undef SWAP
-
-        return window[medianIndex];  // Median index is 4 for 9 elements
-    }
-    else
-    {
-        // Partial selection sort for median - sufficient to find median without full sorting
-        int sortSteps = medianIndex + 1;
-
-        for (int i = 0; i < sortSteps; ++i)
+        int minIdx = i;
+        for (int j = i + 1; j < windowSize; ++j)
         {
-            int minIdx = i;
-            for (int j = i + 1; j < windowSize; ++j)
-            {
-                if (window[j] < window[minIdx])
-                    minIdx = j;
-            }
-            // Swap i-th and minIdx element
-            float temp = window[i];
-            window[i] = window[minIdx];
-            window[minIdx] = temp;
+            if (window[j] < window[minIdx])
+                minIdx = j;
         }
-
-        return window[medianIndex];
+        // Swap i-th and minIdx element
+        float temp = window[i];
+        window[i] = window[minIdx];
+        window[minIdx] = temp;
     }
+
+    return window[medianIndex];
 }
 
 template <int kernelSize>
@@ -180,9 +388,9 @@ __global__ void median_filter_3x3_pkd_hip_tensor(T *srcPtr,
         (hipThreadIdx_x < tileSize.x) &&
         (hipThreadIdx_y < tileSize.y))
     {
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8], &median_f24.f8[0]);
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8], &median_f24.f8[1]);
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8], &median_f24.f8[2]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8], &median_f24.f8[0]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8], &median_f24.f8[1]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8], &median_f24.f8[2]);
         rpp_hip_adjust_range(dstPtr, &median_f24);
         rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &median_f24);
     }
@@ -468,7 +676,7 @@ __global__ void median_filter_3x3_pln_hip_tensor(T *srcPtr,
         (hipThreadIdx_x < tileSize.x) &&
         (hipThreadIdx_y < tileSize.y))
     {
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y][hipThreadIdx_x8], &median_f8);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y][hipThreadIdx_x8], &median_f8);
         rpp_hip_adjust_range(dstPtr, &median_f8);
         rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &median_f8);
     }
@@ -509,7 +717,7 @@ __global__ void median_filter_3x3_pln_hip_tensor(T *srcPtr,
             (hipThreadIdx_x < tileSize.x) &&
             (hipThreadIdx_y < tileSize.y))
         {
-            median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y][hipThreadIdx_x8], &median_f8);
+            median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y][hipThreadIdx_x8], &median_f8);
             rpp_hip_adjust_range(dstPtr, &median_f8);
             rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &median_f8);
         }
@@ -548,7 +756,7 @@ __global__ void median_filter_3x3_pln_hip_tensor(T *srcPtr,
             (hipThreadIdx_x < tileSize.x) &&
             (hipThreadIdx_y < tileSize.y))
         {
-            median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y][hipThreadIdx_x8], &median_f8);
+            median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y][hipThreadIdx_x8], &median_f8);
             rpp_hip_adjust_range(dstPtr, &median_f8);
             rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &median_f8);
         }
@@ -1044,9 +1252,9 @@ __global__ void median_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
         (hipThreadIdx_x < tileSize.x) &&
         (hipThreadIdx_y < tileSize.y))
     {
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8], &median_f24.f8[0]);
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8], &median_f24.f8[1]);
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8], &median_f24.f8[2]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8], &median_f24.f8[0]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8], &median_f24.f8[1]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8], &median_f24.f8[2]);
         rpp_hip_adjust_range(dstPtr, &median_f24);
         rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &median_f24);
     }
@@ -1356,9 +1564,9 @@ __global__ void median_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
         (hipThreadIdx_x < tileSize.x) &&
         (hipThreadIdx_y < tileSize.y))
     {
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8], &median_f24.f8[0]);
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8], &median_f24.f8[1]);
-        median_filter_row_hip_compute<3>(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8], &median_f24.f8[2]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8], &median_f24.f8[0]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8], &median_f24.f8[1]);
+        median_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8], &median_f24.f8[2]);
         rpp_hip_adjust_range(dstPtr, &median_f24);
         rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &median_f24);
     }
