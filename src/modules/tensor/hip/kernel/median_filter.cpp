@@ -29,9 +29,9 @@ SOFTWARE.
 
 __device__ void median_filter_3x3_row_hip_compute(uchar* src_smem, d_float8* out)
 {
-    uint4 pix0 = *((uint4*)&src_smem[0 * SMEM_LENGTH_X]);
-    uint4 pix1 = *((uint4*)&src_smem[1 * SMEM_LENGTH_X]);
-    uint4 pix2 = *((uint4*)&src_smem[2 * SMEM_LENGTH_X]);
+    uint3 pix0 = *((uint3*)&src_smem[0 * SMEM_LENGTH_X]);
+    uint3 pix1 = *((uint3*)&src_smem[1 * SMEM_LENGTH_X]);
+    uint3 pix2 = *((uint3*)&src_smem[2 * SMEM_LENGTH_X]);
 
     float4 val0, val1, val2, valz;
 
