@@ -67,9 +67,30 @@ __global__ void random_erase_pkd_hip_tensor(T *dstPtr,
         if (id_x >= anchorBoxInfoTensor[temp].lt.x && id_x <= anchorBoxInfoTensor[temp].rb.x &&
             id_y >= anchorBoxInfoTensor[temp].lt.y && id_y <= anchorBoxInfoTensor[temp].rb.y)
         {
-            dstPtr[dstIdx]     = static_cast<T>(generate_random_int(seed + 0));
-            dstPtr[dstIdx + 1] = static_cast<T>(generate_random_int(seed + 1));
-            dstPtr[dstIdx + 2] = static_cast<T>(generate_random_int(seed + 2));
+            if constexpr (std::is_same<T, Rpp8u>::value)
+            {
+                dstPtr[dstIdx]     = static_cast<Rpp8u>(generate_random_int(seed + 0));
+                dstPtr[dstIdx + 1] = static_cast<Rpp8u>(generate_random_int(seed + 1));
+                dstPtr[dstIdx + 2] = static_cast<Rpp8u>(generate_random_int(seed + 2));
+            }
+            else if constexpr (std::is_same<T, Rpp8s>::value)
+            {
+                dstPtr[dstIdx]     = static_cast<Rpp8s>(generate_random_int(seed + 0) - 128);
+                dstPtr[dstIdx + 1] = static_cast<Rpp8s>(generate_random_int(seed + 1) - 128);
+                dstPtr[dstIdx + 2] = static_cast<Rpp8s>(generate_random_int(seed + 2) - 128);
+            }
+            else if constexpr (std::is_same<T, Rpp32f>::value)
+            {
+                dstPtr[dstIdx]     = generate_random_float(seed + 0);
+                dstPtr[dstIdx + 1] = generate_random_float(seed + 1);
+                dstPtr[dstIdx + 2] = generate_random_float(seed + 2);
+            }
+            else if constexpr (std::is_same<T, half>::value)
+            {
+                dstPtr[dstIdx]     = __float2half(generate_random_float(seed + 0));
+                dstPtr[dstIdx + 1] = __float2half(generate_random_float(seed + 1));
+                dstPtr[dstIdx + 2] = __float2half(generate_random_float(seed + 2));
+            }
             break;
         }
     }
@@ -100,7 +121,22 @@ __global__ void random_erase_pln_hip_tensor(T *dstPtr,
         if (id_x >= anchorBoxInfoTensor[temp].lt.x && id_x <= anchorBoxInfoTensor[temp].rb.x &&
             id_y >= anchorBoxInfoTensor[temp].lt.y && id_y <= anchorBoxInfoTensor[temp].rb.y)
         {
-            dstPtr[dstIdx] = static_cast<T>(generate_random_int(seed));
+            if constexpr (std::is_same<T, Rpp8u>::value)
+            {
+                dstPtr[dstIdx] = static_cast<Rpp8u>(generate_random_int(seed));
+            }
+            else if constexpr (std::is_same<T, Rpp8s>::value)
+            {
+                dstPtr[dstIdx] = static_cast<Rpp8s>(generate_random_int(seed) - 128);  // Centered around 0
+            }
+            else if constexpr (std::is_same<T, Rpp32f>::value)
+            {
+                dstPtr[dstIdx] = generate_random_float(seed);
+            }
+            else if constexpr (std::is_same<T, half>::value)
+            {
+                dstPtr[dstIdx] = __float2half(generate_random_float(seed));
+            }
             break;
         }
     }
@@ -131,9 +167,30 @@ __global__ void random_erase_pln3_hip_tensor(T *dstPtr,
         if (id_x >= anchorBoxInfoTensor[temp].lt.x && id_x <= anchorBoxInfoTensor[temp].rb.x &&
             id_y >= anchorBoxInfoTensor[temp].lt.y && id_y <= anchorBoxInfoTensor[temp].rb.y)
         {
-            dstPtr[dstIdx]                          = static_cast<T>(generate_random_int(seed + 0));
-            dstPtr[dstIdx + dstStridesNCH.y]        = static_cast<T>(generate_random_int(seed + 1));
-            dstPtr[dstIdx + 2 * dstStridesNCH.y]    = static_cast<T>(generate_random_int(seed + 2));
+            if constexpr (std::is_same<T, Rpp8u>::value)
+            {
+                dstPtr[dstIdx]                      = static_cast<Rpp8u>(generate_random_int(seed + 0));
+                dstPtr[dstIdx + dstStridesNCH.y]    = static_cast<Rpp8u>(generate_random_int(seed + 1));
+                dstPtr[dstIdx + 2 * dstStridesNCH.y]= static_cast<Rpp8u>(generate_random_int(seed + 2));
+            }
+            else if constexpr (std::is_same<T, Rpp8s>::value)
+            {
+                dstPtr[dstIdx]                      = static_cast<Rpp8s>(generate_random_int(seed + 0) - 128);
+                dstPtr[dstIdx + dstStridesNCH.y]    = static_cast<Rpp8s>(generate_random_int(seed + 1) - 128);
+                dstPtr[dstIdx + 2 * dstStridesNCH.y]= static_cast<Rpp8s>(generate_random_int(seed + 2) - 128);
+            }
+            else if constexpr (std::is_same<T, Rpp32f>::value)
+            {
+                dstPtr[dstIdx]                      = generate_random_float(seed + 0);
+                dstPtr[dstIdx + dstStridesNCH.y]    = generate_random_float(seed + 1);
+                dstPtr[dstIdx + 2 * dstStridesNCH.y]= generate_random_float(seed + 2);
+            }
+            else if constexpr (std::is_same<T, half>::value)
+            {
+                dstPtr[dstIdx]                      = __float2half(generate_random_float(seed + 0));
+                dstPtr[dstIdx + dstStridesNCH.y]    = __float2half(generate_random_float(seed + 1));
+                dstPtr[dstIdx + 2 * dstStridesNCH.y]= __float2half(generate_random_float(seed + 2));
+            }
             break;
         }
     }
