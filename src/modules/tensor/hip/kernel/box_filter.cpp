@@ -999,6 +999,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
+        // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     }
     __syncthreads();
@@ -1037,6 +1038,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
+            // Use helper function to load padded data into shared memory
             BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
@@ -1073,6 +1075,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
+            // Use helper function to load padded data into shared memory
             BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
@@ -1131,6 +1134,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
+        // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     }
     __syncthreads();
@@ -1171,6 +1175,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
+            // Use helper function to load padded data into shared memory
             BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
@@ -1209,6 +1214,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
+            // Use helper function to load padded data into shared memory
             BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
@@ -1269,6 +1275,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
+        // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     }
     __syncthreads();
@@ -1311,6 +1318,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
+            // Use helper function to load padded data into shared memory
             BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
@@ -1351,6 +1359,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
+            // Use helper function to load padded data into shared memory
             BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
@@ -1371,6 +1380,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
     }
 }
 
+// kernelSize = 9
 template <typename T>
 __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
                                               uint3 srcStridesNCH,
@@ -1412,6 +1422,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
+        // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     }
     __syncthreads();
@@ -1456,6 +1467,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
+            // Use helper function to load padded data into shared memory
             BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
@@ -1498,6 +1510,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
+            // Use helper function to load padded data into shared memory
             BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
@@ -1606,7 +1619,6 @@ __global__ void box_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
     }
 }
 
-
 // kernelSize = 5
 template <typename T>
 __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
@@ -1672,7 +1684,6 @@ __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
         // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
-
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
         (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -1962,7 +1973,7 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
             tempBuffer1[i] = srcPtr[clampedIdx1];
             tempBuffer2[i] = srcPtr[clampedIdx2];
         }
-
+        // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer0, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer1, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer2, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
@@ -2050,7 +2061,7 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
             tempBuffer1[i] = srcPtr[clampedIdx1];
             tempBuffer2[i] = srcPtr[clampedIdx2];
         }
-
+        // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer0, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer1, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer2, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
@@ -2144,7 +2155,7 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
             tempBuffer1[i] = srcPtr[clampedIdx1];
             tempBuffer2[i] = srcPtr[clampedIdx2];
         }
-
+        // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer0, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer1, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer2, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
@@ -2244,7 +2255,7 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
             tempBuffer1[i] = srcPtr[clampedIdx1];
             tempBuffer2[i] = srcPtr[clampedIdx2];
         }
-
+        // Use helper function to load padded data into shared memory
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer0, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer1, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
         BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer2, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
