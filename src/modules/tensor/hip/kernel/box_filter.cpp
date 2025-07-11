@@ -999,7 +999,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
-        BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+        BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1037,7 +1037,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1073,7 +1073,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1131,7 +1131,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
-        BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+        BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1171,7 +1171,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1209,7 +1209,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1269,7 +1269,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
-        BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+        BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1311,7 +1311,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1351,7 +1351,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1412,7 +1412,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
             int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
             tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
-        BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+        BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1456,7 +1456,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1498,7 +1498,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
                 int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
-            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]); // Convert to uchar8
+            BoxFilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1697,7 +1697,6 @@ __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
         BoxFilterDispatch<T>::rpp_hip_store24_pln3_to_pln3(dstPtr, dstIdx, dstStridesNCH.y, &sum_f24);
     }
 }
-
 
 // kernelSize = 7
 template <typename T>
@@ -2287,7 +2286,6 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
     }
 }
 
-
 // -------------------- Set 5 - Kernel Executors --------------------
 
 template <typename T>
@@ -2320,62 +2318,62 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
         if (kernelSize == 3)
         {
             hipLaunchKernelGGL(box_filter_3x3_pkd_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                            padLength,
-                            tileSize,
-                            roiTensorPtrSrc);
+                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                               0,
+                               handle.GetStream(),
+                               srcPtr,
+                               make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                               dstPtr,
+                               make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                               padLength,
+                               tileSize,
+                               roiTensorPtrSrc);
         }
         else if (kernelSize == 5)
         {
             hipLaunchKernelGGL(box_filter_5x5_pkd_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                            padLength,
-                            tileSize,
-                            roiTensorPtrSrc);
+                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                               0,
+                               handle.GetStream(),
+                               srcPtr,
+                               make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                               dstPtr,
+                               make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                               padLength,
+                               tileSize,
+                               roiTensorPtrSrc);
         }
         else if (kernelSize == 7)
         {
             hipLaunchKernelGGL(box_filter_7x7_pkd_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                            padLength,
-                            tileSize,
-                            roiTensorPtrSrc);
+                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                               0,
+                               handle.GetStream(),
+                               srcPtr,
+                               make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                               dstPtr,
+                               make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                               padLength,
+                               tileSize,
+                               roiTensorPtrSrc);
         }
         else if (kernelSize == 9)
         {
             hipLaunchKernelGGL(box_filter_9x9_pkd_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                            padLength,
-                            tileSize,
-                            roiTensorPtrSrc);
+                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                               0,
+                               handle.GetStream(),
+                               srcPtr,
+                               make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                               dstPtr,
+                               make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                               padLength,
+                               tileSize,
+                               roiTensorPtrSrc);
         }
     }
     else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
@@ -2383,66 +2381,66 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
         if (kernelSize == 3)
         {
             hipLaunchKernelGGL(box_filter_3x3_pln_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                            dstDescPtr->c,
-                            padLength,
-                            tileSize,
-                            roiTensorPtrSrc);
+                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                               0,
+                               handle.GetStream(),
+                               srcPtr,
+                               make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                               dstPtr,
+                               make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                               dstDescPtr->c,
+                               padLength,
+                               tileSize,
+                               roiTensorPtrSrc);
         }
         else if (kernelSize == 5)
         {
             hipLaunchKernelGGL(box_filter_5x5_pln_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                            dstDescPtr->c,
-                            padLength,
-                            tileSize,
-                            roiTensorPtrSrc);
+                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                               0,
+                               handle.GetStream(),
+                               srcPtr,
+                               make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                               dstPtr,
+                               make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                               dstDescPtr->c,
+                               padLength,
+                               tileSize,
+                               roiTensorPtrSrc);
         }
         else if (kernelSize == 7)
         {
             hipLaunchKernelGGL(box_filter_7x7_pln_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                            dstDescPtr->c,
-                            padLength,
-                            tileSize,
-                            roiTensorPtrSrc);
+                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                               0,
+                               handle.GetStream(),
+                               srcPtr,
+                               make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                               dstPtr,
+                               make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                               dstDescPtr->c,
+                               padLength,
+                               tileSize,
+                               roiTensorPtrSrc);
         }
         else if (kernelSize == 9)
         {
             hipLaunchKernelGGL(box_filter_9x9_pln_hip_tensor,
-                            dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                            dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                            0,
-                            handle.GetStream(),
-                            srcPtr,
-                            make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                            dstPtr,
-                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                            dstDescPtr->c,
-                            padLength,
-                            tileSize,
-                            roiTensorPtrSrc);
+                               dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                               dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                               0,
+                               handle.GetStream(),
+                               srcPtr,
+                               make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                               dstPtr,
+                               make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                               dstDescPtr->c,
+                               padLength,
+                               tileSize,
+                               roiTensorPtrSrc);
         }
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
@@ -2452,62 +2450,62 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
             if (kernelSize == 3)
             {
                 hipLaunchKernelGGL(box_filter_3x3_pkd3_pln3_hip_tensor,
-                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                0,
-                                handle.GetStream(),
-                                srcPtr,
-                                make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                                dstPtr,
-                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                                padLength,
-                                tileSize,
-                                roiTensorPtrSrc);
+                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                   0,
+                                   handle.GetStream(),
+                                   srcPtr,
+                                   make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                                   dstPtr,
+                                   make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                   padLength,
+                                   tileSize,
+                                   roiTensorPtrSrc);
             }
             else if (kernelSize == 5)
             {
                 hipLaunchKernelGGL(box_filter_5x5_pkd3_pln3_hip_tensor,
-                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                0,
-                                handle.GetStream(),
-                                srcPtr,
-                                make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                                dstPtr,
-                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                                padLength,
-                                tileSize,
-                                roiTensorPtrSrc);
+                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                   0,
+                                   handle.GetStream(),
+                                   srcPtr,
+                                   make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                                   dstPtr,
+                                   make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                   padLength,
+                                   tileSize,
+                                   roiTensorPtrSrc);
             }
             else if (kernelSize == 7)
             {
                 hipLaunchKernelGGL(box_filter_7x7_pkd3_pln3_hip_tensor,
-                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                0,
-                                handle.GetStream(),
-                                srcPtr,
-                                make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                                dstPtr,
-                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                                padLength,
-                                tileSize,
-                                roiTensorPtrSrc);
+                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                   0,
+                                   handle.GetStream(),
+                                   srcPtr,
+                                   make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                                   dstPtr,
+                                   make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                   padLength,
+                                   tileSize,
+                                   roiTensorPtrSrc);
             }
             else if (kernelSize == 9)
             {
                 hipLaunchKernelGGL(box_filter_9x9_pkd3_pln3_hip_tensor,
-                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                0,
-                                handle.GetStream(),
-                                srcPtr,
-                                make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
-                                dstPtr,
-                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                                padLength,
-                                tileSize,
-                                roiTensorPtrSrc);
+                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                   0,
+                                   handle.GetStream(),
+                                   srcPtr,
+                                   make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
+                                   dstPtr,
+                                   make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
+                                   padLength,
+                                   tileSize,
+                                   roiTensorPtrSrc);
             }
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
@@ -2517,62 +2515,62 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
             if (kernelSize == 3)
             {
                 hipLaunchKernelGGL(box_filter_3x3_pln3_pkd3_hip_tensor,
-                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                0,
-                                handle.GetStream(),
-                                srcPtr,
-                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                                dstPtr,
-                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                                padLength,
-                                tileSize,
-                                roiTensorPtrSrc);
+                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                   0,
+                                   handle.GetStream(),
+                                   srcPtr,
+                                   make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                   dstPtr,
+                                   make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                   padLength,
+                                   tileSize,
+                                   roiTensorPtrSrc);
             }
             else if (kernelSize == 5)
             {
                 hipLaunchKernelGGL(box_filter_5x5_pln3_pkd3_hip_tensor,
-                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                0,
-                                handle.GetStream(),
-                                srcPtr,
-                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                                dstPtr,
-                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                                padLength,
-                                tileSize,
-                                roiTensorPtrSrc);
+                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                   0,
+                                   handle.GetStream(),
+                                   srcPtr,
+                                   make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                   dstPtr,
+                                   make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                   padLength,
+                                   tileSize,
+                                   roiTensorPtrSrc);
             }
             else if (kernelSize == 7)
             {
                 hipLaunchKernelGGL(box_filter_7x7_pln3_pkd3_hip_tensor,
-                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                0,
-                                handle.GetStream(),
-                                srcPtr,
-                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                                dstPtr,
-                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                                padLength,
-                                tileSize,
-                                roiTensorPtrSrc);
+                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                   0,
+                                   handle.GetStream(),
+                                   srcPtr,
+                                   make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                   dstPtr,
+                                   make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                   padLength,
+                                   tileSize,
+                                   roiTensorPtrSrc);
             }
             else if (kernelSize == 9)
             {
                 hipLaunchKernelGGL(box_filter_9x9_pln3_pkd3_hip_tensor,
-                                dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
-                                dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
-                                0,
-                                handle.GetStream(),
-                                srcPtr,
-                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
-                                dstPtr,
-                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                                padLength,
-                                tileSize,
-                                roiTensorPtrSrc);
+                                   dim3(ceil((float)globalThreads_x/tileSize.x), ceil((float)globalThreads_y/tileSize.y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
+                                   dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
+                                   0,
+                                   handle.GetStream(),
+                                   srcPtr,
+                                   make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
+                                   dstPtr,
+                                   make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
+                                   padLength,
+                                   tileSize,
+                                   roiTensorPtrSrc);
             }
         }
     }
