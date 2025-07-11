@@ -183,7 +183,6 @@ int main(int argc, char **argv)
     func += funcType;
 
     RpptImageBorderType borderType = RpptImageBorderType::REPLICATE;
-
     RpptInterpolationType interpolationType = RpptInterpolationType::BILINEAR;
     std::string interpolationTypeName = "";
     std::string noiseTypeName = "";

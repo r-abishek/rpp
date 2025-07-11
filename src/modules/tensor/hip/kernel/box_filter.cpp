@@ -510,8 +510,7 @@ __device__ void box_filter_9x9_row_hip_compute(float *srcPtr, d_float8 *dst_f8)
 
 // -------------------- Set 1 - PKD3->PKD3 for T = U8/F32/F16/I8 --------------------
 
-// Common logic for float (also used for half)
-
+// Dispatch function for float/half types
 template <typename T>
 struct BoxFilterDispatchFloat
 {
@@ -543,6 +542,7 @@ struct BoxFilterDispatchFloat
     }
 };
 
+// Dispatch function for uchar/schar types
 template <typename T>
 struct BoxFilterDispatchChar
 {
