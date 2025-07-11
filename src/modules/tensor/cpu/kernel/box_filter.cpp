@@ -94,6 +94,7 @@ inline void box_filter_generic_tensor(T **srcPtrTemp, T *dstPtrTemp, Rpp32s colu
         Rpp32s rowOverflowPixels = (kernelSize - rowKernelLoopLimit);
         Rpp32s columnOverflowPixels = (kernelSize - columnKernelLoopLimit);
 
+        // verticalDirection and horizontalDirection variables are used to determine the direction of padding - Clamping is done is accordance
         Rpp32u rowClampIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
         Rpp32u columnClampIndex = (horizontalDirection == 1) ? columnKernelLoopLimit - 1 : 0;
 
@@ -388,6 +389,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                         process_left_border_columns_pln_pln(srcPtrTemp, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                         dstPtrTemp += padLength;
 #if __AVX2__
+                        // Index that determines the values for padding - Based on the direction of padding
                         Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                         // process alignedLength number of columns in each row
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -455,6 +457,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                     process_left_border_columns_pkd_pkd(srcPtrTemp, srcPtrRow, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                     dstPtrTemp += padLength * 3;
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -522,6 +525,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                     Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     process_left_border_columns_pkd_pln(srcPtrTemp, srcPtrRow, dstPtrTempChannels, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -607,6 +611,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                         }
                     }
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -708,6 +713,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                         process_left_border_columns_pln_pln(srcPtrTemp, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                         dstPtrTemp += padLength;
 #if __AVX2__
+                        // Index that determines the values for padding - Based on the direction of padding
                         Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                         // process alignedLength number of columns in each row
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -772,6 +778,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                     process_left_border_columns_pkd_pkd(srcPtrTemp, srcPtrRow, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                     dstPtrTemp += padLength * 3;
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 18)
@@ -837,6 +844,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                     Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     process_left_border_columns_pkd_pln(srcPtrTemp, srcPtrRow, dstPtrTempChannels, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 18)
@@ -922,6 +930,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                         }
                     }
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -1020,6 +1029,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                         process_left_border_columns_pln_pln(srcPtrTemp, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                         dstPtrTemp += padLength;
 #if __AVX2__
+                        // Index that determines the values for padding - Based on the direction of padding
                         Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                         // process alignedLength number of columns in each row
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -1098,6 +1108,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                         }
                     }
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -1180,6 +1191,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                     process_left_border_columns_pkd_pkd(srcPtrTemp, srcPtrRow, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                     dstPtrTemp += padLength * 3;
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 12)
@@ -1239,6 +1251,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                     Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     process_left_border_columns_pkd_pln(srcPtrTemp, srcPtrRow, dstPtrTempChannels, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 12)
@@ -1317,6 +1330,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                         process_left_border_columns_pln_pln(srcPtrTemp, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                         dstPtrTemp += padLength;
 #if __AVX2__
+                        // Index that determines the values for padding - Based on the direction of padding
                         Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                         // process alignedLength number of columns in each row
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += 16)
@@ -1378,6 +1392,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                     process_left_border_columns_pkd_pkd(srcPtrTemp, srcPtrRow, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                     dstPtrTemp += padLength * 3;
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // load first 32 elements elements
                     __m256i pxRow[9];
@@ -1467,6 +1482,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                         }
                     }
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 16)
@@ -1543,6 +1559,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                     Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     process_left_border_columns_pkd_pln(srcPtrTemp, srcPtrRow, dstPtrTempChannels, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 24)
@@ -1612,6 +1629,7 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
     return RPP_SUCCESS;
 }
 
+// F32 and F16 bitdepth
 template<typename T>
 RppStatus box_filter_float_host_tensor(T *srcPtr,
                                        RpptDescPtr srcDescPtr,
@@ -1697,6 +1715,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                         process_left_border_columns_pln_pln(srcPtrTemp, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                         dstPtrTemp += padLength;
 #if __AVX2__
+                        // Index that determines the values for padding - Based on the direction of padding
                         Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                         // process alignedLength number of columns in each row
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += 14)
@@ -1751,6 +1770,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     process_left_border_columns_pkd_pkd(srcPtrTemp, srcPtrRow, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                     dstPtrTemp += padLength * 3;
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 16)
@@ -1806,6 +1826,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     process_left_border_columns_pkd_pln(srcPtrTemp, srcPtrRow, dstPtrTempChannels, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 12)
@@ -1878,6 +1899,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                         }
                     }
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 14)
@@ -1959,6 +1981,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                         process_left_border_columns_pln_pln(srcPtrTemp, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                         dstPtrTemp += padLength;
 #if __AVX2__
+                        // Index that determines the values for padding - Based on the direction of padding
                         Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                         // process alignedLength number of columns in each row
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += 12)
@@ -2015,6 +2038,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     process_left_border_columns_pkd_pkd(srcPtrTemp, srcPtrRow, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                     dstPtrTemp += padLength * 3;
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 12)
@@ -2086,6 +2110,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                         }
                     }
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 8)
@@ -2149,6 +2174,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     process_left_border_columns_pkd_pln(srcPtrTemp, srcPtrRow, dstPtrTempChannels, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 12)
@@ -2228,6 +2254,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                         process_left_border_columns_pln_pln(srcPtrTemp, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                         dstPtrTemp += padLength;
 #if __AVX2__
+                        // Index that determines the values for padding - Based on the direction of padding
                         Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                         // process alignedLength number of columns in each row
                         for (; vectorLoopCount < alignedLength; vectorLoopCount += 8)
@@ -2285,6 +2312,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     process_left_border_columns_pkd_pkd(srcPtrTemp, srcPtrRow, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                     dstPtrTemp += padLength * 3;
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     __m256 pRow[7], pTemp[4];
                     if (alignedLength)
@@ -2371,6 +2399,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                         }
                     }
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 8)
@@ -2433,6 +2462,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     process_left_border_columns_pkd_pln(srcPtrTemp, srcPtrRow, dstPtrTempChannels, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 12)
@@ -2517,6 +2547,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                         process_left_border_columns_pln_pln(srcPtrTemp, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                         dstPtrTemp += padLength;
 #if __AVX2__
+                        // Index that determines the values for padding - Based on the direction of padding
                         Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                         __m256 pRow[9];
                         if (alignedLength)
@@ -2577,6 +2608,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     process_left_border_columns_pkd_pkd(srcPtrTemp, srcPtrRow, dstPtrTemp, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
                     dstPtrTemp += padLength * 3;
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     __m256 pRow[9], pTemp[4];
                     if (alignedLength)
@@ -2659,6 +2691,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                         }
                     }
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process alignedLength number of columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 8)
@@ -2722,6 +2755,7 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                     Rpp32s verticalDirection = i < padLength ? 0 : 1;
                     process_left_border_columns_pkd_pln(srcPtrTemp, srcPtrRow, dstPtrTempChannels, kernelSize, padLength, unpaddedWidth, rowKernelLoopLimit, kernelSizeInverseSquare, verticalDirection);
 #if __AVX2__
+                    // Index that determines the values for padding - Based on the direction of padding
                     Rpp32s padIndex = (verticalDirection == 1) ?  rowKernelLoopLimit - 1 : 0;
                     // process remaining columns in each row
                     for (; vectorLoopCount < alignedLength; vectorLoopCount += 12)
