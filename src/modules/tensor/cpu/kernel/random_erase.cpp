@@ -27,7 +27,7 @@ SOFTWARE.
 
 inline uint generate_seed(uint x, uint y, uint z)
 {
-    return 42 ^ (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
+    return (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
 }
 
 inline float generate_random_float(uint seed)
