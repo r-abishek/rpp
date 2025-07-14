@@ -301,7 +301,7 @@ int main(int argc, char **argv)
     Rpp32f conversionFactor = 1.0f / 255.0;
     if(testCase == CROP_MIRROR_NORMALIZE)
         conversionFactor = 1.0;
-    Rpp32f invConversionFactor = 1.0f / conversionFactor;
+    Rpp32f invConversionFactor = 255.0f; // 1.0f / conversionFactor;
 
     // Set buffer sizes in pixels for src/dst
     ioBufferSize = (Rpp64u)srcDescPtr->h * (Rpp64u)srcDescPtr->w * (Rpp64u)srcDescPtr->c * (Rpp64u)batchSize;
@@ -1654,6 +1654,24 @@ int main(int argc, char **argv)
                     startCpuTime = clock();
                     if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
                         rppt_jpeg_compression_distortion_host(input, srcDescPtr, output, dstDescPtr, qualityTensor, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case POSTERIZE:
+                {
+                    testCaseName = "posterize";
+
+                    Rpp8u posterizeLevelBits[batchSize];
+                    for (i = 0; i < batchSize; i++)
+                        posterizeLevelBits[i] = 3;
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+
+                    if (inputBitDepth == 0 || inputBitDepth == 1 || inputBitDepth == 2 || inputBitDepth == 5)
+                        rppt_posterize_host(input, srcDescPtr, output, dstDescPtr, posterizeLevelBits, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
