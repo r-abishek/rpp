@@ -1663,7 +1663,7 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "posterize";
 
-                    Rpp32u posterizeLevelBits[batchSize];
+                    Rpp8u posterizeLevelBits[batchSize];
                     for (i = 0; i < batchSize; i++)
                         posterizeLevelBits[i] = 3;
 

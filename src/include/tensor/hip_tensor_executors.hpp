@@ -579,7 +579,7 @@ RppStatus hip_exec_posterize_tensor(T *srcPtr,
                                     RpptDescPtr srcDescPtr,
                                     T *dstPtr,
                                     RpptDescPtr dstDescPtr,
-                                    Rpp32u *posterizeLevelBits,
+                                    Rpp8u *posterizeLevelBits,
                                     RpptROIPtr roiTensorPtrSrc,
                                     RpptRoiType roiType,
                                     rpp::Handle& handle);
