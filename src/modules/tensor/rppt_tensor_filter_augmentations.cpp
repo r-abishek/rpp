@@ -104,10 +104,15 @@ RppStatus rppt_median_filter_host(RppPtr_t srcPtr,
                                   RppPtr_t dstPtr,
                                   RpptDescPtr dstDescPtr,
                                   Rpp32u kernelSize,
+                                  RpptImageBorderType borderType,
                                   RpptROIPtr roiTensorPtrSrc,
                                   RpptRoiType roiType,
                                   rppHandle_t rppHandle)
 {
+    if (srcDescPtr->dataType != dstDescPtr->dataType) return RPP_ERROR_INVALID_SRC_OR_DST_DATATYPE;
+    if ((srcDescPtr->layout == RpptLayout::NCDHW) || (srcDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
+    if ((dstDescPtr->layout == RpptLayout::NCDHW) || (dstDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
+    if (borderType != RpptImageBorderType::REPLICATE) return RPP_ERROR_NOT_IMPLEMENTED;
     RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
 
     if ((kernelSize != 3) && (kernelSize != 5) && (kernelSize != 7) && (kernelSize != 9))
@@ -321,6 +326,7 @@ RppStatus rppt_median_filter_gpu(RppPtr_t srcPtr,
                                  RppPtr_t dstPtr,
                                  RpptDescPtr dstDescPtr,
                                  Rpp32u kernelSize,
+                                 RpptImageBorderType borderType,
                                  RpptROIPtr roiTensorPtrSrc,
                                  RpptRoiType roiType,
                                  rppHandle_t rppHandle)
@@ -330,6 +336,7 @@ RppStatus rppt_median_filter_gpu(RppPtr_t srcPtr,
         return RPP_ERROR_INVALID_ARGUMENTS;
     if (srcDescPtr->offsetInBytes < 12 * (kernelSize / 2))
         return RPP_ERROR_LOW_OFFSET;
+    if (borderType != RpptImageBorderType::REPLICATE) return RPP_ERROR_NOT_IMPLEMENTED;
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
