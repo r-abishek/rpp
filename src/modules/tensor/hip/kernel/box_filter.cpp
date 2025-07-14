@@ -67,6 +67,35 @@ __device__ void box_filter_3x3_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
     dst_f8->f1[7] = fmaf(src_f1, 0.1111111f, dst_f8->f1[7]);
 }
 
+__device__ void box_filter_3x3_row_hip_compute(float *srcPtr, d_float8 *dst_f8)
+{
+    d_float12 *src_f12 = (d_float12 *)srcPtr;
+    dst_f8->f1[0] = fmaf(src_f12->f1[0], 0.1111111f, dst_f8->f1[0]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[1], 0.1111111f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[1], 0.1111111f, dst_f8->f1[1]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[2], 0.1111111f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[2], 0.1111111f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[2], 0.1111111f, dst_f8->f1[2]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[3], 0.1111111f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[3], 0.1111111f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[3], 0.1111111f, dst_f8->f1[3]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[4], 0.1111111f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[4], 0.1111111f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[4], 0.1111111f, dst_f8->f1[4]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[5], 0.1111111f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[5], 0.1111111f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[5], 0.1111111f, dst_f8->f1[5]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[6], 0.1111111f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[6], 0.1111111f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[6], 0.1111111f, dst_f8->f1[6]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[7], 0.1111111f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[7], 0.1111111f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[7], 0.1111111f, dst_f8->f1[7]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[8], 0.1111111f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[8], 0.1111111f, dst_f8->f1[7]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[9], 0.1111111f, dst_f8->f1[7]);
+}
+
 __device__ void box_filter_5x5_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
 {
     float src_f1;
@@ -124,6 +153,51 @@ __device__ void box_filter_5x5_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
     dst_f8->f1[7] = fmaf(src_f1, 0.04f, dst_f8->f1[7]);
     src_f1 = rpp_hip_unpack3(src_ui3.z);
     dst_f8->f1[7] = fmaf(src_f1, 0.04f, dst_f8->f1[7]);
+}
+
+__device__ void box_filter_5x5_row_hip_compute(float *srcPtr, d_float8 *dst_f8)
+{
+    d_float12 *src_f12 = (d_float12 *)srcPtr;
+    dst_f8->f1[0] = fmaf(src_f12->f1[0], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[1], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[1], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[2], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[2], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[2], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[3], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[3], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[3], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[3], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[0] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[4], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[1] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[5], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[2] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[6], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[3] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[7], 0.04f, dst_f8->f1[7]);
+    dst_f8->f1[4] = fmaf(src_f12->f1[8], 0.04f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[8], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[8], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[8], 0.04f, dst_f8->f1[7]);
+    dst_f8->f1[5] = fmaf(src_f12->f1[9], 0.04f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[9], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[9], 0.04f, dst_f8->f1[7]);
+    dst_f8->f1[6] = fmaf(src_f12->f1[10], 0.04f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[10], 0.04f, dst_f8->f1[7]);
+    dst_f8->f1[7] = fmaf(src_f12->f1[11], 0.04f, dst_f8->f1[7]);
 }
 
 __device__ void box_filter_7x7_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
@@ -200,6 +274,67 @@ __device__ void box_filter_7x7_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
     dst_f8->f1[7] = fmaf(src_f1, 0.02040816f, dst_f8->f1[7]);
     src_f1 = rpp_hip_unpack1(src_ui4.w);
     dst_f8->f1[7] = fmaf(src_f1, 0.02040816f, dst_f8->f1[7]);
+}
+
+__device__ void box_filter_7x7_row_hip_compute(float *srcPtr, d_float8 *dst_f8)
+{
+    d_float16 *src_f16 = (d_float16 *)srcPtr;
+    dst_f8->f1[0] = fmaf(src_f16->f1[0], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[1], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[1], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[2], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[2], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[2], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[3], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[3], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[3], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[3], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[4], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[5], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[6], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[7], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[8], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[9], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[10], 0.02040816f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[10], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[10], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[10], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[11], 0.02040816f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[11], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[11], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[12], 0.02040816f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[12], 0.02040816f, dst_f8->f1[7]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[13], 0.02040816f, dst_f8->f1[7]);
 }
 
 __device__ void box_filter_9x9_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
@@ -296,6 +431,83 @@ __device__ void box_filter_9x9_row_hip_compute(uchar *srcPtr, d_float8 *dst_f8)
     dst_f8->f1[7] = fmaf(src_f1, 0.01234568f, dst_f8->f1[7]);
 }
 
+__device__ void box_filter_9x9_row_hip_compute(float *srcPtr, d_float8 *dst_f8)
+{
+    d_float16 *src_f16 = (d_float16 *)srcPtr;
+    dst_f8->f1[0] = fmaf(src_f16->f1[0], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[1], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[1], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[2], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[2], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[2], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[3], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[3], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[3], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[3], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[4], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[5], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[6], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[7], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[0] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[0]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[8], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[1] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[1]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[9], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[2] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[2]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[10], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[3] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[3]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[11], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[4] = fmaf(src_f16->f1[12], 0.01234568f, dst_f8->f1[4]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[12], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[12], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[12], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[5] = fmaf(src_f16->f1[13], 0.01234568f, dst_f8->f1[5]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[13], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[13], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[6] = fmaf(src_f16->f1[14], 0.01234568f, dst_f8->f1[6]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[14], 0.01234568f, dst_f8->f1[7]);
+    dst_f8->f1[7] = fmaf(src_f16->f1[15], 0.01234568f, dst_f8->f1[7]);
+}
+
 // -------------------- Set 1 - PKD3->PKD3 for T = U8/F32/F16/I8 --------------------
 
 // kernelSize = 3
@@ -316,7 +528,7 @@ __global__ void box_filter_3x3_pkd_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
@@ -332,21 +544,35 @@ __global__ void box_filter_3x3_pkd_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    uchar *src_smem_channel[3];
+    typename FilterDispatch<T>::SharedType *src_smem_channel[3];
     src_smem_channel[0] = &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8];
     src_smem_channel[1] = &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8];
     src_smem_channel[2] = &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8];
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(srcPtr + srcIdx, src_smem_channel);
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(srcPtr + srcIdx, src_smem_channel);
     }
     else
     {
-        *(uint2 *)src_smem_channel[0] = (uint2)0;
-        *(uint2 *)src_smem_channel[1] = (uint2)0;
-        *(uint2 *)src_smem_channel[2] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer[24]; // Temporary storage for 8 pixels, 3 channels
+
+        for (int i = 0, rgbOffset = 0; i < 8; i++, rgbOffset += 3)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+
+            tempBuffer[rgbOffset] = srcPtr[clampedIdx];         // R
+            tempBuffer[rgbOffset + 1] = srcPtr[clampedIdx + 1]; // G
+            tempBuffer[rgbOffset + 2] = srcPtr[clampedIdx + 2]; // B
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -363,8 +589,7 @@ __global__ void box_filter_3x3_pkd_hip_tensor(T *srcPtr,
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 2][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 2][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 2][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
 
@@ -386,7 +611,7 @@ __global__ void box_filter_5x5_pkd_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
@@ -402,21 +627,36 @@ __global__ void box_filter_5x5_pkd_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    uchar *src_smem_channel[3];
+    typename FilterDispatch<T>::SharedType *src_smem_channel[3];
     src_smem_channel[0] = &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8];
     src_smem_channel[1] = &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8];
     src_smem_channel[2] = &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8];
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(srcPtr + srcIdx, src_smem_channel);
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(srcPtr + srcIdx, src_smem_channel);
     }
     else
     {
-        *(uint2 *)src_smem_channel[0] = (uint2)0;
-        *(uint2 *)src_smem_channel[1] = (uint2)0;
-        *(uint2 *)src_smem_channel[2] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer[24]; // Temporary storage for 8 pixels, 3 channels
+
+        for (int i = 0, rgbOffset = 0; i < 8; i++, rgbOffset += 3)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+
+            tempBuffer[rgbOffset] = srcPtr[clampedIdx];         // R
+            tempBuffer[rgbOffset + 1] = srcPtr[clampedIdx + 1]; // G
+            tempBuffer[rgbOffset + 2] = srcPtr[clampedIdx + 2]; // B
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -439,8 +679,7 @@ __global__ void box_filter_5x5_pkd_hip_tensor(T *srcPtr,
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 4][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 4][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 4][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
 
@@ -462,7 +701,7 @@ __global__ void box_filter_7x7_pkd_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
@@ -478,21 +717,36 @@ __global__ void box_filter_7x7_pkd_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    uchar *src_smem_channel[3];
+    typename FilterDispatch<T>::SharedType *src_smem_channel[3];
     src_smem_channel[0] = &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8];
     src_smem_channel[1] = &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8];
     src_smem_channel[2] = &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8];
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(srcPtr + srcIdx, src_smem_channel);
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(srcPtr + srcIdx, src_smem_channel);
     }
     else
     {
-        *(uint2 *)src_smem_channel[0] = (uint2)0;
-        *(uint2 *)src_smem_channel[1] = (uint2)0;
-        *(uint2 *)src_smem_channel[2] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer[24]; // Temporary storage for 8 pixels, 3 channels
+
+        for (int i = 0, rgbOffset = 0; i < 8; i++, rgbOffset += 3)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+
+            tempBuffer[rgbOffset] = srcPtr[clampedIdx];         // R
+            tempBuffer[rgbOffset + 1] = srcPtr[clampedIdx + 1]; // G
+            tempBuffer[rgbOffset + 2] = srcPtr[clampedIdx + 2]; // B
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -521,8 +775,7 @@ __global__ void box_filter_7x7_pkd_hip_tensor(T *srcPtr,
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 6][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 6][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 6][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
 
@@ -544,7 +797,7 @@ __global__ void box_filter_9x9_pkd_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
@@ -560,21 +813,36 @@ __global__ void box_filter_9x9_pkd_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    uchar *src_smem_channel[3];
+    typename FilterDispatch<T>::SharedType *src_smem_channel[3];
     src_smem_channel[0] = &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8];
     src_smem_channel[1] = &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8];
     src_smem_channel[2] = &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8];
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(srcPtr + srcIdx, src_smem_channel);
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(srcPtr + srcIdx, src_smem_channel);
     }
     else
     {
-        *(uint2 *)src_smem_channel[0] = (uint2)0;
-        *(uint2 *)src_smem_channel[1] = (uint2)0;
-        *(uint2 *)src_smem_channel[2] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer[24]; // Temporary storage for 8 pixels, 3 channels
+
+        for (int i = 0, rgbOffset = 0; i < 8; i++, rgbOffset += 3)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+
+            tempBuffer[rgbOffset] = srcPtr[clampedIdx];         // R
+            tempBuffer[rgbOffset + 1] = srcPtr[clampedIdx + 1]; // G
+            tempBuffer[rgbOffset + 2] = srcPtr[clampedIdx + 2]; // B
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -609,8 +877,7 @@ __global__ void box_filter_9x9_pkd_hip_tensor(T *srcPtr,
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 8][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 8][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 8][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
 
@@ -635,17 +902,32 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float8 sum_f8;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = (float4) 0;
     sum_f8.f4[1] = (float4) 0;
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     else
-        *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+    {
+        // Nearest-neighbor padding
+        T tempBuffer[8]; // Temporary storage for 8 pixels
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+    }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
         (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -655,8 +937,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
-        rpp_hip_adjust_range(dstPtr, &sum_f8);
-        rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
     }
 
     if (channelsDst == 3)
@@ -666,11 +947,26 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
         sum_f8.f4[0] = (float4) 0;
         sum_f8.f4[1] = (float4) 0;
-        if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-            (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-            *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            // Use helper function to load padded data into shared memory
+            FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -680,8 +976,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
             box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
             box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
             box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
-            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+            FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
         }
 
         __syncthreads();
@@ -689,11 +984,26 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
         sum_f8.f4[0] = (float4) 0;
         sum_f8.f4[1] = (float4) 0;
-        if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-            (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-            *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            // Use helper function to load padded data into shared memory
+            FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -703,8 +1013,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
             box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y    ][hipThreadIdx_x8], &sum_f8);
             box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y + 1][hipThreadIdx_x8], &sum_f8);
             box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
-            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+            FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
         }
     }
 }
@@ -712,13 +1021,13 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
 // kernelSize = 5
 template <typename T>
 __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
-                                          uint3 srcStridesNCH,
-                                          T *dstPtr,
-                                          uint3 dstStridesNCH,
-                                          int channelsDst,
-                                          uint padLength,
-                                          uint2 tileSize,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                              uint3 srcStridesNCH,
+                                              T *dstPtr,
+                                              uint3 dstStridesNCH,
+                                              int channelsDst,
+                                              uint padLength,
+                                              uint2 tileSize,
+                                              RpptROIPtr roiTensorPtrSrc)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
@@ -728,17 +1037,32 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float8 sum_f8;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = (float4) 0;
     sum_f8.f4[1] = (float4) 0;
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     else
-        *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+    {
+        // Nearest-neighbor padding
+        T tempBuffer[8]; // Temporary storage for 8 pixels
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+    }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
         (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -750,8 +1074,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
-        rpp_hip_adjust_range(dstPtr, &sum_f8);
-        rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
     }
 
     if (channelsDst == 3)
@@ -761,11 +1084,26 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
         sum_f8.f4[0] = (float4) 0;
         sum_f8.f4[1] = (float4) 0;
-        if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-            (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-            *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            // Use helper function to load padded data into shared memory
+            FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -777,8 +1115,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
             box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
             box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
             box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
-            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+            FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
         }
 
         __syncthreads();
@@ -786,11 +1123,26 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
         sum_f8.f4[0] = (float4) 0;
         sum_f8.f4[1] = (float4) 0;
-        if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-            (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-            *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            // Use helper function to load padded data into shared memory
+            FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -802,8 +1154,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
             box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 2][hipThreadIdx_x8], &sum_f8);
             box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 3][hipThreadIdx_x8], &sum_f8);
             box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
-            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+            FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
         }
     }
 }
@@ -827,17 +1178,32 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float8 sum_f8;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = (float4) 0;
     sum_f8.f4[1] = (float4) 0;
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     else
-        *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+    {
+        // Nearest-neighbor padding
+        T tempBuffer[8]; // Temporary storage for 8 pixels
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+    }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
         (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -851,8 +1217,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
-        rpp_hip_adjust_range(dstPtr, &sum_f8);
-        rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
     }
 
     if (channelsDst == 3)
@@ -862,11 +1227,26 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
         sum_f8.f4[0] = (float4) 0;
         sum_f8.f4[1] = (float4) 0;
-        if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-            (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-            *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            // Use helper function to load padded data into shared memory
+            FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -880,8 +1260,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
             box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
             box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
             box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
-            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+            FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
         }
 
         __syncthreads();
@@ -889,11 +1268,26 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
         sum_f8.f4[0] = (float4) 0;
         sum_f8.f4[1] = (float4) 0;
-        if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-            (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-            *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            // Use helper function to load padded data into shared memory
+            FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -907,8 +1301,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
             box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 4][hipThreadIdx_x8], &sum_f8);
             box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 5][hipThreadIdx_x8], &sum_f8);
             box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
-            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+            FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
         }
     }
 }
@@ -932,17 +1325,32 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float8 sum_f8;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = (float4) 0;
     sum_f8.f4[1] = (float4) 0;
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
     else
-        *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+    {
+        // Nearest-neighbor padding
+        T tempBuffer[8]; // Temporary storage for 8 pixels
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+    }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
         (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -958,8 +1366,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 7][hipThreadIdx_x8], &sum_f8);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 8][hipThreadIdx_x8], &sum_f8);
-        rpp_hip_adjust_range(dstPtr, &sum_f8);
-        rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+        FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
     }
 
     if (channelsDst == 3)
@@ -969,11 +1376,26 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
         sum_f8.f4[0] = (float4) 0;
         sum_f8.f4[1] = (float4) 0;
-        if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-            (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-            *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            // Use helper function to load padded data into shared memory
+            FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -989,8 +1411,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
             box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
             box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 7][hipThreadIdx_x8], &sum_f8);
             box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 8][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
-            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+            FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
         }
 
         __syncthreads();
@@ -998,11 +1419,26 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
         dstIdx += dstStridesNCH.y;
         sum_f8.f4[0] = (float4) 0;
         sum_f8.f4[1] = (float4) 0;
-        if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-            (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
-            rpp_hip_load8_to_uchar8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+            (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+            FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
         else
-            *(uint2 *)&src_smem[hipThreadIdx_y][hipThreadIdx_x8] = (uint2)0;
+        {
+            // Nearest-neighbor padding
+            T tempBuffer[8]; // Temporary storage for 8 pixels
+            for (int i = 0; i < 8; i++)
+            {
+                int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                    min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+                int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                    min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                tempBuffer[i] = srcPtr[clampedIdx];  // Load nearest pixel
+            }
+            // Use helper function to load padded data into shared memory
+            FilterDispatch<T>::rpp_hip_load8(tempBuffer, &src_smem[hipThreadIdx_y][hipThreadIdx_x8]);
+        }
         __syncthreads();
         if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
             (id_y_o < roiTensorPtrSrc[id_z].xywhROI.roiHeight) &&
@@ -1018,8 +1454,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
             box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 6][hipThreadIdx_x8], &sum_f8);
             box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 7][hipThreadIdx_x8], &sum_f8);
             box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y + 8][hipThreadIdx_x8], &sum_f8);
-            rpp_hip_adjust_range(dstPtr, &sum_f8);
-            rpp_hip_pack_float8_and_store8(dstPtr + dstIdx, &sum_f8);
+            FilterDispatch<T>::rpp_hip_store8(dstPtr + dstIdx, &sum_f8);
         }
     }
 }
@@ -1044,7 +1479,7 @@ __global__ void box_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
@@ -1060,21 +1495,36 @@ __global__ void box_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    uchar *src_smem_channel[3];
+    typename FilterDispatch<T>::SharedType *src_smem_channel[3];
     src_smem_channel[0] = &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8];
     src_smem_channel[1] = &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8];
     src_smem_channel[2] = &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8];
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(srcPtr + srcIdx, src_smem_channel);
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(srcPtr + srcIdx, src_smem_channel);
     }
     else
     {
-        *(uint2 *)src_smem_channel[0] = (uint2)0;
-        *(uint2 *)src_smem_channel[1] = (uint2)0;
-        *(uint2 *)src_smem_channel[2] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer[24]; // Temporary storage for 8 pixels, 3 channels
+
+        for (int i = 0, rgbOffset = 0; i < 8; i++, rgbOffset += 3)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+
+            tempBuffer[rgbOffset] = srcPtr[clampedIdx];         // R
+            tempBuffer[rgbOffset + 1] = srcPtr[clampedIdx + 1]; // G
+            tempBuffer[rgbOffset + 2] = srcPtr[clampedIdx + 2]; // B
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1091,8 +1541,7 @@ __global__ void box_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 2][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 2][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 2][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pln3(dstPtr + dstIdx, dstStridesNCH.y, &sum_f24);
     }
 }
 
@@ -1114,7 +1563,7 @@ __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
@@ -1130,21 +1579,36 @@ __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    uchar *src_smem_channel[3];
+    typename FilterDispatch<T>::SharedType *src_smem_channel[3];
     src_smem_channel[0] = &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8];
     src_smem_channel[1] = &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8];
     src_smem_channel[2] = &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8];
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(srcPtr + srcIdx, src_smem_channel);
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(srcPtr + srcIdx, src_smem_channel);
     }
     else
     {
-        *(uint2 *)src_smem_channel[0] = (uint2)0;
-        *(uint2 *)src_smem_channel[1] = (uint2)0;
-        *(uint2 *)src_smem_channel[2] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer[24]; // Temporary storage for 8 pixels, 3 channels
+
+        for(int i = 0, rgbOffset = 0; i < 8; i++, rgbOffset += 3)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+
+            tempBuffer[rgbOffset] = srcPtr[clampedIdx];         // R
+            tempBuffer[rgbOffset + 1] = srcPtr[clampedIdx + 1]; // G
+            tempBuffer[rgbOffset + 2] = srcPtr[clampedIdx + 2]; // B
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1167,8 +1631,7 @@ __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 4][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 4][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 4][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pln3(dstPtr + dstIdx, dstStridesNCH.y, &sum_f24);
     }
 }
 
@@ -1190,7 +1653,7 @@ __global__ void box_filter_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
@@ -1206,21 +1669,36 @@ __global__ void box_filter_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    uchar *src_smem_channel[3];
+    typename FilterDispatch<T>::SharedType *src_smem_channel[3];
     src_smem_channel[0] = &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8];
     src_smem_channel[1] = &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8];
     src_smem_channel[2] = &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8];
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(srcPtr + srcIdx, src_smem_channel);
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(srcPtr + srcIdx, src_smem_channel);
     }
     else
     {
-        *(uint2 *)src_smem_channel[0] = (uint2)0;
-        *(uint2 *)src_smem_channel[1] = (uint2)0;
-        *(uint2 *)src_smem_channel[2] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer[24]; // Temporary storage for 8 pixels, 3 channels
+
+        for (int i = 0, rgbOffset = 0; i < 8; i++, rgbOffset += 3)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+
+            tempBuffer[rgbOffset] = srcPtr[clampedIdx];         // R
+            tempBuffer[rgbOffset + 1] = srcPtr[clampedIdx + 1]; // G
+            tempBuffer[rgbOffset + 2] = srcPtr[clampedIdx + 2]; // B
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1249,8 +1727,7 @@ __global__ void box_filter_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 6][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 6][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 6][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pln3(dstPtr + dstIdx, dstStridesNCH.y, &sum_f24);
     }
 }
 
@@ -1272,7 +1749,7 @@ __global__ void box_filter_9x9_pkd3_pln3_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int srcIdx = (id_z * srcStridesNH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
@@ -1288,21 +1765,36 @@ __global__ void box_filter_9x9_pkd3_pln3_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    uchar *src_smem_channel[3];
+    typename FilterDispatch<T>::SharedType *src_smem_channel[3];
     src_smem_channel[0] = &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8];
     src_smem_channel[1] = &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8];
     src_smem_channel[2] = &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8];
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(srcPtr + srcIdx, src_smem_channel);
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(srcPtr + srcIdx, src_smem_channel);
     }
     else
     {
-        *(uint2 *)src_smem_channel[0] = (uint2)0;
-        *(uint2 *)src_smem_channel[1] = (uint2)0;
-        *(uint2 *)src_smem_channel[2] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer[24]; // Temporary storage for 8 pixels, 3 channels
+
+        for (int i = 0, rgbOffset = 0; i < 8; i++, rgbOffset += 3)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+
+            tempBuffer[rgbOffset] = srcPtr[clampedIdx];         // R
+            tempBuffer[rgbOffset + 1] = srcPtr[clampedIdx + 1]; // G
+            tempBuffer[rgbOffset + 2] = srcPtr[clampedIdx + 2]; // B
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load24_pkd3_to_pln3(tempBuffer, src_smem_channel);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1337,8 +1829,7 @@ __global__ void box_filter_9x9_pkd3_pln3_hip_tensor(T *srcPtr,
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 8][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 8][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 8][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pln3(dstPtr + dstIdx, dstStridesNCH.y, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pln3(dstPtr + dstIdx, dstStridesNCH.y, &sum_f24);
     }
 }
 
@@ -1362,7 +1853,7 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
     srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
@@ -1381,18 +1872,37 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.x, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.y, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.z, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.x, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.y, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.z, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
     }
     else
     {
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8] = (uint2)0;
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8] = (uint2)0;
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer0[8], tempBuffer1[8], tempBuffer2[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
+            int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
+
+            tempBuffer0[i] = srcPtr[clampedIdx0];
+            tempBuffer1[i] = srcPtr[clampedIdx1];
+            tempBuffer2[i] = srcPtr[clampedIdx2];
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer0, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer1, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer2, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1409,8 +1919,7 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 2][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 2][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_3x3_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 2][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
 
@@ -1432,7 +1941,7 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
     srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
@@ -1451,18 +1960,37 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.x, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.y, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.z, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.x, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.y, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.z, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
     }
     else
     {
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8] = (uint2)0;
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8] = (uint2)0;
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer0[8], tempBuffer1[8], tempBuffer2[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
+            int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
+
+            tempBuffer0[i] = srcPtr[clampedIdx0];
+            tempBuffer1[i] = srcPtr[clampedIdx1];
+            tempBuffer2[i] = srcPtr[clampedIdx2];
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer0, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer1, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer2, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1485,8 +2013,7 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 4][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 4][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_5x5_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 4][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
 
@@ -1508,7 +2035,7 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
     srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
@@ -1527,18 +2054,37 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.x, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.y, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.z, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.x, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.y, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.z, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
     }
     else
     {
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8] = (uint2)0;
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8] = (uint2)0;
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer0[8], tempBuffer1[8], tempBuffer2[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
+            int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
+
+            tempBuffer0[i] = srcPtr[clampedIdx0];
+            tempBuffer1[i] = srcPtr[clampedIdx1];
+            tempBuffer2[i] = srcPtr[clampedIdx2];
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer0, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer1, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer2, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1567,8 +2113,7 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 6][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 6][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_7x7_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 6][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
 
@@ -1590,7 +2135,7 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
     d_float24 sum_f24;
-    __shared__ uchar src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
+    __shared__ typename FilterDispatch<T>::SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
     srcIdx.x = (id_z * srcStridesNCH.x) + ((id_y_i + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x_i + roiTensorPtrSrc[id_z].xywhROI.xy.x);
@@ -1609,18 +2154,37 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
     hipThreadIdx_y_channel.y = hipThreadIdx_y + 16;
     hipThreadIdx_y_channel.z = hipThreadIdx_y + 32;
 
-    if ((id_x_i >= -(int)padLength) && (id_x_i < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
-        (id_y_i >= 0) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
+    if ((id_x_i > roiTensorPtrSrc[id_z].xywhROI.xy.x) && ((id_x_i + 7 + padLength) < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
+        (id_y_i > roiTensorPtrSrc[id_z].xywhROI.xy.y) && (id_y_i < roiTensorPtrSrc[id_z].xywhROI.roiHeight))
     {
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.x, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.y, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
-        rpp_hip_load8_to_uchar8(srcPtr + srcIdx.z, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.x, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.y, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(srcPtr + srcIdx.z, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
     }
     else
     {
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8] = (uint2)0;
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8] = (uint2)0;
-        *(uint2 *)&src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8] = (uint2)0;
+        // Nearest-neighbor padding
+        T tempBuffer0[8], tempBuffer1[8], tempBuffer2[8];
+
+        for (int i = 0; i < 8; i++)
+        {
+            int clampedX = max(roiTensorPtrSrc[id_z].xywhROI.xy.x,
+                                min(id_x_i + i, roiTensorPtrSrc[id_z].xywhROI.xy.x + roiTensorPtrSrc[id_z].xywhROI.roiWidth - 1));
+            int clampedY = max(roiTensorPtrSrc[id_z].xywhROI.xy.y,
+                                min(id_y_i, roiTensorPtrSrc[id_z].xywhROI.xy.y + roiTensorPtrSrc[id_z].xywhROI.roiHeight - 1));
+
+            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
+            int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
+
+            tempBuffer0[i] = srcPtr[clampedIdx0];
+            tempBuffer1[i] = srcPtr[clampedIdx1];
+            tempBuffer2[i] = srcPtr[clampedIdx2];
+        }
+        // Use helper function to load padded data into shared memory
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer0, &src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer1, &src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8]);
+        FilterDispatch<T>::rpp_hip_load8(tempBuffer2, &src_smem[hipThreadIdx_y_channel.z][hipThreadIdx_x8]);
     }
     __syncthreads();
     if ((id_x_o < roiTensorPtrSrc[id_z].xywhROI.roiWidth) &&
@@ -1655,8 +2219,7 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.x + 8][hipThreadIdx_x8], &sum_f24.f8[0]);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.y + 8][hipThreadIdx_x8], &sum_f24.f8[1]);
         box_filter_9x9_row_hip_compute(&src_smem[hipThreadIdx_y_channel.z + 8][hipThreadIdx_x8], &sum_f24.f8[2]);
-        rpp_hip_adjust_range(dstPtr, &sum_f24);
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &sum_f24);
+        FilterDispatch<T>::rpp_hip_store24_pln3_to_pkd3(dstPtr + dstIdx, &sum_f24);
     }
 }
 
