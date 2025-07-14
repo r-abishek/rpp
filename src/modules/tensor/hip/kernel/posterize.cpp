@@ -52,7 +52,7 @@ __global__ void posterize_pkd_hip_tensor(Rpp8u *srcPtr,
                                          uint2 srcStridesNH,
                                          Rpp8u *dstPtr,
                                          uint2 dstStridesNH,
-                                         Rpp32u *posterizeLevelBits,
+                                         Rpp8u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -87,7 +87,7 @@ __global__ void posterize_pkd_hip_tensor(half *srcPtr,
                                          uint2 srcStridesNH,
                                          half *dstPtr,
                                          uint2 dstStridesNH,
-                                         Rpp32u *posterizeLevelBits,
+                                         Rpp8u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -122,7 +122,7 @@ __global__ void posterize_pkd_hip_tensor(Rpp32f *srcPtr,
                                          uint2 srcStridesNH,
                                          Rpp32f *dstPtr,
                                          uint2 dstStridesNH,
-                                         Rpp32u *posterizeLevelBits,
+                                         Rpp8u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -157,7 +157,7 @@ __global__ void posterize_pln_hip_tensor(Rpp8u *srcPtr,
                                          Rpp8u *dstPtr,
                                          uint3 dstStridesNCH,
                                          int channelsDst,
-                                         Rpp32u *posterizeLevelBits,
+                                         Rpp8u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -208,7 +208,7 @@ __global__ void posterize_pln_hip_tensor(half *srcPtr,
                                          half *dstPtr,
                                          uint3 dstStridesNCH,
                                          int channelsDst,
-                                         Rpp32u *posterizeLevelBits,
+                                         Rpp8u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -258,7 +258,7 @@ __global__ void posterize_pln_hip_tensor(Rpp32f *srcPtr,
                                          Rpp32f *dstPtr,
                                          uint3 dstStridesNCH,
                                          int channelsDst,
-                                         Rpp32u *posterizeLevelBits,
+                                         Rpp8u *posterizeLevelBits,
                                          RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -307,7 +307,7 @@ __global__ void posterize_pkd3_pln3_hip_tensor(Rpp8u *srcPtr,
                                                uint2 srcStridesNH,
                                                Rpp8u *dstPtr,
                                                uint3 dstStridesNCH,
-                                               Rpp32u *posterizeLevelBits,
+                                               Rpp8u *posterizeLevelBits,
                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -341,7 +341,7 @@ __global__ void posterize_pkd3_pln3_hip_tensor(half *srcPtr,
                                                uint2 srcStridesNH,
                                                half *dstPtr,
                                                uint3 dstStridesNCH,
-                                               Rpp32u *posterizeLevelBits,
+                                               Rpp8u *posterizeLevelBits,
                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -375,7 +375,7 @@ __global__ void posterize_pkd3_pln3_hip_tensor(Rpp32f *srcPtr,
                                                uint2 srcStridesNH,
                                                Rpp32f *dstPtr,
                                                uint3 dstStridesNCH,
-                                               Rpp32u *posterizeLevelBits,
+                                               Rpp8u *posterizeLevelBits,
                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -409,7 +409,7 @@ __global__ void posterize_pln3_pkd3_hip_tensor(Rpp8u *srcPtr,
                                                uint3 srcStridesNCH,
                                                Rpp8u *dstPtr,
                                                uint2 dstStridesNH,
-                                               Rpp32u *posterizeLevelBits,
+                                               Rpp8u *posterizeLevelBits,
                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -443,7 +443,7 @@ __global__ void posterize_pln3_pkd3_hip_tensor(half *srcPtr,
                                                uint3 srcStridesNCH,
                                                half *dstPtr,
                                                uint2 dstStridesNH,
-                                               Rpp32u *posterizeLevelBits,
+                                               Rpp8u *posterizeLevelBits,
                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -477,7 +477,7 @@ __global__ void posterize_pln3_pkd3_hip_tensor(Rpp32f *srcPtr,
                                                uint3 srcStridesNCH,
                                                Rpp32f *dstPtr,
                                                uint2 dstStridesNH,
-                                               Rpp32u *posterizeLevelBits,
+                                               Rpp8u *posterizeLevelBits,
                                                RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
@@ -513,7 +513,7 @@ RppStatus hip_exec_posterize_tensor(T *srcPtr,
                                     RpptDescPtr srcDescPtr,
                                     T *dstPtr,
                                     RpptDescPtr dstDescPtr,
-                                    Rpp32u *posterizeLevelBits,
+                                    Rpp8u *posterizeLevelBits,
                                     RpptROIPtr roiTensorPtrSrc,
                                     RpptRoiType roiType,
                                     rpp::Handle& handle)
@@ -593,19 +593,19 @@ template RppStatus hip_exec_posterize_tensor<Rpp8u>(Rpp8u*,
                                                     RpptDescPtr,
                                                     Rpp8u*,
                                                     RpptDescPtr,
-                                                    Rpp32u*,
+                                                    Rpp8u*,
                                                     RpptROIPtr,
                                                     RpptRoiType,
                                                     rpp::Handle&);
 
 template RppStatus hip_exec_posterize_tensor<half>(half*,
-                                                    RpptDescPtr,
-                                                    half*,
-                                                    RpptDescPtr,
-                                                    Rpp32u*,
-                                                    RpptROIPtr,
-                                                    RpptRoiType,
-                                                    rpp::Handle&);
+                                                   RpptDescPtr,
+                                                   half*,
+                                                   RpptDescPtr,
+                                                   Rpp32u*,
+                                                   RpptROIPtr,
+                                                   RpptRoiType,
+                                                   rpp::Handle&);
 
 template RppStatus hip_exec_posterize_tensor<Rpp32f>(Rpp32f*,
                                                     RpptDescPtr,
