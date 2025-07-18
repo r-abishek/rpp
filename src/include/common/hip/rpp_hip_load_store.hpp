@@ -1983,53 +1983,32 @@ __global__ void convert_pln3_pkd3_hip_tensor(T *srcPtr,
 
 // Type-based dispatch functions to load, process, and store image data for float/half and uchar/schar types
 
-// Dispatch function for float/half types
+// Structure to Dispatch load/store functions for float/half types
 template <typename T>
 struct FilterDispatchFloat
 {
     using SharedType = float;
 
-    __device__ __forceinline__ static void rpp_hip_load24_pkd3_to_pln3(T* src, float** dst)
-    {
-        rpp_hip_load24_pkd3_to_float24_pln3(src, dst);
-    }
+    __device__ __forceinline__ static void rpp_hip_load24_pkd3_to_pln3(T* src, float** dst) { rpp_hip_load24_pkd3_to_float24_pln3(src, dst); }
 
-    __device__ __forceinline__ static void rpp_hip_load8(T* src, float* dst)
-    {
-        rpp_hip_load8_and_unpack_to_float8(src, (d_float8*)dst);
-    }
+    __device__ __forceinline__ static void rpp_hip_load8(T* src, float* dst) { rpp_hip_load8_and_unpack_to_float8(src, (d_float8*)dst); }
 
-    __device__ __forceinline__ static void rpp_hip_store24_pln3_to_pkd3(T* dst, d_float24* sum_f24)
-    {
-        rpp_hip_pack_float24_pln3_and_store24_pkd3(dst, sum_f24);
-    }
+    __device__ __forceinline__ static void rpp_hip_store24_pln3_to_pkd3(T* dst, d_float24* sum_f24) { rpp_hip_pack_float24_pln3_and_store24_pkd3(dst, sum_f24); }
 
-    __device__ __forceinline__ static void rpp_hip_store24_pln3_to_pln3(T* dst, uint dstIncrement, d_float24* sum_f24)
-    {
-        rpp_hip_pack_float24_pln3_and_store24_pln3(dst, dstIncrement, sum_f24);
-    }
+    __device__ __forceinline__ static void rpp_hip_store24_pln3_to_pln3(T* dst, uint dstIncrement, d_float24* sum_f24) { rpp_hip_pack_float24_pln3_and_store24_pln3(dst, dstIncrement, sum_f24); }
 
-    __device__ __forceinline__ static void rpp_hip_store8(T* dst, d_float8* sum_f8)
-    {
-        rpp_hip_pack_float8_and_store8(dst, sum_f8);
-    }
+    __device__ __forceinline__ static void rpp_hip_store8(T* dst, d_float8* sum_f8) { rpp_hip_pack_float8_and_store8(dst, sum_f8); }
 };
 
-// Dispatch function for uchar/schar types
+// Structure to Dispatch load/store functions for uchar/schar types
 template <typename T>
 struct FilterDispatchChar
 {
     using SharedType = uchar;
 
-    __device__ __forceinline__ static void rpp_hip_load24_pkd3_to_pln3(T* src, uchar** dst)
-    {
-        rpp_hip_load24_pkd3_to_uchar8_pln3(src, dst);
-    }
-    
-    __device__ __forceinline__ static void rpp_hip_load8(T* src, uchar* dst)
-    {
-        rpp_hip_load8_to_uchar8(src, dst);
-    }
+    __device__ __forceinline__ static void rpp_hip_load24_pkd3_to_pln3(T* src, uchar** dst) { rpp_hip_load24_pkd3_to_uchar8_pln3(src, dst); }
+
+    __device__ __forceinline__ static void rpp_hip_load8(T* src, uchar* dst) { rpp_hip_load8_to_uchar8(src, dst); }
 
     __device__ __forceinline__ static void rpp_hip_store24_pln3_to_pkd3(T* dst, d_float24* sum_f24)
     {
