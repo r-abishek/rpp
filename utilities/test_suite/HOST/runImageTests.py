@@ -130,6 +130,11 @@ def run_performance_test(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPa
                 for interpolationType in range(6):
                     run_performance_test_cmd(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPath, bitDepth, outputFormatToggle, case, interpolationType, numRuns, testType, layout, qaMode, decoderType, batchSize, roiList)
                     print("")
+            elif case == "94":
+                # Run all variants of dropout type functions with additional argument of dropoutType = cutout / randomErasing / coarse / channel / grid
+                for dropoutType in range(5):
+                    run_performance_test_cmd(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPath, bitDepth, outputFormatToggle, case, dropoutType, numRuns, testType, layout, qaMode, decoderType, batchSize, roiList)
+                    print("")
             else:
                 run_performance_test_cmd(loggingFolder, logFileLayout, srcPath1, srcPath2, dstPath, bitDepth, outputFormatToggle, case, "0", numRuns, testType, layout, qaMode, decoderType, batchSize, roiList)
             print("------------------------------------------------------------------------------------------\n")
