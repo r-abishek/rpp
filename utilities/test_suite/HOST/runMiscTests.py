@@ -50,7 +50,7 @@ def get_log_file_list():
 def run_unit_test_cmd(numDims, case, numRuns, testType, toggle, batchSize, outFilePath, additionalArg):
     bitDepths = range(7)
     if testType == 0:
-        bitDepths = [2]
+        bitDepths = [0, 2]
     for bitDepth in bitDepths:
         print("\n./Tensor_misc_host " + str(case) + " " + str(testType) + " " + str(toggle) + " " + str(numDims) + " " + str(batchSize) + " " + str(numRuns) + " " + str(additionalArg))
         result = subprocess.Popen([buildFolderPath + "/build/Tensor_misc_host", str(case), str(testType), str(toggle), str(numDims), str(batchSize), str(numRuns), str(bitDepth), str(additionalArg), outFilePath, scriptPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)    # nosec
@@ -81,7 +81,7 @@ def rpp_test_suite_parser_and_validator():
     parser.add_argument('--test_type', type = int, default = 0, help = "Type of Test - (0 = QA tests / 1 = Performance tests)")
     parser.add_argument('--toggle', type = int, default = 0, help = "Toggle outputs")
     parser.add_argument('--case_list', nargs = "+", help = "A list of specific case numbers to run separated by spaces", required = False)
-    parser.add_argument("--num_dims", type = int, default = 2, help = "Number of dimensions for input")
+    parser.add_argument("--num_dims_list", type=int, nargs='+', default=[1, 2, 3, 4], help="List of input dimensions (e.g., 1 2 3 4)")
     parser.add_argument('--num_runs', type = int, default = 1, help = "Specifies the number of runs for running the performance tests")
     parser.add_argument('--qa_mode', type = int, default = 0, help = "Run with qa_mode? Outputs from tests will be compared with golden outputs - (0 / 1)", required = False)
     parser.add_argument('--batch_size', type = int, default = 1, help = "Specifies the batch size to use for running tests. Default is 1.")
@@ -138,7 +138,7 @@ caseEnd = args.case_end
 testType = args.test_type
 toggle = args.toggle
 caseList = args.case_list
-numDims = args.num_dims
+numDimsList = args.num_dims_list
 numRuns = args.num_runs
 batchSize = args.batch_size
 qaMode = args.qa_mode
@@ -186,17 +186,18 @@ if noCaseSupported:
 for case in caseList:
     if int(case) not in miscAugmentationMap:
         continue
-    if miscAugmentationMap[int(case)][0] == "transpose":
-        for transposeOrder in range(1, numDims):
-            run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath, transposeOrder)
-    elif miscAugmentationMap[int(case)][0] == "normalize":
-        for axisMask in range(1, pow(2, numDims)):
-            run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath, axisMask)
-    elif miscAugmentationMap[int(case)][0] == "concat":
-        for axisMask in range(0, numDims):
-            run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath, axisMask)
-    else:
-        run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath)
+    for numDims in numDimsList:
+        if miscAugmentationMap[int(case)][0] == "transpose":
+            for transposeOrder in range(1, numDims):
+                run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath, transposeOrder)
+        elif miscAugmentationMap[int(case)][0] == "normalize":
+            for axisMask in range(1, pow(2, numDims)):
+                run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath, axisMask)
+        elif miscAugmentationMap[int(case)][0] == "concat":
+            for axisMask in range(0, numDims):
+                run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath, axisMask)
+        else:
+            run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath)
 
 # print the results of qa tests
 nonQACaseList = []

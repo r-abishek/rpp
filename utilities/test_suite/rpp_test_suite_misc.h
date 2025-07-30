@@ -64,36 +64,50 @@ void compute_strides(RpptGenericDescPtr descriptorPtr)
 
 
 // Retrieve path for bin file
-string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, bool isMeanStd = false)
+string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u bitDepth, bool isMeanStd = false)
 {
-    string folderPath, suffix;
-    if(readType == 0)
+    string folderPath, suffix, bitDepthStr;
+    if (bitDepth == 0)
+        bitDepthStr = "u8";
+    else if (bitDepth == 2)
+        bitDepthStr = "f32";
+    else
+        exit(1);
+    
+    if (readType == 0) // Input
     {
-        suffix = (isMeanStd) ? "mean_std" : "input";
         folderPath = "/../TEST_MISC_FILES/";
+        if (isMeanStd)
+        {
+            suffix = std::to_string(nDim) + "d_mean_std.bin"; // mean/std files have no bit depth suffix
+        }
+        else
+        {
+            suffix = std::to_string(nDim) + "d_input_" + bitDepthStr + ".bin";
+            std::cout << "FileName :" << suffix << endl;
+        }
     }
-    else if(readType == 1)
+    else if (readType == 1) // Output
     {
-        suffix = (isMeanStd) ? "mean_std" : "output";
         folderPath = "/../REFERENCE_OUTPUTS_MISC/" + testCase + "/";
+        suffix = testCase + "_" + std::to_string(nDim) + "d_output_" + bitDepthStr + ".bin";
     }
 
-    string fileName = std::to_string(nDim) + "d_" + suffix + ".bin";
-    string finalPath = scriptPath + folderPath + fileName;
-    return finalPath;
+    return scriptPath + folderPath + suffix;
 }
 
 // Read data from Bin file
-void read_data(Rpp32f *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, bool isMeanStd = false)
+template <typename T>
+void read_data(T *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u bitDepth, bool isMeanStd = false)
 {
-    if(nDim != 2 && nDim != 3)
+    if (nDim < 2 || nDim > 4)
     {
-        if(nDim != 4 || (testCase != "log" && testCase != "log1p")) {
+        if(nDim != 4 || (testCase != "log1p")) {
             std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
             exit(0);
         }
     }
-    string dataPath = get_path(nDim, readType, scriptPath, testCase, isMeanStd);
+    std::string dataPath = get_path(nDim, readType, scriptPath, testCase, bitDepth, isMeanStd);
     read_bin_file(dataPath, data);
 }
 
@@ -121,7 +135,7 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             }
             case 4:
             {
-                std::array<Rpp32u, 8> roi = {0, 0, 0, 0, 50, 50, 50, 4};
+                std::array<Rpp32u, 8> roi = {0, 0, 0, 0, 10, 10, 50, 100};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 8)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -263,7 +277,7 @@ std::map<Rpp32s, Rpp32u> paramStrideMap3D =
 
 // fill the mean and stddev values used for normalize
 void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
-                             Rpp32f *stdDevTensor, bool qaMode, int axisMask, string scriptPath)
+                             Rpp32f *stdDevTensor, bool qaMode, int axisMask, string scriptPath, Rpp32u bitDepth)
 {
     if(qaMode)
     {
@@ -290,7 +304,7 @@ void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
         }
         std::vector<Rpp32f> paramBuf(numValues * 2);
         Rpp32f *data = paramBuf.data();
-        read_data(data, nDim, 0, scriptPath, "normalize", true);
+        read_data(data, nDim, 0, scriptPath, "normalize", bitDepth, true);
         memcpy(meanTensor, data + paramStride, size * sizeof(Rpp32f));
         memcpy(stdDevTensor, data + numValues + paramStride, size * sizeof(Rpp32f));
     }
@@ -337,6 +351,42 @@ void fill_perm_values(Rpp32u nDim, Rpp32u *permTensor, bool qaMode, int permOrde
                 }
                 break;
             }
+            case 4:
+            {
+                // NHWC -> NCHW
+                if (permOrder == 1)
+                {
+                    permTensor[0] = 0; // N
+                    permTensor[1] = 3; // C
+                    permTensor[2] = 1; // H
+                    permTensor[3] = 2; // W
+                }
+                // NCHW -> NHWC
+                else if (permOrder == 2)
+                {
+                    permTensor[0] = 0; // N
+                    permTensor[1] = 2; // H
+                    permTensor[2] = 3; // W
+                    permTensor[3] = 1; // C
+                }
+                // NHWC -> HWCN
+                else if (permOrder == 3)
+                {
+                    permTensor[0] = 1; // H
+                    permTensor[1] = 2; // W
+                    permTensor[2] = 3; // C
+                    permTensor[3] = 0; // N
+                }
+                // Identity permutation (no change)
+                else
+                {
+                    permTensor[0] = 0;
+                    permTensor[1] = 1;
+                    permTensor[2] = 2;
+                    permTensor[3] = 3;
+                }
+                break;
+            }
             default:
             {
                 cout << "Error! QA mode is supported only for 2D / 3D inputs" << endl;
@@ -351,9 +401,9 @@ void fill_perm_values(Rpp32u nDim, Rpp32u *permTensor, bool qaMode, int permOrde
     }
 }
 
-Rpp32u get_bin_size(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase)
+Rpp32u get_bin_size(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u bitDepth)
 {
-    string refFile = get_path(nDim, readType, scriptPath, testCase);
+    string refFile = get_path(nDim, readType, scriptPath, testCase, bitDepth);
     std::ifstream filestream(refFile, ios_base::in | ios_base::binary);
     filestream.seekg(0, ios_base::end);
     Rpp32u filesize = filestream.tellg();
@@ -469,18 +519,28 @@ inline void convert_output_bitdepth_to_f32(void *output, Rpp32f *outputf32, int 
 }
 
 // Compares output with reference outputs and validates QA
-void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u bufferLength, string dst,
-                    string funcName, string testCase, int additionalParam, string scriptPath, bool isMeanStd = false)
+void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth, Rpp32u bufferLength, std::string dst,
+                    std::string funcName, std::string testCase, int additionalParam, std::string scriptPath, bool isMeanStd = false)
 {
-    Rpp32u goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase);
-    Rpp32f *refOutput = static_cast<Rpp32f *>(calloc(goldenOutputLength, 1));
-    read_data(refOutput, nDim, 1, scriptPath, testCase);
+    // Allocate and read reference data based on bitDepth
+     RpptDataType dataType;
+    switch (bitDepth)
+    {
+        case 0: dataType = RpptDataType::U8; break;
+        case 1: dataType = RpptDataType::F16; break;
+        case 2: dataType = RpptDataType::F32; break;
+        case 5: dataType = RpptDataType::I8; break;
+        default: std::cerr << "ERROR: Invalid bitDepth specified!" << std::endl; return;
+    }
+    Rpp32u goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, bitDepth);
+    void *refOutput = calloc(goldenOutputLength, get_size_of_data_type(dataType));
+    read_data(refOutput, nDim, 1, scriptPath, testCase, bitDepth);
     int subVariantStride = 0;
     if (testCase == "normalize")
     {
         int meanStdDevOutputStride = 0, axisMaskStride = 0;
         if(isMeanStd)
-            meanStdDevOutputStride = goldenOutputLength / (2 * sizeof(Rpp32f));
+            meanStdDevOutputStride = goldenOutputLength / 2;
         axisMaskStride = (additionalParam - 1) * bufferLength;
         subVariantStride = meanStdDevOutputStride + axisMaskStride;
     }
@@ -495,39 +555,74 @@ void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u buf
 
     int sampleLength = bufferLength / batchSize;
     int fileMatch = 0;
-    for(int i = 0; i < batchSize; i++)
+    for (int i = 0; i < batchSize; i++)
     {
-        Rpp32f *ref = refOutput + subVariantStride + i * sampleLength;
-        Rpp32f *out = outputF32 + i * sampleLength;
         int cnt = 0;
-        for(int j = 0; j < sampleLength; j++)
+        int sampleOffset = i * sampleLength + subVariantStride;
+
+        if (bitDepth == 2)  // F32
         {
-            bool invalid_comparision = ((out[j] == 0.0f) && (ref[j] != 0.0f));
-            invalid_comparision = false;
-            if(!invalid_comparision && abs(out[j] - ref[j]) < 1)
-                cnt++;
+            Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
+            Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
+            for (int j = 0; j < sampleLength; j++)
+            {
+                if (std::abs(out[j] - ref[j]) < 1.0f)
+                    cnt++;
+            }
         }
+        else if (bitDepth == 0)  // U8
+        {
+            Rpp8u *ref = static_cast<Rpp8u *>(refOutput) + sampleOffset;
+            Rpp8u *out = static_cast<Rpp8u *>(output) + i * sampleLength;
+            for (int j = 0; j < sampleLength; j++)
+            {
+                if (out[j] - ref[j] == 0) 
+                    cnt++;
+            }
+        }
+        else if (bitDepth == 5)  // I8
+        {
+            Rpp8s *ref = static_cast<Rpp8s *>(refOutput) + sampleOffset;
+            Rpp8s *out = static_cast<Rpp8s *>(output) + i * sampleLength;
+            for (int j = 0; j < sampleLength; j++)
+            {
+                if (std::abs((int)out[j] - (int)ref[j]) <= 1)
+                    cnt++;
+            }
+        }
+
         if (cnt == sampleLength)
             fileMatch++;
     }
 
+    std::string bitDepthStr;
+    switch (bitDepth)
+    {
+        case 0: bitDepthStr = "u8"; break;
+        case 1: bitDepthStr = "f16"; break;
+        case 2: bitDepthStr = "f32"; break;
+        case 5: bitDepthStr = "i8"; break;
+        default: bitDepthStr = "unknown"; break;
+    }
+    funcName = funcName + "_" + testCase + "_" + bitDepthStr;
     std::string status = funcName + ": ";
-    cout << std::endl << "Results for Test case: " << funcName << std::endl;
+    std::cout << "\nResults for Test case: " << funcName << std::endl;
     if (fileMatch == batchSize)
     {
-        std::cout << "\nPASSED!"<<std::endl;
+        std::cout << "\nPASSED!" << std::endl;
         status += "PASSED";
     }
     else
     {
-        std::cout << "\nFAILED! " << fileMatch << "/" << batchSize << " outputs are matching with reference outputs" << std::endl;
+        std::cout << "\nFAILED! " << fileMatch << "/" << batchSize << " outputs match reference" << std::endl;
         status += "FAILED";
     }
+
     free(refOutput);
 
-    // Append the QA results to file
+    // Write QA result
     std::string qaResultsPath = dst + "/QA_results.txt";
-    std:: ofstream qaResults(qaResultsPath, ios_base::app);
+    std::ofstream qaResults(qaResultsPath, std::ios_base::app);
     if (qaResults.is_open())
     {
         qaResults << status << std::endl;

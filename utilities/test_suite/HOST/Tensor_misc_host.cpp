@@ -23,7 +23,7 @@ SOFTWARE.
 */
 
 #include "../rpp_test_suite_misc.h"
-
+#include <random>
 int main(int argc, char **argv)
 {
     // Handle inputs
@@ -130,51 +130,67 @@ int main(int argc, char **argv)
     oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
 
     // allocate memory for input / output
-    Rpp32f *inputF32 = NULL, *inputF32Second = NULL, *outputF32 = NULL;
-    Rpp16s *inputI16 = NULL;
-    inputF32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
-    outputF32 = static_cast<Rpp32f *>(calloc(oBufferSize, sizeof(Rpp32f)));
+    void *input = nullptr, *inputSecond = nullptr, *output = nullptr;
+    // Determine actual data type sizes
+    Rpp64u inputElementSize = get_size_of_data_type(srcDescriptorPtrND->dataType);
+    Rpp64u outputElementSize = get_size_of_data_type(dstDescriptorPtrND->dataType);
+    input = calloc(iBufferSize, inputElementSize);
+    output = calloc(oBufferSize, outputElementSize);
     if(testCase == CONCAT)
     {
         for(int i = 0; i <= nDim; i++)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
         iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
-        inputF32Second = static_cast<Rpp32f *>(calloc(iBufferSizeSecond, sizeof(Rpp32f)));
+        inputSecond = calloc(iBufferSizeSecond, inputElementSize);
     }
-
-    void *input, *inputSecond, *output;
-    input = static_cast<Rpp32f *>(calloc(iBufferSizeInBytes, 1));
-    if(testCase == CONCAT)
-        inputSecond = static_cast<Rpp32f *>(calloc(iBufferSizeSecondInBytes, 1));
-    output = static_cast<Rpp32f *>(calloc(oBufferSizeInBytes, 1));
 
     // read input data
     if(qaMode)
     {
-        read_data(inputF32, nDim, 0, scriptPath, funcName);
-        if(testCase == CONCAT)
-            read_data(inputF32Second, nDim, 0, scriptPath, funcName);
+        read_data(input, nDim, 0, scriptPath, funcName, bitDepth);
+        if (testCase == CONCAT)
+            read_data(inputSecond, nDim, 0, scriptPath, funcName, bitDepth);
     }
     else
     {
         std::srand(0);
-        for(int i = 0; i < iBufferSize; i++)
-            inputF32[i] = static_cast<float>(std::rand() % 255);
-        if(testCase == CONCAT)
+        if (bitDepth == 2)  // F32
         {
-            for(int i = 0; i < iBufferSizeSecond; i++)
-                inputF32Second[i] = static_cast<float>((std::rand() % 255));
+            Rpp32f *inputF32Cast = static_cast<Rpp32f *>(input);
+            for (int i = 0; i < iBufferSize; i++)
+                inputF32Cast[i] = static_cast<Rpp32f>(std::rand() % 255);
+            if (testCase == CONCAT)
+            {
+                Rpp32f *inputSecondF32 = static_cast<Rpp32f *>(inputSecond);
+                for (int i = 0; i < iBufferSizeSecond; i++)
+                    inputSecondF32[i] = static_cast<Rpp32f>(std::rand() % 255);
+            }
+        }
+        else if (bitDepth == 0)  // U8
+        {
+            Rpp8u *inputU8 = static_cast<Rpp8u *>(input);
+            for (int i = 0; i < iBufferSize; i++)
+                inputU8[i] = static_cast<Rpp8u>(std::rand() % 256);
+            if (testCase == CONCAT)
+            {
+                Rpp8u *inputSecondU8 = static_cast<Rpp8u *>(inputSecond);
+                for (int i = 0; i < iBufferSizeSecond; i++)
+                    inputSecondU8[i] = static_cast<Rpp8u>(std::rand() % 256);
+            }
         }
     }
+
+    Rpp16s *inputI16 = nullptr;
     if(testCase == LOG1P)
     {
         inputI16 = static_cast<Rpp16s *>(calloc(iBufferSize, sizeof(Rpp16s)));
-        for(int i = 0; i < iBufferSize; i++)
-            inputI16[i] = static_cast<Rpp16s>(inputF32[i]);
+        if (bitDepth == 2) // assuming F32 input for LOG1P
+        {
+            Rpp32f *inputF32 = static_cast<Rpp32f *>(input);
+            for (int i = 0; i < iBufferSize; i++)
+                inputI16[i] = static_cast<Rpp16s>(inputF32[i]);
+        }
     }
-
-    // Convert inputs to correponding bit depth specified by user
-    convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
 
     // Set the number of threads to be used by OpenMP pragma for RPP batch processing on host.
     // If numThreads value passed is 0, number of OpenMP threads used by RPP will be set to batch size
@@ -243,7 +259,7 @@ int main(int argc, char **argv)
                     stdDevTensor = static_cast<Rpp32f *>(calloc(maxSize * batchSize, sizeof(Rpp32f)));
 
                 if(!computeMeanStddev)
-                    fill_mean_stddev_values(nDim, maxSize, meanTensor, stdDevTensor, qaMode, axisMask, scriptPath);
+                    fill_mean_stddev_values(nDim, maxSize, meanTensor, stdDevTensor, qaMode, axisMask, scriptPath, bitDepth);
 
                 startWallTime = omp_get_wtime();
                 if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
@@ -307,23 +323,68 @@ int main(int argc, char **argv)
         avgWallTime += wallTime;
     }
 
-    if(DEBUG_MODE)
+    // if (DEBUG_MODE && bitDepth == 0)
+    // {
+    //     std::ofstream inputFile;
+    //     std::string inputFileName = func + "_input_host.csv";
+    //     inputFile.open(inputFileName);
+    
+    //     if (bitDepth == 2)  // F32
+    //     {
+    //         Rpp32f *inputF32Cast = static_cast<Rpp32f *>(input);
+    //         for (int i = 0; i < iBufferSize; i++)
+    //             inputFile << inputF32Cast[i] << ",";
+    //         if (testCase == CONCAT)
+    //         {
+    //             inputFile << "\n";
+    //             Rpp32f *inputSecondF32 = static_cast<Rpp32f *>(inputSecond);
+    //             for (int i = 0; i < iBufferSizeSecond; i++)
+    //                 inputFile << inputSecondF32[i] << ",";
+    //         }
+    //     }
+    //     else if (bitDepth == 0)  // U8
+    //     {
+    //         Rpp8u *inputU8 = static_cast<Rpp8u *>(input);
+    //         for (int i = 0; i < iBufferSize; i++)
+    //             inputFile << static_cast<int>(inputU8[i]) << ",";
+    //         if (testCase == CONCAT)
+    //         {
+    //             inputFile << "\n";
+    //             Rpp8u *inputSecondU8 = static_cast<Rpp8u *>(inputSecond);
+    //             for (int i = 0; i < iBufferSizeSecond; i++)
+    //                 inputFile << static_cast<int>(inputSecondU8[i]) << ",";
+    //         }
+    //     }
+    
+    //     inputFile.close();
+    // }
+
+    if (DEBUG_MODE && bitDepth == 0)
     {
         std::ofstream refFile;
-        std::string refFileName;
-        refFileName = func + "_host.csv";
+        std::string refFileName = func + "_host.csv";
         refFile.open(refFileName);
-        for (int i = 0; i < oBufferSize; i++)
+    
+        if (bitDepth == 0)  // U8
         {
-            refFile << *(outputF32 + i) << ",";
+            Rpp8u *outputU8 = reinterpret_cast<Rpp8u *>(output);
+            for (int i = 0; i < oBufferSize; i++)
+                refFile << static_cast<int>(outputU8[i]) << ",";
         }
+        else if (bitDepth == 2)  // F32
+        {
+            Rpp32f *outputF32 = reinterpret_cast<Rpp32f *>(output);
+            for (int i = 0; i < oBufferSize; i++)
+                refFile << outputF32[i] << ",";
+        }
+    
         refFile.close();
     }
 
     if(qaMode)
     {
-        convert_output_bitdepth_to_f32(output, outputF32, bitDepth, oBufferSize, oBufferSizeInBytes, dstDescriptorPtrND);
-        compare_output(outputF32, nDim, batchSize, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
+        if (bitDepth == 0 || bitDepth == 2)
+            compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
     }
     else
     {
@@ -336,16 +397,12 @@ int main(int argc, char **argv)
 
     rppDestroy(handle, backend);
 
-    free(inputF32);
-    if(testCase == CONCAT)
-        free(inputF32Second);
-    free(outputF32);
-    if(testCase == LOG1P)
-        free(inputI16);
     free(input);
     if(testCase == CONCAT)
         free(inputSecond);
     free(output);
+    if (testCase == LOG1P && inputI16 != nullptr)
+        free(inputI16);
     free(roiTensor);
     if(meanTensor != nullptr)
         free(meanTensor);
