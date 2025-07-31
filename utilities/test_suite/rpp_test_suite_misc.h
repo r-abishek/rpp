@@ -84,7 +84,6 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
         else
         {
             suffix = std::to_string(nDim) + "d_input_" + bitDepthStr + ".bin";
-            std::cout << "FileName :" << suffix << endl;
         }
     }
     else if (readType == 1) // Output
@@ -127,7 +126,7 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             }
             case 3:
             {
-                std::array<Rpp32u, 6> roi = {0, 0, 0, 50, 50, 8};
+                std::array<Rpp32u, 6> roi = {0, 0, 0, 25, 25, 32};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 6)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;

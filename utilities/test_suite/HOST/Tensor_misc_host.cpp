@@ -323,61 +323,16 @@ int main(int argc, char **argv)
         avgWallTime += wallTime;
     }
 
-    // if (DEBUG_MODE && bitDepth == 0)
-    // {
-    //     std::ofstream inputFile;
-    //     std::string inputFileName = func + "_input_host.csv";
-    //     inputFile.open(inputFileName);
-    
-    //     if (bitDepth == 2)  // F32
-    //     {
-    //         Rpp32f *inputF32Cast = static_cast<Rpp32f *>(input);
-    //         for (int i = 0; i < iBufferSize; i++)
-    //             inputFile << inputF32Cast[i] << ",";
-    //         if (testCase == CONCAT)
-    //         {
-    //             inputFile << "\n";
-    //             Rpp32f *inputSecondF32 = static_cast<Rpp32f *>(inputSecond);
-    //             for (int i = 0; i < iBufferSizeSecond; i++)
-    //                 inputFile << inputSecondF32[i] << ",";
-    //         }
-    //     }
-    //     else if (bitDepth == 0)  // U8
-    //     {
-    //         Rpp8u *inputU8 = static_cast<Rpp8u *>(input);
-    //         for (int i = 0; i < iBufferSize; i++)
-    //             inputFile << static_cast<int>(inputU8[i]) << ",";
-    //         if (testCase == CONCAT)
-    //         {
-    //             inputFile << "\n";
-    //             Rpp8u *inputSecondU8 = static_cast<Rpp8u *>(inputSecond);
-    //             for (int i = 0; i < iBufferSizeSecond; i++)
-    //                 inputFile << static_cast<int>(inputSecondU8[i]) << ",";
-    //         }
-    //     }
-    
-    //     inputFile.close();
-    // }
-
-    if (DEBUG_MODE && bitDepth == 0)
+    if(DEBUG_MODE)
     {
         std::ofstream refFile;
-        std::string refFileName = func + "_host.csv";
+        std::string refFileName;
+        refFileName = func + "_host.csv";
         refFile.open(refFileName);
-    
-        if (bitDepth == 0)  // U8
+        for (int i = 0; i < oBufferSize; i++)
         {
-            Rpp8u *outputU8 = reinterpret_cast<Rpp8u *>(output);
-            for (int i = 0; i < oBufferSize; i++)
-                refFile << static_cast<int>(outputU8[i]) << ",";
+            refFile << *((float*)output + i) << ",";
         }
-        else if (bitDepth == 2)  // F32
-        {
-            Rpp32f *outputF32 = reinterpret_cast<Rpp32f *>(output);
-            for (int i = 0; i < oBufferSize; i++)
-                refFile << outputF32[i] << ",";
-        }
-    
         refFile.close();
     }
 
