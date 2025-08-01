@@ -67,19 +67,9 @@ int main(int argc, char **argv)
 
     string func = funcName;
     if (axisMaskCase)
-    {
-        char additionalParam_char[2];
-        std::snprintf(additionalParam_char, sizeof(additionalParam_char), "%d", axisMask);
-        func += "_" + std::to_string(nDim) + "d" + "_axisMask";
-        func += additionalParam_char;
-    }
+        func += "_" + std::to_string(nDim) + "d_axisMask" + std::to_string(axisMask);
     if (permOrderCase)
-    {
-        char additionalParam_char[2];
-        std::snprintf(additionalParam_char, sizeof(additionalParam_char), "%d", permOrder);
-        func += "_" + std::to_string(nDim) + "d" + "_permOrder";
-        func += additionalParam_char;
-    }
+        func += "_" + std::to_string(nDim) + "d_permOrder" + std::to_string(permOrder);
 
     // fill roi based on mode and number of dimensions
     Rpp32u *roiTensor = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
@@ -359,6 +349,9 @@ int main(int argc, char **argv)
     if (testCase == LOG1P && inputI16 != nullptr)
         free(inputI16);
     free(roiTensor);
+    free(dstRoiTensor);
+    if (testCase == CONCAT)
+        free(roiTensorSecond);
     if(meanTensor != nullptr)
         free(meanTensor);
     if(stdDevTensor != nullptr)

@@ -205,12 +205,10 @@ void concat_3D_axismask0_tensor(Rpp8u *srcPtr1, Rpp8u *srcPtr2, RpptGenericDescP
         Rpp32u bufferLength1 = dims1[2];
         Rpp32u alignedLength1 = (bufferLength1 / 8) * 8;
         Rpp8u *srcPtrRow = srcPtr1;
-        Rpp8u *srcPtrRow1 = srcPtr2;
         Rpp8u *dstPtrRow = dstPtr;
         for(Rpp32u j = 0; j < dims[1]; j++)
         {
             Rpp8u *srcPtrRowTemp = srcPtrRow;
-            Rpp8u *srcPtrRowTemp1 = srcPtrRow1;
             Rpp8u *dstPtrRowTemp = dstPtrRow;
             Rpp32u vectorLoopCount = 0;
             __m256 pDst ;
@@ -222,37 +220,32 @@ void concat_3D_axismask0_tensor(Rpp8u *srcPtr1, Rpp8u *srcPtr2, RpptGenericDescP
                 dstPtrRowTemp += vectorIncrement;
             }
             for(; vectorLoopCount < dims[2] ; vectorLoopCount ++)
-            {
                 *dstPtrRowTemp++ = *srcPtrRowTemp++;
-            }
             srcPtrRow += strides[2];
             dstPtrRow += strides[2];
         }
-        dstPtrRow = dstPtr;
+        Rpp8u *srcPtrRow1 = srcPtr2;
         for(Rpp32u j = 0; j < dims1[1]; j++)
         {
             Rpp8u *srcPtrRowTemp1 = srcPtrRow1;
-            Rpp8u *dstPtrRowTemp = dstPtrRow;
+            Rpp8u *dstPtrTemp1 = dstPtrRow;
             Rpp32u vectorLoopCount = 0;
             __m256 pDst ;
             for(; vectorLoopCount < alignedLength1; vectorLoopCount += vectorIncrement)
             {
                 rpp_simd_load(rpp_load8_u8_to_f32_avx, srcPtrRowTemp1, &pDst);
-                rpp_simd_store(rpp_store8_f32_to_u8_avx, (dstPtrRowTemp + strides[1]) , &pDst);
+                rpp_simd_store(rpp_store8_f32_to_u8_avx, dstPtrTemp1 , &pDst);
                 srcPtrRowTemp1 += vectorIncrement;
-                dstPtrRowTemp += vectorIncrement;
+                dstPtrTemp1 += vectorIncrement;
             }
             for(; vectorLoopCount < dims1[2] ; vectorLoopCount ++)
-            {
-                *(dstPtrRowTemp + strides[1]) = *srcPtrRowTemp1++;
-                dstPtrRowTemp++;
-            }
+                *dstPtrTemp1++ = *srcPtrRowTemp1++;
             srcPtrRow1 += strides1[2];
-            dstPtrRow += strides1[2];
+            dstPtrRow += strides[2];
         }
         srcPtr1 += strides[1];
         srcPtr2 += strides1[1];
-        dstPtr += strides[1] * 2;
+        dstPtr += (dims[1] + dims1[1]) * strides[2];
     }
 }
 
@@ -282,22 +275,21 @@ void concat_3D_axismask0_pln_tensor(Rpp8u *srcPtr1, Rpp8u *srcPtr2, RpptGenericD
                 dstPtrRowTemp += vectorIncrement;
             }
             for(; vectorLoopCount < dims[2] ; vectorLoopCount ++)
-            {
                 *dstPtrRowTemp++ = *srcPtrRowTemp++;
-            }
             srcPtrRow += strides[2];
             dstPtrRow += strides[2];
         }
         srcPtr1 += strides[1];
         dstPtr += strides[1];
     }
-    for(Rpp32u i = 0; i < dims[0]; i++)
+    Rpp8u *srcPtrRow1 = srcPtr2;
+    for(Rpp32u i = 0; i < dims1[0]; i++)
     {
         Rpp32u bufferLength1 = dims1[2];
         Rpp32u alignedLength = (bufferLength1 / 8) * 8;
-        Rpp8u *srcPtrRow1 = srcPtr2;
+        Rpp8u *srcPtrRowTemp1 = srcPtrRow1;
         Rpp8u *dstPtrRow = dstPtr;
-        for(Rpp32u j = 0; j < dims[1]; j++)
+        for(Rpp32u j = 0; j < dims1[1]; j++)
         {
             Rpp8u *srcPtrRowTemp1 = srcPtrRow1;
             Rpp8u *dstPtrRowTemp = dstPtrRow;
@@ -310,15 +302,14 @@ void concat_3D_axismask0_pln_tensor(Rpp8u *srcPtr1, Rpp8u *srcPtr2, RpptGenericD
                 srcPtrRowTemp1 += vectorIncrement;
                 dstPtrRowTemp += vectorIncrement;
             }
-            for(; vectorLoopCount < dims[2] ; vectorLoopCount ++)
-            {
+            for(; vectorLoopCount < dims1[2] ; vectorLoopCount ++)
                 *dstPtrRowTemp++ = *srcPtrRowTemp1++;
-            }
             srcPtrRow1 += strides[2];
             dstPtrRow += strides[2];
         }
+        srcPtr1 += strides[1];
         srcPtr2 += strides1[1];
-        dstPtr += strides1[1];
+        dstPtr += (dims[1] + dims1[1]) * strides[2];
     }
 }
 
