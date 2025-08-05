@@ -67,35 +67,25 @@ int main(int argc, char **argv)
 
     string func = funcName;
     if (axisMaskCase)
-    {
-        char additionalParam_char[2];
-        std::snprintf(additionalParam_char, sizeof(additionalParam_char), "%d", axisMask);
-        func += "_" + std::to_string(nDim) + "d" + "_axisMask";
-        func += additionalParam_char;
-    }
+        func += "_" + std::to_string(nDim) + "d_axisMask" + std::to_string(axisMask);
     if (permOrderCase)
-    {
-        char additionalParam_char[2];
-        std::snprintf(additionalParam_char, sizeof(additionalParam_char), "%d", permOrder);
-        func += "_" + std::to_string(nDim) + "d" + "_permOrder";
-        func += additionalParam_char;
-    }
+        func += "_" + std::to_string(nDim) + "d_permOrder" + std::to_string(permOrder);
 
     // fill roi based on mode and number of dimensions
-    Rpp32u *roiTensor, *dstRoiTensor, *roiTensorSecond;
-    CHECK_RETURN_STATUS(hipHostMalloc(&roiTensor, nDim * 2 * batchSize, sizeof(Rpp32u)));
-    CHECK_RETURN_STATUS(hipHostMalloc(&dstRoiTensor, nDim * 2 * batchSize, sizeof(Rpp32u)));
+    Rpp32u *roiTensor, *dstRoiTensor, *roiTensorSecond = nullptr;
+    CHECK_RETURN_STATUS(hipHostMalloc(&roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u)));
+    CHECK_RETURN_STATUS(hipHostMalloc(&dstRoiTensor, nDim * 2 * batchSize * sizeof(Rpp32u)));
     fill_roi_values(nDim, batchSize, roiTensor, qaMode);
     memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
     if(testCase == CONCAT)
     {
-        roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&roiTensorSecond, nDim * 2 * batchSize * sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
         dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask]; 
     }
 
     // set src/dst generic tensor descriptors
-    RpptGenericDescPtr srcDescriptorPtrND, srcDescriptorPtrNDSecond, dstDescriptorPtrND;
+    RpptGenericDescPtr srcDescriptorPtrND, srcDescriptorPtrNDSecond = nullptr, dstDescriptorPtrND;
     CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrND, sizeof(RpptGenericDesc)));
     CHECK_RETURN_STATUS(hipHostMalloc(&dstDescriptorPtrND, sizeof(RpptGenericDesc)));
 
@@ -123,71 +113,98 @@ int main(int argc, char **argv)
     {
         iBufferSize *= srcDescriptorPtrND->dims[i];
         oBufferSize *= dstDescriptorPtrND->dims[i];
+        if (testCase == CONCAT)
+            iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
     }
 
     iBufferSizeInBytes = iBufferSize * get_size_of_data_type(srcDescriptorPtrND->dataType);
     oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
 
     // allocate memory for input / output
-    Rpp32f *inputF32 = NULL, *inputF32Second = NULL, *outputF32 = NULL;
-    Rpp16s *inputI16 = NULL;
-    inputF32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
-    outputF32 = static_cast<Rpp32f *>(calloc(oBufferSize, sizeof(Rpp32f)));
-    if(testCase == CONCAT)
+    // Host pointers (pinned memory)
+    void *input = nullptr, *inputSecond = nullptr, *output = nullptr, *inputI16 = nullptr;
+    // Device pointers
+    void *d_input = nullptr, *d_inputSecond = nullptr, *d_output = nullptr, *d_inputI16 = nullptr;
+
+    // Allocate all required host and device buffers
+    CHECK_RETURN_STATUS(hipHostMalloc(&input, iBufferSizeInBytes));
+    CHECK_RETURN_STATUS(hipHostMalloc(&output, oBufferSizeInBytes));
+    CHECK_RETURN_STATUS(hipMalloc(&d_input, iBufferSizeInBytes));
+    CHECK_RETURN_STATUS(hipMalloc(&d_output, oBufferSizeInBytes));
+
+    if (testCase == CONCAT)
     {
-        for(int i = 0; i <= nDim; i++)
-            iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
-        iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
-        inputF32Second = static_cast<Rpp32f *>(calloc(iBufferSizeSecond, sizeof(Rpp32f)));
+        Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
+        CHECK_RETURN_STATUS(hipHostMalloc(&inputSecond, iBufferSizeSecondInBytes));
+        CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeSecondInBytes));
     }
 
-    void *input, *inputSecond, *output;
-    void *d_input, *d_inputSecond, *d_inputI16, *d_output;
-    input = static_cast<Rpp32f *>(calloc(iBufferSizeInBytes, 1));
-    inputSecond = static_cast<Rpp32f *>(calloc(iBufferSizeSecondInBytes, 1));
-    output = static_cast<Rpp32f *>(calloc(oBufferSizeInBytes, 1));
-    CHECK_RETURN_STATUS(hipMalloc(&d_input, iBufferSizeInBytes));
-    CHECK_RETURN_STATUS(hipMalloc(&d_output, oBufferSizeInBytes * 2));
-    if(testCase == CONCAT)
-        CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeSecondInBytes));
+    if (testCase == LOG1P)
+    {
+        Rpp64u iBufferSizeInBytesI16 = iBufferSize * sizeof(Rpp16s);
+        CHECK_RETURN_STATUS(hipHostMalloc(&inputI16, iBufferSizeInBytesI16));
+        CHECK_RETURN_STATUS(hipMalloc(&d_inputI16, iBufferSizeInBytesI16));
+    }
 
     // read input data
     if(qaMode)
     {
-        read_data(inputF32, nDim, 0, scriptPath, funcName);
+        read_data(input, nDim, 0, scriptPath, funcName, bitDepth);
         if(testCase == CONCAT)
-            read_data(inputF32Second, nDim, 0, scriptPath, funcName);
+            read_data(inputSecond, nDim, 0, scriptPath, funcName, bitDepth);
     }
     else
     {
-        std::srand(0);
-        for(int i = 0; i < iBufferSize; i++)
-            inputF32[i] = static_cast<float>((std::rand() % 255));
-        if(testCase == CONCAT)
+        // Generic random data filling based on bitDepth
+        switch(bitDepth)
         {
-            for(int i = 0; i < iBufferSizeSecond; i++)
-                inputF32Second[i] = static_cast<float>((std::rand() % 255));
+            case 0: // U8
+            {
+                Rpp8u* inputU8 = static_cast<Rpp8u*>(input);
+                for(int i = 0; i < iBufferSize; i++) inputU8[i] = static_cast<Rpp8u>(std::rand() % 256);
+                if (testCase == CONCAT)
+                {
+                    Rpp8u* inputSecondU8 = static_cast<Rpp8u*>(inputSecond);
+                    for(int i = 0; i < iBufferSizeSecond; i++)
+                        inputSecondU8[i] = static_cast<Rpp8u>(std::rand() % 256);
+                }
+                break;
+            }
+            case 2: // F32
+            {
+                Rpp32f* inputF32 = static_cast<Rpp32f*>(input);
+                for(int i = 0; i < iBufferSize; i++) inputF32[i] = static_cast<Rpp32f>(std::rand() % 255);
+                if (testCase == CONCAT)
+                {
+                    Rpp32f* inputSecondF32 = static_cast<Rpp32f*>(inputSecond);
+                    for(int i = 0; i < iBufferSizeSecond; i++)
+                        inputSecondF32[i] = static_cast<Rpp32f>(std::rand() % 255);
+                }
+                break;
+            }
         }
     }
 
-    if(testCase == LOG1P)
+    if (testCase == LOG1P)
     {
-        inputI16 = static_cast<Rpp16s *>(calloc(iBufferSize, sizeof(Rpp16s)));
-        CHECK_RETURN_STATUS(hipMalloc(&d_inputI16, iBufferSize * sizeof(Rpp16s)));
-        for(int i = 0; i < iBufferSize; i++)
-            inputI16[i] = static_cast<Rpp16s>(inputF32[i]);
-        CHECK_RETURN_STATUS(hipMemcpy(d_inputI16, inputI16, iBufferSize * sizeof(Rpp16s), hipMemcpyHostToDevice));
-        CHECK_RETURN_STATUS(hipDeviceSynchronize());
+        Rpp32f *inputF32 = static_cast<Rpp32f *>(input);
+        Rpp16s *inputI16_cast = static_cast<Rpp16s *>(inputI16);
+        for (int i = 0; i < iBufferSize; i++)
+            inputI16_cast[i] = static_cast<Rpp16s>(inputF32[i]);
     }
-
-    // Convert inputs to correponding bit depth specified by user
-    convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
 
     // copy data from HOST to HIP
     CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
-    if(testCase == CONCAT)
+    if (testCase == CONCAT)
+    {
+        Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
         CHECK_RETURN_STATUS(hipMemcpy(d_inputSecond, inputSecond, iBufferSizeSecondInBytes, hipMemcpyHostToDevice));
-    CHECK_RETURN_STATUS(hipDeviceSynchronize());
+    }
+    if (testCase == LOG1P)
+    {
+        Rpp64u iBufferSizeInBytesI16 = iBufferSize * sizeof(Rpp16s);
+        CHECK_RETURN_STATUS(hipMemcpy(d_inputI16, inputI16, iBufferSizeInBytesI16, hipMemcpyHostToDevice));
+    }
 
     Rpp32u *permTensor = nullptr;
     if (testCase == TRANSPOSE)
@@ -265,7 +282,7 @@ int main(int argc, char **argv)
                         meanTensorCPU = static_cast<Rpp32f *>(malloc(maxSize * sizeof(Rpp32f)));
                     if(stdDevTensorCPU == nullptr)
                         stdDevTensorCPU = static_cast<Rpp32f *>(malloc(maxSize * sizeof(Rpp32f)));
-                    fill_mean_stddev_values(nDim, maxSize, meanTensorCPU, stdDevTensorCPU, qaMode, axisMask, scriptPath);
+                    fill_mean_stddev_values(nDim, maxSize, meanTensorCPU, stdDevTensorCPU, qaMode, axisMask, scriptPath, bitDepth);
                     CHECK_RETURN_STATUS(hipMemcpy(meanTensor, meanTensorCPU, maxSize * sizeof(Rpp32f), hipMemcpyHostToDevice));
                     CHECK_RETURN_STATUS(hipMemcpy(stdDevTensor, stdDevTensorCPU, maxSize * sizeof(Rpp32f), hipMemcpyHostToDevice));
                     CHECK_RETURN_STATUS(hipDeviceSynchronize());
@@ -336,11 +353,8 @@ int main(int argc, char **argv)
     // compare outputs if qaMode is true
     if(qaMode)
     {
-        CHECK_RETURN_STATUS(hipDeviceSynchronize());
-        CHECK_RETURN_STATUS(hipMemcpy(output, d_output, oBufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost));
-        CHECK_RETURN_STATUS(hipDeviceSynchronize());
-        convert_output_bitdepth_to_f32(output, outputF32, bitDepth, oBufferSize, oBufferSizeInBytes, dstDescriptorPtrND);
-        compare_output(outputF32, nDim, batchSize, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
+        CHECK_RETURN_STATUS(hipMemcpy(output, d_output, oBufferSizeInBytes, hipMemcpyDeviceToHost));
+        compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
     }
     else
     {
@@ -350,31 +364,66 @@ int main(int argc, char **argv)
         avgWallTime /= numRuns;
         cout << fixed << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
     }
+    if (DEBUG_MODE && bitDepth == 2)
+    {
+        std::ofstream refFile;
+        std::string refFileName = func + "_hip.csv";
+        refFile.open(refFileName);
 
+        Rpp32f* h_outputF32 = static_cast<Rpp32f*>(malloc(oBufferSize * sizeof(Rpp32f)));
+        hipMemcpy(h_outputF32, d_output, oBufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost);
 
-    free(inputF32);
-    if(testCase == CONCAT)
-        free(inputF32Second);
-    if(testCase == LOG1P)
-        free(inputI16);
-    free(outputF32);
-    free(input);
-    if(testCase == CONCAT)
-        free(inputSecond);
-    free(output);
-    CHECK_RETURN_STATUS(hipHostFree(srcDescriptorPtrND));
-    CHECK_RETURN_STATUS(hipHostFree(dstDescriptorPtrND));
-    CHECK_RETURN_STATUS(hipHostFree(roiTensor));
-    if(testCase == LOG1P)
-        CHECK_RETURN_STATUS(hipFree(d_inputI16));
+        for (int i = 0; i < oBufferSize; i++)
+            refFile << h_outputF32[i] << ",";
+
+        free(h_outputF32);
+        refFile.close();
+    }
+    // if (DEBUG_MODE && bitDepth == 0)
+    // {
+    //     std::ofstream refFile;
+    //     std::string refFileName = func + "_hip.csv";
+    //     refFile.open(refFileName);
+
+    //     Rpp8u* h_outputU8 = static_cast<Rpp8u*>(malloc(oBufferSize * sizeof(Rpp8u)));
+    //     hipMemcpy(h_outputU8, d_output, oBufferSize * sizeof(Rpp8u), hipMemcpyDeviceToHost);
+
+    //     for (int i = 0; i < oBufferSize; i++)
+    //         refFile << static_cast<int>(h_outputU8[i]) << ",";
+
+    //     free(h_outputU8);
+    //     refFile.close();
+    // }
+
+    CHECK_RETURN_STATUS(hipStreamDestroy(stream));
+
+    // Free device memory
     CHECK_RETURN_STATUS(hipFree(d_input));
     CHECK_RETURN_STATUS(hipFree(d_output));
-    if(testCase == CONCAT)
+    if(d_inputSecond)
         CHECK_RETURN_STATUS(hipFree(d_inputSecond));
-    if(meanTensor != nullptr)
+    if(d_inputI16)
+        CHECK_RETURN_STATUS(hipFree(d_inputI16));
+    if(meanTensor)
         CHECK_RETURN_STATUS(hipFree(meanTensor));
-    if(stdDevTensor != nullptr)
+    if(stdDevTensor)
         CHECK_RETURN_STATUS(hipFree(stdDevTensor));
+
+    // Free host memory
+    CHECK_RETURN_STATUS(hipHostFree(input));
+    CHECK_RETURN_STATUS(hipHostFree(output));
+    if(inputSecond)
+        CHECK_RETURN_STATUS(hipHostFree(inputSecond));
+    if(inputI16)
+        CHECK_RETURN_STATUS(hipHostFree(inputI16));
+    CHECK_RETURN_STATUS(hipHostFree(roiTensor));
+    CHECK_RETURN_STATUS(hipHostFree(dstRoiTensor));
+    if(roiTensorSecond)
+        CHECK_RETURN_STATUS(hipHostFree(roiTensorSecond));
+    CHECK_RETURN_STATUS(hipHostFree(srcDescriptorPtrND));
+    CHECK_RETURN_STATUS(hipHostFree(dstDescriptorPtrND));
+    if(srcDescriptorPtrNDSecond)
+        CHECK_RETURN_STATUS(hipHostFree(srcDescriptorPtrNDSecond));
     if (permTensor != nullptr)
         CHECK_RETURN_STATUS(hipHostFree(permTensor));
     if(meanTensorCPU != nullptr)

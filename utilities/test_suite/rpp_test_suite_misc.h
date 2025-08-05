@@ -62,7 +62,6 @@ void compute_strides(RpptGenericDescPtr descriptorPtr)
     }
 }
 
-
 // Retrieve path for bin file
 string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u bitDepth, bool isMeanStd = false)
 {
@@ -134,7 +133,7 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             }
             case 4:
             {
-                std::array<Rpp32u, 8> roi = {0, 0, 0, 0, 10, 10, 50, 100};
+                std::array<Rpp32u, 8> roi = {0, 0, 0, 0, 4, 10, 25, 40};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 8)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -274,6 +273,26 @@ std::map<Rpp32s, Rpp32u> paramStrideMap3D =
     {7, 3408}
 };
 
+// strides used for jumping to corresponding axisMask mean and stddev in 4D
+std::map<Rpp32s, Rpp32u> paramStrideMap4D =
+{
+    {1, 0}, // 4x10x25x40 - 4D
+    {2, 1000},
+    {3, 2600},
+    {4, 2640},
+    {5, 6640},
+    {6, 6740},
+    {7, 6900},
+    {8, 6904},
+    {9, 16904},
+    {10, 17154},
+    {11, 17554},
+    {12, 17564},
+    {13, 18564},
+    {14, 18589},
+    {15, 18629}
+};
+
 // fill the mean and stddev values used for normalize
 void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
                              Rpp32f *stdDevTensor, bool qaMode, int axisMask, string scriptPath, Rpp32u bitDepth)
@@ -293,6 +312,12 @@ void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
             {
                 numValues = 400 + 400 + 8 + 2500 + 50 + 50 + 1;
                 paramStride = paramStrideMap3D[axisMask];
+                break;
+            }
+            case 4:
+            {
+                numValues = 18630;
+                paramStride = paramStrideMap4D[axisMask];
                 break;
             }
             default:

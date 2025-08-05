@@ -392,7 +392,14 @@ void normalize_ND_tensor_nontoggle(T1 *srcPtr, Rpp32u *srcStride, T2 *dstPtr, Rp
 
         for(Rpp32u k = 0; k < length[level]; k++)
         {
-            *dstPtrTemp = (((T2)*srcPtrTemp - meanPtr[idx]) * multiplierPtr[idx]) + shift;
+            if constexpr (std::is_same<T2, Rpp8u>::value)
+            {
+                *dstPtrTemp = RPPPIXELCHECK((((T2)*srcPtrTemp - meanPtr[idx]) * multiplierPtr[idx]) + shift);
+            }
+            else
+            {
+                *dstPtrTemp = (((T2)*srcPtrTemp - meanPtr[idx]) * multiplierPtr[idx]) + shift;
+            }
             if(k < length[level] - 1)
                 idx += paramStride[level];
             srcPtrTemp++;
