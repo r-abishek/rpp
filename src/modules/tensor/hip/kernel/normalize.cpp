@@ -269,15 +269,7 @@ __global__ void normalize_nd_hip_tensor(T *srcPtr,
     float scale = scaleAndShift.x;
     float shift = scaleAndShift.y;
     float invStdDev;
-    if (computeStdDev)
-    {
-        float stdDevSquare = stdDev * stdDev;
-        invStdDev = stdDevSquare ? rsqrtf(stdDevSquare) * scale : 0;
-    }
-    else
-    {
-        invStdDev = (stdDev) ? (scale * (1.0f / stdDev)) : 1.0f;
-    }
+    invStdDev = (stdDev) ? (scale * (1.0f / stdDev)) : 1.0f; // Compute inverse standard deviation with scaling factor
     uint dstIdx = id_z * maxBufferLength + id_x;
     float outVal = fmaf((static_cast<float>(srcPtr[srcIdx]) - mean), invStdDev, shift);
     normalize_check_and_store(outVal, &dstPtr[dstIdx]);
@@ -1756,7 +1748,7 @@ RppStatus hip_exec_compute_mean_stddev_tensor(T *srcPtr,
                 shared_memory_size = MAX_SHARED_MEMORY_SIZE;
             block_size = shared_memory_size;
         }
-
+        shared_memory_size *= sizeof(float); // Convert shared memory size from number of floats to bytes
         if (isMean)
         {
             hipLaunchKernelGGL(compute_mean_nd_hip_tensor,
@@ -1849,6 +1841,12 @@ RppStatus hip_exec_normalize_tensor(T *srcPtr,
     if ((!computeMean) && (!computeStdDev))
         maxParamVolume = 0;
 
+    // Zero-initialize the mean and standard deviation tensors to ensure
+    if (computeMean)
+        hipMemsetAsync(meanTensor, 0, sizeof(float) * maxParamVolume * batchSize, handle.GetStream());
+    if (computeStdDev)
+        hipMemsetAsync(stdDevTensor, 0, sizeof(float) * maxParamVolume * batchSize, handle.GetStream());
+    
     // if computeMean is set, compute mean values by processing over input based on axisMask values
     if (computeMean)
         hip_exec_compute_mean_stddev_tensor(srcPtr, srcGenericDescPtr, meanTensor, stdDevTensor, true,

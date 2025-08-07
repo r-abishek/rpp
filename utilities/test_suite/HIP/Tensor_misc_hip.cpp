@@ -301,7 +301,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log";
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if (bitDepth == 1 || bitDepth == 2 || bitDepth == 4 || bitDepth == 5)
                     rppt_log_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -324,8 +324,10 @@ int main(int argc, char **argv)
                 testCaseName  = "log1p";
 
                 startWallTime = omp_get_wtime();
-                rppt_log1p_gpu(d_inputI16, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
-
+                if (bitDepth == 2)
+                    rppt_log1p_gpu(d_inputI16, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
+                else
+                    missingFuncFlag = 1;
                 break;
             }
             default:
@@ -353,8 +355,11 @@ int main(int argc, char **argv)
     // compare outputs if qaMode is true
     if(qaMode)
     {
-        CHECK_RETURN_STATUS(hipMemcpy(output, d_output, oBufferSizeInBytes, hipMemcpyDeviceToHost));
-        compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
+        if (bitDepth == 0 || bitDepth == 2 || (testCase == LOG && bitDepth == 4))
+        {
+            CHECK_RETURN_STATUS(hipMemcpy(output, d_output, oBufferSizeInBytes, hipMemcpyDeviceToHost));
+            compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
+        }
     }
     else
     {
@@ -364,36 +369,6 @@ int main(int argc, char **argv)
         avgWallTime /= numRuns;
         cout << fixed << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
     }
-    if (DEBUG_MODE && bitDepth == 2)
-    {
-        std::ofstream refFile;
-        std::string refFileName = func + "_hip.csv";
-        refFile.open(refFileName);
-
-        Rpp32f* h_outputF32 = static_cast<Rpp32f*>(malloc(oBufferSize * sizeof(Rpp32f)));
-        hipMemcpy(h_outputF32, d_output, oBufferSize * sizeof(Rpp32f), hipMemcpyDeviceToHost);
-
-        for (int i = 0; i < oBufferSize; i++)
-            refFile << h_outputF32[i] << ",";
-
-        free(h_outputF32);
-        refFile.close();
-    }
-    // if (DEBUG_MODE && bitDepth == 0)
-    // {
-    //     std::ofstream refFile;
-    //     std::string refFileName = func + "_hip.csv";
-    //     refFile.open(refFileName);
-
-    //     Rpp8u* h_outputU8 = static_cast<Rpp8u*>(malloc(oBufferSize * sizeof(Rpp8u)));
-    //     hipMemcpy(h_outputU8, d_output, oBufferSize * sizeof(Rpp8u), hipMemcpyDeviceToHost);
-
-    //     for (int i = 0; i < oBufferSize; i++)
-    //         refFile << static_cast<int>(h_outputU8[i]) << ",";
-
-    //     free(h_outputU8);
-    //     refFile.close();
-    // }
 
     CHECK_RETURN_STATUS(hipStreamDestroy(stream));
 

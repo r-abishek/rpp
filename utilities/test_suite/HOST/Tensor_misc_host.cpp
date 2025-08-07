@@ -264,7 +264,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log";
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if (bitDepth == 1 || bitDepth == 2 || bitDepth == 4 || bitDepth == 5)
                     rppt_log_host(input, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -288,7 +288,10 @@ int main(int argc, char **argv)
                 testCaseName  = "log1p";
 
                 startWallTime = omp_get_wtime();
-                rppt_log1p_host(inputI16, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
+                if (bitDepth == 2)
+                    rppt_log1p_host(inputI16, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
+                else
+                    missingFuncFlag = 1;
 
                 break;
             }
@@ -328,7 +331,7 @@ int main(int argc, char **argv)
 
     if(qaMode)
     {
-        if (bitDepth == 0 || bitDepth == 2)
+        if (bitDepth == 0 || bitDepth == 2 || (testCase == LOG && bitDepth == 4))
             compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
     }
     else
