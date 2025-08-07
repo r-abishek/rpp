@@ -65,11 +65,11 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    string func = funcName;
+    string func = funcName + "_" + std::to_string(nDim) + "d" ;
     if (axisMaskCase)
-        func += "_" + std::to_string(nDim) + "d_axisMask" + std::to_string(axisMask);
+        func += "_axisMask" + std::to_string(axisMask);
     if (permOrderCase)
-        func += "_" + std::to_string(nDim) + "d_permOrder" + std::to_string(permOrder);
+        func += "_permOrder" + std::to_string(permOrder);
 
     // fill roi based on mode and number of dimensions
     Rpp32u *roiTensor, *dstRoiTensor, *roiTensorSecond = nullptr;

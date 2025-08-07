@@ -547,7 +547,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
                     std::string funcName, std::string testCase, int additionalParam, std::string scriptPath, bool isMeanStd = false)
 {
     // Allocate and read reference data based on bitDepth
-     RpptDataType dataType;
+    RpptDataType dataType;
     switch (bitDepth)
     {
         case 0: dataType = RpptDataType::U8; break;
@@ -628,7 +628,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
         case 5: bitDepthStr = "i8"; break;
         default: bitDepthStr = "unknown"; break;
     }
-    funcName = funcName + "_" + testCase + "_" + bitDepthStr;
+    funcName = funcName + "_" + bitDepthStr;
     std::string status = funcName + ": ";
     std::cout << "\nResults for Test case: " << funcName << std::endl;
     if (fileMatch == batchSize)
