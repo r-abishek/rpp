@@ -344,7 +344,9 @@ RppStatus flip_f32_f32_host_tensor(Rpp32f *srcPtr,
         Rpp32u vFactor = roi.xywhROI.xy.y * srcDescPtr->strides.hStride;
         Rpp32s hStrideSrcIncrement = srcDescPtr->strides.hStride;
         constexpr Rpp32u RGB_CHANNELS = 3;     // Number of channels in RGB processing.
-        constexpr Rpp32u elementsToSkip = RGB_CHANNELS - 1;    // Skip two elements to align with the processing logic for RGB channels.
+        // The subtraction of elementsToSkip (typically RGB_CHANNELS - 1) from hFlipFactor
+        // ensures correct alignment of the source pointer for the remaining elements.
+        constexpr Rpp32u elementsToSkip = RGB_CHANNELS - 1;
 
         // Initialize load functions with default values
         auto load24FnPkdPln = &rpp_load24_f32pkd3_to_f32pln3_avx;
