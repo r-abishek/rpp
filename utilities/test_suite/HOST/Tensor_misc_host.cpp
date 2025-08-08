@@ -52,6 +52,18 @@ int main(int argc, char **argv)
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
     int axisMask = additionalParam, permOrder = additionalParam;
 
+    if ((bitDepth == 4 && testCase != LOG))
+        return RPP_ERROR_NOT_IMPLEMENTED;
+    
+    if ((bitDepth == 7 && testCase != LOG1P))
+        return RPP_ERROR_NOT_IMPLEMENTED;
+
+    if (testCase == LOG && !(bitDepth == 2 || bitDepth == 4))
+        return RPP_ERROR_NOT_IMPLEMENTED;
+
+    if (testCase == LOG1P && bitDepth != 7)
+        return RPP_ERROR_NOT_IMPLEMENTED;
+        
     if (qaMode && batchSize != 3)
     {
         cout<<"QA mode can only run with batchsize 3"<<std::endl;
@@ -65,11 +77,11 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    string func = funcName;
+    string func = funcName + "_" + std::to_string(nDim) + "d" ;
     if (axisMaskCase)
-        func += "_" + std::to_string(nDim) + "d_axisMask" + std::to_string(axisMask);
+        func += "_axisMask" + std::to_string(axisMask);
     if (permOrderCase)
-        func += "_" + std::to_string(nDim) + "d_permOrder" + std::to_string(permOrder);
+        func += "_permOrder" + std::to_string(permOrder);
 
     // fill roi based on mode and number of dimensions
     Rpp32u *roiTensor = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
@@ -91,10 +103,18 @@ int main(int argc, char **argv)
     srcDescriptorPtrND = &srcDescriptor;
     dstDescriptorPtrND = &dstDescriptor;
     int offSetInBytes = 0;
-    set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
-    if(testCase == LOG1P)
-        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 6, batchSize, roiTensor);
-    set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
+    if(testCase == LOG1P && bitDepth == 7){
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
+        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
+    }
+    else if(testCase == LOG && bitDepth == 4){
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 0, batchSize, roiTensor);
+        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
+    }
+    else{
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
+        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
+    }
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
     if(testCase == CONCAT)
@@ -102,7 +122,6 @@ int main(int argc, char **argv)
         srcDescriptorPtrNDSecond = &srcDescriptorSecond;
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
         set_generic_descriptor_layout(srcDescriptorPtrNDSecond, dstDescriptorPtrND, nDim, toggle, qaMode);
-
     }
     Rpp32u iBufferSize = 1;
     Rpp32u oBufferSize = 1;
@@ -121,24 +140,38 @@ int main(int argc, char **argv)
 
     // allocate memory for input / output
     void *input = nullptr, *inputSecond = nullptr, *output = nullptr;
-    // Determine actual data type sizes
-    Rpp64u inputElementSize = get_size_of_data_type(srcDescriptorPtrND->dataType);
-    Rpp64u outputElementSize = get_size_of_data_type(dstDescriptorPtrND->dataType);
-    input = calloc(iBufferSize, inputElementSize);
-    output = calloc(oBufferSize, outputElementSize);
+    if (testCase == LOG1P && bitDepth == 7)
+    {
+        // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
+        // here is F32 (we store F32 to then convert). So allocate as F32 to hold that data.
+        iBufferSizeInBytes = iBufferSize * get_size_of_data_type(RpptDataType::F32);
+        oBufferSizeInBytes = oBufferSize * get_size_of_data_type(RpptDataType::F32);
+    }
+    else
+    {
+        iBufferSizeInBytes = iBufferSize * get_size_of_data_type(srcDescriptorPtrND->dataType);
+        oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
+    }
+
+    input = calloc(iBufferSize, iBufferSizeInBytes);
+    output = calloc(oBufferSize, oBufferSizeInBytes);
     if(testCase == CONCAT)
     {
         for(int i = 0; i <= nDim; i++)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
-        iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
-        inputSecond = calloc(iBufferSizeSecond, inputElementSize);
+        inputSecond = calloc(iBufferSizeSecond, iBufferSizeInBytes);
     }
 
     // read input data
     if(qaMode)
     {
-        read_data(input, nDim, 0, scriptPath, funcName, bitDepth);
-        if (testCase == CONCAT)
+        if(bitDepth == 7) // log1p
+            read_data(input, nDim, 0, scriptPath, funcName, 2);
+        else if(bitDepth == 4) // log
+            read_data(input, nDim, 0, scriptPath, funcName, 0);
+        else
+            read_data(input, nDim, 0, scriptPath, funcName, bitDepth);
+        if(testCase == CONCAT)
             read_data(inputSecond, nDim, 0, scriptPath, funcName, bitDepth);
     }
     else
@@ -174,12 +207,10 @@ int main(int argc, char **argv)
     if(testCase == LOG1P)
     {
         inputI16 = static_cast<Rpp16s *>(calloc(iBufferSize, sizeof(Rpp16s)));
-        if (bitDepth == 2) // assuming F32 input for LOG1P
-        {
-            Rpp32f *inputF32 = static_cast<Rpp32f *>(input);
-            for (int i = 0; i < iBufferSize; i++)
-                inputI16[i] = static_cast<Rpp16s>(inputF32[i]);
-        }
+        Rpp32f *inputF32 = static_cast<Rpp32f *>(input);
+        std::cout << iBufferSize;
+        for (int i = 0; i < iBufferSize; i++)
+            inputI16[i] = static_cast<Rpp16s>(inputF32[i]);
     }
 
     // Set the number of threads to be used by OpenMP pragma for RPP batch processing on host.
@@ -214,7 +245,7 @@ int main(int argc, char **argv)
                 compute_strides(dstDescriptorPtrND);
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if (bitDepth == 0 || bitDepth == 2)
                     rppt_transpose_host(input, srcDescriptorPtrND, output, dstDescriptorPtrND, permTensor, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -252,7 +283,7 @@ int main(int argc, char **argv)
                     fill_mean_stddev_values(nDim, maxSize, meanTensor, stdDevTensor, qaMode, axisMask, scriptPath, bitDepth);
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if(bitDepth == 0 || bitDepth == 2)
                     rppt_normalize_host(input, srcDescriptorPtrND, output, dstDescriptorPtrND, axisMask, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -264,7 +295,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log";
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 1 || bitDepth == 2 || bitDepth == 4 || bitDepth == 5)
+                if(bitDepth == 2 || bitDepth == 4)
                     rppt_log_host(input, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -276,7 +307,7 @@ int main(int argc, char **argv)
                 testCaseName  = "concat";
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if(bitDepth == 0 || bitDepth == 2)
                     rppt_concat_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, axisMask, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
@@ -288,7 +319,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log1p";
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 2)
+                if(bitDepth == 7)
                     rppt_log1p_host(inputI16, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -316,7 +347,7 @@ int main(int argc, char **argv)
         avgWallTime += wallTime;
     }
 
-    if(DEBUG_MODE)
+    if(DEBUG_MODE && bitDepth == 2)
     {
         std::ofstream refFile;
         std::string refFileName;
@@ -331,8 +362,7 @@ int main(int argc, char **argv)
 
     if(qaMode)
     {
-        if (bitDepth == 0 || bitDepth == 2 || (testCase == LOG && bitDepth == 4))
-            compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
+        compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
     }
     else
     {

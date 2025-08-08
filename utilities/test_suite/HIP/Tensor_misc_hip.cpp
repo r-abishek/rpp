@@ -52,6 +52,18 @@ int main(int argc, char **argv)
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
     int axisMask = additionalParam, permOrder = additionalParam;
 
+    if ((bitDepth == 4 && testCase != LOG))
+        return RPP_ERROR_NOT_IMPLEMENTED;
+    
+    if ((bitDepth == 7 && testCase != LOG1P))
+        return RPP_ERROR_NOT_IMPLEMENTED;
+
+    if (testCase == LOG && !(bitDepth == 2 || bitDepth == 4))
+        return RPP_ERROR_NOT_IMPLEMENTED;
+
+    if (testCase == LOG1P && bitDepth != 7)
+        return RPP_ERROR_NOT_IMPLEMENTED;
+
     if (qaMode && batchSize != 3)
     {
         cout<<"QA mode can only run with batchsize 3"<<std::endl;
@@ -92,10 +104,17 @@ int main(int argc, char **argv)
     // set dims and compute strides
     int offSetInBytes = 0;
     set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
-    if(testCase == LOG1P)
-        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 6, batchSize, roiTensor);
     set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
+    if(testCase == LOG1P && bitDepth == 7){
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
+        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
+    }
+    if(testCase == LOG && bitDepth == 4){
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 0, batchSize, roiTensor);
+        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
+    }
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
+
     if(testCase == CONCAT)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
@@ -117,12 +136,22 @@ int main(int argc, char **argv)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
     }
 
-    iBufferSizeInBytes = iBufferSize * get_size_of_data_type(srcDescriptorPtrND->dataType);
-    oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
+    if (testCase == LOG1P && bitDepth == 7)
+    {
+        // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
+        // here is F32 (we store F32 to then convert). So allocate as F32 to hold that data.
+        iBufferSizeInBytes = iBufferSize * get_size_of_data_type(RpptDataType::F32);
+        oBufferSizeInBytes = oBufferSize * get_size_of_data_type(RpptDataType::F32);
+    }
+    else
+    {
+        iBufferSizeInBytes = iBufferSize * get_size_of_data_type(srcDescriptorPtrND->dataType);
+        oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
+    }
 
     // allocate memory for input / output
     // Host pointers (pinned memory)
-    void *input = nullptr, *inputSecond = nullptr, *output = nullptr, *inputI16 = nullptr;
+    void *input = nullptr, *inputSecond = nullptr, *output = nullptr;
     // Device pointers
     void *d_input = nullptr, *d_inputSecond = nullptr, *d_output = nullptr, *d_inputI16 = nullptr;
 
@@ -139,17 +168,15 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeSecondInBytes));
     }
 
-    if (testCase == LOG1P)
-    {
-        Rpp64u iBufferSizeInBytesI16 = iBufferSize * sizeof(Rpp16s);
-        CHECK_RETURN_STATUS(hipHostMalloc(&inputI16, iBufferSizeInBytesI16));
-        CHECK_RETURN_STATUS(hipMalloc(&d_inputI16, iBufferSizeInBytesI16));
-    }
-
     // read input data
     if(qaMode)
     {
-        read_data(input, nDim, 0, scriptPath, funcName, bitDepth);
+        if(bitDepth == 7) // log1p
+            read_data(input, nDim, 0, scriptPath, funcName, 2);
+        else if(bitDepth == 4) // log
+            read_data(input, nDim, 0, scriptPath, funcName, 0);
+        else
+            read_data(input, nDim, 0, scriptPath, funcName, bitDepth);
         if(testCase == CONCAT)
             read_data(inputSecond, nDim, 0, scriptPath, funcName, bitDepth);
     }
@@ -185,25 +212,26 @@ int main(int argc, char **argv)
         }
     }
 
-    if (testCase == LOG1P)
-    {
-        Rpp32f *inputF32 = static_cast<Rpp32f *>(input);
-        Rpp16s *inputI16_cast = static_cast<Rpp16s *>(inputI16);
-        for (int i = 0; i < iBufferSize; i++)
-            inputI16_cast[i] = static_cast<Rpp16s>(inputF32[i]);
-    }
-
-    // copy data from HOST to HIP
-    CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
-    if (testCase == CONCAT)
-    {
-        Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
-        CHECK_RETURN_STATUS(hipMemcpy(d_inputSecond, inputSecond, iBufferSizeSecondInBytes, hipMemcpyHostToDevice));
-    }
+    Rpp16s *inputI16 = nullptr;
     if (testCase == LOG1P)
     {
         Rpp64u iBufferSizeInBytesI16 = iBufferSize * sizeof(Rpp16s);
+        CHECK_RETURN_STATUS(hipHostMalloc(&inputI16, iBufferSizeInBytesI16));
+        CHECK_RETURN_STATUS(hipMalloc(&d_inputI16, iBufferSizeInBytesI16));
+
+        Rpp32f *inputF32 = static_cast<Rpp32f *>(input);
+        for (int i = 0; i < iBufferSize; i++)
+            inputI16[i] = static_cast<Rpp16s>(inputF32[i]);
         CHECK_RETURN_STATUS(hipMemcpy(d_inputI16, inputI16, iBufferSizeInBytesI16, hipMemcpyHostToDevice));
+    }
+    else
+    {
+        CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
+        if (testCase == CONCAT)
+        {
+            Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
+            CHECK_RETURN_STATUS(hipMemcpy(d_inputSecond, inputSecond, iBufferSizeSecondInBytes, hipMemcpyHostToDevice));
+        }
     }
 
     Rpp32u *permTensor = nullptr;
@@ -241,7 +269,7 @@ int main(int argc, char **argv)
                 compute_strides(dstDescriptorPtrND);
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if (bitDepth == 0 || bitDepth == 2)
                     rppt_transpose_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, permTensor, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -289,7 +317,7 @@ int main(int argc, char **argv)
                 }
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if(bitDepth == 0 || bitDepth == 2)
                     rppt_normalize_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, axisMask, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -301,7 +329,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log";
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 1 || bitDepth == 2 || bitDepth == 4 || bitDepth == 5)
+                if(bitDepth == 2 || bitDepth == 4)
                     rppt_log_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -312,7 +340,7 @@ int main(int argc, char **argv)
             {
                 testCaseName  = "concat";
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if(bitDepth == 0 || bitDepth == 2)
                     rppt_concat_gpu(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, axisMask, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
@@ -324,7 +352,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log1p";
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 2)
+                if(bitDepth == 7)
                     rppt_log1p_gpu(d_inputI16, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -350,16 +378,12 @@ int main(int argc, char **argv)
         minWallTime = std::min(minWallTime, wallTime);
         avgWallTime += wallTime;
     }
-    rppDestroy(handle,backend);
 
     // compare outputs if qaMode is true
     if(qaMode)
     {
-        if (bitDepth == 0 || bitDepth == 2 || (testCase == LOG && bitDepth == 4))
-        {
-            CHECK_RETURN_STATUS(hipMemcpy(output, d_output, oBufferSizeInBytes, hipMemcpyDeviceToHost));
-            compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
-        }
+        CHECK_RETURN_STATUS(hipMemcpy(output, d_output, oBufferSizeInBytes, hipMemcpyDeviceToHost));
+        compare_output(output, nDim, batchSize, bitDepth, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
     }
     else
     {
@@ -369,7 +393,7 @@ int main(int argc, char **argv)
         avgWallTime /= numRuns;
         cout << fixed << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
     }
-
+    rppDestroy(handle,backend);
     CHECK_RETURN_STATUS(hipStreamDestroy(stream));
 
     // Free device memory

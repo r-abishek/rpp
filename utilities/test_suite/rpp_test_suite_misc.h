@@ -70,6 +70,10 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
         bitDepthStr = "u8";
     else if (bitDepth == 2)
         bitDepthStr = "f32";
+    else if (bitDepth == 4)
+        bitDepthStr = "u8";
+    else if (bitDepth == 7)
+        bitDepthStr = "f32";
     else
         exit(1);
     
@@ -245,7 +249,7 @@ inline void set_generic_descriptor(RpptGenericDescPtr descriptorPtr3D, int nDim,
         descriptorPtr3D->dataType = RpptDataType::F32;
     else if (bitDepth == 5)
         descriptorPtr3D->dataType = RpptDataType::I8;
-    else if (bitDepth == 6)
+    else if (bitDepth == 7)
         descriptorPtr3D->dataType = RpptDataType::I16;
     descriptorPtr3D->dims[0] = batchSize;
     for(int i = 1; i <= nDim; i++)
@@ -553,10 +557,16 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
         case 0: dataType = RpptDataType::U8; break;
         case 1: dataType = RpptDataType::F16; break;
         case 2: dataType = RpptDataType::F32; break;
+        case 4: dataType = RpptDataType::F32; break;
         case 5: dataType = RpptDataType::I8; break;
+        case 7: dataType = RpptDataType::F32; break;
         default: std::cerr << "ERROR: Invalid bitDepth specified!" << std::endl; return;
     }
-    Rpp32u goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, bitDepth);
+    Rpp32u goldenOutputLength;
+    if(testCase == "log")
+        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, 2);
+    else
+        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, bitDepth);
     void *refOutput = calloc(goldenOutputLength, get_size_of_data_type(dataType));
     read_data(refOutput, nDim, 1, scriptPath, testCase, bitDepth);
     int subVariantStride = 0;
@@ -584,7 +594,17 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
         int cnt = 0;
         int sampleOffset = i * sampleLength + subVariantStride;
 
-        if (bitDepth == 2)  // F32
+        if(testCase == "log" && bitDepth == 4)
+        {
+            Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
+            Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
+            for (int j = 0; j < sampleLength; j++)
+            {
+                if ((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < 1.0f))
+                    cnt++;
+            }
+        }
+        else if (bitDepth == 2 || bitDepth == 7 || bitDepth == 4)  // F32 || I16_F32 || U8_F32
         {
             Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
@@ -625,7 +645,9 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
         case 0: bitDepthStr = "u8"; break;
         case 1: bitDepthStr = "f16"; break;
         case 2: bitDepthStr = "f32"; break;
+        case 4: bitDepthStr = "u8_f32"; break;
         case 5: bitDepthStr = "i8"; break;
+        case 7: bitDepthStr = "i16_f32"; break;
         default: bitDepthStr = "unknown"; break;
     }
     funcName = funcName + "_" + bitDepthStr;

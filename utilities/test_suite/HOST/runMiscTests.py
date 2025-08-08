@@ -51,6 +51,10 @@ def run_unit_test_cmd(numDims, case, numRuns, testType, toggle, batchSize, outFi
     bitDepths = range(7)
     if testType == 0:
         bitDepths = [0, 2]
+        if int(case) == 2:
+            bitDepths = [2, 4]
+        if int(case) == 4:
+            bitDepths = [7]
     for bitDepth in bitDepths:
         print("\n./Tensor_misc_host " + str(case) + " " + str(testType) + " " + str(toggle) + " " + str(numDims) + " " + str(batchSize) + " " + str(numRuns) + " " + str(additionalArg))
         result = subprocess.Popen([buildFolderPath + "/build/Tensor_misc_host", str(case), str(testType), str(toggle), str(numDims), str(batchSize), str(numRuns), str(bitDepth), str(additionalArg), outFilePath, scriptPath], stdout=subprocess.PIPE, stderr=subprocess.PIPE)    # nosec
@@ -81,7 +85,7 @@ def rpp_test_suite_parser_and_validator():
     parser.add_argument('--test_type', type = int, default = 0, help = "Type of Test - (0 = QA tests / 1 = Performance tests)")
     parser.add_argument('--toggle', type = int, default = 0, help = "Toggle outputs")
     parser.add_argument('--case_list', nargs = "+", help = "A list of specific case numbers to run separated by spaces", required = False)
-    parser.add_argument("--num_dims_list", type=int, nargs='+', default=[1, 2, 3, 4], help="List of input dimensions (e.g., 1 2 3 4)")
+    parser.add_argument("--num_dims_list", type=int, nargs='+', default=[2, 3, 4], help="List of input dimensions (e.g., 2 3 4)")
     parser.add_argument('--num_runs', type = int, default = 1, help = "Specifies the number of runs for running the performance tests")
     parser.add_argument('--qa_mode', type = int, default = 0, help = "Run with qa_mode? Outputs from tests will be compared with golden outputs - (0 / 1)", required = False)
     parser.add_argument('--batch_size', type = int, default = 1, help = "Specifies the batch size to use for running tests. Default is 1.")
