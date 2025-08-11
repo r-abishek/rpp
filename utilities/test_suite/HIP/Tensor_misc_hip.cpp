@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 {
     // Handle inputs
     const int MIN_ARG_COUNT = 10;
-    if (argc < MIN_ARG_COUNT)
+    if(argc < MIN_ARG_COUNT)
     {
         cout << "\nImproper Usage! Needs all arguments!\n";
         cout << "\nUsage: ./Tensor_misc_hip <case number = 0:2> <test type 0/1> <toggle 0/1> <number of dimensions> <batch size> <num runs> <additional param> <dst path> <script path>\n";
@@ -77,7 +77,21 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    string func = funcName + "_" + std::to_string(nDim) + "d" ;
+    std::string bitdepthStr;
+    switch (bitDepth)
+    {
+        case 0: bitdepthStr = "u8"; break;
+        case 1: bitdepthStr = "f16"; break;
+        case 2: bitdepthStr = "f32"; break;
+        case 3: bitdepthStr = "u8_f32"; break;
+        case 4: bitdepthStr = "u8_f32"; break;
+        case 5: bitdepthStr = "i8"; break;
+        case 6: bitdepthStr = "u8_i8"; break;
+        case 7: bitdepthStr = "i16_f32"; break;
+        default: bitdepthStr = "unknown"; break;
+    }
+
+    std::string func = funcName + "_" + std::to_string(nDim) + "d_" + bitdepthStr;
     if (axisMaskCase)
         func += "_axisMask" + std::to_string(axisMask);
     if (permOrderCase)
@@ -103,15 +117,17 @@ int main(int argc, char **argv)
 
     // set dims and compute strides
     int offSetInBytes = 0;
-    set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
-    set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
     if(testCase == LOG1P && bitDepth == 7){
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
-    if(testCase == LOG && bitDepth == 4){
+    else if(testCase == LOG && bitDepth == 4){
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 0, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
+    }
+    else{
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
+        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
     }
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
@@ -163,9 +179,8 @@ int main(int argc, char **argv)
 
     if (testCase == CONCAT)
     {
-        Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
-        CHECK_RETURN_STATUS(hipHostMalloc(&inputSecond, iBufferSizeSecondInBytes));
-        CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeSecondInBytes));
+        CHECK_RETURN_STATUS(hipHostMalloc(&inputSecond, iBufferSizeInBytes));
+        CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeInBytes));
     }
 
     // read input data
@@ -188,7 +203,8 @@ int main(int argc, char **argv)
             case 0: // U8
             {
                 Rpp8u* inputU8 = static_cast<Rpp8u*>(input);
-                for(int i = 0; i < iBufferSize; i++) inputU8[i] = static_cast<Rpp8u>(std::rand() % 256);
+                for(int i = 0; i < iBufferSize; i++) 
+                    inputU8[i] = static_cast<Rpp8u>(std::rand() % 256);
                 if (testCase == CONCAT)
                 {
                     Rpp8u* inputSecondU8 = static_cast<Rpp8u*>(inputSecond);
@@ -200,7 +216,8 @@ int main(int argc, char **argv)
             case 2: // F32
             {
                 Rpp32f* inputF32 = static_cast<Rpp32f*>(input);
-                for(int i = 0; i < iBufferSize; i++) inputF32[i] = static_cast<Rpp32f>(std::rand() % 255);
+                for(int i = 0; i < iBufferSize; i++) 
+                    inputF32[i] = static_cast<Rpp32f>(std::rand() % 255);
                 if (testCase == CONCAT)
                 {
                     Rpp32f* inputSecondF32 = static_cast<Rpp32f*>(inputSecond);
@@ -269,7 +286,7 @@ int main(int argc, char **argv)
                 compute_strides(dstDescriptorPtrND);
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 2)
+                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
                     rppt_transpose_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, permTensor, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -317,7 +334,7 @@ int main(int argc, char **argv)
                 }
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 0 || bitDepth == 2)
+                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
                     rppt_normalize_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, axisMask, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -340,7 +357,7 @@ int main(int argc, char **argv)
             {
                 testCaseName  = "concat";
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 0 || bitDepth == 2)
+                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
                     rppt_concat_gpu(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, axisMask, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
