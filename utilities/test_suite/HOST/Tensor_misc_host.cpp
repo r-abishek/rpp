@@ -23,12 +23,11 @@ SOFTWARE.
 */
 
 #include "../rpp_test_suite_misc.h"
-#include <random>
 int main(int argc, char **argv)
 {
     // Handle inputs
     const int MIN_ARG_COUNT = 10;
-    if (argc < MIN_ARG_COUNT)
+    if(argc < MIN_ARG_COUNT)
     {
         cout << "\nImproper Usage! Needs all arguments!\n";
         cout << "\nUsage: ./Tensor_misc_host <case number = 0:1> <test type 0/1> <toggle 0/1> <number of dimensions> <batch size> <num runs> <additional param> <dst path> <script path>\n";
@@ -52,35 +51,49 @@ int main(int argc, char **argv)
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
     int axisMask = additionalParam, permOrder = additionalParam;
 
-    if ((bitDepth == 4 && testCase != LOG))
+    if(bitDepth == 4 && testCase != LOG)
         return RPP_ERROR_NOT_IMPLEMENTED;
     
-    if ((bitDepth == 7 && testCase != LOG1P))
+    if(bitDepth == 7 && testCase != LOG1P)
         return RPP_ERROR_NOT_IMPLEMENTED;
 
-    if (testCase == LOG && !(bitDepth == 2 || bitDepth == 4))
+    if(testCase == LOG && !(bitDepth == 2 || bitDepth == 4))
         return RPP_ERROR_NOT_IMPLEMENTED;
 
-    if (testCase == LOG1P && bitDepth != 7)
+    if(testCase == LOG1P && bitDepth != 7)
         return RPP_ERROR_NOT_IMPLEMENTED;
-        
-    if (qaMode && batchSize != 3)
+    if(qaMode && batchSize != 3)
     {
         cout<<"QA mode can only run with batchsize 3"<<std::endl;
         return -1;
     }
 
     string funcName = augmentationMiscMap[testCase];
-    if (funcName.empty())
+    if(funcName.empty())
     {
         cout << "\ncase " << testCase << " is not supported\n";
         return -1;
     }
 
-    string func = funcName + "_" + std::to_string(nDim) + "d" ;
-    if (axisMaskCase)
+    std::string bitdepthStr;
+    switch (bitDepth)
+    {
+        case 0: bitdepthStr = "u8"; break;
+        case 1: bitdepthStr = "f16"; break;
+        case 2: bitdepthStr = "f32"; break;
+        case 3: bitdepthStr = "u8_f32"; break;
+        case 4: bitdepthStr = "u8_f32"; break;
+        case 5: bitdepthStr = "i8"; break;
+        case 6: bitdepthStr = "u8_i8"; break;
+        case 7: bitdepthStr = "i16_f32"; break;
+        default: bitdepthStr = "unknown"; break;
+    }
+
+    std::string func = funcName + "_" + std::to_string(nDim) + "d_" + bitdepthStr;
+
+    if(axisMaskCase)
         func += "_axisMask" + std::to_string(axisMask);
-    if (permOrderCase)
+    if(permOrderCase)
         func += "_permOrder" + std::to_string(permOrder);
 
     // fill roi based on mode and number of dimensions
@@ -135,12 +148,7 @@ int main(int argc, char **argv)
         oBufferSize *= dstDescriptorPtrND->dims[i];
     }
 
-    iBufferSizeInBytes = iBufferSize * get_size_of_data_type(srcDescriptorPtrND->dataType);
-    oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
-
-    // allocate memory for input / output
-    void *input = nullptr, *inputSecond = nullptr, *output = nullptr;
-    if (testCase == LOG1P && bitDepth == 7)
+    if(testCase == LOG1P && bitDepth == 7)
     {
         // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
         // here is F32 (we store F32 to then convert). So allocate as F32 to hold that data.
@@ -153,15 +161,17 @@ int main(int argc, char **argv)
         oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
     }
 
-    input = calloc(iBufferSize, iBufferSizeInBytes);
-    output = calloc(oBufferSize, oBufferSizeInBytes);
+    // allocate memory for input / output
+    void *input = nullptr, *inputSecond = nullptr, *output = nullptr;
+    input = calloc(iBufferSizeInBytes, 1);
+    output = calloc(oBufferSizeInBytes, 1);
     if(testCase == CONCAT)
     {
         for(int i = 0; i <= nDim; i++)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
-        inputSecond = calloc(iBufferSizeSecond, iBufferSizeInBytes);
+        iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
+        inputSecond = calloc(iBufferSizeSecondInBytes, 1);
     }
-
     // read input data
     if(qaMode)
     {
@@ -208,7 +218,6 @@ int main(int argc, char **argv)
     {
         inputI16 = static_cast<Rpp16s *>(calloc(iBufferSize, sizeof(Rpp16s)));
         Rpp32f *inputF32 = static_cast<Rpp32f *>(input);
-        std::cout << iBufferSize;
         for (int i = 0; i < iBufferSize; i++)
             inputI16[i] = static_cast<Rpp16s>(inputF32[i]);
     }
@@ -229,7 +238,7 @@ int main(int argc, char **argv)
     string testCaseName;
 
     // case-wise RPP API and measure time script for Unit and Performance test
-    cout << "\nRunning " << func << " " << numRuns << " times (each time with a batch size of " << batchSize << " images) and computing mean statistics...";
+    cout << "\nRunning " << func << " " << numRuns << " times (each time with a batch size of " << batchSize << ") and computing mean statistics...";
     for(int perfCount = 0; perfCount < numRuns; perfCount++)
     {
         switch(testCase)
@@ -245,7 +254,7 @@ int main(int argc, char **argv)
                 compute_strides(dstDescriptorPtrND);
 
                 startWallTime = omp_get_wtime();
-                if (bitDepth == 0 || bitDepth == 2)
+                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
                     rppt_transpose_host(input, srcDescriptorPtrND, output, dstDescriptorPtrND, permTensor, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -283,7 +292,7 @@ int main(int argc, char **argv)
                     fill_mean_stddev_values(nDim, maxSize, meanTensor, stdDevTensor, qaMode, axisMask, scriptPath, bitDepth);
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 0 || bitDepth == 2)
+                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
                     rppt_normalize_host(input, srcDescriptorPtrND, output, dstDescriptorPtrND, axisMask, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -307,7 +316,7 @@ int main(int argc, char **argv)
                 testCaseName  = "concat";
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 0 || bitDepth == 2)
+                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
                     rppt_concat_host(input, inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, output, dstDescriptorPtrND, axisMask, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
@@ -334,7 +343,7 @@ int main(int argc, char **argv)
         }
         endWallTime = omp_get_wtime();
 
-        if (missingFuncFlag == 1)
+        if(missingFuncFlag == 1)
         {
             std::cout<<"\n inside";
             cout << "\nThe functionality " << func << " doesn't yet exist in RPP\n";
