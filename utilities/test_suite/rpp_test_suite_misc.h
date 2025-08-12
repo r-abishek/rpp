@@ -574,7 +574,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
     {
         int meanStdDevOutputStride = 0, axisMaskStride = 0;
         if(isMeanStd)
-            meanStdDevOutputStride = goldenOutputLength / 2;
+            meanStdDevOutputStride = goldenOutputLength / (2 * sizeof(Rpp32f));
         axisMaskStride = (additionalParam - 1) * bufferLength;
         subVariantStride = meanStdDevOutputStride + axisMaskStride;
     }
@@ -589,7 +589,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
 
     int sampleLength = bufferLength / batchSize;
     int fileMatch = 0;
-    for (int i = 0; i < batchSize; i++)
+    for(int i = 0; i < batchSize; i++)
     {
         int cnt = 0;
         int sampleOffset = i * sampleLength + subVariantStride;
@@ -639,36 +639,24 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
             fileMatch++;
     }
 
-    std::string bitDepthStr;
-    switch (bitDepth)
-    {
-        case 0: bitDepthStr = "u8"; break;
-        case 1: bitDepthStr = "f16"; break;
-        case 2: bitDepthStr = "f32"; break;
-        case 4: bitDepthStr = "u8_f32"; break;
-        case 5: bitDepthStr = "i8"; break;
-        case 7: bitDepthStr = "i16_f32"; break;
-        default: bitDepthStr = "unknown"; break;
-    }
-    funcName = funcName + "_" + bitDepthStr;
     std::string status = funcName + ": ";
     std::cout << "\nResults for Test case: " << funcName << std::endl;
     if (fileMatch == batchSize)
     {
-        std::cout << "\nPASSED!" << std::endl;
+        std::cout << "\nPASSED!"<<std::endl;
         status += "PASSED";
     }
     else
     {
-        std::cout << "\nFAILED! " << fileMatch << "/" << batchSize << " outputs match reference" << std::endl;
+        std::cout << "\nFAILED! " << fileMatch << "/" << batchSize << " outputs are matching with reference outputs" << std::endl;
         status += "FAILED";
     }
 
     free(refOutput);
 
-    // Write QA result
+    // Append the QA results to file
     std::string qaResultsPath = dst + "/QA_results.txt";
-    std::ofstream qaResults(qaResultsPath, std::ios_base::app);
+    std::ofstream qaResults(qaResultsPath, ios_base::app);
     if (qaResults.is_open())
     {
         qaResults << status << std::endl;

@@ -116,15 +116,18 @@ int main(int argc, char **argv)
     srcDescriptorPtrND = &srcDescriptor;
     dstDescriptorPtrND = &dstDescriptor;
     int offSetInBytes = 0;
-    if(testCase == LOG1P && bitDepth == 7){
+    if(testCase == LOG1P && bitDepth == 7)
+    {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
-    else if(testCase == LOG && bitDepth == 4){
+    else if(testCase == LOG && bitDepth == 4)
+    {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 0, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
-    else{
+    else
+    {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
     }
@@ -356,7 +359,7 @@ int main(int argc, char **argv)
         avgWallTime += wallTime;
     }
 
-    if(DEBUG_MODE && bitDepth == 2)
+    if(DEBUG_MODE)
     {
         std::ofstream refFile;
         std::string refFileName;

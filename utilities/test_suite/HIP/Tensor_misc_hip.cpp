@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    std::string bitdepthStr;
+    std::string bitdepthStr; // Variable to store the bit depth as a string
     switch (bitDepth)
     {
         case 0: bitdepthStr = "u8"; break;
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
 
     // fill roi based on mode and number of dimensions
     Rpp32u *roiTensor, *dstRoiTensor, *roiTensorSecond = nullptr;
-    CHECK_RETURN_STATUS(hipHostMalloc(&roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u)));
+    CHECK_RETURN_STATUS(hipHostMalloc(&roiTensor, nDim * 2 * batchSize, sizeof(Rpp32u)));
     CHECK_RETURN_STATUS(hipHostMalloc(&dstRoiTensor, nDim * 2 * batchSize * sizeof(Rpp32u)));
     fill_roi_values(nDim, batchSize, roiTensor, qaMode);
     memcpy(dstRoiTensor, roiTensor, nDim * 2 * batchSize * sizeof(Rpp32u));
@@ -109,29 +109,37 @@ int main(int argc, char **argv)
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
         dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask]; 
     }
+    if(testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&roiTensorSecond, nDim * 2 * batchSize * sizeof(Rpp32u)));
+        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
+    }
 
     // set src/dst generic tensor descriptors
-    RpptGenericDescPtr srcDescriptorPtrND, srcDescriptorPtrNDSecond = nullptr, dstDescriptorPtrND;
+    RpptGenericDescPtr srcDescriptorPtrND, srcDescriptorPtrNDSecond, dstDescriptorPtrND;
     CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrND, sizeof(RpptGenericDesc)));
     CHECK_RETURN_STATUS(hipHostMalloc(&dstDescriptorPtrND, sizeof(RpptGenericDesc)));
 
     // set dims and compute strides
     int offSetInBytes = 0;
-    if(testCase == LOG1P && bitDepth == 7){
+    if(testCase == LOG1P && bitDepth == 7)
+    {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
-    else if(testCase == LOG && bitDepth == 4){
+    else if(testCase == LOG && bitDepth == 4)
+    {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 0, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
-    else{
+    else
+    {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
     }
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
@@ -141,18 +149,21 @@ int main(int argc, char **argv)
     Rpp32u iBufferSize = 1;
     Rpp32u oBufferSize = 1;
     Rpp32u iBufferSizeSecond = 1;
-    Rpp32u iBufferSizeInBytes = 1;
-    Rpp32u oBufferSizeInBytes = 1;
-    Rpp32u iBufferSizeSecondInBytes = 1;
+    Rpp64u iBufferSizeInBytes = 1;
+    Rpp64u oBufferSizeInBytes = 1;
+    Rpp64u iBufferSizeSecondInBytes = 1;
     for(int i = 0; i <= nDim; i++)
     {
         iBufferSize *= srcDescriptorPtrND->dims[i];
         oBufferSize *= dstDescriptorPtrND->dims[i];
-        if (testCase == CONCAT)
+        if (testCase == CONCAT || testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
     }
 
-    if (testCase == LOG1P && bitDepth == 7)
+    iBufferSizeInBytes = iBufferSize * get_size_of_data_type(srcDescriptorPtrND->dataType);
+    oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
+
+    if(testCase == LOG1P && bitDepth == 7)
     {
         // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
         // here is F32 (we store F32 to then convert). So allocate as F32 to hold that data.
@@ -165,24 +176,21 @@ int main(int argc, char **argv)
         oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
     }
 
-    // allocate memory for input / output
-    // Host pointers (pinned memory)
-    void *input = nullptr, *inputSecond = nullptr, *output = nullptr;
-    // Device pointers
+    // Allocate memory for input/output
+    void *input = nullptr, *inputSecond = nullptr, *output = nullptr, *inputI16 = nullptr;
     void *d_input = nullptr, *d_inputSecond = nullptr, *d_output = nullptr, *d_inputI16 = nullptr;
 
-    // Allocate all required host and device buffers
-    CHECK_RETURN_STATUS(hipHostMalloc(&input, iBufferSizeInBytes));
-    CHECK_RETURN_STATUS(hipHostMalloc(&output, oBufferSizeInBytes));
+    input = calloc(iBufferSize, get_size_of_data_type(srcDescriptorPtrND->dataType));
+    output = calloc(oBufferSize, get_size_of_data_type(dstDescriptorPtrND->dataType));
     CHECK_RETURN_STATUS(hipMalloc(&d_input, iBufferSizeInBytes));
     CHECK_RETURN_STATUS(hipMalloc(&d_output, oBufferSizeInBytes));
 
-    if (testCase == CONCAT)
+    if(testCase == CONCAT)
     {
-        CHECK_RETURN_STATUS(hipHostMalloc(&inputSecond, iBufferSizeInBytes));
-        CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeInBytes));
+        Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
+        inputSecond = calloc(iBufferSizeSecond, get_size_of_data_type(srcDescriptorPtrNDSecond->dataType));
+        CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeSecondInBytes));
     }
-
     // read input data
     if(qaMode)
     {
@@ -229,30 +237,33 @@ int main(int argc, char **argv)
         }
     }
 
-    Rpp16s *inputI16 = nullptr;
-    if (testCase == LOG1P)
+    if(testCase == LOG1P)
     {
         Rpp64u iBufferSizeInBytesI16 = iBufferSize * sizeof(Rpp16s);
-        CHECK_RETURN_STATUS(hipHostMalloc(&inputI16, iBufferSizeInBytesI16));
+        inputI16 = calloc(iBufferSize, sizeof(Rpp16s));
         CHECK_RETURN_STATUS(hipMalloc(&d_inputI16, iBufferSizeInBytesI16));
 
         Rpp32f *inputF32 = static_cast<Rpp32f *>(input);
+        Rpp16s *inputI16_cast = static_cast<Rpp16s *>(inputI16);
         for (int i = 0; i < iBufferSize; i++)
-            inputI16[i] = static_cast<Rpp16s>(inputF32[i]);
-        CHECK_RETURN_STATUS(hipMemcpy(d_inputI16, inputI16, iBufferSizeInBytesI16, hipMemcpyHostToDevice));
+            inputI16_cast[i] = static_cast<Rpp16s>(inputF32[i]);
     }
-    else
+
+    // Copy data from Host to Device
+    CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
+    if(testCase == CONCAT)
     {
-        CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
-        if (testCase == CONCAT)
-        {
-            Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
-            CHECK_RETURN_STATUS(hipMemcpy(d_inputSecond, inputSecond, iBufferSizeSecondInBytes, hipMemcpyHostToDevice));
-        }
+        Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
+        CHECK_RETURN_STATUS(hipMemcpy(d_inputSecond, inputSecond, iBufferSizeSecondInBytes, hipMemcpyHostToDevice));
+    }
+    if(testCase == LOG1P)
+    {
+        Rpp64u iBufferSizeInBytesI16 = iBufferSize * sizeof(Rpp16s);
+        CHECK_RETURN_STATUS(hipMemcpy(d_inputI16, inputI16, iBufferSizeInBytesI16, hipMemcpyHostToDevice));
     }
 
     Rpp32u *permTensor = nullptr;
-    if (testCase == TRANSPOSE)
+    if(testCase == TRANSPOSE)
         CHECK_RETURN_STATUS(hipHostMalloc(&permTensor, nDim * sizeof(Rpp32u)));
 
     rppHandle_t handle;
@@ -373,6 +384,7 @@ int main(int argc, char **argv)
                     rppt_log1p_gpu(d_inputI16, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
+                    
                 break;
             }
             default:
@@ -425,11 +437,10 @@ int main(int argc, char **argv)
     if(stdDevTensor)
         CHECK_RETURN_STATUS(hipFree(stdDevTensor));
 
-    // Free host memory
-    CHECK_RETURN_STATUS(hipHostFree(input));
-    CHECK_RETURN_STATUS(hipHostFree(output));
+    free(input);
+    free(output);
     if(inputSecond)
-        CHECK_RETURN_STATUS(hipHostFree(inputSecond));
+        free(inputSecond);
     if(inputI16)
         CHECK_RETURN_STATUS(hipHostFree(inputI16));
     CHECK_RETURN_STATUS(hipHostFree(roiTensor));
