@@ -52,26 +52,26 @@ int main(int argc, char **argv)
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
     int axisMask = additionalParam, permOrder = additionalParam;
 
-    if ((bitDepth == 4 && testCase != LOG))
+    if(bitDepth == 4 && testCase != LOG)
         return RPP_ERROR_NOT_IMPLEMENTED;
     
-    if ((bitDepth == 7 && testCase != LOG1P))
+    if(bitDepth == 7 && testCase != LOG1P)
         return RPP_ERROR_NOT_IMPLEMENTED;
 
-    if (testCase == LOG && !(bitDepth == 2 || bitDepth == 4))
+    if(testCase == LOG && !(bitDepth == 2 || bitDepth == 4))
         return RPP_ERROR_NOT_IMPLEMENTED;
 
-    if (testCase == LOG1P && bitDepth != 7)
+    if(testCase == LOG1P && bitDepth != 7)
         return RPP_ERROR_NOT_IMPLEMENTED;
 
-    if (qaMode && batchSize != 3)
+    if(qaMode && batchSize != 3)
     {
         cout<<"QA mode can only run with batchsize 3"<<std::endl;
         return -1;
     }
 
     string funcName = augmentationMiscMap[testCase];
-    if (funcName.empty())
+    if(funcName.empty())
     {
         cout << "\ncase " << testCase << " is not supported\n";
         return -1;
@@ -109,11 +109,6 @@ int main(int argc, char **argv)
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
         dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask]; 
     }
-    if(testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR)
-    {
-        CHECK_RETURN_STATUS(hipHostMalloc(&roiTensorSecond, nDim * 2 * batchSize * sizeof(Rpp32u)));
-        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
-    }
 
     // set src/dst generic tensor descriptors
     RpptGenericDescPtr srcDescriptorPtrND, srcDescriptorPtrNDSecond, dstDescriptorPtrND;
@@ -139,7 +134,7 @@ int main(int argc, char **argv)
     }
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
-    if(testCase == CONCAT || testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR)
+    if(testCase == CONCAT)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
@@ -156,7 +151,7 @@ int main(int argc, char **argv)
     {
         iBufferSize *= srcDescriptorPtrND->dims[i];
         oBufferSize *= dstDescriptorPtrND->dims[i];
-        if (testCase == CONCAT || testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR)
+        if (testCase == CONCAT)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
     }
 
