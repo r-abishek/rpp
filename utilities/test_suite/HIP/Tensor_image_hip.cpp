@@ -391,12 +391,11 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&distortionCoeffs, batchSize * 8 * sizeof(Rpp32f)));
     }
 
-    Rpp32u boxesInEachImage = 3; 
+    Rpp32u boxesInEachImage = 3;
     Rpp32f *colorBuffer;
     RpptRoiLtrb *anchorBoxInfoTensor;
     Rpp32u *numOfBoxes;
     bool *channelMaskHostPinned = nullptr;
-
     if(testCase == ERASE)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&colorBuffer, batchSize * boxesInEachImage * sizeof(Rpp32f)));

@@ -2302,50 +2302,50 @@ RppStatus rppt_random_erase_gpu(RppPtr_t srcPtr,
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         hip_exec_random_erase_tensor(static_cast<Rpp8u *>(srcPtr) + srcDescPtr->offsetInBytes,
-                              srcDescPtr,
-                              static_cast<Rpp8u *>(dstPtr) + dstDescPtr->offsetInBytes,
-                              dstDescPtr,
-                              anchorBoxInfoTensor,
-                              numBoxesTensor,
-                              roiTensorPtrSrc,
-                              roiType,
-                              rpp::deref(rppHandle));
+                                     srcDescPtr,
+                                     static_cast<Rpp8u *>(dstPtr) + dstDescPtr->offsetInBytes,
+                                     dstDescPtr,
+                                     anchorBoxInfoTensor,
+                                     numBoxesTensor,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
     {
         hip_exec_random_erase_tensor(reinterpret_cast<half*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
-                              srcDescPtr,
-                              reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
-                              dstDescPtr,
-                              anchorBoxInfoTensor,
-                              numBoxesTensor,
-                              roiTensorPtrSrc,
-                              roiType,
-                              rpp::deref(rppHandle));
+                                     srcDescPtr,
+                                     reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                     dstDescPtr,
+                                     anchorBoxInfoTensor,
+                                     numBoxesTensor,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
     {
         hip_exec_random_erase_tensor(reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
-                              srcDescPtr,
-                              reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
-                              dstDescPtr,
-                              anchorBoxInfoTensor,
-                              numBoxesTensor,
-                              roiTensorPtrSrc,
-                              roiType,
-                              rpp::deref(rppHandle));
+                                     srcDescPtr,
+                                     reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                     dstDescPtr,
+                                     anchorBoxInfoTensor,
+                                     numBoxesTensor,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     rpp::deref(rppHandle));
     }
     else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
     {
         hip_exec_random_erase_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
-                              srcDescPtr,
-                              static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
-                              dstDescPtr,
-                              anchorBoxInfoTensor,
-                              numBoxesTensor,
-                              roiTensorPtrSrc,
-                              roiType,
-                              rpp::deref(rppHandle));
+                                     srcDescPtr,
+                                     static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                     dstDescPtr,
+                                     anchorBoxInfoTensor,
+                                     numBoxesTensor,
+                                     roiTensorPtrSrc,
+                                     roiType,
+                                     rpp::deref(rppHandle));
     }
 
     return RPP_SUCCESS;

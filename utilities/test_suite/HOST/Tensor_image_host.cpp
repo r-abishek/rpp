@@ -1840,8 +1840,8 @@ int main(int argc, char **argv)
                     std::ofstream refFile;
                     refFile.open(func + ".csv");
                     for (int i = 0; i < oBufferSize; i++)
-                    refFile << static_cast<int>(*(outputu8 + i)) << ",";
-                                            refFile.close();
+                        refFile << static_cast<int>(*(outputu8 + i)) << ",";
+                    refFile.close();
                 }
 
                 // if test case is slice and qaFlag is set, update the dstImgSizes with shapeTensor values
