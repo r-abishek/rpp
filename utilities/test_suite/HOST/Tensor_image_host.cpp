@@ -1701,7 +1701,7 @@ int main(int argc, char **argv)
                             break;
                         }
                         case 3:
-                    {
+                        {
                             testCaseName = "channel";
                             Rpp32f dropProb[batchSize];
                             for (i = 0; i < batchSize; i++)
