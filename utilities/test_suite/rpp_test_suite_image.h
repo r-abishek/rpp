@@ -1762,7 +1762,7 @@ inline void init_grid_dropout(int batchSize, Rpp32u* numOfBoxes, RpptRoiLtrb* an
                     else if (inputBitDepth == 2)
                         colors32f[colorOffset + c] = 0;
                     else if (inputBitDepth == 5)
-                        colors8s[colorOffset + c] = 0;
+                        colors8s[colorOffset + c] = -128;
                 }
 
                 ++boxCount;

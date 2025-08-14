@@ -49,6 +49,15 @@ inline void generate_channel_masks(std::vector<std::vector<bool>> &channelMasks,
 }
 
 template<typename T>
+inline T get_black_value()
+{
+    if constexpr (std::is_same<T, Rpp8s>::value)
+        return static_cast<T>(-128);
+    else
+        return static_cast<T>(0);
+}
+
+template<typename T>
 RppStatus channel_dropout_host_tensor(T *srcPtr,
                                       RpptDescPtr srcDescPtr,
                                       T *dstPtr,
@@ -71,6 +80,7 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
     for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
         const std::vector<bool> &channelMask = channelMasks[batchCount];
+        T black_value = get_black_value<T>();
         RpptROI roi;
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
@@ -78,9 +88,7 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
         T *srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
         T *dstPtrImage = dstPtr + batchCount * dstDescPtr->strides.nStride;
 
-        Rpp32u bufferLength = roi.xywhROI.roiWidth * layoutParams.bufferMultiplier;
-        T *srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + 
-                          (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
+        T *srcPtrChannel = srcPtrImage + (roi.xywhROI.xy.y * srcDescPtr->strides.hStride) + (roi.xywhROI.xy.x * layoutParams.bufferMultiplier);
         T *dstPtrChannel = dstPtrImage;
         // Channel dropout with fused output-layout toggle (NHWC -> NCHW)
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
@@ -99,7 +107,7 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
                         if (channelMask[c])
                             *dstPtrTemp = srcPtrPixelRow[pixelIdx];
                         else
-                            *dstPtrTemp = 0;
+                            *dstPtrTemp = black_value;
                         dstPtrTemp++;
                     }
 
@@ -120,14 +128,11 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
                 {
                     for (Rpp32s c = 0; c < srcDescPtr->c; c++)
                     {
-                        Rpp32s srcIdx = c * srcDescPtr->strides.cStride +   // Channel offset
-                                        i * srcDescPtr->strides.hStride +    // Row offset
-                                        j;                                   // Column offset
-
+                        Rpp32s srcIdx = c * srcDescPtr->strides.cStride + i * srcDescPtr->strides.hStride + j;
                         if (channelMask[c])
                             *dstPtrTemp = srcPtrChannel[srcIdx];
                         else
-                            *dstPtrTemp = 0;
+                            *dstPtrTemp = black_value;
 
                         dstPtrTemp++;  // Because NHWC layout
                     }
@@ -148,9 +153,7 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
                 for (Rpp32s j = 0; j < roi.xywhROI.roiWidth; j++)
                 {
                     for (Rpp32s c = 0; c < srcDescPtr->c; c++)
-                    {
-                        dstPtrTemp[c] = channelMask[c] ? srcPtrTemp[c] : 0;
-                    }
+                        dstPtrTemp[c] = channelMask[c] ? srcPtrTemp[c] : black_value;
                     dstPtrTemp += srcDescPtr->c;
                     srcPtrTemp += srcDescPtr->c;
                 }
@@ -165,25 +168,13 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
             for (Rpp32s c = 0; c < srcDescPtr->c; c++)
             {
                 if (channelMask[c])
-                {
                     // Copy entire channel if active
                     for (Rpp32s i = 0; i < roi.xywhROI.roiHeight; i++)
-                    {
-                        memcpy(dstPtrChannel + (i * dstDescPtr->strides.hStride),
-                            srcPtrChannel + (i * srcDescPtr->strides.hStride),
-                            roi.xywhROI.roiWidth * sizeof(T));
-                    }
-                }
+                        memcpy(dstPtrChannel + (i * dstDescPtr->strides.hStride), srcPtrChannel + (i * srcDescPtr->strides.hStride), roi.xywhROI.roiWidth * sizeof(T));
                 else
-                {
                     // Zero out channel if dropped
                     for (Rpp32s i = 0; i < roi.xywhROI.roiHeight; i++)
-                    {
-                        memset(dstPtrChannel + (i * dstDescPtr->strides.hStride),
-                            0,
-                            roi.xywhROI.roiWidth * sizeof(T));
-                    }
-                }
+                        memset(dstPtrChannel + (i * dstDescPtr->strides.hStride), black_value, roi.xywhROI.roiWidth * sizeof(T));
                 srcPtrChannel += srcDescPtr->strides.cStride;
                 dstPtrChannel += dstDescPtr->strides.cStride;
             }
@@ -192,23 +183,11 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
         else if ((srcDescPtr->c == 1) && (srcDescPtr->layout == RpptLayout::NCHW))
         {
             if (channelMask[0])
-            {
                 for (Rpp32s i = 0; i < roi.xywhROI.roiHeight; i++)
-                {
-                    memcpy(dstPtrChannel + (i * dstDescPtr->strides.hStride),
-                        srcPtrChannel + (i * srcDescPtr->strides.hStride),
-                        roi.xywhROI.roiWidth * sizeof(T));
-                }
-            }
+                    memcpy(dstPtrChannel + (i * dstDescPtr->strides.hStride), srcPtrChannel + (i * srcDescPtr->strides.hStride), roi.xywhROI.roiWidth * sizeof(T));
             else
-            {
                 for (Rpp32s i = 0; i < roi.xywhROI.roiHeight; i++)
-                {
-                    memset(dstPtrChannel + (i * dstDescPtr->strides.hStride),
-                        0,
-                        roi.xywhROI.roiWidth * sizeof(T));
-                }
-            }
+                    memset(dstPtrChannel + (i * dstDescPtr->strides.hStride), black_value, roi.xywhROI.roiWidth * sizeof(T));
         }
     }
 

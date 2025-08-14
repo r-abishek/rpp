@@ -31,8 +31,8 @@ __device__ inline uint generate_seed(uint x, uint y, uint z)
 
 __device__ inline float generate_random_float(uint seed)
 {
-    seed = (1103515245 * seed + 12345);
-    return ((seed / 65536) % 32768) / 32768.0f;
+    seed = (1103515245u * seed + 12345u);
+    return static_cast<float>(seed & 0xFFFFFF) / static_cast<float>(0x1000000);
 }
 
 __device__ inline uint generate_random_int(uint seed)

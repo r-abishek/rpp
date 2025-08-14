@@ -32,8 +32,8 @@ inline uint generate_seed(uint x, uint y, uint z)
 
 inline float generate_random_float(uint seed)
 {
-    seed = (1103515245 * seed + 12345);
-    return ((seed / 65536) % 32768) / 32768.0f;
+    seed = (1103515245u * seed + 12345u);
+    return static_cast<float>(seed & 0xFFFFFF) / static_cast<float>(0x1000000);
 }
 
 inline uint generate_random_int(uint seed)
@@ -116,11 +116,20 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                         for (int k = 0; k < bufferLength; k++)
                         {
                             uint seed = generate_seed(j + k, i, batchCount);
-                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) {
+                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
+                            {
                                 *dstPtrTempR++ = static_cast<T>(generate_random_float(seed + 0));
                                 *dstPtrTempG++ = static_cast<T>(generate_random_float(seed + 1));
                                 *dstPtrTempB++ = static_cast<T>(generate_random_float(seed + 2));
-                            } else {
+                            }
+                            else if constexpr (std::is_same<T, Rpp8s>::value)
+                            {
+                                *dstPtrTempR++ = static_cast<T>(generate_random_int(seed + 0) - 128);
+                                *dstPtrTempG++ = static_cast<T>(generate_random_int(seed + 1) - 128);
+                                *dstPtrTempB++ = static_cast<T>(generate_random_int(seed + 2) - 128);
+                            }
+                            else
+                            {
                                 *dstPtrTempR++ = static_cast<T>(generate_random_int(seed + 0));
                                 *dstPtrTempG++ = static_cast<T>(generate_random_int(seed + 1));
                                 *dstPtrTempB++ = static_cast<T>(generate_random_int(seed + 2));
@@ -184,11 +193,20 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                         for (int k = 0; k < bufferLengthPerChannel; k++)
                         {
                             seed = generate_seed(j + k, i, batchCount);
-                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) {
+                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
+                            {
                                 *dstPtrTemp++ = static_cast<T>(generate_random_float(seed + 0));  // R
                                 *dstPtrTemp++ = static_cast<T>(generate_random_float(seed + 1));  // G
                                 *dstPtrTemp++ = static_cast<T>(generate_random_float(seed + 2));  // B
-                            } else {
+                            }
+                            else if constexpr (std::is_same<T, Rpp8s>::value)
+                            {
+                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 0) - 128);
+                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 1) - 128);
+                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 2) - 128);
+                            }
+                            else 
+                            {
                                 *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 0));
                                 *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 1));
                                 *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 2));
@@ -256,11 +274,20 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                     for (int j = 0; j < boxWidth; j++)
                     {
                         uint seed = generate_seed(x1 + j, y1 + i, batchCount);
-                        if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) {
+                        if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) 
+                        {
                             dstPtrTempR[j] = static_cast<T>(generate_random_float(seed + 0));
                             dstPtrTempG[j] = static_cast<T>(generate_random_float(seed + 1));
                             dstPtrTempB[j] = static_cast<T>(generate_random_float(seed + 2));
-                        } else {
+                        } 
+                        else if constexpr (std::is_same<T, Rpp8s>::value) 
+                        {
+                            dstPtrTempR[j] = static_cast<T>(generate_random_int(seed + 0) - 128);
+                            dstPtrTempG[j] = static_cast<T>(generate_random_int(seed + 1) - 128);
+                            dstPtrTempB[j] = static_cast<T>(generate_random_int(seed + 2) - 128);
+                        }
+                        else 
+                        {
                             dstPtrTempR[j] = static_cast<T>(generate_random_int(seed + 0));
                             dstPtrTempG[j] = static_cast<T>(generate_random_int(seed + 1));
                             dstPtrTempB[j] = static_cast<T>(generate_random_int(seed + 2));
@@ -304,6 +331,8 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                         uint seed = generate_seed(x1 + j, y1 + i, batchCount);
                         if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
                             dstPtrTemp[j] = static_cast<T>(generate_random_float(seed));
+                        else if constexpr (std::is_same<T, Rpp8s>::value)
+                            dstPtrTemp[j] = static_cast<T>(generate_random_int(seed) - 128);
                         else
                             dstPtrTemp[j] = static_cast<T>(generate_random_int(seed));
                     }
@@ -346,6 +375,11 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                             dstPtrRow[0] = static_cast<T>(generate_random_float(seed + 0));
                             dstPtrRow[1] = static_cast<T>(generate_random_float(seed + 1));
                             dstPtrRow[2] = static_cast<T>(generate_random_float(seed + 2));
+                        }
+                        else if constexpr (std::is_same<T, Rpp8s>::value) {
+                            dstPtrRow[0] = static_cast<T>(generate_random_int(seed + 0) - 128);
+                            dstPtrRow[1] = static_cast<T>(generate_random_int(seed + 1) - 128);
+                            dstPtrRow[2] = static_cast<T>(generate_random_int(seed + 2) - 128);
                         }
                         else
                         {
