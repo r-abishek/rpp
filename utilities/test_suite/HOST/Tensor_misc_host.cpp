@@ -194,12 +194,12 @@ int main(int argc, char **argv)
         {
             Rpp32f *inputF32Cast = static_cast<Rpp32f *>(input);
             for (int i = 0; i < iBufferSize; i++)
-                inputF32Cast[i] = static_cast<Rpp32f>(std::rand() % 255);
+                inputF32Cast[i] = static_cast<Rpp32f>(std::rand() % 256);
             if (testCase == CONCAT)
             {
                 Rpp32f *inputSecondF32 = static_cast<Rpp32f *>(inputSecond);
                 for (int i = 0; i < iBufferSizeSecond; i++)
-                    inputSecondF32[i] = static_cast<Rpp32f>(std::rand() % 255);
+                    inputSecondF32[i] = static_cast<Rpp32f>(std::rand() % 256);
             }
         }
         else if (bitDepth == 0)  // U8

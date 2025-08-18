@@ -716,12 +716,11 @@ static inline __m256 atan2_ps(__m256 y, __m256 x)
 // Modified AVX2 version of the original SSE version at https://github.com/RJVB/sse_mathfun/blob/master/sse_mathfun.h
 static inline __m256 log_ps(__m256 x)
 {
-    // cut off denormalized stuff
-    x = _mm256_max_ps(x, *(__m256 *)&_ps_min_norm_pos_avx);
-    
     __m256 e;
     __m256i emm0;
     __m256 one = *(__m256 *)&avx_p1;
+    // cut off denormalized stuff
+    x = _mm256_max_ps(x, *(__m256 *)&_ps_min_norm_pos_avx);
     __m256 invalid_mask = _mm256_cmp_ps(x, avx_p0, _CMP_LE_OQ);
 
     // part 1: x = frexpf(x, &e);
@@ -778,12 +777,11 @@ static inline __m256 log_ps(__m256 x)
 // Modified version of the original SSE version at https://github.com/RJVB/sse_mathfun/blob/master/sse_mathfun.h
 static inline __m128 log_ps(__m128 x)
 {
-    // cut off denormalized stuff
-    x = _mm_max_ps(x, *(__m128 *)&_ps_min_norm_pos);
-
     __m128 e;
     __m128i emm0;
     __m128 one = *(__m128 *)&_ps_1;
+    // cut off denormalized stuff
+    x = _mm_max_ps(x, *(__m128 *)&_ps_min_norm_pos);
     __m128 invalid_mask = _mm_cmple_ps(x, xmm_p0);
 
     // part 1: x = frexpf(x, &e);

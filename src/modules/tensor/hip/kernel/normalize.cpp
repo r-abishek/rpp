@@ -1841,11 +1841,11 @@ RppStatus hip_exec_normalize_tensor(T *srcPtr,
     if ((!computeMean) && (!computeStdDev))
         maxParamVolume = 0;
 
-    // Zero-initialize the mean and standard deviation tensors to ensure
+    // Zero-initialize the mean and standard deviation tensors
     if (computeMean)
-        hipMemsetAsync(meanTensor, 0, sizeof(float) * maxParamVolume * batchSize, handle.GetStream());
+        CHECK_RETURN_STATUS(hipMemsetAsync(meanTensor, 0, sizeof(float) * maxParamVolume * batchSize, handle.GetStream()));
     if (computeStdDev)
-        hipMemsetAsync(stdDevTensor, 0, sizeof(float) * maxParamVolume * batchSize, handle.GetStream());
+        CHECK_RETURN_STATUS(hipMemsetAsync(stdDevTensor, 0, sizeof(float) * maxParamVolume * batchSize, handle.GetStream()));
     
     // if computeMean is set, compute mean values by processing over input based on axisMask values
     if (computeMean)

@@ -107,7 +107,7 @@ int main(int argc, char **argv)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&roiTensorSecond, nDim * 2 * batchSize * sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
-        dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask]; 
+        dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask];
     }
 
     // set src/dst generic tensor descriptors
@@ -220,12 +220,12 @@ int main(int argc, char **argv)
             {
                 Rpp32f* inputF32 = static_cast<Rpp32f*>(input);
                 for(int i = 0; i < iBufferSize; i++) 
-                    inputF32[i] = static_cast<Rpp32f>(std::rand() % 255);
+                    inputF32[i] = static_cast<Rpp32f>(std::rand() % 256);
                 if (testCase == CONCAT)
                 {
                     Rpp32f* inputSecondF32 = static_cast<Rpp32f*>(inputSecond);
                     for(int i = 0; i < iBufferSizeSecond; i++)
-                        inputSecondF32[i] = static_cast<Rpp32f>(std::rand() % 255);
+                        inputSecondF32[i] = static_cast<Rpp32f>(std::rand() % 256);
                 }
                 break;
             }
@@ -418,7 +418,6 @@ int main(int argc, char **argv)
         cout << fixed << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
     }
     rppDestroy(handle,backend);
-    CHECK_RETURN_STATUS(hipStreamDestroy(stream));
 
     // Free device memory
     CHECK_RETURN_STATUS(hipFree(d_input));
