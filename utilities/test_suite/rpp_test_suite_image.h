@@ -1697,18 +1697,28 @@ void inline init_dropout_erase(int batchSize, int maxBoxesPerImage, Rpp32u* numO
 
 inline void init_grid_dropout(int batchSize, Rpp32u* numOfBoxes, RpptRoiLtrb* anchorBoxInfoTensor, RpptROIPtr roiTensorPtrSrc, Rpp32u gridH, Rpp32u gridW, Rpp32f holeRatio, bool randomOffset, Rpp32f* colorBuffer, int channels, int inputBitDepth)
 {
-    Rpp8u *colors8u = reinterpret_cast<Rpp8u *>(colorBuffer);
-    Rpp16f *colors16f = reinterpret_cast<Rpp16f *>(colorBuffer);
-    Rpp32f *colors32f = colorBuffer;
-    Rpp8s *colors8s = reinterpret_cast<Rpp8s *>(colorBuffer);
+    // Initialize color buffer based on bit depth
+    for (int i = 0; i < batchSize * gridH * gridW * channels; i++)
+    {
+        switch (inputBitDepth)
+        {
+            case 0: reinterpret_cast<Rpp8u*>(colorBuffer)[i]  = 0;    break;
+            case 1: reinterpret_cast<Rpp16f*>(colorBuffer)[i] = 0.0f; break;
+            case 2: reinterpret_cast<Rpp32f*>(colorBuffer)[i] = 0.0f; break;
+            case 5: reinterpret_cast<Rpp8s*>(colorBuffer)[i]  = -128; break;
+        }
+    }
 
+    std::random_device rd;  
+    std::mt19937 gen(rd());  
+
+    // Generate grid dropout boxes
     for (int i = 0; i < batchSize; ++i)
     {
-        const auto& roi = roiTensorPtrSrc[i].xywhROI;
-        Rpp32u roiW = roi.roiWidth;
-        Rpp32u roiH = roi.roiHeight;
-        Rpp32s x_base = roi.xy.x;
-        Rpp32s y_base = roi.xy.y;
+        Rpp32u roiW = roiTensorPtrSrc[i].xywhROI.roiWidth;
+        Rpp32u roiH = roiTensorPtrSrc[i].xywhROI.roiHeight;
+        Rpp32s x_base = roiTensorPtrSrc[i].xywhROI.xy.x;
+        Rpp32s y_base = roiTensorPtrSrc[i].xywhROI.xy.y;
 
         Rpp32u cellW = (gridW > 0) ? roiW / gridW : 0;
         Rpp32u cellH = (gridH > 0) ? roiH / gridH : 0;
@@ -1732,12 +1742,14 @@ inline void init_grid_dropout(int batchSize, Rpp32u* numOfBoxes, RpptRoiLtrb* an
                 Rpp32s cellX = x_base + col * cellW;
                 Rpp32s cellY = y_base + row * cellH;
 
-                // Compute offset inside the cell
+                // random offset inside the cell if enabled
                 Rpp32s offsetX = 0, offsetY = 0;
                 if (randomOffset && (cellW > holeW) && (cellH > holeH))
                 {
-                    offsetX = (cellW - holeW + 1);
-                    offsetY = (cellH - holeH + 1);
+                    std::uniform_int_distribution<int> distX(0, cellW - holeW);
+                    std::uniform_int_distribution<int> distY(0, cellH - holeH);
+                    offsetX = distX(gen);
+                    offsetY = distY(gen);
                 }
 
                 Rpp32s x1 = std::min(cellX + offsetX, x_base + (Rpp32s)roiW - 1);
@@ -1750,20 +1762,6 @@ inline void init_grid_dropout(int batchSize, Rpp32u* numOfBoxes, RpptRoiLtrb* an
                 anchorBoxInfoTensor[boxIdx].lt.y = y1;
                 anchorBoxInfoTensor[boxIdx].rb.x = x2;
                 anchorBoxInfoTensor[boxIdx].rb.y = y2;
-
-                // Fill color buffer
-                int colorOffset = boxIdx * channels;
-                for (int c = 0; c < channels; c++)
-                {
-                    if (!inputBitDepth)
-                        colors8u[colorOffset + c] = 0;
-                    else if (inputBitDepth == 1)
-                        colors16f[colorOffset + c] = 0;
-                    else if (inputBitDepth == 2)
-                        colors32f[colorOffset + c] = 0;
-                    else if (inputBitDepth == 5)
-                        colors8s[colorOffset + c] = -128;
-                }
 
                 ++boxCount;
             }
