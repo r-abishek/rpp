@@ -23,10 +23,11 @@ SOFTWARE.
 */
 
 #include "hip_tensor_executors.hpp"
+#include <random>
 
-__device__ inline uint generate_seed(uint x, uint y, uint z)
+__device__ inline uint generate_seed(uint x, uint y, uint z, uint *seed)
 {
-    return (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
+    return ((x * 73856093) ^ (y * 19349663) ^ (z * 83492791)) * (*seed);
 }
 
 __device__ inline float generate_random_float(uint seed)
@@ -47,6 +48,7 @@ __global__ void random_erase_pkd_hip_tensor(T *dstPtr,
                                             uint2 dstStridesNH,
                                             RpptRoiLtrb *anchorBoxInfoTensor,
                                             Rpp32u *numBoxesTensor,
+                                            uint *rd_seed,
                                             RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -57,7 +59,7 @@ __global__ void random_erase_pkd_hip_tensor(T *dstPtr,
     if (id_x >= roi.roiWidth || id_y >= roi.roiHeight)
         return;
 
-    uint seed = generate_seed(id_x, id_y, id_z);
+    uint seed = generate_seed(id_x, id_y, id_z, rd_seed);
     Rpp32u numBoxes = numBoxesTensor[id_z];
     uint dstIdx = id_z * dstStridesNH.x + id_y * dstStridesNH.y + id_x * 3;
 
@@ -101,6 +103,7 @@ __global__ void random_erase_pln_hip_tensor(T *dstPtr,
                                             uint3 dstStridesNCH,
                                             RpptRoiLtrb *anchorBoxInfoTensor,
                                             Rpp32u *numBoxesTensor,
+                                            uint *rd_seed,
                                             RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -111,7 +114,7 @@ __global__ void random_erase_pln_hip_tensor(T *dstPtr,
     if (id_x >= roi.roiWidth || id_y >= roi.roiHeight)
         return;
 
-    uint seed = generate_seed(id_x, id_y, id_z);
+    uint seed = generate_seed(id_x, id_y, id_z, rd_seed);
     Rpp32u numBoxes = numBoxesTensor[id_z];
     uint dstIdx = id_z * dstStridesNCH.x + id_y * dstStridesNCH.z + id_x;
 
@@ -147,6 +150,7 @@ __global__ void random_erase_pln3_hip_tensor(T *dstPtr,
                                              uint3 dstStridesNCH,
                                              RpptRoiLtrb *anchorBoxInfoTensor,
                                              Rpp32u *numBoxesTensor,
+                                             uint *rd_seed,
                                              RpptROIPtr roiTensorPtrSrc)
 {
     int id_x = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -157,7 +161,7 @@ __global__ void random_erase_pln3_hip_tensor(T *dstPtr,
     if (id_x >= roi.roiWidth || id_y >= roi.roiHeight)
         return;
 
-    uint seed = generate_seed(id_x, id_y, id_z);
+    uint seed = generate_seed(id_x, id_y, id_z, rd_seed);
     Rpp32u numBoxes = numBoxesTensor[id_z];
     uint dstIdx = id_z * dstStridesNCH.x + id_y * dstStridesNCH.z + id_x;
 
@@ -215,6 +219,13 @@ RppStatus hip_exec_random_erase_tensor(T *srcPtr,
     int globalThreads_y = dstDescPtr->h;
     int globalThreads_z = handle.GetBatchSize();
 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    uint rd_seed = 42;
+    uint *rd_seed_d;
+    hipMalloc(&rd_seed_d, sizeof(uint));
+    hipMemcpyAsync(rd_seed_d, &rd_seed, sizeof(uint), hipMemcpyHostToDevice, handle.GetStream());
+
     if (dstDescPtr->layout == RpptLayout::NHWC)
     {
         // if src layout is NHWC, copy src to dst
@@ -252,6 +263,7 @@ RppStatus hip_exec_random_erase_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                anchorBoxInfoTensor,
                                numBoxesTensor,
+                               rd_seed_d,
                                roiTensorPtrSrc);
         }
         else if (srcDescPtr->dataType == RpptDataType::F16)
@@ -265,6 +277,7 @@ RppStatus hip_exec_random_erase_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                anchorBoxInfoTensor,
                                numBoxesTensor,
+                               rd_seed_d,
                                roiTensorPtrSrc);
         }
         else if (srcDescPtr->dataType == RpptDataType::F32)
@@ -278,6 +291,7 @@ RppStatus hip_exec_random_erase_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                anchorBoxInfoTensor,
                                numBoxesTensor,
+                               rd_seed_d,
                                roiTensorPtrSrc);
         }
         else if (srcDescPtr->dataType == RpptDataType::I8)
@@ -291,6 +305,7 @@ RppStatus hip_exec_random_erase_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                anchorBoxInfoTensor,
                                numBoxesTensor,
+                               rd_seed_d,
                                roiTensorPtrSrc);
         }
     }
@@ -307,6 +322,7 @@ RppStatus hip_exec_random_erase_tensor(T *srcPtr,
                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                            anchorBoxInfoTensor,
                            numBoxesTensor,
+                           rd_seed_d,
                            roiTensorPtrSrc);
     }
     else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW) && dstDescPtr->c == 3)
@@ -322,6 +338,7 @@ RppStatus hip_exec_random_erase_tensor(T *srcPtr,
                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                            anchorBoxInfoTensor,
                            numBoxesTensor,
+                           rd_seed_d,
                            roiTensorPtrSrc);
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
@@ -350,6 +367,7 @@ RppStatus hip_exec_random_erase_tensor(T *srcPtr,
                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                                anchorBoxInfoTensor,
                                numBoxesTensor,
+                               rd_seed_d,
                                roiTensorPtrSrc);
         }
     }

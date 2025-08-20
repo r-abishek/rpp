@@ -1603,7 +1603,7 @@ enum DropoutType {
 // Dropout Region initializer for unit and performance testing
 void inline init_dropout_erase(int batchSize, int maxBoxesPerImage, Rpp32u* numOfBoxes, RpptRoiLtrb* anchorBoxInfoTensor, RpptROIPtr roiTensorPtrSrc, int channels, Rpp32f *colorBuffer, int inputBitDepth, int dropoutType)
 {
-    std::mt19937 rng(std::random_device{}());
+    std::mt19937 rng(42); // use std::random_device{}() for random dropout region
     std::uniform_real_distribution<float> pos_ratio(0.1f, 0.9f);
     std::uniform_real_distribution<float> w_ratio(0.2f, 0.4f);
     std::uniform_real_distribution<float> h_ratio(0.2f, 0.6f);
@@ -1710,7 +1710,7 @@ inline void init_grid_dropout(int batchSize, Rpp32u* numOfBoxes, RpptRoiLtrb* an
     }
 
     std::random_device rd;  
-    std::mt19937 gen(rd());  
+    std::mt19937 gen(42); // use rd() for random output
 
     // Generate grid dropout boxes
     for (int i = 0; i < batchSize; ++i)

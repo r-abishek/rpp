@@ -25,9 +25,9 @@ SOFTWARE.
 #include "host_tensor_executors.hpp"
 #include <random>
 
-inline uint generate_seed(uint x, uint y, uint z)
+inline uint generate_seed(uint x, uint y, uint z, uint seed)
 {
-    return (x * 73856093) ^ (y * 19349663) ^ (z * 83492791);
+    return ((x * 73856093) ^ (y * 19349663) ^ (z * 83492791)) * seed;
 }
 
 inline float generate_random_float(uint seed)
@@ -65,7 +65,9 @@ RppStatus random_erase_host_tensor(T *srcPtr,
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
-        uint seed = 0;
+        std::random_device rd;  
+        std::mt19937 gen(rd()); 
+        Rpp8u rd_seed = 42; // use gen() for random noise without QA
         Rpp32u numBoxes = numBoxesTensor[batchCount];
         RpptRoiLtrb *anchorBoxInfo = anchorBoxInfoTensor + batchCount * numBoxes;
 
@@ -81,76 +83,76 @@ RppStatus random_erase_host_tensor(T *srcPtr,
         // Erase with fused output-layout toggle (NHWC -> NCHW)
         if ((srcDescPtr->c == 3) && (srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NCHW))
         {
-            T *srcPtrRow = srcPtrChannel;
-            T *dstPtrRowR = dstPtrChannel;
-            T *dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
-            T *dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
+            T *srcPtrRow, *dstPtrRowR, *dstPtrRowG, *dstPtrRowB;
+            srcPtrRow = srcPtrChannel;
+            dstPtrRowR = dstPtrChannel;
+            dstPtrRowG = dstPtrRowR + dstDescPtr->strides.cStride;
+            dstPtrRowB = dstPtrRowG + dstDescPtr->strides.cStride;
 
-            for (int i = 0; i < roi.xywhROI.roiHeight; i++)
+            for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
-                T *srcPtrTemp = srcPtrRow;
-                T *dstPtrTempR = dstPtrRowR;
-                T *dstPtrTempG = dstPtrRowG;
-                T *dstPtrTempB = dstPtrRowB;
-
-                for (int j = 0; j < roi.xywhROI.roiWidth;)
+                T *srcPtrTemp, *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
+                srcPtrTemp = srcPtrRow;
+                dstPtrTempR = dstPtrRowR;
+                dstPtrTempG = dstPtrRowG;
+                dstPtrTempB = dstPtrRowB;
+                for(int j = 0; j < roi.xywhROI.roiWidth; j++)
                 {
-                    bool isErase = false;
-                    Rpp32u bufferLength = 0;
-
-                    for(int count = 0; count < numBoxes; count++)
-                    {
-                        Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
-                        Rpp32u y1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.y, roi.xywhROI.xy.y, roi.xywhROI.roiHeight));
-                        Rpp32u x2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.x, x1, roi.xywhROI.roiWidth));
-                        Rpp32u y2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.y, y1, roi.xywhROI.roiHeight));
-                        if(i >= y1 && i <= y2 && j >= x1 && j <= x2)
-                        {
-                            isErase = true;
-                            bufferLength = x2 - x1 + 1;
-                            break;
-                        }
-                    }
-                    if(isErase && bufferLength)
-                    {
-                        for (int k = 0; k < bufferLength; k++)
-                        {
-                            uint seed = generate_seed(j + k, i, batchCount);
-                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
-                            {
-                                *dstPtrTempR++ = static_cast<T>(generate_random_float(seed + 0));
-                                *dstPtrTempG++ = static_cast<T>(generate_random_float(seed + 1));
-                                *dstPtrTempB++ = static_cast<T>(generate_random_float(seed + 2));
-                            }
-                            else if constexpr (std::is_same<T, Rpp8s>::value)
-                            {
-                                *dstPtrTempR++ = static_cast<T>(generate_random_int(seed + 0) - 128);
-                                *dstPtrTempG++ = static_cast<T>(generate_random_int(seed + 1) - 128);
-                                *dstPtrTempB++ = static_cast<T>(generate_random_int(seed + 2) - 128);
-                            }
-                            else
-                            {
-                                *dstPtrTempR++ = static_cast<T>(generate_random_int(seed + 0));
-                                *dstPtrTempG++ = static_cast<T>(generate_random_int(seed + 1));
-                                *dstPtrTempB++ = static_cast<T>(generate_random_int(seed + 2));
-                            }
-                            srcPtrTemp += 3;
-                        }
-                        j += bufferLength;
-                    }
-                    else
-                    {
-                        *dstPtrTempR++ = *srcPtrTemp++;
-                        *dstPtrTempG++ = *srcPtrTemp++;
-                        *dstPtrTempB++ = *srcPtrTemp++;
-                        j++;
-                    }
+                    *dstPtrTempR++ = srcPtrTemp[0];
+                    *dstPtrTempG++ = srcPtrTemp[1];
+                    *dstPtrTempB++ = srcPtrTemp[2];
+                    srcPtrTemp += 3;
                 }
 
                 srcPtrRow += srcDescPtr->strides.hStride;
                 dstPtrRowR += dstDescPtr->strides.hStride;
                 dstPtrRowG += dstDescPtr->strides.hStride;
                 dstPtrRowB += dstDescPtr->strides.hStride;
+            }
+
+            for(int count = 0; count < numBoxes; count++)
+            {
+                Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
+                Rpp32u y1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.y, roi.xywhROI.xy.y, roi.xywhROI.roiHeight));
+                Rpp32u x2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.x, x1, roi.xywhROI.roiWidth));
+                Rpp32u y2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.y, y1, roi.xywhROI.roiHeight));
+
+                Rpp32u pixelLocation = (y1 * dstDescPtr->strides.hStride) + (x1 * dstDescPtr->strides.wStride);
+                Rpp32u boxHeight = y2 - y1 + 1;
+                Rpp32u boxWidth = x2 - x1 + 1;
+
+                T *dstPtrTempR, *dstPtrTempG, *dstPtrTempB;
+                dstPtrTempR = dstPtrImage + pixelLocation;
+                dstPtrTempG = dstPtrTempR + dstDescPtr->strides.cStride;
+                dstPtrTempB = dstPtrTempG + dstDescPtr->strides.cStride;
+                for (int i = 0; i < boxHeight; i++)
+                {
+                    for (int j = 0; j < boxWidth; j++)
+                    {
+                        uint seed = generate_seed(x1 + j, y1 + i, batchCount, rd_seed);
+                        if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) 
+                        {
+                            dstPtrTempR[j] = static_cast<T>(generate_random_float(seed + 0));
+                            dstPtrTempG[j] = static_cast<T>(generate_random_float(seed + 1));
+                            dstPtrTempB[j] = static_cast<T>(generate_random_float(seed + 2));
+                        } 
+                        else if constexpr (std::is_same<T, Rpp8s>::value) 
+                        {
+                            dstPtrTempR[j] = static_cast<T>(generate_random_int(seed + 0) - 128);
+                            dstPtrTempG[j] = static_cast<T>(generate_random_int(seed + 1) - 128);
+                            dstPtrTempB[j] = static_cast<T>(generate_random_int(seed + 2) - 128);
+                        }
+                        else 
+                        {
+                            dstPtrTempR[j] = static_cast<T>(generate_random_int(seed + 0));
+                            dstPtrTempG[j] = static_cast<T>(generate_random_int(seed + 1));
+                            dstPtrTempB[j] = static_cast<T>(generate_random_int(seed + 2));
+                        }
+                    }
+                    dstPtrTempR += dstDescPtr->strides.hStride;
+                    dstPtrTempG += dstDescPtr->strides.hStride;
+                    dstPtrTempB += dstDescPtr->strides.hStride;
+                }
             }
         }
         // Erase with fused output-layout toggle (NCHW -> NHWC)
@@ -161,76 +163,68 @@ RppStatus random_erase_host_tensor(T *srcPtr,
             srcPtrRowG = srcPtrRowR + srcDescPtr->strides.cStride;
             srcPtrRowB = srcPtrRowG + srcDescPtr->strides.cStride;
             dstPtrRow = dstPtrChannel;
-
+            // To copy ROI region in Image
             for(int i = 0; i < roi.xywhROI.roiHeight; i++)
             {
-                T *srcPtrTempR, *srcPtrTempG, *srcPtrTempB, *dstPtrTemp;
-                srcPtrTempR = srcPtrRowR;
-                srcPtrTempG = srcPtrRowG;
-                srcPtrTempB = srcPtrRowB;
-                dstPtrTemp = dstPtrRow;
+                T *srcRowR = srcPtrRowR;
+                T *srcRowG = srcPtrRowG;
+                T *srcRowB = srcPtrRowB;
+                T *dstPtrTemp = dstPtrRow;
 
-                for (int j = 0; j < roi.xywhROI.roiWidth;)
+                for (int j = 0; j < roi.xywhROI.roiWidth; j++)
                 {
-                    bool isErase = false;
-                    Rpp32u bufferLengthPerChannel = 0;
-                    for(int count = 0; count < numBoxes; count++)
-                    {
-                        Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
-                        Rpp32u y1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.y, roi.xywhROI.xy.y, roi.xywhROI.roiHeight));
-                        Rpp32u x2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.x, x1, roi.xywhROI.roiWidth));
-                        Rpp32u y2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.y, y1, roi.xywhROI.roiHeight));
-
-                        if(i >= y1 && i <= y2 && j >= x1 && j <= x2)
-                        {
-                            isErase = true;
-                            bufferLengthPerChannel = x2 - x1 + 1;
-                            break;
-                        }
-                    }
-                    if(isErase && bufferLengthPerChannel)
-                    {
-                        for (int k = 0; k < bufferLengthPerChannel; k++)
-                        {
-                            seed = generate_seed(j + k, i, batchCount);
-                            if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
-                            {
-                                *dstPtrTemp++ = static_cast<T>(generate_random_float(seed + 0));  // R
-                                *dstPtrTemp++ = static_cast<T>(generate_random_float(seed + 1));  // G
-                                *dstPtrTemp++ = static_cast<T>(generate_random_float(seed + 2));  // B
-                            }
-                            else if constexpr (std::is_same<T, Rpp8s>::value)
-                            {
-                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 0) - 128);
-                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 1) - 128);
-                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 2) - 128);
-                            }
-                            else 
-                            {
-                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 0));
-                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 1));
-                                *dstPtrTemp++ = static_cast<T>(generate_random_int(seed + 2));
-                            }
-                            srcPtrTempR++;
-                            srcPtrTempG++;
-                            srcPtrTempB++;
-                        }
-                        j += bufferLengthPerChannel;
-                    }
-                    else
-                    {
-                        dstPtrTemp[0] = *srcPtrTempR++;
-                        dstPtrTemp[1] = *srcPtrTempG++;
-                        dstPtrTemp[2] = *srcPtrTempB++;
-                        dstPtrTemp += 3;
-                        j++;
-                    }
+                    dstPtrTemp[0] = *srcRowR++;
+                    dstPtrTemp[1] = *srcRowG++;
+                    dstPtrTemp[2] = *srcRowB++;
+                    dstPtrTemp += 3;
                 }
 
                 srcPtrRowR += srcDescPtr->strides.hStride;
                 srcPtrRowG += srcDescPtr->strides.hStride;
                 srcPtrRowB += srcDescPtr->strides.hStride;
                 dstPtrRow += dstDescPtr->strides.hStride;
+            }
+
+            for(int count = 0; count < numBoxes; count++)
+            {
+                Rpp32u x1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.x, roi.xywhROI.xy.x, roi.xywhROI.roiWidth));
+                Rpp32u y1 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].lt.y, roi.xywhROI.xy.y, roi.xywhROI.roiHeight));
+                Rpp32u x2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.x, x1, roi.xywhROI.roiWidth));
+                Rpp32u y2 = static_cast<Rpp32u>(RPPPRANGECHECK(anchorBoxInfo[count].rb.y, y1, roi.xywhROI.roiHeight));
+
+                Rpp32u pixelLocation = (y1 * dstDescPtr->strides.hStride) + (x1 * dstDescPtr->strides.wStride);
+                Rpp32u boxHeight = y2 - y1 + 1;
+                Rpp32u boxWidth = x2 - x1 + 1;
+                T *dstPtrTemp;
+                dstPtrTemp = dstPtrImage + pixelLocation;
+
+                for (int i = 0; i < boxHeight; i++)
+                {
+                    T *dstPtrRow = dstPtrTemp;
+                    for (int j = 0; j < boxWidth; j++)
+                    {
+                        uint seed = generate_seed(x1 + j, y1 + i, batchCount, rd_seed);
+                        if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
+                        {
+                            dstPtrRow[0] = static_cast<T>(generate_random_float(seed + 0));
+                            dstPtrRow[1] = static_cast<T>(generate_random_float(seed + 1));
+                            dstPtrRow[2] = static_cast<T>(generate_random_float(seed + 2));
+                        }
+                        else if constexpr (std::is_same<T, Rpp8s>::value) {
+                            dstPtrRow[0] = static_cast<T>(generate_random_int(seed + 0) - 128);
+                            dstPtrRow[1] = static_cast<T>(generate_random_int(seed + 1) - 128);
+                            dstPtrRow[2] = static_cast<T>(generate_random_int(seed + 2) - 128);
+                        }
+                        else
+                        {
+                            dstPtrRow[0] = static_cast<T>(generate_random_int(seed + 0));
+                            dstPtrRow[1] = static_cast<T>(generate_random_int(seed + 1));
+                            dstPtrRow[2] = static_cast<T>(generate_random_int(seed + 2));
+                        }
+                        dstPtrRow += srcDescPtr->c;
+                    }
+                    dstPtrTemp += dstDescPtr->strides.hStride;
+                }
             }
         }
         // Erase without fused output-layout toggle 3 channel(NCHW -> NCHW)
@@ -273,7 +267,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                 {
                     for (int j = 0; j < boxWidth; j++)
                     {
-                        uint seed = generate_seed(x1 + j, y1 + i, batchCount);
+                        uint seed = generate_seed(x1 + j, y1 + i, batchCount, rd_seed);
                         if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value) 
                         {
                             dstPtrTempR[j] = static_cast<T>(generate_random_float(seed + 0));
@@ -328,7 +322,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                 {
                     for (int j = 0; j < boxWidth; j++)
                     {
-                        uint seed = generate_seed(x1 + j, y1 + i, batchCount);
+                        uint seed = generate_seed(x1 + j, y1 + i, batchCount, rd_seed);
                         if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
                             dstPtrTemp[j] = static_cast<T>(generate_random_float(seed));
                         else if constexpr (std::is_same<T, Rpp8s>::value)
@@ -369,7 +363,7 @@ RppStatus random_erase_host_tensor(T *srcPtr,
                     T *dstPtrRow = dstPtrTemp;
                     for (int j = 0; j < boxWidth; j++)
                     {
-                        uint seed = generate_seed(x1 + j, y1 + i, batchCount);
+                        uint seed = generate_seed(x1 + j, y1 + i, batchCount, rd_seed);
                         if constexpr (std::is_floating_point<T>::value || std::is_same<T, Rpp16f>::value)
                         {
                             dstPtrRow[0] = static_cast<T>(generate_random_float(seed + 0));
