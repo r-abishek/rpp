@@ -138,6 +138,19 @@ int main(int argc, char **argv)
 
     // Get function name
     string funcName = augmentationMap[testCase];
+
+    if (testCase == 94) // dropout
+    {
+        switch (additionalParam)
+        {
+            case CUTOUT:         funcName += "_cutout"; break;
+            case RANDOM_ERASING: funcName += "_random_erasing"; break;
+            case CHANNEL_DROPOUT:funcName += "_channel_dropout"; break;
+            case COARSE:         funcName += "_coarse"; break;
+            case GRID_DROPOUT:   funcName += "_grid_dropout"; break;
+        }
+    }
+
     if (funcName.empty())
     {
         if (testType == 0)
@@ -209,8 +222,8 @@ int main(int argc, char **argv)
     else if (dropoutTypeCase)
     {
         dropoutTypeName = get_dropout_type(additionalParam);
-        func += "_dropoutType";
         func += dropoutTypeName.c_str();
+        func += "_dropoutType";
     }
 
     if(!qaFlag)
@@ -1630,7 +1643,7 @@ int main(int argc, char **argv)
 
                     switch (additionalParam)
                     {
-                        case 0: // Cutout
+                        case CUTOUT:
                         {
                             testCaseName = "cutout";
                             boxesInEachImage = 1;
@@ -1645,7 +1658,7 @@ int main(int argc, char **argv)
                             break;
                         }
 
-                        case 1: // Random Erasing
+                        case RANDOM_ERASING:
                         {
                             testCaseName = "randomErasing";
                             boxesInEachImage = 1;
@@ -1659,7 +1672,7 @@ int main(int argc, char **argv)
 
                             break;
                         }
-                        case 2: // Coarse Dropout
+                        case COARSE:
                         {
                             testCaseName = "coarse";
                             int maxBoxesPerImage = 8;
@@ -1673,11 +1686,10 @@ int main(int argc, char **argv)
 
                             break;
                         }
-                        case 3: // Channel Dropout
+                        case CHANNEL_DROPOUT:
                         {
                             testCaseName = "channel";
 
-                            // Initialize pinned host memory
                             Rpp32f dropProb[batchSize];
                             Rpp32u seed = 42;
                             for (i = 0; i < batchSize; i++)
@@ -1693,7 +1705,7 @@ int main(int argc, char **argv)
 
                             break;
                         }
-                        case 4: // Grid Dropout
+                        case GRID_DROPOUT:
                         {
                             testCaseName = "grid";
                             Rpp32u gridH = 10, gridW = 10;

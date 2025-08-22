@@ -148,6 +148,19 @@ int main(int argc, char **argv)
 
     // Get function name
     string funcName = augmentationMap[testCase];
+    
+    if (testCase == 94) // dropout
+    {
+        switch (additionalParam)
+        {
+            case CUTOUT:         funcName += "_cutout"; break;
+            case RANDOM_ERASING: funcName += "_random_erasing"; break;
+            case CHANNEL_DROPOUT:funcName += "_channel_dropout"; break;
+            case COARSE:         funcName += "_coarse"; break;
+            case GRID_DROPOUT:   funcName += "_grid_dropout"; break;
+        }
+    }
+    
     if (funcName.empty())
     {
         if (testType == 0)
@@ -1643,7 +1656,7 @@ int main(int argc, char **argv)
 
                     switch(additionalParam)
                     {
-                        case 0:
+                        case CUTOUT:
                         {
                             testCaseName = "cutout";
                             Rpp32u boxesInEachImage = 1;
@@ -1662,7 +1675,7 @@ int main(int argc, char **argv)
 
                             break;
                         }
-                        case 1:
+                        case RANDOM_ERASING:
                         {
                             testCaseName = "randomErasing";
                             Rpp32u boxesInEachImage = 1;
@@ -1681,7 +1694,7 @@ int main(int argc, char **argv)
 
                             break;
                         }
-                        case 2:
+                        case COARSE:
                         {
                             testCaseName = "coarse";
                             Rpp32u boxesInEachImage = 8;
@@ -1700,7 +1713,7 @@ int main(int argc, char **argv)
 
                             break;
                         }
-                        case 3:
+                        case CHANNEL_DROPOUT:
                         {
                             testCaseName = "channel";
                             Rpp32f dropProb[batchSize];
@@ -1716,7 +1729,7 @@ int main(int argc, char **argv)
 
                             break;
                         }
-                        case 4:
+                        case GRID_DROPOUT:
                         {
                             testCaseName = "grid";
                             Rpp32u gridH = 10, gridW = 10;

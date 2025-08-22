@@ -179,6 +179,16 @@ enum Augmentation {
     DROPOUT = 94
 };
 
+enum DropoutType
+{
+    CUTOUT = 0,
+    RANDOM_ERASING = 1,
+    COARSE = 2,
+    CHANNEL_DROPOUT = 3,
+    GRID_DROPOUT = 4
+};
+
+
 const unordered_set<int> additionalParamCases = {NOISE, RESIZE, ROTATE, WARP_AFFINE, WARP_PERSPECTIVE, BOX_FILTER, GAUSSIAN_FILTER, REMAP, DROPOUT};
 const unordered_set<int> kernelSizeCases = {BOX_FILTER, GAUSSIAN_FILTER};
 const unordered_set<int> dualInputCases = {BLEND, NON_LINEAR_BLEND, CROP_AND_PATCH, MAGNITUDE, PHASE, BITWISE_AND, BITWISE_XOR, BITWISE_OR};
@@ -187,7 +197,7 @@ const unordered_set<int> nonQACases = {WARP_AFFINE, WARP_PERSPECTIVE, GAUSSIAN_F
 const unordered_set<int> interpolationTypeCases = {RESIZE, ROTATE, WARP_AFFINE, WARP_PERSPECTIVE, REMAP};
 const unordered_set<int> reductionTypeCases = {TENSOR_SUM, TENSOR_MIN, TENSOR_MAX, TENSOR_MEAN, TENSOR_STDDEV};
 const unordered_set<int> noiseTypeCases = {NOISE};
-const unordered_set<int> dropoutTypeCases = {DROPOUT};
+const unordered_set<int> dropoutTypeCases = {CUTOUT, RANDOM_ERASING, COARSE, CHANNEL_DROPOUT, GRID_DROPOUT};
 const unordered_set<int> pln1OutTypeCases = {COLOR_TO_GREYSCALE};
 
 // Golden outputs for Tensor min Kernel
@@ -1591,14 +1601,6 @@ void inline init_erase(int batchSize, int boxesInEachImage, Rpp32u* numOfBoxes, 
         }
     }
 }
-
-enum DropoutType {
-    DROPOUT_CUTOUT = 0,
-    DROPOUT_RANDOM_ERASING = 1,
-    DROPOUT_COARSE = 2,
-    DROPOUT_CHANNEL = 3,
-    DROPOUT_GRID = 4
-};
 
 // Dropout Region initializer for unit and performance testing
 void inline init_dropout_erase(int batchSize, int maxBoxesPerImage, Rpp32u* numOfBoxes, RpptRoiLtrb* anchorBoxInfoTensor, RpptROIPtr roiTensorPtrSrc, int channels, Rpp32f *colorBuffer, int inputBitDepth, int dropoutType)
