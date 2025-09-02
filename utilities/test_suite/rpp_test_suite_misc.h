@@ -596,11 +596,11 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
             for(int j = 0; j < sampleLength; j++)
             {
-                if((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < 1e-6))
+                if ((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < 1e-6))
                     cnt++;
             }
         }
-        else if(bitDepth == 2 || bitDepth == 7 || bitDepth == 4)  // F32 || I16_F32 || U8_F32
+        else if(bitDepth == 2 || bitDepth == 11 || bitDepth == 4)  // F32 || I16_F32 || U8_F32
         {
             Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
