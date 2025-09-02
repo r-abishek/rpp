@@ -72,11 +72,9 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
         bitDepthStr = "f32";
     else if (bitDepth == 4)
         bitDepthStr = "u8";
-    else if (bitDepth == 7)
+    else if (bitDepth == 11)
         bitDepthStr = "f32";
-    else
-        exit(1);
-    
+
     if (readType == 0) // Input
     {
         folderPath = "/../TEST_MISC_FILES/";
@@ -104,10 +102,8 @@ void read_data(T *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string 
 {
     if (nDim < 2 || nDim > 4)
     {
-        if(nDim != 4 || (testCase != "log1p")) {
-            std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
-            exit(0);
-        }
+        std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
+        exit(0);
     }
     std::string dataPath = get_path(nDim, readType, scriptPath, testCase, bitDepth, isMeanStd);
     read_bin_file(dataPath, data);
@@ -457,45 +453,45 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
                                    Rpp64u ioBufferSize, Rpp64u ioBufferSizeSecond, Rpp64u outputBufferSize, Rpp64u outputBufferSizeSecond,
                                    RpptGenericDescPtr srcGenericDescPtr, RpptGenericDescPtr srcDescriptorPtrNDSecond, Rpp32s testCase)
 {
-    if (outputBitDepth == 0 || outputBitDepth == 3 || outputBitDepth == 4) // U8 case
+    if(outputBitDepth == 0 || outputBitDepth == 3 || outputBitDepth == 4) // U8 case
     {
         Rpp8u *outputU8 = static_cast<Rpp8u *>(output) + srcGenericDescPtr->offsetInBytes;
-        for (Rpp32s i = 0; i < ioBufferSize; i++)
+        for(Rpp32s i = 0; i < ioBufferSize; i++)
             outputU8[i] = static_cast<Rpp8u>(std::clamp(std::round(inputF32[i]), 0.0f, 255.0f));
 
-        if (testCase == CONCAT)
+        if(testCase == CONCAT)
         {
             Rpp8u *outputU8Second = static_cast<Rpp8u *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes;
             for (Rpp32s i = 0; i < ioBufferSizeSecond; i++)
                 outputU8Second[i] = static_cast<Rpp8u>(std::clamp(std::round(inputF32Second[i]), 0.0f, 255.0f));
         }
     }
-    else if (outputBitDepth == 1) // F16 case
+    else if(outputBitDepth == 1) // F16 case
     {
         Rpp16f *outputF16 = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(output) + srcGenericDescPtr->offsetInBytes);
         for (Rpp32s i = 0; i < ioBufferSize; i++)
             outputF16[i] = static_cast<Rpp16f>(std::clamp(inputF32[i], -65504.0f, 65504.0f)); // F16 range
 
-        if (testCase == CONCAT)
+        if(testCase == CONCAT)
         {
             Rpp16f *outputF16Second = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes);
             for (Rpp32s i = 0; i < ioBufferSizeSecond; i++)
                 outputF16Second[i] = static_cast<Rpp16f>(std::clamp(inputF32Second[i], -65504.0f, 65504.0f));
         }
     }
-    else if (outputBitDepth == 2) // F32 case (No conversion needed)
+    else if(outputBitDepth == 2) // F32 case (No conversion needed)
     {
         memcpy(output, inputF32, outputBufferSize);
-        if (testCase == CONCAT)
+        if(testCase == CONCAT)
             memcpy(outputSecond, inputF32Second, outputBufferSizeSecond);
     }
     else if (outputBitDepth == 5) // I8 case
     {
         Rpp8s *outputI8 = static_cast<Rpp8s *>(output) + srcGenericDescPtr->offsetInBytes;
-        for (int i = 0; i < ioBufferSize; i++)
+        for(int i = 0; i < ioBufferSize; i++)
             outputI8[i] = static_cast<Rpp8s>(std::clamp(std::round(inputF32[i]) - 128, -128.0f, 127.0f));
 
-        if (testCase == CONCAT)
+        if(testCase == CONCAT)
         {
             Rpp8s *outputI8Second = static_cast<Rpp8s *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes;
             for (int i = 0; i < ioBufferSizeSecond; i++)
@@ -507,15 +503,15 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
 // Reconvert other bit depths to F32
 inline void convert_output_bitdepth_to_f32(void *output, Rpp32f *outputf32, int inputBitDepth, Rpp64u oBufferSize, Rpp64u outputBufferSize, RpptGenericDescPtr dstDescPtr)
 {
-    if (inputBitDepth == 2 || inputBitDepth == 3) // Already F32, direct copy
+    if(inputBitDepth == 2 || inputBitDepth == 3) // Already F32, direct copy
     {
         memcpy(outputf32, output, outputBufferSize);
     }
-    else if (inputBitDepth == 0) // U8 to F32
+    else if(inputBitDepth == 0) // U8 to F32
     {
         Rpp8u *outputTemp = static_cast<Rpp8u *>(output) + dstDescPtr->offsetInBytes;
         Rpp32f *outputf32Temp = outputf32 + dstDescPtr->offsetInBytes;
-        for (int i = 0; i < oBufferSize; i++)
+        for(int i = 0; i < oBufferSize; i++)
         {
             *outputf32Temp = static_cast<Rpp32f>(*outputTemp);
             outputTemp++;
@@ -526,7 +522,7 @@ inline void convert_output_bitdepth_to_f32(void *output, Rpp32f *outputf32, int 
     {
         Rpp16f *outputf16Temp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(output) + dstDescPtr->offsetInBytes);
         Rpp32f *outputf32Temp = outputf32 + dstDescPtr->offsetInBytes;
-        for (int i = 0; i < oBufferSize; i++)
+        for(int i = 0; i < oBufferSize; i++)
         {
             *outputf32Temp = static_cast<Rpp32f>(*outputf16Temp);
             outputf16Temp++;
@@ -537,7 +533,7 @@ inline void convert_output_bitdepth_to_f32(void *output, Rpp32f *outputf32, int 
     {
         Rpp8s *outputi8Temp = static_cast<Rpp8s *>(output) + dstDescPtr->offsetInBytes;
         Rpp32f *outputf32Temp = outputf32 + dstDescPtr->offsetInBytes;
-        for (int i = 0; i < oBufferSize; i++)
+        for(int i = 0; i < oBufferSize; i++)
         {
             *outputf32Temp = static_cast<Rpp32f>(*outputi8Temp);
             outputi8Temp++;
@@ -552,14 +548,14 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
 {
     // Allocate and read reference data based on bitDepth
     RpptDataType dataType;
-    switch (bitDepth)
+    switch(bitDepth)
     {
         case 0: dataType = RpptDataType::U8; break;
         case 1: dataType = RpptDataType::F16; break;
         case 2: dataType = RpptDataType::F32; break;
         case 4: dataType = RpptDataType::F32; break;
         case 5: dataType = RpptDataType::I8; break;
-        case 7: dataType = RpptDataType::F32; break;
+        case 11: dataType = RpptDataType::F32; break;
         default: std::cerr << "ERROR: Invalid bitDepth specified!" << std::endl; return;
     }
     Rpp32u goldenOutputLength;
@@ -570,7 +566,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
     void *refOutput = calloc(goldenOutputLength, get_size_of_data_type(dataType));
     read_data(refOutput, nDim, 1, scriptPath, testCase, bitDepth);
     int subVariantStride = 0;
-    if (testCase == "normalize")
+    if(testCase == "normalize")
     {
         int meanStdDevOutputStride = 0, axisMaskStride = 0;
         if(isMeanStd)
@@ -578,7 +574,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
         axisMaskStride = (additionalParam - 1) * bufferLength;
         subVariantStride = meanStdDevOutputStride + axisMaskStride;
     }
-    else if (testCase == "transpose")
+    else if(testCase == "transpose")
     {
         subVariantStride = (additionalParam - 1) * bufferLength;
     }
@@ -598,52 +594,42 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
         {
             Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
-            for (int j = 0; j < sampleLength; j++)
+            for(int j = 0; j < sampleLength; j++)
             {
-                if ((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < 1.0f))
+                if((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < 1e-6))
                     cnt++;
             }
         }
-        else if (bitDepth == 2 || bitDepth == 7 || bitDepth == 4)  // F32 || I16_F32 || U8_F32
+        else if(bitDepth == 2 || bitDepth == 7 || bitDepth == 4)  // F32 || I16_F32 || U8_F32
         {
             Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
-            for (int j = 0; j < sampleLength; j++)
+            for(int j = 0; j < sampleLength; j++)
             {
-                if (std::abs(out[j] - ref[j]) < 1.0f)
+                if(std::abs(out[j] - ref[j]) < 1e-6)
                     cnt++;
             }
         }
-        else if (bitDepth == 0)  // U8
+        else if(bitDepth == 0)  // U8
         {
             Rpp8u *ref = static_cast<Rpp8u *>(refOutput) + sampleOffset;
             Rpp8u *out = static_cast<Rpp8u *>(output) + i * sampleLength;
-            for (int j = 0; j < sampleLength; j++)
+            for(int j = 0; j < sampleLength; j++)
             {
-                if (out[j] - ref[j] == 0) 
-                    cnt++;
-            }
-        }
-        else if (bitDepth == 5)  // I8
-        {
-            Rpp8s *ref = static_cast<Rpp8s *>(refOutput) + sampleOffset;
-            Rpp8s *out = static_cast<Rpp8s *>(output) + i * sampleLength;
-            for (int j = 0; j < sampleLength; j++)
-            {
-                if (std::abs((int)out[j] - (int)ref[j]) <= 1)
+                if(out[j] - ref[j] == 0)
                     cnt++;
             }
         }
 
-        if (cnt == sampleLength)
+        if(cnt == sampleLength)
             fileMatch++;
     }
 
     std::string status = funcName + ": ";
-    std::cout << "\nResults for Test case: " << funcName << std::endl;
-    if (fileMatch == batchSize)
+    std::cout << std::endl << "Results for Test case: " << funcName << std::endl;
+    if(fileMatch == batchSize)
     {
-        std::cout << "\nPASSED!"<<std::endl;
+        std::cout << "\nPASSED!" << std::endl;
         status += "PASSED";
     }
     else

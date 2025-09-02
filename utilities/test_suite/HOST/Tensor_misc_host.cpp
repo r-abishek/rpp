@@ -51,20 +51,9 @@ int main(int argc, char **argv)
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
     int axisMask = additionalParam, permOrder = additionalParam;
 
-    if(bitDepth == 4 && testCase != LOG)
-        return RPP_ERROR_NOT_IMPLEMENTED;
-    
-    if(bitDepth == 7 && testCase != LOG1P)
-        return RPP_ERROR_NOT_IMPLEMENTED;
-
-    if(testCase == LOG && !(bitDepth == 2 || bitDepth == 4))
-        return RPP_ERROR_NOT_IMPLEMENTED;
-
-    if(testCase == LOG1P && bitDepth != 7)
-        return RPP_ERROR_NOT_IMPLEMENTED;
     if(qaMode && batchSize != 3)
     {
-        cout<<"QA mode can only run with batchsize 3"<<std::endl;
+        cout<<"QA mode can only run with batchsize 3" << std::endl;
         return -1;
     }
 
@@ -75,7 +64,7 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    std::string bitdepthStr;
+    std::string bitdepthStr; // Variable to store the bit depth as a string
     switch (bitDepth)
     {
         case 0: bitdepthStr = "u8"; break;
@@ -85,12 +74,11 @@ int main(int argc, char **argv)
         case 4: bitdepthStr = "u8_f32"; break;
         case 5: bitdepthStr = "i8"; break;
         case 6: bitdepthStr = "u8_i8"; break;
-        case 7: bitdepthStr = "i16_f32"; break;
+        case 11: bitdepthStr = "i16_u32"; break;
         default: bitdepthStr = "unknown"; break;
     }
 
     std::string func = funcName + "_" + std::to_string(nDim) + "d_" + bitdepthStr;
-
     if(axisMaskCase)
         func += "_axisMask" + std::to_string(axisMask);
     if(permOrderCase)
@@ -98,7 +86,7 @@ int main(int argc, char **argv)
 
     // fill roi based on mode and number of dimensions
     Rpp32u *roiTensor = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
-    Rpp32u *roiTensorSecond ;
+    Rpp32u *roiTensorSecond = nullptr;
     Rpp32u *dstRoiTensor = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
     
     fill_roi_values(nDim, batchSize, roiTensor, qaMode);
@@ -107,7 +95,7 @@ int main(int argc, char **argv)
     {
         roiTensorSecond = static_cast<Rpp32u *>(calloc(nDim * 2 * batchSize, sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
-        dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask]; 
+        dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask];
     }
 
     // set src/dst generic tensor descriptors
@@ -116,7 +104,7 @@ int main(int argc, char **argv)
     srcDescriptorPtrND = &srcDescriptor;
     dstDescriptorPtrND = &dstDescriptor;
     int offSetInBytes = 0;
-    if(testCase == LOG1P && bitDepth == 7)
+    if(testCase == LOG1P && bitDepth == 11)
     {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
@@ -142,16 +130,16 @@ int main(int argc, char **argv)
     Rpp32u iBufferSize = 1;
     Rpp32u oBufferSize = 1;
     Rpp32u iBufferSizeSecond = 1;
-    Rpp32u iBufferSizeInBytes = 1;
-    Rpp32u oBufferSizeInBytes = 1;
-    Rpp32u iBufferSizeSecondInBytes = 1;
+    Rpp64u iBufferSizeInBytes = 1;
+    Rpp64u oBufferSizeInBytes = 1;
+    Rpp64u iBufferSizeSecondInBytes = 1;
     for(int i = 0; i <= nDim; i++)
     {
         iBufferSize *= srcDescriptorPtrND->dims[i];
         oBufferSize *= dstDescriptorPtrND->dims[i];
     }
 
-    if(testCase == LOG1P && bitDepth == 7)
+    if(testCase == LOG1P && bitDepth == 11)
     {
         // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
         // here is F32 (we store F32 to then convert). So allocate as F32 to hold that data.
@@ -170,7 +158,7 @@ int main(int argc, char **argv)
     output = calloc(oBufferSizeInBytes, 1);
     if(testCase == CONCAT)
     {
-        for(int i = 0; i <= nDim; i++)
+        for(int i = 0; i  <= nDim; i++)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
         iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
         inputSecond = calloc(iBufferSizeSecondInBytes, 1);
@@ -178,7 +166,7 @@ int main(int argc, char **argv)
     // read input data
     if(qaMode)
     {
-        if(bitDepth == 7) // log1p
+        else if(bitDepth == 11) // log1p
             read_data(input, nDim, 0, scriptPath, funcName, 2);
         else if(bitDepth == 4) // log
             read_data(input, nDim, 0, scriptPath, funcName, 0);
@@ -189,31 +177,32 @@ int main(int argc, char **argv)
     }
     else
     {
+
+        Rpp32f *inputF32 = NULL, *inputF32Second = NULL, *outputF32 = NULL;
+        Rpp16s *inputI16 = NULL;
+        inputF32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
+        outputF32 = static_cast<Rpp32f *>(calloc(oBufferSize, sizeof(Rpp32f)));
+        if(testCase == CONCAT)
+            inputF32Second = static_cast<Rpp32f *>(calloc(iBufferSizeSecond, sizeof(Rpp32f)));
+
+        // Generate sample values in range based on number of bits for representation
+        // Note : I32/U32 can represent higher range of values - Limit set just for testing purposes
+        Rpp32u valLimit = 255;
+        if((bitDepth == 7) || (bitDepth == 8))
+            valLimit = 65535;
+        if((bitDepth == 9) || (bitDepth == 10))
+            valLimit = 262143;
+
         std::srand(0);
-        if (bitDepth == 2)  // F32
+        for(int i = 0; i < iBufferSize; i++)
+            inputF32[i] = static_cast<float>((std::rand() % valLimit));
+        if((testCase == CONCAT) || (broadCastCase))
         {
-            Rpp32f *inputF32Cast = static_cast<Rpp32f *>(input);
-            for (int i = 0; i < iBufferSize; i++)
-                inputF32Cast[i] = static_cast<Rpp32f>(std::rand() % 256);
-            if (testCase == CONCAT)
-            {
-                Rpp32f *inputSecondF32 = static_cast<Rpp32f *>(inputSecond);
-                for (int i = 0; i < iBufferSizeSecond; i++)
-                    inputSecondF32[i] = static_cast<Rpp32f>(std::rand() % 256);
-            }
+            for(int i = 0; i < iBufferSizeSecond; i++)
+                inputF32Second[i] = static_cast<float>((std::rand() % valLimit));
         }
-        else if (bitDepth == 0)  // U8
-        {
-            Rpp8u *inputU8 = static_cast<Rpp8u *>(input);
-            for (int i = 0; i < iBufferSize; i++)
-                inputU8[i] = static_cast<Rpp8u>(std::rand() % 256);
-            if (testCase == CONCAT)
-            {
-                Rpp8u *inputSecondU8 = static_cast<Rpp8u *>(inputSecond);
-                for (int i = 0; i < iBufferSizeSecond; i++)
-                    inputSecondU8[i] = static_cast<Rpp8u>(std::rand() % 256);
-            }
-        }
+
+        convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
     }
 
     Rpp16s *inputI16 = nullptr;
@@ -331,7 +320,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log1p";
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 7)
+                if(bitDepth == 11)
                     rppt_log1p_host(inputI16, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -365,10 +354,9 @@ int main(int argc, char **argv)
         std::string refFileName;
         refFileName = func + "_host.csv";
         refFile.open(refFileName);
+        Rpp8u* outputU8 = static_cast<Rpp8u*>(output);
         for (int i = 0; i < oBufferSize; i++)
-        {
             refFile << *((float*)output + i) << ",";
-        }
         refFile.close();
     }
 
@@ -391,11 +379,11 @@ int main(int argc, char **argv)
     if(testCase == CONCAT)
         free(inputSecond);
     free(output);
-    if (testCase == LOG1P && inputI16 != nullptr)
+    if(testCase == LOG1P && inputI16 != nullptr)
         free(inputI16);
     free(roiTensor);
     free(dstRoiTensor);
-    if (testCase == CONCAT)
+    if(testCase == CONCAT)
         free(roiTensorSecond);
     if(meanTensor != nullptr)
         free(meanTensor);
