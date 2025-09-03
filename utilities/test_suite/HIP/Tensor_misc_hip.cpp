@@ -52,21 +52,9 @@ int main(int argc, char **argv)
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
     int axisMask = additionalParam, permOrder = additionalParam;
 
-    if(bitDepth == 4 && testCase != LOG)
-        return RPP_ERROR_NOT_IMPLEMENTED;
-    
-    if(bitDepth == 7 && testCase != LOG1P)
-        return RPP_ERROR_NOT_IMPLEMENTED;
-
-    if(testCase == LOG && !(bitDepth == 2 || bitDepth == 4))
-        return RPP_ERROR_NOT_IMPLEMENTED;
-
-    if(testCase == LOG1P && bitDepth != 7)
-        return RPP_ERROR_NOT_IMPLEMENTED;
-
     if(qaMode && batchSize != 3)
     {
-        cout<<"QA mode can only run with batchsize 3"<<std::endl;
+        cout<<"QA mode can only run with batchsize 3" << std::endl;
         return -1;
     }
 
@@ -87,7 +75,7 @@ int main(int argc, char **argv)
         case 4: bitdepthStr = "u8_f32"; break;
         case 5: bitdepthStr = "i8"; break;
         case 6: bitdepthStr = "u8_i8"; break;
-        case 7: bitdepthStr = "i16_f32"; break;
+        case 11: bitdepthStr = "i16_f32"; break;
         default: bitdepthStr = "unknown"; break;
     }
 
@@ -117,7 +105,7 @@ int main(int argc, char **argv)
 
     // set dims and compute strides
     int offSetInBytes = 0;
-    if(testCase == LOG1P && bitDepth == 7)
+    if(testCase == LOG1P && bitDepth == 11)
     {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
@@ -134,6 +122,7 @@ int main(int argc, char **argv)
     }
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
+    srcDescriptorPtrNDSecond = nullptr;
     if(testCase == CONCAT)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
@@ -158,7 +147,7 @@ int main(int argc, char **argv)
     iBufferSizeInBytes = iBufferSize * get_size_of_data_type(srcDescriptorPtrND->dataType);
     oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
 
-    if(testCase == LOG1P && bitDepth == 7)
+    if(testCase == LOG1P && bitDepth == 11)
     {
         // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
         // here is F32 (we store F32 to then convert). So allocate as F32 to hold that data.
@@ -175,8 +164,8 @@ int main(int argc, char **argv)
     void *input = nullptr, *inputSecond = nullptr, *output = nullptr, *inputI16 = nullptr;
     void *d_input = nullptr, *d_inputSecond = nullptr, *d_output = nullptr, *d_inputI16 = nullptr;
 
-    input = calloc(iBufferSize, get_size_of_data_type(srcDescriptorPtrND->dataType));
-    output = calloc(oBufferSize, get_size_of_data_type(dstDescriptorPtrND->dataType));
+    input = calloc(iBufferSizeInBytes, 1);
+    output = calloc(oBufferSizeInBytes, 1);
     CHECK_RETURN_STATUS(hipMalloc(&d_input, iBufferSizeInBytes));
     CHECK_RETURN_STATUS(hipMalloc(&d_output, oBufferSizeInBytes));
 
@@ -189,7 +178,7 @@ int main(int argc, char **argv)
     // read input data
     if(qaMode)
     {
-        if(bitDepth == 7) // log1p
+        if(bitDepth == 11) // log1p
             read_data(input, nDim, 0, scriptPath, funcName, 2);
         else if(bitDepth == 4) // log
             read_data(input, nDim, 0, scriptPath, funcName, 0);
@@ -203,32 +192,24 @@ int main(int argc, char **argv)
         // Generic random data filling based on bitDepth
         switch(bitDepth)
         {
-            case 0: // U8
+            Rpp32f *inputF32 = NULL, *inputF32Second = NULL, *outputF32 = NULL;
+            Rpp16s *inputI16 = NULL;
+            inputF32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
+            outputF32 = static_cast<Rpp32f *>(calloc(oBufferSize, sizeof(Rpp32f)));
+
+            if(testCase == CONCAT)
+                inputF32Second = static_cast<Rpp32f *>(calloc(iBufferSizeSecond, sizeof(Rpp32f)));
+
+            std::srand(0);
+            for(int i = 0; i < iBufferSize; i++)
+                inputF32[i] = static_cast<float>((std::rand() % 255));
+            if(testCase == CONCAT)
             {
-                Rpp8u* inputU8 = static_cast<Rpp8u*>(input);
-                for(int i = 0; i < iBufferSize; i++) 
-                    inputU8[i] = static_cast<Rpp8u>(std::rand() % 256);
-                if (testCase == CONCAT)
-                {
-                    Rpp8u* inputSecondU8 = static_cast<Rpp8u*>(inputSecond);
-                    for(int i = 0; i < iBufferSizeSecond; i++)
-                        inputSecondU8[i] = static_cast<Rpp8u>(std::rand() % 256);
-                }
-                break;
+                for(int i = 0; i < iBufferSizeSecond; i++)
+                    inputF32Second[i] = static_cast<float>((std::rand() % 255));
             }
-            case 2: // F32
-            {
-                Rpp32f* inputF32 = static_cast<Rpp32f*>(input);
-                for(int i = 0; i < iBufferSize; i++) 
-                    inputF32[i] = static_cast<Rpp32f>(std::rand() % 256);
-                if (testCase == CONCAT)
-                {
-                    Rpp32f* inputSecondF32 = static_cast<Rpp32f*>(inputSecond);
-                    for(int i = 0; i < iBufferSizeSecond; i++)
-                        inputSecondF32[i] = static_cast<Rpp32f>(std::rand() % 256);
-                }
-                break;
-            }
+
+            convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
         }
     }
 
@@ -375,7 +356,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log1p";
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 7)
+                if(bitDepth == 11)
                     rppt_log1p_gpu(d_inputI16, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -436,7 +417,7 @@ int main(int argc, char **argv)
     if(inputSecond)
         free(inputSecond);
     if(inputI16)
-        CHECK_RETURN_STATUS(hipHostFree(inputI16));
+        free(inputI16);
     CHECK_RETURN_STATUS(hipHostFree(roiTensor));
     CHECK_RETURN_STATUS(hipHostFree(dstRoiTensor));
     if(roiTensorSecond)

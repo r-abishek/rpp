@@ -166,7 +166,7 @@ int main(int argc, char **argv)
     // read input data
     if(qaMode)
     {
-        else if(bitDepth == 11) // log1p
+        if(bitDepth == 11) // log1p
             read_data(input, nDim, 0, scriptPath, funcName, 2);
         else if(bitDepth == 4) // log
             read_data(input, nDim, 0, scriptPath, funcName, 0);
@@ -185,21 +185,13 @@ int main(int argc, char **argv)
         if(testCase == CONCAT)
             inputF32Second = static_cast<Rpp32f *>(calloc(iBufferSizeSecond, sizeof(Rpp32f)));
 
-        // Generate sample values in range based on number of bits for representation
-        // Note : I32/U32 can represent higher range of values - Limit set just for testing purposes
-        Rpp32u valLimit = 255;
-        if((bitDepth == 7) || (bitDepth == 8))
-            valLimit = 65535;
-        if((bitDepth == 9) || (bitDepth == 10))
-            valLimit = 262143;
-
         std::srand(0);
         for(int i = 0; i < iBufferSize; i++)
-            inputF32[i] = static_cast<float>((std::rand() % valLimit));
-        if((testCase == CONCAT) || (broadCastCase))
+            inputF32[i] = static_cast<float>((std::rand() % 255));
+        if(testCase == CONCAT)
         {
             for(int i = 0; i < iBufferSizeSecond; i++)
-                inputF32Second[i] = static_cast<float>((std::rand() % valLimit));
+                inputF32Second[i] = static_cast<float>((std::rand() % 255));
         }
 
         convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
@@ -354,7 +346,6 @@ int main(int argc, char **argv)
         std::string refFileName;
         refFileName = func + "_host.csv";
         refFile.open(refFileName);
-        Rpp8u* outputU8 = static_cast<Rpp8u*>(output);
         for (int i = 0; i < oBufferSize; i++)
             refFile << *((float*)output + i) << ",";
         refFile.close();
