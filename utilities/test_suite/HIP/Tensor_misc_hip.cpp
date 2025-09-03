@@ -134,6 +134,7 @@ int main(int argc, char **argv)
     }
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
+    srcDescriptorPtrNDSecond = nullptr;
     if(testCase == CONCAT)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
@@ -175,8 +176,8 @@ int main(int argc, char **argv)
     void *input = nullptr, *inputSecond = nullptr, *output = nullptr, *inputI16 = nullptr;
     void *d_input = nullptr, *d_inputSecond = nullptr, *d_output = nullptr, *d_inputI16 = nullptr;
 
-    input = calloc(iBufferSize, get_size_of_data_type(srcDescriptorPtrND->dataType));
-    output = calloc(oBufferSize, get_size_of_data_type(dstDescriptorPtrND->dataType));
+    input = calloc(iBufferSizeInBytes, 1);
+    output = calloc(oBufferSizeInBytes, 1);
     CHECK_RETURN_STATUS(hipMalloc(&d_input, iBufferSizeInBytes));
     CHECK_RETURN_STATUS(hipMalloc(&d_output, oBufferSizeInBytes));
 
@@ -436,7 +437,7 @@ int main(int argc, char **argv)
     if(inputSecond)
         free(inputSecond);
     if(inputI16)
-        CHECK_RETURN_STATUS(hipHostFree(inputI16));
+        free(inputI16);
     CHECK_RETURN_STATUS(hipHostFree(roiTensor));
     CHECK_RETURN_STATUS(hipHostFree(dstRoiTensor));
     if(roiTensorSecond)
