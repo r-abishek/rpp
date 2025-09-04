@@ -74,7 +74,7 @@ int main(int argc, char **argv)
         case 4: bitdepthStr = "u8_f32"; break;
         case 5: bitdepthStr = "i8"; break;
         case 6: bitdepthStr = "u8_i8"; break;
-        case 11: bitdepthStr = "i16_u32"; break;
+        case 11: bitdepthStr = "i16_f32"; break;
         default: bitdepthStr = "unknown"; break;
     }
 
