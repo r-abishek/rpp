@@ -144,9 +144,6 @@ int main(int argc, char **argv)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
     }
 
-    iBufferSizeInBytes = iBufferSize * get_size_of_data_type(srcDescriptorPtrND->dataType);
-    oBufferSizeInBytes = oBufferSize * get_size_of_data_type(dstDescriptorPtrND->dataType);
-
     if(testCase == LOG1P && bitDepth == 11)
     {
         // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
@@ -171,7 +168,7 @@ int main(int argc, char **argv)
 
     if(testCase == CONCAT)
     {
-        Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
+        iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
         inputSecond = calloc(iBufferSizeSecond, get_size_of_data_type(srcDescriptorPtrNDSecond->dataType));
         CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeSecondInBytes));
     }
@@ -190,27 +187,24 @@ int main(int argc, char **argv)
     else
     {
         // Generic random data filling based on bitDepth
-        switch(bitDepth)
+        Rpp32f *inputF32 = NULL, *inputF32Second = NULL, *outputF32 = NULL;
+        Rpp16s *inputI16 = NULL;
+        inputF32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
+        outputF32 = static_cast<Rpp32f *>(calloc(oBufferSize, sizeof(Rpp32f)));
+
+        if(testCase == CONCAT)
+            inputF32Second = static_cast<Rpp32f *>(calloc(iBufferSizeSecond, sizeof(Rpp32f)));
+
+        std::srand(0);
+        for(int i = 0; i < iBufferSize; i++)
+            inputF32[i] = static_cast<float>((std::rand() % 255));
+        if(testCase == CONCAT)
         {
-            Rpp32f *inputF32 = NULL, *inputF32Second = NULL, *outputF32 = NULL;
-            Rpp16s *inputI16 = NULL;
-            inputF32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
-            outputF32 = static_cast<Rpp32f *>(calloc(oBufferSize, sizeof(Rpp32f)));
-
-            if(testCase == CONCAT)
-                inputF32Second = static_cast<Rpp32f *>(calloc(iBufferSizeSecond, sizeof(Rpp32f)));
-
-            std::srand(0);
-            for(int i = 0; i < iBufferSize; i++)
-                inputF32[i] = static_cast<float>((std::rand() % 255));
-            if(testCase == CONCAT)
-            {
-                for(int i = 0; i < iBufferSizeSecond; i++)
-                    inputF32Second[i] = static_cast<float>((std::rand() % 255));
-            }
-
-            convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
+            for(int i = 0; i < iBufferSizeSecond; i++)
+                inputF32Second[i] = static_cast<float>((std::rand() % 255));
         }
+
+        convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
     }
 
     if(testCase == LOG1P)
@@ -229,7 +223,6 @@ int main(int argc, char **argv)
     CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
     if(testCase == CONCAT)
     {
-        Rpp64u iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
         CHECK_RETURN_STATUS(hipMemcpy(d_inputSecond, inputSecond, iBufferSizeSecondInBytes, hipMemcpyHostToDevice));
     }
     if(testCase == LOG1P)
@@ -414,17 +407,17 @@ int main(int argc, char **argv)
 
     free(input);
     free(output);
-    if(inputSecond)
+    if(inputSecond != nullptr)
         free(inputSecond);
-    if(inputI16)
+    if(inputI16 != nullptr)
         free(inputI16);
     CHECK_RETURN_STATUS(hipHostFree(roiTensor));
     CHECK_RETURN_STATUS(hipHostFree(dstRoiTensor));
-    if(roiTensorSecond)
+    if(roiTensorSecond != nullptr)
         CHECK_RETURN_STATUS(hipHostFree(roiTensorSecond));
     CHECK_RETURN_STATUS(hipHostFree(srcDescriptorPtrND));
     CHECK_RETURN_STATUS(hipHostFree(dstDescriptorPtrND));
-    if(srcDescriptorPtrNDSecond)
+    if(srcDescriptorPtrNDSecond != nullptr)
         CHECK_RETURN_STATUS(hipHostFree(srcDescriptorPtrNDSecond));
     if (permTensor != nullptr)
         CHECK_RETURN_STATUS(hipHostFree(permTensor));

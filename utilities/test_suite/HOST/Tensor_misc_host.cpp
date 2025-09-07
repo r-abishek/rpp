@@ -177,7 +177,7 @@ int main(int argc, char **argv)
     }
     else
     {
-
+        // Generic random data filling based on bitDepth
         Rpp32f *inputF32 = NULL, *inputF32Second = NULL, *outputF32 = NULL;
         Rpp16s *inputI16 = NULL;
         inputF32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
@@ -329,7 +329,6 @@ int main(int argc, char **argv)
 
         if(missingFuncFlag == 1)
         {
-            std::cout<<"\n inside";
             cout << "\nThe functionality " << func << " doesn't yet exist in RPP\n";
             return RPP_ERROR_NOT_IMPLEMENTED;
         }
@@ -367,14 +366,14 @@ int main(int argc, char **argv)
     rppDestroy(handle, backend);
 
     free(input);
-    if(testCase == CONCAT)
+    if(inputSecond != nullptr)
         free(inputSecond);
     free(output);
-    if(testCase == LOG1P && inputI16 != nullptr)
+    if(inputI16 != nullptr)
         free(inputI16);
     free(roiTensor);
     free(dstRoiTensor);
-    if(testCase == CONCAT)
+    if(roiTensorSecond != nullptr)
         free(roiTensorSecond);
     if(meanTensor != nullptr)
         free(meanTensor);
