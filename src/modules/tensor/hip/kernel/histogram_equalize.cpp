@@ -4,13 +4,13 @@ __device__ const float4 yR_f4 = (float4)0.299f;
 __device__ const float4 yG_f4 = (float4)0.587f;
 __device__ const float4 yB_f4 = (float4)0.114f;
 
-__device__ const float4 cbR_f4 = (float4)-0.042184f;
-__device__ const float4 cbG_f4 = (float4)-0.082816f;
-__device__ const float4 cbB_f4 = (float4)0.125000f;
+__device__ const float4 cbR_f4 = (float4)-0.168736f;
+__device__ const float4 cbG_f4 = (float4)-0.331264f;
+__device__ const float4 cbB_f4 = (float4)0.5f;
 
-__device__ const float4 crR_f4 = (float4)0.125000f;
-__device__ const float4 crG_f4 = (float4)-0.104672f;
-__device__ const float4 crB_f4 = (float4)-0.020328f;
+__device__ const float4 crR_f4 = (float4)0.5f;
+__device__ const float4 crG_f4 = (float4)-0.418688f;
+__device__ const float4 crB_f4 = (float4)-0.081312f;
 
 __device__ const float4 maxVal255_f4 = (float4)255.0f;
 __device__ const float4 maxVal128_f4 = (float4)128.0f;
@@ -25,52 +25,58 @@ __device__ inline float4 clamp(float4 v, float lo, float hi)
     return v;
 }
 
-__device__ inline void ycbcr_to_rgb_hip_compute(d_float24 &rgb_f24, d_float24 &yuv_f24)
+__device__ inline void ycbcr_to_rgb_hip_compute(d_float24 &rgb_f24, d_float8 &y_f8, d_float8 &cb_f8, d_float8 &cr_f8)
 {
-    for(int i = 2; i < 6; i++)
-        yuv_f24.f4[i] -= (float4)128.0f;
+    // Subtract 128 from Cb and Cr
+    cb_f8.f4[0] -= (float4)128.0f;
+    cb_f8.f4[1] -= (float4)128.0f;
+    cr_f8.f4[0] -= (float4)128.0f;
+    cr_f8.f4[1] -= (float4)128.0f;
 
-    rgb_f24.f4[0] = yuv_f24.f4[0] + (float4)1.402f * yuv_f24.f4[4];
-    rgb_f24.f4[1] = yuv_f24.f4[1] + (float4)1.402f * yuv_f24.f4[5];
+    // R = Y + 1.402 * Cr
+    rgb_f24.f4[0] = clamp((y_f8.f4[0] + (float4)1.402f * cr_f8.f4[0]), 0.0f, 255.0f);
+    rgb_f24.f4[1] = clamp((y_f8.f4[1] + (float4)1.402f * cr_f8.f4[1]), 0.0f, 255.0f);
 
-    rgb_f24.f4[2] = yuv_f24.f4[0] - ((float4)0.344136f * yuv_f24.f4[2]) - ((float4)0.714136f * yuv_f24.f4[4]);
-    rgb_f24.f4[3] = yuv_f24.f4[1] - ((float4)0.344136f * yuv_f24.f4[3]) - ((float4)0.714136f * yuv_f24.f4[5]);
+    // G = Y - 0.344136 * Cb - 0.714136 * Cr
+    rgb_f24.f4[2] = clamp((y_f8.f4[0] - ((float4)0.344136f * cb_f8.f4[0]) - ((float4)0.714136f * cr_f8.f4[0])), 0.0f, 255.0f);
+    rgb_f24.f4[3] = clamp((y_f8.f4[1] - ((float4)0.344136f * cb_f8.f4[1]) - ((float4)0.714136f * cr_f8.f4[1])), 0.0f, 255.0f);
 
-    rgb_f24.f4[0] = yuv_f24.f4[0] + (float4)1.772f * yuv_f24.f4[2];
-    rgb_f24.f4[1] = yuv_f24.f4[1] + (float4)1.772f * yuv_f24.f4[3];
+    // B = Y + 1.772 * Cb
+    rgb_f24.f4[4] = clamp((y_f8.f4[0] + (float4)1.772f * cb_f8.f4[0]), 0.0f, 255.0f);
+    rgb_f24.f4[5] = clamp((y_f8.f4[1] + (float4)1.772f * cb_f8.f4[1]), 0.0f, 255.0f);
 }
 
-__device__ inline void ycbcr_hip_compute(d_float24 *rgb_f24, d_float8* y_f8, d_float8 *cb_f8, d_float8 *cr_f8)
+__device__ inline void ycbcr_hip_compute(d_float24 &rgb_f24, d_float8 &y_f8, d_float8 &cb_f8, d_float8 &cr_f8)
 {
     // Y
-    y_f8->f4[0] = clamp((rgb_f24[0].f8[0].f4[0] * yR_f4) +
-                        (rgb_f24[0].f8[1].f4[0] * yG_f4) +
-                        (rgb_f24[0].f8[2].f4[0] * yB_f4), 0.0f, 255.0f);
+    y_f8.f4[0] = clamp((rgb_f24.f4[0] * yR_f4) +
+                        (rgb_f24.f4[2] * yG_f4) +
+                        (rgb_f24.f4[4] * yB_f4), 0.0f, 255.0f);
 
-    y_f8->f4[1] = clamp((rgb_f24[0].f8[0].f4[1] * yR_f4) +
-                        (rgb_f24[0].f8[1].f4[1] * yG_f4) +
-                        (rgb_f24[0].f8[2].f4[1] * yB_f4), 0.0f, 255.0f);
+    y_f8.f4[1] = clamp((rgb_f24.f4[1] * yR_f4) +
+                        (rgb_f24.f4[3] * yG_f4) +
+                        (rgb_f24.f4[5] * yB_f4), 0.0f, 255.0f);
 
     // Cb
-    cb_f8->f4[0] = clamp((rgb_f24[0].f8[0].f4[0] * cbR_f4) +
-                         (rgb_f24[0].f8[1].f4[0] * cbG_f4) +
-                         (rgb_f24[0].f8[2].f4[0] * cbB_f4) + maxVal128_f4,
+    cb_f8.f4[0] = clamp((rgb_f24.f4[0] * cbR_f4) +
+                         (rgb_f24.f4[2] * cbG_f4) +
+                         (rgb_f24.f4[4] * cbB_f4) + maxVal128_f4,
                          0.0f, 255.0f);
 
-    cb_f8->f4[1] = clamp((rgb_f24[0].f8[0].f4[1] * cbR_f4) +
-                         (rgb_f24[0].f8[1].f4[1] * cbG_f4) +
-                         (rgb_f24[0].f8[2].f4[1] * cbB_f4) + maxVal128_f4,
+    cb_f8.f4[1] = clamp((rgb_f24.f4[1] * cbR_f4) +
+                         (rgb_f24.f4[3] * cbG_f4) +
+                         (rgb_f24.f4[5] * cbB_f4) + maxVal128_f4,
                          0.0f, 255.0f);
 
     // Cr
-    cr_f8->f4[0] = clamp((rgb_f24[0].f8[0].f4[0] * crR_f4) +
-                         (rgb_f24[0].f8[1].f4[0] * crG_f4) +
-                         (rgb_f24[0].f8[2].f4[0] * crB_f4) + maxVal128_f4,
+    cr_f8.f4[0] = clamp((rgb_f24.f4[0] * crR_f4) +
+                         (rgb_f24.f4[2] * crG_f4) +
+                         (rgb_f24.f4[4] * crB_f4) + maxVal128_f4,
                          0.0f, 255.0f);
 
-    cr_f8->f4[1] = clamp((rgb_f24[0].f8[0].f4[1] * crR_f4) +
-                         (rgb_f24[0].f8[1].f4[1] * crG_f4) +
-                         (rgb_f24[0].f8[2].f4[1] * crB_f4) + maxVal128_f4,
+    cr_f8.f4[1] = clamp((rgb_f24.f4[1] * crR_f4) +
+                         (rgb_f24.f4[3] * crG_f4) +
+                         (rgb_f24.f4[5] * crB_f4) + maxVal128_f4,
                          0.0f, 255.0f);
 }
 
@@ -163,7 +169,7 @@ __global__ void apply_lut_pln1_hip_tensor(const unsigned char *__restrict__ srcP
     uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
 
     unsigned char pixVal = srcPtr[srcIdx];
-    dstPtr[dstIdx] = lut[pixVal];
+    dstPtr[dstIdx] = lut[id_z * 256 + pixVal];
 }
 
 __global__ void convert_pkd3_to_yuv(unsigned char *__restrict__ srcPtr,
@@ -181,12 +187,12 @@ __global__ void convert_pkd3_to_yuv(unsigned char *__restrict__ srcPtr,
     if ((id_y >= roiTensorPtrSrc[id_z].xywhROI.roiHeight) || (id_x >= roiTensorPtrSrc[id_z].xywhROI.roiWidth))
         return;
 
-    uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x * 3);
+    uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
     uint dstIdx = (id_z * dstStridesWH.y * dstStridesWH.x) + (id_y * dstStridesWH.x) + id_x;
     d_float24 rgb_f24;
     d_float8 y_f8, cb_f8, cr_f8;
     rpp_hip_load24_pkd3_and_unpack_to_float24_pln3(srcPtr + srcIdx, &rgb_f24);
-    ycbcr_hip_compute(&rgb_f24, &y_f8, &cb_f8, &cr_f8);
+    ycbcr_hip_compute(rgb_f24, y_f8, cb_f8, cr_f8);
     rpp_hip_pack_float8_and_store8(yPtr + dstIdx, &y_f8);
     rpp_hip_pack_float8_and_store8(cbPtr + dstIdx, &cb_f8);
     rpp_hip_pack_float8_and_store8(crPtr + dstIdx, &cr_f8);
@@ -211,11 +217,12 @@ __global__ void convert_yuv_to_pkd3(unsigned char *__restrict__ yPtr,
     uint srcIdx = (id_z * srcStridesWH.y * srcStridesWH.x) + (id_y * srcStridesWH.x) + id_x;
     uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + (id_x * 3);
 
-    d_float24 yuv_f24, rgb_f24;
-    rpp_hip_load8_and_unpack_to_float8(yPtr + srcIdx, &yuv_f24.f8[0]);
-    rpp_hip_load8_and_unpack_to_float8(cbPtr + srcIdx, &yuv_f24.f8[1]);
-    rpp_hip_load8_and_unpack_to_float8(crPtr + srcIdx, &yuv_f24.f8[2]);
-    ycbcr_to_rgb_hip_compute(rgb_f24, yuv_f24);
+    d_float24 rgb_f24;
+    d_float8 y_f8, cb_f8, cr_f8;
+    rpp_hip_load8_and_unpack_to_float8(yPtr + srcIdx, &y_f8);
+    rpp_hip_load8_and_unpack_to_float8(cbPtr + srcIdx, &cb_f8);
+    rpp_hip_load8_and_unpack_to_float8(crPtr + srcIdx, &cr_f8);
+    ycbcr_to_rgb_hip_compute(rgb_f24, y_f8, cb_f8, cr_f8);
     rpp_hip_pack_float24_pln3_and_store24_pkd3(dstPtr + dstIdx, &rgb_f24);
 }
 
@@ -316,8 +323,13 @@ RppStatus hip_exec_histogram_equalize_tensor(Rpp8u *srcPtr,
                                make_uint3(srcDescPtr->w * srcDescPtr->h, srcDescPtr->w * srcDescPtr->h, srcDescPtr->w),
                                d_lut,
                                roiTensorPtrSrc);
+
+                globalThreads_x = (dstDescPtr->w + 7) >> 3; // each thread does 8 pixels
+                globalThreads_y = dstDescPtr->h;
+                globalThreads_z = dstDescPtr->n;
+                
                 hipLaunchKernelGGL(convert_yuv_to_pkd3,
-                                   dim3(ceil((float)dstDescPtr->w/LOCAL_THREADS_X), ceil((float)dstDescPtr->h/LOCAL_THREADS_Y), ceil((float)dstDescPtr->n/LOCAL_THREADS_Z)),
+                                   dim3(ceil((float)globalThreads_x/LOCAL_THREADS_X), ceil((float)globalThreads_y/LOCAL_THREADS_Y), ceil((float)globalThreads_z/LOCAL_THREADS_Z)),
                                    dim3(LOCAL_THREADS_X, LOCAL_THREADS_Y, LOCAL_THREADS_Z),
                                    0,
                                    handle.GetStream(),
