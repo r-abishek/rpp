@@ -458,6 +458,9 @@ int main(int argc, char **argv)
     Rpp32f *alpha = nullptr;
     if(testCase == RAIN)
         CHECK_RETURN_STATUS(hipHostMalloc(&alpha, batchSize * sizeof(Rpp32f)));
+    
+    if(testCase == BLEND)
+        CHECK_RETURN_STATUS(hipHostMalloc(&alpha, batchSize * sizeof(Rpp32f)));
 
     if(testCase == BLEND)
         CHECK_RETURN_STATUS(hipHostMalloc(&alpha, batchSize * sizeof(Rpp32f)));
