@@ -66,7 +66,7 @@ extern "C" {
  */
 RppStatus rppt_box_filter_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32u kernelSize, RpptImageBorderType borderType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Box Filter augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The box filter augmentation runs for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -90,7 +90,7 @@ RppStatus rppt_box_filter_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_box_filter_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32u kernelSize, RpptImageBorderType borderType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Median Filter augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details  The median filter replaces each pixel's value with the median of its surrounding pixels
@@ -117,7 +117,7 @@ RppStatus rppt_box_filter_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t 
  */
 RppStatus rppt_median_filter_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32u kernelSize, RpptImageBorderType borderType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Median Filter augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details  The median filter replaces each pixel's value with the median of its surrounding pixels
  * in a square window of size kernel size x kernel size. The Median filter augmentation runs for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -142,7 +142,7 @@ RppStatus rppt_median_filter_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPt
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_median_filter_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32u kernelSize, RpptImageBorderType borderType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Gaussian Filter augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The Gaussian filter augmentation runs for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -167,7 +167,7 @@ RppStatus rppt_median_filter_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_gaussian_filter_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *stdDevTensor, Rpp32u kernelSize, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#ifdef GPU_SUPPORT
+
 /*! \brief Gaussian Filter augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The gaussian filter augmentation runs for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -191,7 +191,7 @@ RppStatus rppt_gaussian_filter_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, Rpp
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_gaussian_filter_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *stdDevTensor, Rpp32u kernelSize, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! @}
  */

@@ -64,7 +64,7 @@ extern "C" {
  */
 RppStatus rppt_fused_multiply_add_scalar_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32f *mulTensor, Rpp32f *addTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Fused multiply add scalar augmentation on HIP backend
  * \details This function performs the fmadd operation on a batch of 4D tensors.
  *          It multiplies each element of the source tensor by a corresponding element in the 'mulTensor',
@@ -86,7 +86,7 @@ RppStatus rppt_fused_multiply_add_scalar_host(RppPtr_t srcPtr, RpptGenericDescPt
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_fused_multiply_add_scalar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32f *mulTensor, Rpp32f *addTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Add scalar augmentation on HOST backend
  * \details This function performs the addition operation on a batch of 4D tensors.
@@ -108,7 +108,7 @@ RppStatus rppt_fused_multiply_add_scalar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr
  */
 RppStatus rppt_add_scalar_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32f *addTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Add scalar augmentation on HIP backend
  * \details This function performs the addition operation on a batch of 4D tensors.
  *          It adds a corresponding element from the 'addTensor' to source tensor, and stores the result in the destination tensor.
@@ -128,7 +128,7 @@ RppStatus rppt_add_scalar_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDes
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_add_scalar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32f *addTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Subtract scalar augmentation on HOST backend
  * \details This function performs the subtraction operation on a batch of 4D tensors.
@@ -150,7 +150,7 @@ RppStatus rppt_add_scalar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDesc
  */
 RppStatus rppt_subtract_scalar_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32f *subtractTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Subtract scalar augmentation on HIP backend
  * \details This function performs the subtraction operation on a batch of 4D tensors.
  *          It takes a corresponding element from 'subtractTensor' and subtracts it from source tensor. Result is stored in the destination tensor.
@@ -170,7 +170,7 @@ RppStatus rppt_subtract_scalar_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGener
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_subtract_scalar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32f *subtractTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Multiply scalar augmentation on HOST backend
  * \details This function performs the multiplication operation on a batch of 4D tensors.
@@ -192,7 +192,7 @@ RppStatus rppt_subtract_scalar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGeneri
  */
 RppStatus rppt_multiply_scalar_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32f *mulTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Multiply scalar augmentation on HIP backend
  * \details This function performs the multiplication operation on a batch of 4D tensors.
  *          It takes a corresponding element from 'multiplyTensor' and multiplies it with source tensor. Result is stored in the destination tensor.
@@ -212,7 +212,7 @@ RppStatus rppt_multiply_scalar_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGener
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_multiply_scalar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32f *mulTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Magnitude computation on HOST backend for a NCHW/NHWC layout tensor
  * \details This function computes magnitude of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -235,7 +235,7 @@ RppStatus rppt_multiply_scalar_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGeneri
  */
 RppStatus rppt_magnitude_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Magnitude computation on HIP backend for a NCHW/NHWC layout tensor
  * \details This function computes magnitude of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  *          srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -256,7 +256,7 @@ RppStatus rppt_magnitude_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr sr
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_magnitude_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Logarithm operation on HOST backend
  * \details Computes Log to base e(natural log) of the input for a given ND Tensor.
@@ -274,7 +274,7 @@ RppStatus rppt_magnitude_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr src
  */
 RppStatus rppt_log_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *roiTensor, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Logarithm operation on HIP backend
  * \details Computes Log to base e(natural log) of the input for a given ND Tensor.
  *          Supports u8->f32, i8->f32, f16->f16 and f32->f32 datatypes.
@@ -290,7 +290,7 @@ RppStatus rppt_log_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, R
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_log_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *roiTensor, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Log1p operation on HOST backend
  * \details Computes Log1p i.e (log(1 + x)) of the input for a given ND Tensor.
@@ -308,7 +308,7 @@ RppStatus rppt_log_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, Rp
  */
 RppStatus rppt_log1p_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *roiTensor, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Log1p operation on HIP backend
  * \details Computes Log1p i.e (log(1 + x)) of the input for a given ND Tensor.
  *          Supports i16->f32 datatype.
@@ -324,7 +324,7 @@ RppStatus rppt_log1p_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr,
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_log1p_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *roiTensor, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! @}
  */

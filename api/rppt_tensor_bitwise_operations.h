@@ -63,7 +63,7 @@ extern "C" {
  */
 RppStatus rppt_bitwise_and_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Bitwise AND computation on HIP backend for a NCHW/NHWC layout tensor
  * \details This function computes bitwise AND of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  *          srcPtr depth ranges - Rpp8u (0 to 255).
@@ -84,7 +84,7 @@ RppStatus rppt_bitwise_and_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr 
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_bitwise_and_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Bitwise XOR computation on HOST backend for a NCHW/NHWC layout tensor
  * \details This function computes bitwise XOR of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -107,7 +107,7 @@ RppStatus rppt_bitwise_and_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr s
  */
 RppStatus rppt_bitwise_xor_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Bitwise XOR computation on HIP backend for a NCHW/NHWC layout tensor
  * \details This function computes bitwise XOR of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  *          srcPtr depth ranges - Rpp8u (0 to 255).
@@ -128,7 +128,7 @@ RppStatus rppt_bitwise_xor_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr 
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_bitwise_xor_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Bitwise OR computation on HOST backend for a NCHW/NHWC layout tensor
  * \details This function computes bitwise OR of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -151,7 +151,7 @@ RppStatus rppt_bitwise_xor_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr s
  */
 RppStatus rppt_bitwise_or_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Bitwise OR computation on HIP backend for a NCHW/NHWC layout tensor
  * \details This function computes bitwise OR of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  *          srcPtr depth ranges - Rpp8u (0 to 255).
@@ -172,7 +172,7 @@ RppStatus rppt_bitwise_or_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr s
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_bitwise_or_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Bitwise NOT computation on HOST backend for a NCHW/NHWC layout tensor
  * \details This function computes bitwise NOT of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -193,7 +193,7 @@ RppStatus rppt_bitwise_or_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr sr
  */
 RppStatus rppt_bitwise_not_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Bitwise NOT computation on HIP backend for a NCHW/NHWC layout tensor
  * \details This function computes bitwise NOT of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  *          srcPtr depth ranges - Rpp8u (0 to 255).
@@ -212,7 +212,7 @@ RppStatus rppt_bitwise_not_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_bitwise_not_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! @}
  */
