@@ -59,7 +59,7 @@ extern "C" {
  */
 RppStatus rppt_tensor_sum_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t tensorSumArr, Rpp32u tensorSumArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Tensor sum operation on HIP backend for a NCHW/NHWC layout tensor
  * \details The tensor sum is a reduction operation that finds the channel-wise (R sum / G sum / B sum) and total sum for each image in a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -76,7 +76,7 @@ RppStatus rppt_tensor_sum_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_tensor_sum_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t tensorSumArr, Rpp32u tensorSumArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Tensor min operation on HOST backend for a NCHW/NHWC layout tensor
  * \details The tensor min is a reduction operation that finds the channel-wise (R min / G min / B min) and overall min for each image in a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -95,7 +95,7 @@ RppStatus rppt_tensor_sum_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t 
  */
 RppStatus rppt_tensor_min_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t minArr, Rpp32u minArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Tensor min operation on HIP backend for a NCHW/NHWC layout tensor
  * \details The tensor min is a reduction operation that finds the channel-wise (R min / G min / B min) and overall min for each image in a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -112,7 +112,7 @@ RppStatus rppt_tensor_min_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_tensor_min_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t imageMinArr, Rpp32u imageMinArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Tensor max operation on HOST backend for a NCHW/NHWC layout tensor
  * \details The tensor max is a reduction operation that finds the channel-wise (R max / G max / B max) and overall max for each image in a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -131,7 +131,7 @@ RppStatus rppt_tensor_min_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t 
  */
 RppStatus rppt_tensor_max_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t maxArr, Rpp32u maxArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Tensor max operation on HIP backend for a NCHW/NHWC layout tensor
  * \details The tensor max is a reduction operation that finds the channel-wise (R max / G max / B max) and overall max for each image in a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -148,7 +148,7 @@ RppStatus rppt_tensor_max_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_tensor_max_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t imageMaxArr, Rpp32u imageMaxArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Normalize Generic augmentation on HOST backend
  * \details Normalizes the input generic ND buffer by removing the mean and dividing by the standard deviation for a given ND Tensor.
@@ -171,7 +171,7 @@ RppStatus rppt_tensor_max_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t 
  */
 RppStatus rppt_normalize_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u axisMask, Rpp32f *meanTensor, Rpp32f *stdDevTensor, Rpp8u computeMeanStddev, Rpp32f scale, Rpp32f shift, Rpp32u *roiTensor, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Normalize Generic augmentation on HIP backend
  * \details Normalizes the input generic ND buffer by removing the mean and dividing by the standard deviation for a given ND Tensor.
  * \param [in] srcPtr source tensor memory in HIP memory
@@ -191,7 +191,7 @@ RppStatus rppt_normalize_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDesc
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_normalize_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u axisMask, Rpp32f *meanTensor, Rpp32f *stdDevTensor, Rpp8u computeMeanStddev, Rpp32f scale, Rpp32f shift, Rpp32u *roiTensor, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Tensor mean operation on HOST backend for a NCHW/NHWC layout tensor
  * \details The tensor mean is a reduction operation that finds the channel-wise (R mean / G mean / B mean) and total mean for each image in a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -210,7 +210,7 @@ RppStatus rppt_normalize_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescP
  */
 RppStatus rppt_tensor_mean_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t tensorMeanArr, Rpp32u tensorMeanArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Tensor mean operation on HIP backend for a NCHW/NHWC layout tensor
  * \details The tensor mean is a reduction operation that finds the channel-wise (R mean / G mean / B mean) and total mean for each image in a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -227,7 +227,7 @@ RppStatus rppt_tensor_mean_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_tensor_mean_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t tensorMeanArr, Rpp32u tensorMeanArrLength, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Tensor stddev operation on HOST backend for a NCHW/NHWC layout tensor
  * \details The tensor stddev is a reduction operation that finds the channel-wise (R stddev / G stddev / B stddev) and total standard deviation for each image with respect to meanTensor passed.<br>
@@ -247,7 +247,7 @@ RppStatus rppt_tensor_mean_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  */
 RppStatus rppt_tensor_stddev_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t tensorStddevArr, Rpp32u tensorStddevArrLength, Rpp32f *meanTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Tensor stddev operation on HIP backend for a NCHW/NHWC layout tensor
  * \details The tensor stddev is a reduction operation that finds the channel-wise (R stddev / G stddev / B stddev) and total standard deviation for each image with respect to meanTensor passed.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -265,7 +265,7 @@ RppStatus rppt_tensor_stddev_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPt
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_tensor_stddev_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t tensorStddevArr, Rpp32u tensorStddevArrLength, Rpp32f *meanTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Threshold augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The Threshold augmentation outputs a black/white binary mask image, based on whether or not each pixel is within the user-specified pixel-range bounds, for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -292,7 +292,7 @@ RppStatus rppt_tensor_stddev_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr
  */
 RppStatus rppt_threshold_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *minTensor, Rpp32f *maxTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Threshold augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The Threshold augmentation outputs a black/white binary mask image, based on whether or not each pixel is within the user-specified pixel-range bounds, for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -317,7 +317,6 @@ RppStatus rppt_threshold_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t 
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_threshold_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *minTensor, Rpp32f *maxTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif
 
 /*! @}
  */

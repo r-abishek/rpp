@@ -61,7 +61,7 @@ extern "C" {
  */
 RppStatus rppt_crop_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Crop augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The crop augmentation crops each image to a given ROI, for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -80,7 +80,7 @@ RppStatus rppt_crop_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPt
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_crop_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Crop mirror normalize augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The crop mirror normalize augmentation crops each image to a given ROI, does an optional mirror and/or normalize for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -104,7 +104,7 @@ RppStatus rppt_crop_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr
  */
 RppStatus rppt_crop_mirror_normalize_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *offsetTensor, Rpp32f *multiplierTensor, Rpp32u *mirrorTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Crop mirror normalize augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The crop mirror normalize augmentation crops each image to a given ROI, does an optional mirror and/or normalize for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -126,7 +126,7 @@ RppStatus rppt_crop_mirror_normalize_host(RppPtr_t srcPtr, RpptDescPtr srcDescPt
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_crop_mirror_normalize_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *offsetTensor, Rpp32f *multiplierTensor, Rpp32u *mirrorTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Warp affine augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The warp affine augmentation performs affine transformations for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -149,7 +149,7 @@ RppStatus rppt_crop_mirror_normalize_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr
  */
 RppStatus rppt_warp_affine_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *affineTensor, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Warp affine augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The warp affine augmentation performs affine transformations for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -170,7 +170,7 @@ RppStatus rppt_warp_affine_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_warp_affine_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *affineTensor, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Flip augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The flip augmentation performs a mask-controlled horizontal/vertical flip for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -193,7 +193,7 @@ RppStatus rppt_warp_affine_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  */
 RppStatus rppt_flip_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32u *horizontalTensor, Rpp32u *verticalTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Flip augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The flip augmentation performs a mask-controlled horizontal/vertical flip for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -214,7 +214,7 @@ RppStatus rppt_flip_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPt
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_flip_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32u *horizontalTensor, Rpp32u *verticalTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Resize augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The resize augmentation performs an image resize for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -237,7 +237,7 @@ RppStatus rppt_flip_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr
  */
 RppStatus rppt_resize_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptImagePatchPtr dstImgSizes, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Resize augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The resize augmentation performs an image resize for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -258,7 +258,7 @@ RppStatus rppt_resize_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dst
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_resize_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptImagePatchPtr dstImgSizes, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Resize mirror normalize augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The resize mirror normalize augmentation performs an image resize, an optional mirror and/or normalize, for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -284,7 +284,7 @@ RppStatus rppt_resize_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstP
  */
 RppStatus rppt_resize_mirror_normalize_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptImagePatchPtr dstImgSizes, RpptInterpolationType interpolationType, Rpp32f *meanTensor, Rpp32f *stdDevTensor, Rpp32u *mirrorTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Resize mirror normalize augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The resize mirror normalize augmentation performs an image resize, an optional mirror and/or normalize, for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -308,7 +308,7 @@ RppStatus rppt_resize_mirror_normalize_host(RppPtr_t srcPtr, RpptDescPtr srcDesc
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_resize_mirror_normalize_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptImagePatchPtr dstImgSizes, RpptInterpolationType interpolationType, Rpp32f *meanTensor, Rpp32f *stdDevTensor, Rpp32u *mirrorTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Resize crop mirror augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The resize crop mirror augmentation performs an image resized crop, with an optional mirror, for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -332,7 +332,7 @@ RppStatus rppt_resize_mirror_normalize_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescP
  */
 RppStatus rppt_resize_crop_mirror_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptImagePatchPtr dstImgSizes, RpptInterpolationType interpolationType, Rpp32u *mirrorTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Resize crop mirror augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The resize crop mirror augmentation performs an image resized crop, with an optional mirror, for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -354,7 +354,7 @@ RppStatus rppt_resize_crop_mirror_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, 
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_resize_crop_mirror_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptImagePatchPtr dstImgSizes, RpptInterpolationType interpolationType, Rpp32u *mirrorTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Rotate augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The rotate augmentation performs a rotate transformations for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -377,7 +377,7 @@ RppStatus rppt_resize_crop_mirror_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, R
  */
 RppStatus rppt_rotate_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *angle, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Rotate augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The rotate augmentation performs a rotate transformations for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -398,7 +398,7 @@ RppStatus rppt_rotate_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dst
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_rotate_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *angle, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Phase augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The phase augmentation computes phase of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -421,7 +421,7 @@ RppStatus rppt_rotate_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstP
  */
 RppStatus rppt_phase_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Phase augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The phase augmentation computes phase of corresponding pixels for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -442,7 +442,7 @@ RppStatus rppt_phase_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDes
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_phase_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Slice augmentation HOST
  * \details This function performs slice augmentation on a generic 4D tensor.
@@ -464,7 +464,7 @@ RppStatus rppt_phase_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDesc
  */
 RppStatus rppt_slice_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32s *anchorTensor, Rpp32s *shapeTensor, RppPtr_t fillValue, bool enablePadding, Rpp32u *roiTensor, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Slice augmentation GPU
  * \details This function performs slice augmentation on a generic 4D tensor.
  *          Slice augmentation involves selecting a region of interest (ROI) from the source tensor
@@ -484,7 +484,7 @@ RppStatus rppt_slice_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr,
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_slice_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32s *anchorTensor, Rpp32s *shapeTensor, RppPtr_t fillValue, bool enablePadding, Rpp32u *roiTensor, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Crop and Patch augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The crop and patch augmentation crops a ROI from 1st image and patches the cropped region in 2nd image as per the patch co-ordinates
@@ -511,7 +511,7 @@ RppStatus rppt_slice_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, 
  */
 RppStatus rppt_crop_and_patch_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrDst, RpptROIPtr cropRoiTensor, RpptROIPtr patchRoiTensor, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Crop and Patch augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The crop and patch augmentation crops a ROI from 1st image and patches the cropped region in 2nd image as per the patch co-ordinates
             for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -536,7 +536,7 @@ RppStatus rppt_crop_and_patch_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescP
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_crop_and_patch_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrDst, RpptROIPtr cropRoiTensor, RpptROIPtr patchRoiTensor, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Flip voxel augmentation HOST
  * \details The flip voxel augmentation performs a mask-controlled horizontal/vertical/depth flip on a generic 4D tensor.
@@ -560,7 +560,7 @@ RppStatus rppt_crop_and_patch_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptDescPt
  */
 RppStatus rppt_flip_voxel_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *horizontalTensor, Rpp32u *verticalTensor, Rpp32u *depthTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Flip voxel augmentation GPU
  * \details The flip voxel augmentation performs a mask-controlled horizontal/vertical/depth flip on a generic 4D tensor.
             <br> Support added for f32 -> f32 and u8 -> u8 dataypes.
@@ -582,7 +582,7 @@ RppStatus rppt_flip_voxel_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDes
  * \ingroup group_tensor_geometric
  */
 RppStatus rppt_flip_voxel_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *horizontalTensor, Rpp32u *verticalTensor, Rpp32u *depthTensor, RpptROI3DPtr roiGenericPtrSrc, RpptRoi3DType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Remap augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details Performs a remap operation using user specified remap tables for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout. For each image, the output(x,y) = input(mapx(x, y), mapy(x, y)) for every (x,y) in the destination image.<br>
@@ -608,7 +608,7 @@ RppStatus rppt_flip_voxel_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDesc
  */
 RppStatus rppt_remap_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *rowRemapTable, Rpp32f *colRemapTable, RpptDescPtr tableDescPtr, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Remap augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details Performs a remap operation using user specified remap tables for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout. For each image, the output(x,y) = input(mapx(x, y), mapy(x, y)) for every (x,y) in the destination image.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -632,7 +632,7 @@ RppStatus rppt_remap_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstP
  * \ingroup group_tensor_geometric
  */
 RppStatus rppt_remap_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *rowRemapTable, Rpp32f *colRemapTable, RpptDescPtr tableDescPtr, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Lens correction transformation on HOST backend for a NCHW/NHWC layout tensor
  * \details Performs lens correction transforms on an image to compensate barrel lens distortion of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -660,7 +660,7 @@ RppStatus rppt_remap_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPt
  */
 RppStatus rppt_lens_correction_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *rowRemapTable, Rpp32f *colRemapTable, RpptDescPtr tableDescPtr, Rpp32f *cameraMatrixTensor, Rpp32f *distortionCoeffsTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Lens correction transformation on HIP backend for a NCHW/NHWC layout tensor
  * \details Performs lens correction transforms on an image to compensate barrel lens distortion of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -686,7 +686,7 @@ RppStatus rppt_lens_correction_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, Rpp
  * \ingroup group_tensor_geometric
  */
 RppStatus rppt_lens_correction_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *rowRemapTable, Rpp32f *colRemapTable, RpptDescPtr tableDescPtr, Rpp32f *cameraMatrixTensor, Rpp32f *distortionCoeffsTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Transpose Generic augmentation on HOST backend
  * \details The transpose augmentation performs an input-permutation based transpose on a generic ND Tensor.
@@ -704,7 +704,7 @@ RppStatus rppt_lens_correction_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppP
  */
 RppStatus rppt_transpose_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *permTensor, Rpp32u *roiTensor, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Transpose Generic augmentation on HIP backend
  * \details The transpose augmentation performs an input-permutation based transpose on a generic ND Tensor.
  * \param [in] srcPtr source tensor in HIP memory
@@ -720,7 +720,7 @@ RppStatus rppt_transpose_host(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDesc
  * \ingroup group_tensor_geometric
  */
 RppStatus rppt_transpose_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u *permTensor, Rpp32u *roiTensor, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Warp perspective augmentation on HOST backend for a NCHW/NHWC layout tensor
  * \details The warp perspective performs perspective transformations for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
@@ -743,7 +743,7 @@ RppStatus rppt_transpose_gpu(RppPtr_t srcPtr, RpptGenericDescPtr srcGenericDescP
  */
 RppStatus rppt_warp_perspective_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *perspectiveTensor, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Warp perspective augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The warp perspective augmentation performs perspective transformations for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -764,7 +764,7 @@ RppStatus rppt_warp_perspective_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, Rp
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_warp_perspective_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *perspectiveTensor, RpptInterpolationType interpolationType, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*! \brief Concat Generic augmentation on HOST backend
  * \details Concatenates two 2D, 3D or ND tensors in HOST memory along a specified axis.
@@ -785,7 +785,7 @@ RppStatus rppt_warp_perspective_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, Rpp
  */
 RppStatus rppt_concat_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptGenericDescPtr srcPtr1GenericDescPtr, RpptGenericDescPtr srcPtr2GenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u axisMask, Rpp32u *srcPtr1roiTensor, Rpp32u *srcPtr2roiTensor, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*! \brief Concat Generic augmentation on HIP backend
  * \details Concatenates two 2D, 3D or ND tensors in HIP memory along a specified axis.
  * It is optimized for 2D and 3D tensors, ensuring that all dimensions except the concatenation axis must match.
@@ -804,7 +804,7 @@ RppStatus rppt_concat_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RpptGenericDescPt
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_concat_gpu(RppPtr_t srcPtr, RppPtr_t srcPtr2, RpptGenericDescPtr srcPtr1GenericDescPtr, RpptGenericDescPtr srcPtr2GenericDescPtr, RppPtr_t dstPtr, RpptGenericDescPtr dstGenericDescPtr, Rpp32u axis, Rpp32u *srcPtr1roiTensor, Rpp32u *srcPtr2roiTensor, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
 
 /*!
  * \brief JPEG Compression Distortion on HOST backend
@@ -829,7 +829,7 @@ RppStatus rppt_concat_gpu(RppPtr_t srcPtr, RppPtr_t srcPtr2, RpptGenericDescPtr 
  */
 RppStatus rppt_jpeg_compression_distortion_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32s *qualityTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
+
 /*!
  * \brief JPEG Compression Distortion on HIP backend
  * \details This function simulates JPEG compression distortion on an image tensor in hip memory.
@@ -852,7 +852,7 @@ RppStatus rppt_jpeg_compression_distortion_host(RppPtr_t srcPtr, RpptDescPtr src
  * \ingroup group_tensor_geometric
  */
 RppStatus rppt_jpeg_compression_distortion_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
+
  
 /*! @}
  */
