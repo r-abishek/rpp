@@ -46,10 +46,8 @@ extern "C"
 
 RppStatus rppi_fisheye_u8_pln1_batchPD_host(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_fisheye_u8_pkd3_batchPD_host(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
-#ifdef GPU_SUPPORT
 RppStatus rppi_fisheye_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_fisheye_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
 
 /******************** snow ********************/
 
@@ -68,10 +66,8 @@ RppStatus rppi_fisheye_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, R
 
 RppStatus rppi_snow_u8_pln1_batchPD_host(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *snowValue, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_snow_u8_pkd3_batchPD_host(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *snowValue, Rpp32u nbatchSize, rppHandle_t rppHandle);
-#ifdef GPU_SUPPORT
 RppStatus rppi_snow_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *snowValue, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_snow_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *snowValue, Rpp32u nbatchSize, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
 
 /******************** hue ********************/
 
@@ -89,9 +85,7 @@ RppStatus rppi_snow_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, Rppi
 // *retval RPP_ERROR : Error
 
 RppStatus rppi_hueRGB_u8_pkd3_batchPD_host(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *hueShift, Rpp32u nbatchSize, rppHandle_t rppHandle);
-#ifdef GPU_SUPPORT
 RppStatus rppi_hueRGB_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *hueShift, Rpp32u nbatchSize, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
 
 /******************** saturation ********************/
 
@@ -109,9 +103,7 @@ RppStatus rppi_hueRGB_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, Rp
 // *retval RPP_ERROR : Error
 
 RppStatus rppi_saturationRGB_u8_pkd3_batchPD_host(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *saturationFactor, Rpp32u nbatchSize, rppHandle_t rppHandle);
-#ifdef GPU_SUPPORT
 RppStatus rppi_saturationRGB_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *saturationFactor, Rpp32u nbatchSize, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
 
 #ifdef __cplusplus
 }
