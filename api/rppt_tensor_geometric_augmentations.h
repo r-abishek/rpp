@@ -817,7 +817,6 @@ RppStatus rppt_jpeg_compression_distortion_host(RppPtr_t srcPtr, RpptDescPtr src
  * \ingroup group_tensor_geometric
  */
 RppStatus rppt_jpeg_compression_distortion_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-
  
 /*! @}
  */
