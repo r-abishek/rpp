@@ -64,7 +64,6 @@ extern "C" {
  */
 RppStatus rppt_non_silent_region_detection_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, Rpp32s *srcLengthTensor, Rpp32s *detectedIndexTensor, Rpp32s *detectionLengthTensor, Rpp32f cutOffDB, Rpp32s windowLength, Rpp32f referencePower, Rpp32s resetInterval, rppHandle_t rppHandle);
 
-
 /*! \brief Non Silent Region Detection augmentation on HIP backend
  * \details Non Silent Region Detection augmentation for 1D audio buffer
             \n Finds the starting index and length of non silent region in the audio buffer by comparing the
@@ -102,7 +101,6 @@ RppStatus rppt_non_silent_region_detection_gpu(RppPtr_t srcPtr, RpptDescPtr srcD
  */
 RppStatus rppt_to_decibels_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, RpptImagePatchPtr srcDims, Rpp32f cutOffDB, Rpp32f multiplier, Rpp32f referenceMagnitude, rppHandle_t rppHandle);
 
-
 /*! \brief To Decibels augmentation on HIP backend
  * \details To Decibels augmentation for 1D/2D audio buffer converts magnitude values to decibel values
  * \param [in] srcPtr source tensor in HIP memory
@@ -136,7 +134,6 @@ RppStatus rppt_to_decibels_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  */
 RppStatus rppt_pre_emphasis_filter_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32s *srcLengthTensor, Rpp32f *coeffTensor, RpptAudioBorderType borderType, rppHandle_t rppHandle);
 
-
 /*! \brief Pre Emphasis Filter augmentation on HIP backend
 * \details Pre Emphasis Filter augmentation for audio data
 * \param [in] srcPtr source tensor in HIP memory
@@ -167,7 +164,6 @@ RppStatus rppt_pre_emphasis_filter_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, 
 * \retval RPP_ERROR* Unsuccessful completion.
 */
 RppStatus rppt_down_mixing_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32s *srcDimsTensor, bool normalizeWeights, rppHandle_t rppHandle);
-
 
 /*! \brief Down Mixing augmentation on HIP backend
 * \details Down Mixing augmentation for audio data
@@ -204,7 +200,6 @@ RppStatus rppt_down_mixing_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_spectrogram_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32s *srcLengthTensor, bool centerWindows, bool reflectPadding, Rpp32f *windowFunction, Rpp32s nfft, Rpp32s power, Rpp32s windowLength, Rpp32s windowStep, rppHandle_t rppHandle);
-
 
 /*! \brief Produces a spectrogram from a 1D audio buffer on HIP backend
  * \details Spectrogram for 1D audio buffer
@@ -247,7 +242,6 @@ RppStatus rppt_spectrogram_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t
  */
 RppStatus rppt_mel_filter_bank_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32s *srcDims, Rpp32f maxFreq, Rpp32f minFreq, RpptMelScaleFormula melFormula, Rpp32s numFilter, Rpp32f sampleRate, bool normalize, rppHandle_t rppHandle);
 
-
 /*! \brief Mel filter bank augmentation on HIP backend
  * \details Mel filter bank augmentation for audio data
  * \param[in] srcPtr source tensor in HIP memory
@@ -284,7 +278,6 @@ RppStatus rppt_mel_filter_bank_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppP
 * \retval RPP_ERROR* Unsuccessful completion.
 */
 RppStatus rppt_resample_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *inRateTensor, Rpp32f *outRateTensor, Rpp32s *srcDimsTensor, RpptResamplingWindow &window, rppHandle_t rppHandle);
-
 
 /*! \brief Resample augmentation on HIP backend
 * \details Resample augmentation for audio data
