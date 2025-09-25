@@ -66,7 +66,6 @@ RppStatus rppi_bitwise_AND_u8_pln1_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr
 RppStatus rppi_bitwise_AND_u8_pln3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_bitwise_AND_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** bitwise_NOT ********************/
 
 // Performs an element-wise bitwise NOT of a batch of images
@@ -88,7 +87,6 @@ RppStatus rppi_bitwise_NOT_u8_pkd3_batchPD_host(RppPtr_t srcPtr1, RppiSize *srcS
 RppStatus rppi_bitwise_NOT_u8_pln1_batchPD_gpu(RppPtr_t srcPtr1, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_bitwise_NOT_u8_pln3_batchPD_gpu(RppPtr_t srcPtr1, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_bitwise_NOT_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr1, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
-
 
 /******************** exclusive_OR ********************/
 
@@ -113,7 +111,6 @@ RppStatus rppi_exclusive_OR_u8_pln1_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPt
 RppStatus rppi_exclusive_OR_u8_pln3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_exclusive_OR_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** inclusive_OR ********************/
 
 // Performs an element-wise inclusive OR between corresponding pixels of two batches of images
@@ -136,7 +133,6 @@ RppStatus rppi_inclusive_OR_u8_pkd3_batchPD_host(RppPtr_t srcPtr1, RppPtr_t srcP
 RppStatus rppi_inclusive_OR_u8_pln1_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_inclusive_OR_u8_pln3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_inclusive_OR_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
-
 
 /*! @}
  */
