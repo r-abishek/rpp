@@ -67,7 +67,6 @@ RppStatus rppi_thresholding_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSi
 RppStatus rppi_thresholding_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp8u *minThreshold, Rpp8u *maxThreshold, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_thresholding_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp8u *minThreshold, Rpp8u *maxThreshold, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** min ********************/
 
 // Computes minimum of corresponding pixels of two batches of images
@@ -90,7 +89,6 @@ RppStatus rppi_min_u8_pkd3_batchPD_host(RppPtr_t srcPtr1, RppPtr_t srcPtr2, Rppi
 RppStatus rppi_min_u8_pln1_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_min_u8_pln3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_min_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
-
 
 /******************** max ********************/
 
@@ -115,7 +113,6 @@ RppStatus rppi_max_u8_pln1_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiS
 RppStatus rppi_max_u8_pln3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_max_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr1, RppPtr_t srcPtr2, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** min_max_loc ********************/
 
 // Computes minimum, maximum pixel values, and their locations in an image
@@ -139,7 +136,6 @@ RppStatus rppi_min_max_loc_u8_pln1_gpu(RppPtr_t srcPtr, RppiSize srcSize, Rpp8u 
 RppStatus rppi_min_max_loc_u8_pln3_gpu(RppPtr_t srcPtr, RppiSize srcSize, Rpp8u *min, Rpp8u *max, Rpp32u *minLoc, Rpp32u *maxLoc, rppHandle_t rppHandle);
 RppStatus rppi_min_max_loc_u8_pkd3_gpu(RppPtr_t srcPtr, RppiSize srcSize, Rpp8u *min, Rpp8u *max, Rpp32u *minLoc, Rpp32u *maxLoc, rppHandle_t rppHandle);
 
-
 /******************** integral ********************/
 
 // Performs integral-image for a batch of images
@@ -161,7 +157,6 @@ RppStatus rppi_integral_u8_pkd3_batchPD_host(RppPtr_t srcPtr, RppiSize *srcSize,
 RppStatus rppi_integral_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_integral_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_integral_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
-
 
 /******************** histogram_equalization ********************/
 
@@ -185,7 +180,6 @@ RppStatus rppi_histogram_equalization_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiS
 RppStatus rppi_histogram_equalization_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_histogram_equalization_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** mean_stddev ********************/
 
 // Computes the mean and standard deviation of an image
@@ -206,7 +200,6 @@ RppStatus rppi_mean_stddev_u8_pkd3_host(RppPtr_t srcPtr, RppiSize srcSize, Rpp32
 RppStatus rppi_mean_stddev_u8_pln1_gpu(RppPtr_t srcPtr, RppiSize srcSize, Rpp32f *mean, Rpp32f *stddev, rppHandle_t rppHandle);
 RppStatus rppi_mean_stddev_u8_pln3_gpu(RppPtr_t srcPtr, RppiSize srcSize, Rpp32f *mean, Rpp32f *stddev, rppHandle_t rppHandle);
 RppStatus rppi_mean_stddev_u8_pkd3_gpu(RppPtr_t srcPtr, RppiSize srcSize, Rpp32f *mean, Rpp32f *stddev, rppHandle_t rppHandle);
-
 
 /******************** histogram ********************/
 

@@ -66,7 +66,6 @@ RppStatus rppi_box_filter_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize
 RppStatus rppi_box_filter_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_box_filter_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** sobel_filter ********************/
 
 // Applies the sobel filter over every pixel using either of the sobel X/Y/both 3x3 square filters for a batch of images
@@ -90,7 +89,6 @@ RppStatus rppi_sobel_filter_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSi
 RppStatus rppi_sobel_filter_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *sobelType, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_sobel_filter_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *sobelType, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** median_filter ********************/
 
 // Applies the median filter over every pixel using a [kernelSize X kernelSize] square mask for a batch of images
@@ -113,7 +111,6 @@ RppStatus rppi_median_filter_u8_pkd3_batchPD_host(RppPtr_t srcPtr, RppiSize *src
 RppStatus rppi_median_filter_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_median_filter_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_median_filter_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
-
 
 /******************** custom_convolution ********************/
 
@@ -139,7 +136,6 @@ RppStatus rppi_custom_convolution_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize 
 RppStatus rppi_custom_convolution_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, RppPtr_t kernel, RppiSize *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_custom_convolution_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, RppPtr_t kernel, RppiSize *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** non_max_suppression ********************/
 
 // Applies the non-max suppression filter over every pixel using a [kernelSize X kernelSize] square mask for a batch of images
@@ -162,7 +158,6 @@ RppStatus rppi_non_max_suppression_u8_pkd3_batchPD_host(RppPtr_t srcPtr, RppiSiz
 RppStatus rppi_non_max_suppression_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_non_max_suppression_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_non_max_suppression_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
-
 
 /******************** gaussian_filter ********************/
 
@@ -188,7 +183,6 @@ RppStatus rppi_gaussian_filter_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *sr
 RppStatus rppi_gaussian_filter_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *stdDev, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_gaussian_filter_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32f *stdDev, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 
-
 /******************** nonlinear_filter ********************/
 
 // Applies the nonlinear filter over every pixel using a [kernelSize X kernelSize] square mask for a batch of images
@@ -211,7 +205,6 @@ RppStatus rppi_nonlinear_filter_u8_pkd3_batchPD_host(RppPtr_t srcPtr, RppiSize *
 RppStatus rppi_nonlinear_filter_u8_pln1_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_nonlinear_filter_u8_pln3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
 RppStatus rppi_nonlinear_filter_u8_pkd3_batchPD_gpu(RppPtr_t srcPtr, RppiSize *srcSize, RppiSize maxSrcSize, RppPtr_t dstPtr, Rpp32u *kernelSize, Rpp32u nbatchSize, rppHandle_t rppHandle);
-
 
 /*! @}
  */
