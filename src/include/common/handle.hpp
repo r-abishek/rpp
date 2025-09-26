@@ -68,6 +68,7 @@ struct Handle : rppHandle
     InitHandle* GetInitHandle() const;
     size_t GetBatchSize() const;
     Rpp32u GetNumThreads() const;
+    RppBackend GetBackend() const;
     void SetBatchSize(size_t bSize) const;
     void rpp_destroy_object_host();
     std::unique_ptr<HandleImpl> impl;
@@ -83,6 +84,7 @@ struct Handle : rppHandle
     InitHandle*  GetInitHandle() const;
     size_t GetBatchSize() const;
     Rpp32u GetNumThreads() const;
+    RppBackend GetBackend() const;
     void SetBatchSize(size_t bSize) const;
     void rpp_destroy_object_host();
 

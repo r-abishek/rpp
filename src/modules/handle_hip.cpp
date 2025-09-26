@@ -360,6 +360,11 @@ Rpp32u Handle::GetNumThreads() const
     return this->impl->numThreads;
 }
 
+RppBackend Handle::GetBackend() const
+{
+    return this->impl->backend;
+}
+
 void Handle::SetBatchSize(size_t bSize) const
 {
     this->impl->nBatchSize = bSize;
