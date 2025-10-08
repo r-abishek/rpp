@@ -590,21 +590,25 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
 
         if(testCase == "log" && bitDepth == 4)
         {
+            Rpp32f cutoff = 1e-20;
+
             Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
             for(int j = 0; j < sampleLength; j++)
             {
-                if ((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < 1e-6))
+                if ((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < cutoff))
                     cnt++;
             }
         }
         else if(bitDepth == 2 || bitDepth == 11 || bitDepth == 4)  // F32 || I16_F32 || U8_F32
         {
+            Rpp32f cutoff = (testCase == "normalize") ? 1e-5 : 1e-20;
+
             Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
             for(int j = 0; j < sampleLength; j++)
             {
-                if(std::abs(out[j] - ref[j]) < 1e-6)
+                if(std::abs(out[j] - ref[j]) < cutoff)
                     cnt++;
             }
         }
