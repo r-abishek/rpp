@@ -129,7 +129,6 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 6)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
-                exit(0);
             }
             case 4:
             {
@@ -137,7 +136,6 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 8)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
-                exit(0);
             }
         }
     }
@@ -212,7 +210,7 @@ void set_generic_descriptor_layout(RpptGenericDescPtr srcDescriptorPtrND, RpptGe
             }
             default:
             {
-                cout << "Error! QA mode is supported only for 2D/3D inputs" << endl;
+                cout << "Error! QA mode is supported only for 2D/3D/4D inputs" << endl;
                 exit(0);
             }
         }
@@ -413,7 +411,7 @@ void fill_perm_values(Rpp32u nDim, Rpp32u *permTensor, bool qaMode, int permOrde
             }
             default:
             {
-                cout << "Error! QA mode is supported only for 2D / 3D inputs" << endl;
+                cout << "Error! QA mode is supported only for 2D/3D/4D inputs" << endl;
                 exit(0);
             }
         }
