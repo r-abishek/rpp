@@ -70,7 +70,7 @@ int main(int argc, char **argv)
         case 0: bitdepthStr = "u8"; break;
         case 1: bitdepthStr = "f16"; break;
         case 2: bitdepthStr = "f32"; break;
-        case 3: bitdepthStr = "u8_f32"; break;
+        case 3: bitdepthStr = "u8_f16"; break;
         case 4: bitdepthStr = "u8_f32"; break;
         case 5: bitdepthStr = "i8"; break;
         case 6: bitdepthStr = "u8_i8"; break;

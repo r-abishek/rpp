@@ -102,7 +102,7 @@ void read_data(T *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string 
 {
     if (nDim < 2 || nDim > 4)
     {
-        std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D data"<<std::endl;
+        std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D/4D data"<<std::endl;
         exit(0);
     }
     std::string dataPath = get_path(nDim, readType, scriptPath, testCase, bitDepth, isMeanStd);
@@ -320,7 +320,7 @@ void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
             }
             default:
             {
-                cout << "Error! QA mode is supported only for 2D/3D inputs" << endl;
+                cout << "Error! QA mode is supported only for 2D/3D/4D inputs" << endl;
                 exit(0);
             }
         }
