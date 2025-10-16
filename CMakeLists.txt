@@ -60,7 +60,7 @@ if(NOT DEFINED CMAKE_CXX_COMPILER AND EXISTS "${ROCM_PATH}/lib/llvm/bin/amdclang
 elseif(NOT DEFINED CMAKE_CXX_COMPILER AND NOT EXISTS "${ROCM_PATH}/lib/llvm/bin/amdclang++")
     set(CMAKE_C_COMPILER clang)
     set(CMAKE_CXX_COMPILER clang++)
-endif()
+endif()2.2
 
 # RPP Version
 # NOTE: package version and rpp_version.h is generated with this version
