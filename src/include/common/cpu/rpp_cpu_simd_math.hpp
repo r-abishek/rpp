@@ -868,8 +868,7 @@ inline Rpp32f rpp_hsum_ps(__m256 x)
 inline Rpp32f rpp_rsqrt_ps(Rpp32f x)
 {
     //raw C version of scalar
-    Rpp32f y = 1.0f / std::sqrt(x);
-    return y * (1.5f - x * 0.5f * y * y);
+    return 1.0f / std::sqrt(x);
 }
 
 /* Compute inverse square root */

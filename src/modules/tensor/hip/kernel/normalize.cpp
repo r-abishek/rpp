@@ -25,7 +25,7 @@ SOFTWARE.
 #include "hip_tensor_executors.hpp"
 #include "rpp_hip_math.hpp"
 
-#define MAX_SHARED_MEMORY_SIZE 1024
+#define MAX_ELEMENTS_IN_SMEM 1024
 
 // -------------------- Set 0 - normalization kernels device helpers --------------------
 
@@ -700,7 +700,7 @@ __global__ void compute_mean_nd_hip_tensor(T *srcPtr,
     uint paramBase = id_z * maxParamVolume;
     uint paramIndex = 0;
 
-    if (maxParamVolume > MAX_SHARED_MEMORY_SIZE)
+    if (maxParamVolume > MAX_ELEMENTS_IN_SMEM)
     {
         if (id_x >= maxBufferLength)
             return;
@@ -1208,7 +1208,7 @@ __global__ void compute_stddev_nd_hip_tensor(T *srcPtr,
     uint paramBase = id_z * maxParamVolume;
     uint paramIndex = 0;
 
-    if (maxParamVolume > MAX_SHARED_MEMORY_SIZE)
+    if (maxParamVolume > MAX_ELEMENTS_IN_SMEM)
     {
         if (id_x >= maxBufferLength)
             return;
@@ -1730,31 +1730,27 @@ RppStatus hip_exec_compute_mean_stddev_tensor(T *srcPtr,
         Rpp32u *srcMaxDims = &srcGenericDescPtr->dims[1];
         Rpp32u *srcStrides = &srcGenericDescPtr->strides[1];
 
-        Rpp32u shared_memory_size = 0;
-        Rpp32u block_size = 1024;
-        if (maxParamVolume <= MAX_SHARED_MEMORY_SIZE)
+        Rpp32u blockSize = MAX_ELEMENTS_IN_SMEM;
+        if (maxParamVolume <= MAX_ELEMENTS_IN_SMEM)
         {
             if (maxParamVolume <= 32)
-                shared_memory_size = 32;
+                blockSize = 32;
             else if (maxParamVolume <= 64)
-                shared_memory_size = 64;
+                blockSize = 64;
             else if (maxParamVolume <= 128)
-                shared_memory_size = 128;
+                blockSize = 128;
             else if (maxParamVolume <= 256)
-                shared_memory_size = 256;
+                blockSize = 256;
             else if (maxParamVolume <= 512)
-                shared_memory_size = 512;
-            else
-                shared_memory_size = MAX_SHARED_MEMORY_SIZE;
-            block_size = shared_memory_size;
+                blockSize = 512;
         }
-        shared_memory_size *= sizeof(float); // Convert shared memory size from number of floats to bytes
+        Rpp32u sharedMemorySize = blockSize << 2; // 4 bytes per float equivalent to blockSize * 4
         if (isMean)
         {
             hipLaunchKernelGGL(compute_mean_nd_hip_tensor,
-                               dim3(ceil((float)globalThreads_x/block_size), ceil((float)globalThreads_y), ceil((float)globalThreads_z)),
-                               dim3(block_size, 1, 1),
-                               shared_memory_size,
+                               dim3(ceil((float)globalThreads_x/blockSize), ceil((float)globalThreads_y), ceil((float)globalThreads_z)),
+                               dim3(blockSize, 1, 1),
+                               sharedMemorySize,
                                handle.GetStream(),
                                srcPtr,
                                srcMaxDims,
@@ -1770,9 +1766,9 @@ RppStatus hip_exec_compute_mean_stddev_tensor(T *srcPtr,
         else
         {
             hipLaunchKernelGGL(compute_stddev_nd_hip_tensor,
-                               dim3(ceil((float)globalThreads_x/block_size), ceil((float)globalThreads_y), ceil((float)globalThreads_z)),
-                               dim3(block_size, 1, 1),
-                               shared_memory_size,
+                               dim3(ceil((float)globalThreads_x/blockSize), ceil((float)globalThreads_y), ceil((float)globalThreads_z)),
+                               dim3(blockSize, 1, 1),
+                               sharedMemorySize,
                                handle.GetStream(),
                                srcPtr,
                                srcMaxDims,
