@@ -41,16 +41,17 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                           Rpp32f *betaTensor,
                           RpptROIPtr roiTensorPtrSrc,
                           RpptRoiType roiType,
-                          rppHandle_t rppHandle)
+                          rppHandle_t rppHandle,
+                          RppBackend executionBackend)
 {
     if (srcDescPtr->dataType != dstDescPtr->dataType) return RPP_ERROR_INVALID_SRC_OR_DST_DATATYPE;
     if ((srcDescPtr->layout == RpptLayout::NCDHW) || (srcDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
     if ((dstDescPtr->layout == RpptLayout::NCDHW) || (dstDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
 
     rpp::Handle &handle = rpp::deref(rppHandle);
-    RppBackend backend = handle.GetBackend();
+    RppBackend handleBackend = handle.GetBackend();
 
-    if(backend == RppBackend::RPP_HOST_BACKEND)
+    if(((handleBackend == RppBackend::RPP_HOST_BACKEND) || (handleBackend == RppBackend::RPP_HIP_BACKEND)) && (executionBackend == RppBackend::RPP_HOST_BACKEND))
     {
         RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
         if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
@@ -105,21 +106,20 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                         layoutParams,
                                         handle);
         }
-    }
-#ifdef GPU_SUPPORT
-#ifdef HIP_COMPILE
-    else if(backend == RppBackend::RPP_HIP_BACKEND)
-    {
-        Rpp32u paramIndex = 0;
-        copy_param_float(alphaTensor, handle, paramIndex++);
-        copy_param_float(betaTensor, handle, paramIndex++);
 
+        return RPP_SUCCESS;
+    }
+#ifdef HIP_COMPILE
+    else if((handleBackend == RppBackend::RPP_HIP_BACKEND) && (executionBackend == RppBackend::RPP_HIP_BACKEND))
+    {
         if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
         {
             hip_exec_brightness_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                     srcDescPtr,
                                     static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
                                     dstDescPtr,
+                                    alphaTensor,
+                                    betaTensor,
                                     roiTensorPtrSrc,
                                     roiType,
                                     handle);
@@ -130,6 +130,8 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                     srcDescPtr,
                                     (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                     dstDescPtr,
+                                    alphaTensor,
+                                    betaTensor,
                                     roiTensorPtrSrc,
                                     roiType,
                                     handle);
@@ -140,6 +142,8 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                     srcDescPtr,
                                     (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                     dstDescPtr,
+                                    alphaTensor,
+                                    betaTensor,
                                     roiTensorPtrSrc,
                                     roiType,
                                     handle);
@@ -150,16 +154,18 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
                                     srcDescPtr,
                                     static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
                                     dstDescPtr,
+                                    alphaTensor,
+                                    betaTensor,
                                     roiTensorPtrSrc,
                                     roiType,
                                     handle);
         }
+        return RPP_SUCCESS;
     }
 #elif defined(OCL_COMPILE)
     return RPP_ERROR_NOT_IMPLEMENTED;
-#endif // backend
-#endif
-    return RPP_SUCCESS;
+#endif // handleBackend
+    return RPP_ERROR_INCOMPATIBLE_BACKEND;
 }
 
 /******************** gamma_correction ********************/
