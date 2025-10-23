@@ -51,7 +51,7 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
     rpp::Handle &handle = rpp::deref(rppHandle);
     RppBackend handleBackend = handle.GetBackend();
 
-    if(((handleBackend == RppBackend::RPP_HOST_BACKEND) || (handleBackend == RppBackend::RPP_HIP_BACKEND)) && (executionBackend == RppBackend::RPP_HOST_BACKEND))
+    if(executionBackend == RppBackend::RPP_HOST_BACKEND)
     {
         RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
         if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))

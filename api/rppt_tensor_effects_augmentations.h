@@ -817,7 +817,6 @@ RppStatus rppt_posterize_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t d
  */
 RppStatus rppt_solarize_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f* thresholdTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
-#ifdef GPU_SUPPORT
 /*! \brief Solarize augmentation on HIP backend for a NCHW/NHWC layout tensor
  * \details The solarize augmentation inverts pixel values above a specified threshold for a batch of RGB(3 channel) / greyscale(1 channel) images with an NHWC/NCHW tensor layout.<br>
  * - srcPtr depth ranges - Rpp8u (0 to 255), Rpp16f (0 to 1), Rpp32f (0 to 1), Rpp8s (-128 to 127).
@@ -837,7 +836,6 @@ RppStatus rppt_solarize_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t d
  * \retval RPP_ERROR* Unsuccessful completion.
  */
 RppStatus rppt_solarize_gpu(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f *thresholdTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
-#endif // GPU_SUPPORT
 
 /*! @}
  */
