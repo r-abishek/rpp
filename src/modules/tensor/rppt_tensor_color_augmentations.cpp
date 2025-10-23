@@ -163,7 +163,8 @@ RppStatus rppt_brightness(RppPtr_t srcPtr,
         return RPP_SUCCESS;
     }
 #elif defined(OCL_COMPILE)
-    return RPP_ERROR_NOT_IMPLEMENTED;
+    else if((handleBackend == RppBackend::RPP_OCL_BACKEND) && (executionBackend == RppBackend::RPP_OCL_BACKEND))
+        return RPP_ERROR_NOT_IMPLEMENTED;
 #endif // handleBackend
     return RPP_ERROR_INCOMPATIBLE_BACKEND;
 }
