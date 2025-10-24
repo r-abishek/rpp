@@ -25,7 +25,7 @@ SOFTWARE.
 #include "hip_tensor_executors.hpp"
 #include "rpp_hip_math.hpp"
 
-#define MAX_ELEMENTS_IN_SMEM 1024
+#define MAX_ELEMENTS_IN_SMEM 1024u
 
 // -------------------- Set 0 - normalization kernels device helpers --------------------
 
@@ -1734,11 +1734,12 @@ RppStatus hip_exec_compute_mean_stddev_tensor(T *srcPtr,
         if (maxParamVolume <= MAX_ELEMENTS_IN_SMEM)
         {
             // Round up to next power of 2, with minimum of 32
-            blockSize = 1 << (32 - __builtin_clz(std::max(maxParamVolume, 32) - 1));
+            blockSize = 1 << (32 - __builtin_clz(std::max(maxParamVolume, 32u) - 1));
             // Clamp to MAX_SHARED_MEMORY_SIZE if needed
-            blockSize = std::min(blockSize, MAX_SHARED_MEMORY_SIZE);
+            blockSize = std::min(blockSize, MAX_ELEMENTS_IN_SMEM);
         }
-        Rpp32u sharedMemorySize = blockSize << 2; // 4 bytes per float equivalent to blockSize * 4
+
+        Rpp32u sharedMemorySize = blockSize * sizeof(T); // number of bytes equivalent to blockSize * sizeof(type)
         if (isMean)
         {
             hipLaunchKernelGGL(compute_mean_nd_hip_tensor,
