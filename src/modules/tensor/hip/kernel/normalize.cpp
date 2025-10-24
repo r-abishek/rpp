@@ -1733,16 +1733,10 @@ RppStatus hip_exec_compute_mean_stddev_tensor(T *srcPtr,
         Rpp32u blockSize = MAX_ELEMENTS_IN_SMEM;
         if (maxParamVolume <= MAX_ELEMENTS_IN_SMEM)
         {
-            if (maxParamVolume <= 32)
-                blockSize = 32;
-            else if (maxParamVolume <= 64)
-                blockSize = 64;
-            else if (maxParamVolume <= 128)
-                blockSize = 128;
-            else if (maxParamVolume <= 256)
-                blockSize = 256;
-            else if (maxParamVolume <= 512)
-                blockSize = 512;
+            // Round up to next power of 2, with minimum of 32
+            blockSize = 1 << std::max(5, 32 - __builtin_clz(maxParamVolume - 1));
+            // Clamp to MAX_SHARED_MEMORY_SIZE if needed
+            blockSize = std::min(blockSize, MAX_SHARED_MEMORY_SIZE);
         }
         Rpp32u sharedMemorySize = blockSize << 2; // 4 bytes per float equivalent to blockSize * 4
         if (isMean)
