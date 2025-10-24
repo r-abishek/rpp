@@ -1734,7 +1734,7 @@ RppStatus hip_exec_compute_mean_stddev_tensor(T *srcPtr,
         if (maxParamVolume <= MAX_ELEMENTS_IN_SMEM)
         {
             // Round up to next power of 2, with minimum of 32
-            blockSize = 1 << std::max(5, 32 - __builtin_clz(maxParamVolume - 1));
+            blockSize = 1 << (32 - __builtin_clz(std::max(maxParamVolume, 32) - 1));
             // Clamp to MAX_SHARED_MEMORY_SIZE if needed
             blockSize = std::min(blockSize, MAX_SHARED_MEMORY_SIZE);
         }
