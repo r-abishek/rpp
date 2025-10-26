@@ -251,7 +251,10 @@ inline void set_generic_descriptor(RpptGenericDescPtr descriptorPtr3D, int nDim,
     compute_strides(descriptorPtr3D);
 }
 
-// strides used for jumping to corresponding axisMask mean and stddev
+// Strides used to locate the corresponding mean and stddev values (based on axisMask)
+// within the input bin files for 2D normalization cases.
+// These strides are precomputed for various combinations of dimensions and axes
+// for the default QA test case: input shape = 100x100.
 std::map<Rpp32s, Rpp32u> paramStrideMap2D =
 {
     {1, 0},
@@ -259,7 +262,10 @@ std::map<Rpp32s, Rpp32u> paramStrideMap2D =
     {3, 200}
 };
 
-// strides used for jumping to corresponding axisMask mean and stddev
+// Strides used to locate the corresponding mean and stddev values (based on axisMask)
+// within the input bin files for 3D normalization cases.
+// These strides are precomputed for various combinations of dimensions and axes
+// for the default QA test case: input shape = 25x25x32.
 std::map<Rpp32s, Rpp32u> paramStrideMap3D =
 {
     {1, 0},
@@ -271,10 +277,13 @@ std::map<Rpp32s, Rpp32u> paramStrideMap3D =
     {7, 3408}
 };
 
-// strides used for jumping to corresponding axisMask mean and stddev in 4D
+// Strides used to locate the corresponding mean and stddev values (based on axisMask)
+// within the input bin files for 4D normalization cases.
+// These strides are precomputed for various combinations of dimensions and axes
+// for the default QA test case: input shape = 4x10x25x40.
 std::map<Rpp32s, Rpp32u> paramStrideMap4D =
 {
-    {1, 0}, // 4x10x25x40 - 4D
+    {1, 0},
     {2, 1000},
     {3, 2600},
     {4, 2640},
