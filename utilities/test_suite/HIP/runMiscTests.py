@@ -102,9 +102,9 @@ def run_performance_test_with_profiler_cmd(loggingFolder, numDims, case, numRuns
 def run_test(loggingFolder, numDims, case, numRuns, testType, toggle, batchSize, outFilePath, additionalArg, profilingOption = 'NO'):
     bitDepths = [0, 2]
     if int(case) == 2:   
-        bitDepths = [2, 4]
+        bitDepths = [1, 2, 4, 11]
     elif int(case) == 4:
-        bitDepths = [11]
+        bitDepths = [12]
     elif testType == 1:
         bitDepths = [0, 1, 2, 5]
     if testType == 0:

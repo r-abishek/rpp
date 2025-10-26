@@ -74,7 +74,8 @@ int main(int argc, char **argv)
         case 4: bitdepthStr = "u8_f32"; break;
         case 5: bitdepthStr = "i8"; break;
         case 6: bitdepthStr = "u8_i8"; break;
-        case 11: bitdepthStr = "i16_f32"; break;
+        case 11: bitdepthStr = "i8_f32"; break;
+        case 12: bitdepthStr = "i16_f32"; break;
         default: bitdepthStr = "unknown"; break;
     }
 
@@ -104,14 +105,23 @@ int main(int argc, char **argv)
     srcDescriptorPtrND = &srcDescriptor;
     dstDescriptorPtrND = &dstDescriptor;
     int offSetInBytes = 0;
-    if(testCase == LOG1P && bitDepth == 11)
+
+    // Case for LOG1P where input is of type I16 and output of type F32
+    if(testCase == LOG1P && bitDepth == 12)
     {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
+    // Case for LOG where input is of type U8 and output of type F32
     else if(testCase == LOG && bitDepth == 4)
     {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 0, batchSize, roiTensor);
+        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
+    }
+    // Case for LOG where input is of type I8 and output of type F32
+    else if(testCase == LOG && bitDepth == 11)
+    {
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 5, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
     else
@@ -139,7 +149,7 @@ int main(int argc, char **argv)
         oBufferSize *= dstDescriptorPtrND->dims[i];
     }
 
-    if(testCase == LOG1P && bitDepth == 11)
+    if(testCase == LOG1P && bitDepth == 12)
     {
         // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
         // here is F32 (we store F32 to then convert). So allocate as F32 to hold that data.
@@ -166,7 +176,7 @@ int main(int argc, char **argv)
     // read input data
     if(qaMode)
     {
-        if(bitDepth == 11) // log1p
+        if(bitDepth == 12) // log1p
             read_data(input, nDim, 0, scriptPath, funcName, 2);
         else if(bitDepth == 4) // log
             read_data(input, nDim, 0, scriptPath, funcName, 0);
@@ -288,7 +298,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log";
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 2 || bitDepth == 4)
+                if(bitDepth == 1 || bitDepth == 2 || bitDepth == 4 || bitDepth == 11)
                     rppt_log_host(input, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -312,7 +322,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log1p";
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 11)
+                if(bitDepth == 12)
                     rppt_log1p_host(inputI16, srcDescriptorPtrND, output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
