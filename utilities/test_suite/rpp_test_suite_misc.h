@@ -563,6 +563,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
         case 4: dataType = RpptDataType::F32; break;
         case 5: dataType = RpptDataType::I8; break;
         case 11: dataType = RpptDataType::F32; break;
+        case 12: dataType = RpptDataType::F32; break;
         default: std::cerr << "ERROR: Invalid bitDepth specified!" << std::endl; return;
     }
     Rpp32u goldenOutputLength;
