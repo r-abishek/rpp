@@ -34,7 +34,7 @@ int main(int argc, char **argv)
         cout << "\nUsage: ./Tensor_misc_hip <case number = 0:2> <test type 0/1> <toggle 0/1> <number of dimensions> <batch size> <num runs> <additional param> <dst path> <script path>\n";
         return -1;
     }
-    Rpp32u testCase, testType, nDim, batchSize, numRuns, bitDepth, toggle;
+    Rpp32u testCase, testType, nDim, batchSize, numRuns, BitDepthTestMode, toggle;
     bool qaMode;
 
     testCase = atoi(argv[1]);
@@ -43,10 +43,10 @@ int main(int argc, char **argv)
     nDim = atoi(argv[4]);
     batchSize = atoi(argv[5]);
     numRuns = atoi(argv[6]);
-    bitDepth = atoi(argv[7]);
+    BitDepthTestMode = atoi(argv[7]);
     string dst = argv[9];
     string scriptPath = argv[10];
-    qaMode = (testType == 0);
+    qaMode = (testType == UNIT_TEST);
     bool axisMaskCase = (testCase == NORMALIZE || testCase == CONCAT);
     bool permOrderCase = (testCase == TRANSPOSE);
     int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
@@ -66,17 +66,17 @@ int main(int argc, char **argv)
     }
 
     std::string bitdepthStr; // Variable to store the bit depth as a string
-    switch (bitDepth)
+    switch (BitDepthTestMode)
     {
-        case 0: bitdepthStr = "u8"; break;
-        case 1: bitdepthStr = "f16"; break;
-        case 2: bitdepthStr = "f32"; break;
-        case 3: bitdepthStr = "u8_f16"; break;
-        case 4: bitdepthStr = "u8_f32"; break;
-        case 5: bitdepthStr = "i8"; break;
-        case 6: bitdepthStr = "u8_i8"; break;
-        case 11: bitdepthStr = "i8_f32"; break;
-        case 12: bitdepthStr = "i16_f32"; break;
+        case U8_TO_U8: bitdepthStr = "u8"; break;
+        case F16_TO_F16: bitdepthStr = "f16"; break;
+        case F32_TO_F32: bitdepthStr = "f32"; break;
+        case U8_TO_F16: bitdepthStr = "u8_f16"; break;
+        case U8_TO_F32: bitdepthStr = "u8_f32"; break;
+        case I8_TO_I8: bitdepthStr = "i8"; break;
+        case U8_TO_I8: bitdepthStr = "u8_i8"; break;
+        case I8_TO_F32: bitdepthStr = "i8_f32"; break;
+        case I16_TO_F32: bitdepthStr = "i16_f32"; break;
         default: bitdepthStr = "unknown"; break;
     }
 
@@ -107,27 +107,27 @@ int main(int argc, char **argv)
     // set dims and compute strides
     int offSetInBytes = 0;
     // Case for LOG1P where input is of type I16 and output of type F32
-    if(testCase == LOG1P && bitDepth == 12)
+    if(testCase == LOG1P && BitDepthTestMode == I16_TO_F32)
     {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
     // Case for LOG where input is of type U8 and output of type F32
-    else if(testCase == LOG && bitDepth == 4)
+    else if(testCase == LOG && BitDepthTestMode == U8_TO_F32)
     {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 0, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
     // Case for LOG where input is of type I8 and output of type F32
-    else if(testCase == LOG && bitDepth == 11)
+    else if(testCase == LOG && BitDepthTestMode == I8_TO_F32)
     {
         set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 5, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
     else
     {
-        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, roiTensor);
-        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, bitDepth, batchSize, dstRoiTensor);
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, BitDepthTestMode, batchSize, roiTensor);
+        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, BitDepthTestMode, batchSize, dstRoiTensor);
     }
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
     if(testCase == CONCAT)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
-        set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, bitDepth, batchSize, roiTensorSecond);
+        set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, BitDepthTestMode, batchSize, roiTensorSecond);
         set_generic_descriptor_layout(srcDescriptorPtrNDSecond, dstDescriptorPtrND, nDim, toggle, qaMode);
     }
 
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
     }
 
-    if(testCase == LOG1P && bitDepth == 12)
+    if(testCase == LOG1P && BitDepthTestMode == I16_TO_F32)
     {
         // LOG1P expects int16 input (we transform F32->I16 in inputI16), but the 'input' buffer used
         // here is F32 (we store F32 to then convert). So allocate as F32 to hold that data.
@@ -184,14 +184,14 @@ int main(int argc, char **argv)
     // read input data
     if(qaMode)
     {
-        if(bitDepth == 12) // log1p
+        if(BitDepthTestMode == I16_TO_F32) // log1p
             read_data(input, nDim, 0, scriptPath, funcName, 2);
-        else if(bitDepth == 4) // log
+        else if(BitDepthTestMode == U8_TO_F32) // log
             read_data(input, nDim, 0, scriptPath, funcName, 0);
         else
-            read_data(input, nDim, 0, scriptPath, funcName, bitDepth);
+            read_data(input, nDim, 0, scriptPath, funcName, BitDepthTestMode);
         if(testCase == CONCAT)
-            read_data(inputSecond, nDim, 0, scriptPath, funcName, bitDepth);
+            read_data(inputSecond, nDim, 0, scriptPath, funcName, BitDepthTestMode);
     }
     else
     {
@@ -206,14 +206,14 @@ int main(int argc, char **argv)
 
         std::srand(0);
         for(int i = 0; i < iBufferSize; i++)
-            inputF32[i] = static_cast<float>((std::rand() % 255));
+            inputF32[i] = static_cast<float>(std::rand() % 255);
         if(testCase == CONCAT)
         {
             for(int i = 0; i < iBufferSizeSecond; i++)
-                inputF32Second[i] = static_cast<float>((std::rand() % 255));
+                inputF32Second[i] = static_cast<float>(std::rand() % 255);
         }
 
-        convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, bitDepth, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
+        convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, BitDepthTestMode, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
     }
 
     if(testCase == LOG1P)
@@ -273,7 +273,7 @@ int main(int argc, char **argv)
                 compute_strides(dstDescriptorPtrND);
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if(BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                     rppt_transpose_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, permTensor, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -314,14 +314,14 @@ int main(int argc, char **argv)
                         meanTensorCPU = static_cast<Rpp32f *>(malloc(maxSize * sizeof(Rpp32f)));
                     if(stdDevTensorCPU == nullptr)
                         stdDevTensorCPU = static_cast<Rpp32f *>(malloc(maxSize * sizeof(Rpp32f)));
-                    fill_mean_stddev_values(nDim, maxSize, meanTensorCPU, stdDevTensorCPU, qaMode, axisMask, scriptPath, bitDepth);
+                    fill_mean_stddev_values(nDim, maxSize, meanTensorCPU, stdDevTensorCPU, qaMode, axisMask, scriptPath, BitDepthTestMode);
                     CHECK_RETURN_STATUS(hipMemcpy(meanTensor, meanTensorCPU, maxSize * sizeof(Rpp32f), hipMemcpyHostToDevice));
                     CHECK_RETURN_STATUS(hipMemcpy(stdDevTensor, stdDevTensorCPU, maxSize * sizeof(Rpp32f), hipMemcpyHostToDevice));
                     CHECK_RETURN_STATUS(hipDeviceSynchronize());
                 }
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if(BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                     rppt_normalize_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, axisMask, meanTensor, stdDevTensor, computeMeanStddev, scale, shift, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -333,7 +333,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log";
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 1 || bitDepth == 2 || bitDepth == 4 || bitDepth == 11)
+                if(BitDepthTestMode == U8_TO_F32 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_F32)
                     rppt_log_gpu(d_input, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
@@ -344,7 +344,7 @@ int main(int argc, char **argv)
             {
                 testCaseName  = "concat";
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 0 || bitDepth == 1 || bitDepth == 2 || bitDepth == 5)
+                if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                     rppt_concat_gpu(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, axisMask, roiTensor, roiTensorSecond, handle);
                 else
                     missingFuncFlag = 1;
@@ -356,7 +356,7 @@ int main(int argc, char **argv)
                 testCaseName  = "log1p";
 
                 startWallTime = omp_get_wtime();
-                if(bitDepth == 12)
+                if(BitDepthTestMode == I16_TO_F32)
                     rppt_log1p_gpu(d_inputI16, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle);
                 else
                     missingFuncFlag = 1;
