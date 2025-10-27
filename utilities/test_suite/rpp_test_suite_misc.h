@@ -548,8 +548,8 @@ inline void convert_output_bitdepth_to_f32(void *output, Rpp32f *outputf32, int 
 }
 
 // Compares output with reference outputs and validates QA
-void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u BitDepthTestMode, Rpp32u bufferLength, string dst,
-                    string funcName, string testCase, int additionalParam, string scriptPath, bool isMeanStd = false)
+void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u BitDepthTestMode, Rpp32u bufferLength, std::string dst,
+                    std::string funcName, std::string testCase, int additionalParam, std::string scriptPath, bool isMeanStd = false)
 {
     // Allocate and read reference data based on bitDepth
     RpptDataType dataType;
