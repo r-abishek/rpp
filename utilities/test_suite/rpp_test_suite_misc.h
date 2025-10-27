@@ -63,16 +63,16 @@ void compute_strides(RpptGenericDescPtr descriptorPtr)
 }
 
 // Retrieve path for bin file
-string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u bitDepth, bool isMeanStd = false)
+string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode, bool isMeanStd = false)
 {
     string folderPath, suffix, bitDepthStr;
-    if (bitDepth == 0)
+    if (BitDepthTestMode == U8_TO_U8)
         bitDepthStr = "u8";
-    else if (bitDepth == 2)
+    else if (BitDepthTestMode == F32_TO_F32)
         bitDepthStr = "f32";
-    else if (bitDepth == 4)
+    else if (BitDepthTestMode == U8_TO_F32)
         bitDepthStr = "u8";
-    else if (bitDepth == 11)
+    else if (BitDepthTestMode == I16_TO_F32)
         bitDepthStr = "f32";
 
     if (readType == 0) // Input
@@ -98,14 +98,14 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
 
 // Read data from Bin file
 template <typename T>
-void read_data(T *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u bitDepth, bool isMeanStd = false)
+void read_data(T *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode, bool isMeanStd = false)
 {
     if (nDim < 2 || nDim > 4)
     {
         std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D/4D data"<<std::endl;
         exit(0);
     }
-    std::string dataPath = get_path(nDim, readType, scriptPath, testCase, bitDepth, isMeanStd);
+    std::string dataPath = get_path(nDim, readType, scriptPath, testCase, BitDepthTestMode, isMeanStd);
     read_bin_file(dataPath, data);
 }
 
@@ -300,7 +300,7 @@ std::map<Rpp32s, Rpp32u> paramStrideMap4D =
 
 // fill the mean and stddev values used for normalize
 void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
-                             Rpp32f *stdDevTensor, bool qaMode, int axisMask, string scriptPath, Rpp32u bitDepth)
+                             Rpp32f *stdDevTensor, bool qaMode, int axisMask, string scriptPath, Rpp32u BitDepthTestMode)
 {
     if(qaMode)
     {
@@ -333,7 +333,7 @@ void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
         }
         std::vector<Rpp32f> paramBuf(numValues * 2);
         Rpp32f *data = paramBuf.data();
-        read_data(data, nDim, 0, scriptPath, "normalize", bitDepth, true);
+        read_data(data, nDim, 0, scriptPath, "normalize", BitDepthTestMode, true);
         memcpy(meanTensor, data + paramStride, size * sizeof(Rpp32f));
         memcpy(stdDevTensor, data + numValues + paramStride, size * sizeof(Rpp32f));
     }
@@ -430,9 +430,9 @@ void fill_perm_values(Rpp32u nDim, Rpp32u *permTensor, bool qaMode, int permOrde
     }
 }
 
-Rpp32u get_bin_size(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u bitDepth)
+Rpp32u get_bin_size(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode)
 {
-    string refFile = get_path(nDim, readType, scriptPath, testCase, bitDepth);
+    string refFile = get_path(nDim, readType, scriptPath, testCase, BitDepthTestMode);
     std::ifstream filestream(refFile, ios_base::in | ios_base::binary);
     filestream.seekg(0, ios_base::end);
     Rpp32u filesize = filestream.tellg();
@@ -548,29 +548,29 @@ inline void convert_output_bitdepth_to_f32(void *output, Rpp32f *outputf32, int 
 }
 
 // Compares output with reference outputs and validates QA
-void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth, Rpp32u bufferLength, std::string dst,
-                    std::string funcName, std::string testCase, int additionalParam, std::string scriptPath, bool isMeanStd = false)
+void compare_output(Rpp32f *outputF32, Rpp32u nDim, Rpp32u batchSize, Rpp32u BitDepthTestMode, Rpp32u bufferLength, string dst,
+                    string funcName, string testCase, int additionalParam, string scriptPath, bool isMeanStd = false)
 {
     // Allocate and read reference data based on bitDepth
     RpptDataType dataType;
-    switch(bitDepth)
+    switch(BitDepthTestMode)
     {
-        case 0: dataType = RpptDataType::U8; break;
-        case 1: dataType = RpptDataType::F16; break;
-        case 2: dataType = RpptDataType::F32; break;
-        case 4: dataType = RpptDataType::F32; break;
-        case 5: dataType = RpptDataType::I8; break;
-        case 11: dataType = RpptDataType::F32; break;
-        case 12: dataType = RpptDataType::F32; break;
+        case U8_TO_U8: dataType = RpptDataType::U8; break;
+        case F16_TO_F16: dataType = RpptDataType::F16; break;
+        case F32_TO_F32: dataType = RpptDataType::F32; break;
+        case U8_TO_F32: dataType = RpptDataType::F32; break;
+        case I8_TO_I8: dataType = RpptDataType::I8; break;
+        case I8_TO_F32: dataType = RpptDataType::F32; break;
+        case I16_TO_F32: dataType = RpptDataType::F32; break;
         default: std::cerr << "ERROR: Invalid bitDepth specified!" << std::endl; return;
     }
     Rpp32u goldenOutputLength;
     if(testCase == "log")
-        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, 2);
+        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, F32_TO_F32);
     else
-        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, bitDepth);
+        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, BitDepthTestMode);
     void *refOutput = calloc(goldenOutputLength, get_size_of_data_type(dataType));
-    read_data(refOutput, nDim, 1, scriptPath, testCase, bitDepth);
+    read_data(refOutput, nDim, 1, scriptPath, testCase, BitDepthTestMode);
     int subVariantStride = 0;
     if(testCase == "normalize")
     {
@@ -596,7 +596,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
         int cnt = 0;
         int sampleOffset = i * sampleLength + subVariantStride;
 
-        if(testCase == "log" && bitDepth == 4)
+        if(testCase == "log" && BitDepthTestMode == U8_TO_F32)
         {
             Rpp32f cutoff = 1e-6;
 
@@ -608,7 +608,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
                     cnt++;
             }
         }
-        else if(bitDepth == 2 || bitDepth == 11 || bitDepth == 4)  // F32 || I16_F32 || U8_F32
+        else if(BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I16_TO_F32 || BitDepthTestMode == U8_TO_F32)  // F32 || I16_F32 || U8_F32
         {
             Rpp32f cutoff = (testCase == "normalize") ? 1e-5 : 1e-6;
 
@@ -620,7 +620,7 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u bitDepth
                     cnt++;
             }
         }
-        else if(bitDepth == 0)  // U8
+        else if(BitDepthTestMode == U8_TO_U8)  // U8
         {
             Rpp8u *ref = static_cast<Rpp8u *>(refOutput) + sampleOffset;
             Rpp8u *out = static_cast<Rpp8u *>(output) + i * sampleLength;
