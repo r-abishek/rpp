@@ -109,7 +109,7 @@ int main(int argc, char **argv)
     // Case for LOG1P where input is of type I16 and output of type F32
     if(testCase == LOG1P && BitDepthTestMode == I16_TO_F32)
     {
-        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 7, batchSize, roiTensor);
+        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 12, batchSize, roiTensor);
         set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
     }
     // Case for LOG where input is of type U8 and output of type F32

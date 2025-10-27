@@ -243,6 +243,8 @@ inline void set_generic_descriptor(RpptGenericDescPtr descriptorPtr3D, int nDim,
         descriptorPtr3D->dataType = RpptDataType::F32;
     else if (BitDepthTestMode == I8_TO_I8)
         descriptorPtr3D->dataType = RpptDataType::I8;
+    else if (BitDepthTestMode == I16_TO_F32)
+        descriptorPtr3D->dataType = RpptDataType::I16;
     descriptorPtr3D->dims[0] = batchSize;
     for(int i = 1; i <= nDim; i++)
         descriptorPtr3D->dims[i] = roiTensor[nDim + i - 1];
@@ -449,6 +451,8 @@ inline size_t get_size_of_data_type(RpptDataType dataType)
         return sizeof(Rpp16f);
     else if(dataType == RpptDataType::F32)
         return sizeof(Rpp32f);
+    else if(dataType == RpptDataType::I16)
+        return sizeof(Rpp16s);
     else
         return 0;
 }
