@@ -231,20 +231,25 @@ void set_generic_descriptor_layout(RpptGenericDescPtr srcDescriptorPtrND, RpptGe
 }
 
 // sets generic descriptor numDims, offsetInBytes, bitdepth, dims and strides
-inline void set_generic_descriptor(RpptGenericDescPtr descriptorPtr3D, int nDim, int offsetInBytes, int BitDepthTestMode, int batchSize, Rpp32u *roiTensor)
+inline void set_generic_descriptor(RpptGenericDescPtr descriptorPtr3D, int nDim, int offsetInBytes, int BitDepthTestMode, int batchSize, Rpp32u *roiTensor, bool isDestination)
 {
     descriptorPtr3D->numDims = nDim + 1;
     descriptorPtr3D->offsetInBytes = offsetInBytes;
-    if (BitDepthTestMode == U8_TO_U8)
-        descriptorPtr3D->dataType = RpptDataType::U8;
-    else if (BitDepthTestMode == F16_TO_F16)
-        descriptorPtr3D->dataType = RpptDataType::F16;
-    else if (BitDepthTestMode == F32_TO_F32)
-        descriptorPtr3D->dataType = RpptDataType::F32;
-    else if (BitDepthTestMode == I8_TO_I8)
-        descriptorPtr3D->dataType = RpptDataType::I8;
-    else if (BitDepthTestMode == I16_TO_F32)
-        descriptorPtr3D->dataType = RpptDataType::I16;
+
+    switch (isDestination)
+    {
+        case BitDepthTestMode::U8_TO_U8:  descriptorPtr3D->dataType = RpptDataType::U8;
+        case BitDepthTestMode::F16_TO_F16: descriptorPtr3D->dataType = RpptDataType::F16;
+        case BitDepthTestMode::F32_TO_F32: descriptorPtr3D->dataType = RpptDataType::F32;
+        case BitDepthTestMode::I8_TO_I8:   descriptorPtr3D->dataType = RpptDataType::I8;
+
+        case BitDepthTestMode::U8_TO_F32:  descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::U8;
+        case BitDepthTestMode::I8_TO_F32:  descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I8;
+        case BitDepthTestMode::I16_TO_F32:  descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I16;
+
+        default: descriptorPtr3D->dataType = RpptDataType::U8;
+    }
+
     descriptorPtr3D->dims[0] = batchSize;
     for(int i = 1; i <= nDim; i++)
         descriptorPtr3D->dims[i] = roiTensor[nDim + i - 1];

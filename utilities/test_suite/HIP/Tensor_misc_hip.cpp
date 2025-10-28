@@ -106,36 +106,17 @@ int main(int argc, char **argv)
 
     // set dims and compute strides
     int offSetInBytes = 0;
-    // Case for LOG1P where input is of type I16 and output of type F32
-    if(testCase == LOG1P && BitDepthTestMode == I16_TO_F32)
-    {
-        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 12, batchSize, roiTensor);
-        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
-    }
-    // Case for LOG where input is of type U8 and output of type F32
-    else if(testCase == LOG && BitDepthTestMode == U8_TO_F32)
-    {
-        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 0, batchSize, roiTensor);
-        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
-    }
-    // Case for LOG where input is of type I8 and output of type F32
-    else if(testCase == LOG && BitDepthTestMode == I8_TO_F32)
-    {
-        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, 5, batchSize, roiTensor);
-        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, 2, batchSize, dstRoiTensor);
-    }
-    else
-    {
-        set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, BitDepthTestMode, batchSize, roiTensor);
-        set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, BitDepthTestMode, batchSize, dstRoiTensor);
-    }
+
+    set_generic_descriptor(srcDescriptorPtrND, nDim, offSetInBytes, BitDepthTestMode, batchSize, roiTensor, false);
+    set_generic_descriptor(dstDescriptorPtrND, nDim, offSetInBytes, BitDepthTestMode, batchSize, dstRoiTensor, true);
+
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
     srcDescriptorPtrNDSecond = nullptr;
     if(testCase == CONCAT)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
-        set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, BitDepthTestMode, batchSize, roiTensorSecond);
+        set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, BitDepthTestMode, batchSize, roiTensorSecond, false);
         set_generic_descriptor_layout(srcDescriptorPtrNDSecond, dstDescriptorPtrND, nDim, toggle, qaMode);
     }
 
