@@ -1739,7 +1739,7 @@ RppStatus hip_exec_compute_mean_stddev_tensor(T *srcPtr,
             blockSize = std::min(blockSize, MAX_ELEMENTS_IN_SMEM);
         }
 
-        Rpp32u sharedMemorySize = blockSize * sizeof(T); // number of bytes equivalent to blockSize * sizeof(type)
+        Rpp32u sharedMemorySize = blockSize * sizeof(Rpp32f); // number of bytes equivalent to blockSize * sizeof(type)
         if (isMean)
         {
             hipLaunchKernelGGL(compute_mean_nd_hip_tensor,

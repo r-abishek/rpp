@@ -236,18 +236,32 @@ inline void set_generic_descriptor(RpptGenericDescPtr descriptorPtr3D, int nDim,
     descriptorPtr3D->numDims = nDim + 1;
     descriptorPtr3D->offsetInBytes = offsetInBytes;
 
-    switch (isDestination)
+    switch (BitDepthTestMode)
     {
-        case BitDepthTestMode::U8_TO_U8:  descriptorPtr3D->dataType = RpptDataType::U8;
-        case BitDepthTestMode::F16_TO_F16: descriptorPtr3D->dataType = RpptDataType::F16;
-        case BitDepthTestMode::F32_TO_F32: descriptorPtr3D->dataType = RpptDataType::F32;
-        case BitDepthTestMode::I8_TO_I8:   descriptorPtr3D->dataType = RpptDataType::I8;
-
-        case BitDepthTestMode::U8_TO_F32:  descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::U8;
-        case BitDepthTestMode::I8_TO_F32:  descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I8;
-        case BitDepthTestMode::I16_TO_F32:  descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I16;
-
-        default: descriptorPtr3D->dataType = RpptDataType::U8;
+        case U8_TO_U8:
+            descriptorPtr3D->dataType = RpptDataType::U8;
+            break;
+        case F16_TO_F16:
+            descriptorPtr3D->dataType = RpptDataType::F16;
+            break;
+        case F32_TO_F32:
+            descriptorPtr3D->dataType = RpptDataType::F32;
+            break;
+        case I8_TO_I8:
+            descriptorPtr3D->dataType = RpptDataType::I8;
+            break;
+        case U8_TO_F32:
+            descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::U8;
+            break;
+        case I8_TO_F32:
+            descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I8;
+            break;
+        case I16_TO_F32:
+            descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I16;
+            break;
+        default:
+            descriptorPtr3D->dataType = RpptDataType::U8;
+            break;
     }
 
     descriptorPtr3D->dims[0] = batchSize;
