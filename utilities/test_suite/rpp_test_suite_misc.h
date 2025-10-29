@@ -288,12 +288,12 @@ std::map<Rpp32s, Rpp32u> paramStrideMap2D =
 std::map<Rpp32s, Rpp32u> paramStrideMap3D =
 {
     {1, 0},
-    {2, 400},
-    {3, 800},
-    {4, 808},
-    {5, 3308},
-    {6, 3358},
-    {7, 3408}
+    {2, 800},
+    {3, 1600},
+    {4, 1632},
+    {5, 2257},
+    {6, 2282},
+    {7, 2307}
 };
 
 // Strides used to locate the corresponding mean and stddev values (based on axisMask)
