@@ -98,7 +98,10 @@ RppStatus hue_u8_u8_host_tensor(Rpp8u *srcPtr,
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
-        Rpp32f hueParam = (((int)hueTensor[batchCount]) % 360) * 0.01666667f; // 6 * 1/360
+        Rpp32f hueShift = ((int)hueTensor[batchCount]) % 360;
+        if(hueShift < 0)
+            hueShift += 360;
+        Rpp32f hueParam =  hueShift * 0.01666667f; // 6 * 1/360
 
         Rpp8u *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -391,7 +394,10 @@ RppStatus hue_f32_f32_host_tensor(Rpp32f *srcPtr,
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
-        Rpp32f hueParam = (((int)hueTensor[batchCount]) % 360) * 0.01666667f; // 6 * 1/360
+        Rpp32f hueShift = ((int)hueTensor[batchCount]) % 360;
+        if(hueShift < 0)
+            hueShift += 360;
+        Rpp32f hueParam =  hueShift * 0.01666667f; // 6 * 1/360
 
         Rpp32f *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -672,8 +678,10 @@ RppStatus hue_f16_f16_host_tensor(Rpp16f *srcPtr,
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
-        Rpp32f hueParam = (((int)hueTensor[batchCount]) % 360) * 0.01666667f; // 6 * 1/360
-
+        Rpp32f hueShift = ((int)hueTensor[batchCount]) % 360;
+        if(hueShift < 0)
+            hueShift += 360;
+        Rpp32f hueParam =  hueShift * 0.01666667f; // 6 * 1/360
 
         Rpp16f *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
@@ -994,7 +1002,10 @@ RppStatus hue_i8_i8_host_tensor(Rpp8s *srcPtr,
         RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
-        Rpp32f hueParam = (((int)hueTensor[batchCount]) % 360) * 0.01666667f; // 6 * 1/360
+        Rpp32f hueShift = ((int)hueTensor[batchCount]) % 360;
+        if(hueShift < 0)
+            hueShift += 360;
+        Rpp32f hueParam =  hueShift * 0.01666667f; // 6 * 1/360
 
         Rpp8s *srcPtrImage, *dstPtrImage;
         srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
