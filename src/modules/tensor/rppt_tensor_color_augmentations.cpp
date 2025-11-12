@@ -344,6 +344,10 @@ RppStatus rppt_hue_host(RppPtr_t srcPtr,
     if ((srcDescPtr->layout == RpptLayout::NCDHW) || (srcDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
     if ((dstDescPtr->layout == RpptLayout::NCDHW) || (dstDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
 
+    for(int i = 0; i < srcDescPtr->n; i++)
+        if((hueTensor[i] < 0) || (hueTensor[i] >= 360)) // check for range of hueTensor
+            return RPP_ERROR_INVALID_ARGUMENTS;
+
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
         hue_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
@@ -1119,6 +1123,10 @@ RppStatus rppt_hue_gpu(RppPtr_t srcPtr,
     if (srcDescPtr->dataType != dstDescPtr->dataType) return RPP_ERROR_INVALID_SRC_OR_DST_DATATYPE;
     if ((srcDescPtr->layout == RpptLayout::NCDHW) || (srcDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
     if ((dstDescPtr->layout == RpptLayout::NCDHW) || (dstDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
+
+    for(int i = 0; i < srcDescPtr->n; i++)
+        if((hueTensor[i] < 0) || (hueTensor[i] >= 360)) // check for range of hueTensor
+            return RPP_ERROR_INVALID_ARGUMENTS;
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
