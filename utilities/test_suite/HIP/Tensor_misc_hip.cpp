@@ -242,7 +242,6 @@ int main(int argc, char **argv)
     cout << "\nRunning " << func << " " << numRuns << " times (each time with a batch size of " << batchSize << ") and computing mean statistics...";
     for(int perfCount = 0; perfCount < numRuns; perfCount++)
     {
-        RppStatus errorCodeCapture = RPP_SUCCESS;
         switch(testCase)
         {
             case TRANSPOSE:
@@ -358,11 +357,6 @@ int main(int argc, char **argv)
         {
             cout << "\nThe functionality " << func << " doesn't yet exist in RPP\n";
             return RPP_ERROR_NOT_IMPLEMENTED;
-        }
-        if (errorCodeCapture != RPP_SUCCESS)
-        {
-            cout << "\nThe functionality " << func << " returned an error status " << rppStatusToString[errorCodeCapture] << " on run number " << perfCount + 1 << " of " << numRuns << " runs.\n";
-            return errorCodeCapture;
         }
 
         wallTime = endWallTime - startWallTime;
