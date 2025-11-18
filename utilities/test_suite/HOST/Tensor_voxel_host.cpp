@@ -114,15 +114,14 @@ int main(int argc, char * argv[])
     RpptGenericDescPtr descriptorPtr3D = &descriptor3D;
     set_generic_descriptor(descriptorPtr3D, batchSize, maxX, maxY, maxZ, numChannels, offsetInBytes, layoutType, BitDepthTestMode);
 
-    string func = funcName;
-    // update func based on bitdepth and layout
+    // update funcName based on bitdepth and layout
     if(BitDepthTestMode == U8_TO_U8)
-        func += "_u8_";
+        funcName += "_u8_";
     else if(BitDepthTestMode == F32_TO_F32)
-        func += "_f32_";
+        funcName += "_f32_";
     int pln1OutTypeCase = 0, outputFormatToggle = 0;
     string funcType = set_function_type(layoutType, pln1OutTypeCase, outputFormatToggle, "HOST");
-    func += funcType;
+    funcName += funcType;
 
     // set src/dst xyzwhd ROI tensors
     RpptROI3D *roiGenericSrcPtr = (RpptROI3D *) calloc(batchSize, sizeof(RpptROI3D));
@@ -223,7 +222,6 @@ int main(int argc, char * argv[])
 
         for (int perfRunCount = 0; perfRunCount < numRuns; perfRunCount++)
         {
-            RppStatus errorCodeCapture = RPP_SUCCESS;
             double startWallTime, endWallTime;
             switch (testCase)
             {
@@ -380,11 +378,6 @@ int main(int argc, char * argv[])
             {
                 cout << "\nThe functionality doesn't yet exist in RPP\n";
                 return RPP_ERROR_NOT_IMPLEMENTED;
-            }
-            if (errorCodeCapture != RPP_SUCCESS)
-            {
-                cout << "\nThe functionality " << func << " returned an error status " << rppStatusToString[errorCodeCapture] << " on run number " << perfRunCount + 1 << " of " << numRuns << " runs.\n";
-                return errorCodeCapture;
             }
         }
 

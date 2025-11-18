@@ -1330,6 +1330,7 @@ RppStatus rppt_water(RppPtr_t srcPtr,
     return RPP_ERROR_INCOMPATIBLE_BACKEND;
 }
 
+
 /******************** vignette ********************/
 
 RppStatus rppt_vignette(RppPtr_t srcPtr,
