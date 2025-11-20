@@ -49,7 +49,7 @@ RppStatus rppt_erode_host(RppPtr_t srcPtr,
     if ((srcDescPtr->layout == RpptLayout::NCDHW) || (srcDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
     if ((dstDescPtr->layout == RpptLayout::NCDHW) || (dstDescPtr->layout == RpptLayout::NDHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
 
-    if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+    if(executionBackend == RppBackend::RPP_HOST_BACKEND)
     {
         erode_char_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
                                srcDescPtr,
@@ -61,7 +61,8 @@ RppStatus rppt_erode_host(RppPtr_t srcPtr,
                                layoutParams,
                                rpp::deref(rppHandle));
     }
-    else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+#ifdef GPU_SUPPORT
+    else if((handleBackend == RppBackend::RPP_HIP_BACKEND) && (executionBackend == RppBackend::RPP_HIP_BACKEND))
     {
         erode_float_host_tensor(reinterpret_cast<Rpp16f*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
                                 srcDescPtr,
@@ -100,7 +101,9 @@ RppStatus rppt_erode_host(RppPtr_t srcPtr,
     else
         return RPP_ERROR_INVALID_SRC_OR_DST_DATATYPE;
 
-    return RPP_SUCCESS;
+        return RPP_SUCCESS;
+    }
+    return RPP_ERROR_INCOMPATIBLE_BACKEND;
 }
 
 /******************** dilate ********************/
