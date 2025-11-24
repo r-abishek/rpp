@@ -753,7 +753,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_pixelate_gpu(d_input, srcDescPtr, d_output, dstDescPtr, d_interDstPtr, pixelationPercentage, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_pixelate(d_input, srcDescPtr, d_output, dstDescPtr, d_interDstPtr, pixelationPercentage, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -769,7 +769,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_jitter_gpu(d_input, srcDescPtr, d_output, dstDescPtr, kernelSizeTensor, seed, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_jitter(d_input, srcDescPtr, d_output, dstDescPtr, kernelSizeTensor, seed, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -852,7 +852,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_fog_gpu(d_input, srcDescPtr, d_output, dstDescPtr, intensityFactor, greyFactor, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_fog(d_input, srcDescPtr, d_output, dstDescPtr, intensityFactor, greyFactor, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -886,7 +886,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_rain_gpu(d_input, srcDescPtr, d_output, dstDescPtr, rainPercentage, rainWidth, rainHeight, slantAngle, alpha, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_rain(d_input, srcDescPtr, d_output, dstDescPtr, rainPercentage, rainWidth, rainHeight, slantAngle, alpha, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1115,7 +1115,7 @@ int main(int argc, char **argv)
                     init_erase(batchSize, boxesInEachImage, numOfBoxes, anchorBoxInfoTensor, roiTensorPtrSrc, srcDescPtr->c, colorBuffer, BitDepthTestMode);
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_erase_gpu(d_input, srcDescPtr, d_output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_erase(d_input, srcDescPtr, d_output, dstDescPtr, anchorBoxInfoTensor, colorBuffer, numOfBoxes, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1196,7 +1196,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_glitch_gpu(d_input, srcDescPtr, d_output, dstDescPtr, rgbOffsets, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_glitch(d_input, srcDescPtr, d_output, dstDescPtr, rgbOffsets, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1619,7 +1619,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_ricap_gpu(d_input, srcDescPtr, d_output, dstDescPtr, permutationTensor, roiPtrInputCropRegion, roiTypeSrc, handle);
+                        rppt_ricap(d_input, srcDescPtr, d_output, dstDescPtr, permutationTensor, roiPtrInputCropRegion, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
                     break;
@@ -1815,7 +1815,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_posterize_gpu(d_input, srcDescPtr, d_output, dstDescPtr, posterizeLevelBits, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_posterize(d_input, srcDescPtr, d_output, dstDescPtr, posterizeLevelBits, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1830,7 +1830,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        rppt_solarize_gpu(d_input, srcDescPtr, d_output, dstDescPtr, thresholdTensor, roiTensorPtrSrc, roiTypeSrc, handle);
+                        rppt_solarize(d_input, srcDescPtr, d_output, dstDescPtr, thresholdTensor, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
