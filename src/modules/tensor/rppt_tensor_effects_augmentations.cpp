@@ -1997,7 +1997,7 @@ RppStatus rppt_jitter(RppPtr_t srcPtr,
         {
             hip_exec_jitter_tensor(reinterpret_cast<half*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
                                    srcDescPtr,
-                                   (half*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                   reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
                                    dstDescPtr,
                                    kernelSizeTensor,
                                    d_xorwowInitialStatePtr,
