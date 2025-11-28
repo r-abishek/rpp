@@ -182,6 +182,7 @@ int main(int argc, char **argv)
         read_audio_batch_and_fill_dims(srcDescPtr, inputf32, audioFilesPath, iterCount, srcLengthTensor, channelsTensor);
         for (int perfRunCount = 0; perfRunCount < numRuns; perfRunCount++)
         {
+            RppStatus errorCodeCapture = RPP_SUCCESS;
             double startWallTime, endWallTime;
             double wallTime;
             switch (testCase)
@@ -389,6 +390,11 @@ int main(int argc, char **argv)
             {
                 cout << "\nThe functionality " << func << " doesn't yet exist in RPP\n";
                 return RPP_ERROR_NOT_IMPLEMENTED;
+            }
+            if (errorCodeCapture != RPP_SUCCESS)
+            {
+                cout << "\nThe functionality " << func << " returned an error status " << rppStatusToString[errorCodeCapture] << " on run number " << perfRunCount + 1 << " of " << numRuns << " runs.\n";
+                return errorCodeCapture;
             }
 
             wallTime = endWallTime - startWallTime;

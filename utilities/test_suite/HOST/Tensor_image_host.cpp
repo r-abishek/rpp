@@ -456,6 +456,7 @@ int main(int argc, char **argv)
 
         for (int perfRunCount = 0; perfRunCount < numRuns; perfRunCount++)
         {
+            RppStatus errorCodeCapture = RPP_SUCCESS;
             clock_t startCpuTime, endCpuTime;
             double startWallTime, endWallTime;
             switch (testCase)
@@ -1862,6 +1863,11 @@ int main(int argc, char **argv)
             {
                 cout << "\nThe functionality " << func << " doesn't yet exist in RPP\n";
                 return RPP_ERROR_NOT_IMPLEMENTED;
+            }
+            if (errorCodeCapture != RPP_SUCCESS)
+            {
+                cout << "\nThe functionality " << func << " returned an error status " << rppStatusToString[errorCodeCapture] << " on run number " << perfRunCount + 1 << " of " << numRuns << " runs.\n";
+                return errorCodeCapture;
             }
 
             maxWallTime = std::max(maxWallTime, wallTime);
