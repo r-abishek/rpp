@@ -114,14 +114,15 @@ int main(int argc, char * argv[])
     RpptGenericDescPtr descriptorPtr3D = &descriptor3D;
     set_generic_descriptor(descriptorPtr3D, batchSize, maxX, maxY, maxZ, numChannels, offsetInBytes, layoutType, BitDepthTestMode);
 
-    // update funcName based on bitdepth and layout
+    string func = funcName;
+    // update func based on bitdepth and layout
     if(BitDepthTestMode == U8_TO_U8)
-        funcName += "_u8_";
+        func += "_u8_";
     else if(BitDepthTestMode == F32_TO_F32)
-        funcName += "_f32_";
+        func += "_f32_";
     int pln1OutTypeCase = 0, outputFormatToggle = 0;
     string funcType = set_function_type(layoutType, pln1OutTypeCase, outputFormatToggle, "HOST");
-    funcName += funcType;
+    func += funcType;
 
     // set src/dst xyzwhd ROI tensors
     RpptROI3D *roiGenericSrcPtr = (RpptROI3D *) calloc(batchSize, sizeof(RpptROI3D));
