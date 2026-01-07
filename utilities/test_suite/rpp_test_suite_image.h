@@ -53,6 +53,7 @@ using namespace std;
 #define GOLDEN_OUTPUT_MAX_WIDTH 150     // Golden outputs are generated with MAX_WIDTH set to 150. Changing this constant will result in QA test failures
 #define LENS_CORRECTION_GOLDEN_OUTPUT_MAX_HEIGHT 480    // Lens correction golden outputs are generated with MAX_HEIGHT set to 480. Changing this constant will result in QA test failures
 #define LENS_CORRECTION_GOLDEN_OUTPUT_MAX_WIDTH 640     // Lens correction golden outputs are generated with MAX_WIDTH set to 640. Changing this constant will result in QA test failures
+#define MALLOC_ALIGN 32
 
 #define CHECK_RETURN_STATUS(x) do { \
     int retval = (x); \
@@ -295,6 +296,16 @@ inline std::string get_interpolation_type(unsigned int val, RpptInterpolationTyp
     }
 }
 
+inline void* memAlloc(size_t size) {
+    void* ptr = nullptr;
+    int res = posix_memalign(&ptr, MALLOC_ALIGN, size);
+    if (res != 0 || !ptr) {
+        fprintf(stderr, "memAlloc: Out of memory\n");
+        return nullptr;
+    }
+    return ptr;
+}
+
 // returns the noise type applied to an image
 inline std::string get_noise_type(unsigned int val)
 {
@@ -356,97 +367,127 @@ inline string set_function_type(int layoutType, int pln1OutTypeCase, int outputF
 }
 
 // sets descriptor data types of src/dst
-inline void set_descriptor_data_type(int BitDepthTestMode, string &funcName, RpptDescPtr srcDescPtr, RpptDescPtr dstDescPtr)
+inline void set_descriptor_data_type(int BitDepthTestMode, string &funcName, RpptDescPtr *srcDescPtr, RpptDescPtr *dstDescPtr, int batchSize)
 {
+    RpptDataType srcDataType, dstDataType;
+    string dataTypeStr;
+
     if (BitDepthTestMode == U8_TO_U8)
     {
-        funcName += "_u8_";
-        srcDescPtr->dataType = RpptDataType::U8;
-        dstDescPtr->dataType = RpptDataType::U8;
+        dataTypeStr = "_u8_";
+        srcDataType = RpptDataType::U8;
+        dstDataType = RpptDataType::U8;
     }
     else if (BitDepthTestMode == F16_TO_F16)
     {
-        funcName += "_f16_";
-        srcDescPtr->dataType = RpptDataType::F16;
-        dstDescPtr->dataType = RpptDataType::F16;
+        dataTypeStr = "_f16_";
+        srcDataType = RpptDataType::F16;
+        dstDataType = RpptDataType::F16;
     }
     else if (BitDepthTestMode == F32_TO_F32)
     {
-        funcName += "_f32_";
-        srcDescPtr->dataType = RpptDataType::F32;
-        dstDescPtr->dataType = RpptDataType::F32;
+        dataTypeStr = "_f32_";
+        srcDataType = RpptDataType::F32;
+        dstDataType = RpptDataType::F32;
     }
     else if (BitDepthTestMode == U8_TO_F16)
     {
-        funcName += "_u8_f16_";
-        srcDescPtr->dataType = RpptDataType::U8;
-        dstDescPtr->dataType = RpptDataType::F16;
+        dataTypeStr = "_u8_f16_";
+        srcDataType = RpptDataType::U8;
+        dstDataType = RpptDataType::F16;
     }
     else if (BitDepthTestMode == U8_TO_F32)
     {
-        funcName += "_u8_f32_";
-        srcDescPtr->dataType = RpptDataType::U8;
-        dstDescPtr->dataType = RpptDataType::F32;
+        dataTypeStr = "_u8_f32_";
+        srcDataType = RpptDataType::U8;
+        dstDataType = RpptDataType::F32;
     }
     else if (BitDepthTestMode == I8_TO_I8)
     {
-        funcName += "_i8_";
-        srcDescPtr->dataType = RpptDataType::I8;
-        dstDescPtr->dataType = RpptDataType::I8;
+        dataTypeStr = "_i8_";
+        srcDataType = RpptDataType::I8;
+        dstDataType = RpptDataType::I8;
     }
     else if (BitDepthTestMode == U8_TO_I8)
     {
-        funcName += "_u8_i8_";
-        srcDescPtr->dataType = RpptDataType::U8;
-        dstDescPtr->dataType = RpptDataType::I8;
+        dataTypeStr = "_u8_i8_";
+        srcDataType = RpptDataType::U8;
+        dstDataType = RpptDataType::I8;
+    }
+
+    funcName += dataTypeStr;
+
+    for(int i = 0; i < batchSize; i++)
+    {
+        srcDescPtr[i]->dataType = srcDataType;
+        dstDescPtr[i]->dataType = dstDataType;
     }
 }
 
 // sets descriptor layout of src/dst
-inline void set_descriptor_layout( RpptDescPtr srcDescPtr, RpptDescPtr dstDescPtr, int layoutType, bool pln1OutTypeCase, int outputFormatToggle)
+inline void set_descriptor_layout(RpptDescPtr *srcDescPtr, RpptDescPtr *dstDescPtr, int layoutType, bool pln1OutTypeCase, int outputFormatToggle, int batchSize)
 {
     if(layoutType == 0)
     {
-        srcDescPtr->layout = RpptLayout::NHWC;
-        // Set src/dst layouts in tensor descriptors
-        if (pln1OutTypeCase)
-            dstDescPtr->layout = RpptLayout::NCHW;
-        else
+        for(int i = 0; i < batchSize; i++)
         {
-            if (outputFormatToggle == 0)
-                dstDescPtr->layout = RpptLayout::NHWC;
-            else if (outputFormatToggle == 1)
-                dstDescPtr->layout = RpptLayout::NCHW;
+            srcDescPtr[i]->layout = RpptLayout::NHWC;
+            // Set src/dst layouts in tensor descriptors
+            if (pln1OutTypeCase)
+                dstDescPtr[i]->layout = RpptLayout::NCHW;
+            else
+            {
+                if (outputFormatToggle == 0)
+                    dstDescPtr[i]->layout = RpptLayout::NHWC;
+                else if (outputFormatToggle == 1)
+                    dstDescPtr[i]->layout = RpptLayout::NCHW;
+            }
         }
     }
     else if(layoutType == 1)
     {
-        srcDescPtr->layout = RpptLayout::NCHW;
-        // Set src/dst layouts in tensor descriptors
-        if (pln1OutTypeCase)
-            dstDescPtr->layout = RpptLayout::NCHW;
-        else
+        for(int i = 0; i < batchSize; i++)
         {
-            if (outputFormatToggle == 0)
-                dstDescPtr->layout = RpptLayout::NCHW;
-            else if (outputFormatToggle == 1)
-                dstDescPtr->layout = RpptLayout::NHWC;
+            srcDescPtr[i]->layout = RpptLayout::NCHW;
+            // Set src/dst layouts in tensor descriptors
+            if (pln1OutTypeCase)
+                dstDescPtr[i]->layout = RpptLayout::NCHW;
+            else
+            {
+                if (outputFormatToggle == 0)
+                    dstDescPtr[i]->layout = RpptLayout::NCHW;
+                else if (outputFormatToggle == 1)
+                    dstDescPtr[i]->layout = RpptLayout::NHWC;
+            }
         }
     }
     else
     {
         // Set src/dst layouts in tensor descriptors
-        srcDescPtr->layout = RpptLayout::NCHW;
-        dstDescPtr->layout = RpptLayout::NCHW;
+        for(int i = 0; i < batchSize; i++)
+        {
+            srcDescPtr[i]->layout = RpptLayout::NCHW;
+            dstDescPtr[i]->layout = RpptLayout::NCHW;
+        }
+    }
+}
+
+inline void memFree(void *ptr)
+{
+    if (ptr != nullptr)
+    {
+        free(ptr);
+        ptr = nullptr;  // Note: this only sets the local copy to nullptr
     }
 }
 
 // sets values of maxHeight and maxWidth
-inline void set_max_dimensions(vector<string>imagePaths, int& maxHeight, int& maxWidth, int& imagesMixed)
+inline void get_image_dimensions(vector<string>imagePaths, int *heights, int *widths, int& maxHeight, int& maxWidth, int& imagesMixed)
 {
     tjhandle tjInstance = tjInitDecompress();
-    for (const std::string& imagePath : imagePaths)
+    for (size_t i = 0; i < imagePaths.size(); i++)
     {
+        const std::string& imagePath = imagePaths[i];
         FILE* jpegFile = fopen(imagePath.c_str(), "rb");
         if (!jpegFile) {
             std::cerr << "Error opening file: " << imagePath << std::endl;
@@ -471,14 +512,16 @@ inline void set_max_dimensions(vector<string>imagePaths, int& maxHeight, int& ma
         if((maxWidth && maxWidth != width) || (maxHeight && maxHeight != height))
             imagesMixed = 1;
 
-        maxWidth = max(maxWidth, width);
-        maxHeight = max(maxHeight, height);
+        widths[i] = width;
+        heights[i] = height;
+        maxWidth = std::max(maxWidth, width);
+        maxHeight = std::max(maxHeight, height);
     }
     tjDestroy(tjInstance);
 }
 
 // sets roi xywh values and dstImg sizes
-inline void  set_src_and_dst_roi(vector<string>::const_iterator imagePathsStart, vector<string>::const_iterator imagePathsEnd, RpptROI *roiTensorPtrSrc, RpptROI *roiTensorPtrDst, RpptImagePatchPtr dstImgSizes)
+inline void set_src_and_dst_roi(vector<string>::const_iterator imagePathsStart, vector<string>::const_iterator imagePathsEnd, RpptROI *roiTensorPtrSrc, RpptROI *roiTensorPtrDst, RpptImagePatchPtr dstImgSizes)
 {
     tjhandle tjInstance = tjInitDecompress();
     int i = 0;
@@ -585,31 +628,46 @@ inline void set_generic_descriptor_slice(RpptDescPtr srcDescPtr, RpptGenericDesc
 }
 
 // sets descriptor dimensions and strides of src/dst
-inline void set_descriptor_dims_and_strides(RpptDescPtr descPtr, int noOfImages, int maxHeight, int maxWidth, int numChannels, int offsetInBytes, int additionalStride = 0)
+inline void set_descriptor_dims_and_strides(RpptDescPtr *descPtr, int batchSize, int *heights, int *widths, int numChannels, Rpp64u *offsetInBytes, int additionalStride = 0)
 {
-    descPtr->numDims = 4;
-    descPtr->offsetInBytes = offsetInBytes;
-    descPtr->n = noOfImages;
-    descPtr->h = maxHeight;
-    descPtr->w = maxWidth;
-    descPtr->c = numChannels;
+    for (int i = 0; i < batchSize; i++)
+    {
+        descPtr[i]->numDims = 4;
+        descPtr[i]->n = 1;              // each descriptor describes one image
+        descPtr[i]->h = heights[i];
+        descPtr[i]->w = widths[i];
+        descPtr[i]->c = numChannels;
+        descPtr[i]->offsetInBytes = offsetInBytes[i];
 
-    // Optionally set w stride as a multiple of 8 for src/dst
-    descPtr->w = (descPtr->w / 8) * 8 + 8 + additionalStride;
-    // set strides
-    if (descPtr->layout == RpptLayout::NHWC)
-    {
-        descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
-        descPtr->strides.hStride = descPtr->c * descPtr->w;
-        descPtr->strides.wStride = descPtr->c;
-        descPtr->strides.cStride = 1;
+        if (descPtr[i]->layout == RpptLayout::NHWC)
+        {
+            descPtr[i]->strides.nStride = descPtr[i]->c * descPtr[i]->w * descPtr[i]->h;
+            descPtr[i]->strides.hStride = descPtr[i]->c * descPtr[i]->w;
+            descPtr[i]->strides.wStride = descPtr[i]->c;
+            descPtr[i]->strides.cStride = 1;
+        }
+        else if (descPtr[i]->layout == RpptLayout::NCHW)
+        {
+            descPtr[i]->strides.nStride = descPtr[i]->c * descPtr[i]->w * descPtr[i]->h;
+            descPtr[i]->strides.cStride = descPtr[i]->w * descPtr[i]->h;
+            descPtr[i]->strides.hStride = descPtr[i]->w;
+            descPtr[i]->strides.wStride = 1;
+        }
     }
-    else if(descPtr->layout == RpptLayout::NCHW)
+}
+
+// Computes tightly-packed offsets for each image
+inline void compute_image_offsets(int *widths, int *heights, int channels, int batchSize, Rpp64u *offsets, Rpp64u &totalSize)
+{
+    offsets[0] = 0;
+    totalSize = 0;
+
+    for (int i = 0; i < batchSize; i++)
     {
-        descPtr->strides.nStride = descPtr->c * descPtr->w * descPtr->h;
-        descPtr->strides.cStride = descPtr->w * descPtr->h;
-        descPtr->strides.hStride = descPtr->w;
-        descPtr->strides.wStride = 1;
+        Rpp64u imageSize = (Rpp64u)widths[i] * (Rpp64u)heights[i] * (Rpp64u)channels;
+        if (i > 0)
+            offsets[i] = offsets[i-1] + (Rpp64u)widths[i-1] * (Rpp64u)heights[i-1] * (Rpp64u)channels;
+        totalSize += imageSize;
     }
 }
 
@@ -644,106 +702,159 @@ inline void convert_roi(RpptROI *roiTensorPtrSrc, RpptRoiType roiType, int batch
 }
 
 // Convert inputs to correponding bit depth specified by user
-inline void convert_input_bitdepth(void *input, void *input_second, Rpp8u *inputu8, Rpp8u *inputu8Second, int BitDepthTestMode, Rpp64u ioBufferSize, Rpp64u inputBufferSize, RpptDescPtr srcDescPtr, bool dualInputCase, Rpp32f conversionFactor)
+inline void convert_input_bitdepth(void *input, void *input_second, Rpp8u *inputu8, Rpp8u *inputu8Second, int BitDepthTestMode, RpptDescPtr *srcDescPtr, int batchSize, bool dualInputCase, Rpp32f conversionFactor)
 {
-    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == U8_TO_F16 || BitDepthTestMode == U8_TO_F32)
+    for (int imgIdx = 0; imgIdx < batchSize; imgIdx++)
     {
-        memcpy(input, inputu8, inputBufferSize);
-        if(dualInputCase)
-            memcpy(input_second, inputu8Second, inputBufferSize);
-    }
-    else if (BitDepthTestMode == F16_TO_F16)
-    {
-        Rpp8u *inputTemp, *inputSecondTemp;
-        Rpp16f *inputf16Temp, *inputf16SecondTemp;
-        inputTemp = inputu8 + srcDescPtr->offsetInBytes;
-        inputf16Temp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(input) + srcDescPtr->offsetInBytes);
-        for (int i = 0; i < ioBufferSize; i++)
-            *inputf16Temp++ = static_cast<Rpp16f>((static_cast<float>(*inputTemp++)) * conversionFactor);
-
-        if(dualInputCase)
+        Rpp64u imageSize = (Rpp64u)srcDescPtr[imgIdx]->w * 
+                           (Rpp64u)srcDescPtr[imgIdx]->h * 
+                           (Rpp64u)srcDescPtr[imgIdx]->c;
+        
+        Rpp64u offsetBytes = srcDescPtr[imgIdx]->offsetInBytes;
+        
+        if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == U8_TO_F16 || BitDepthTestMode == U8_TO_F32)
         {
-            inputSecondTemp = inputu8Second + srcDescPtr->offsetInBytes;
-            inputf16SecondTemp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(input_second) + srcDescPtr->offsetInBytes);
-            for (int i = 0; i < ioBufferSize; i++)
-                *inputf16SecondTemp++ = static_cast<Rpp16f>((static_cast<float>(*inputSecondTemp++)) * conversionFactor);
+            Rpp8u *inputSrc = inputu8 + offsetBytes;
+            Rpp8u *inputDst = static_cast<Rpp8u *>(input) + offsetBytes;
+            memcpy(inputDst, inputSrc, imageSize * sizeof(Rpp8u));
+            
+            if(dualInputCase)
+            {
+                Rpp8u *inputSecondSrc = inputu8Second + offsetBytes;
+                Rpp8u *inputSecondDst = static_cast<Rpp8u *>(input_second) + offsetBytes;
+                memcpy(inputSecondDst, inputSecondSrc, imageSize * sizeof(Rpp8u));
+            }
         }
-    }
-    else if (BitDepthTestMode == F32_TO_F32)
-    {
-        Rpp8u *inputTemp, *inputSecondTemp;
-        Rpp32f *inputf32Temp, *inputf32SecondTemp;
-        inputTemp = inputu8 + srcDescPtr->offsetInBytes;
-        inputf32Temp = reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(input) + srcDescPtr->offsetInBytes);
-        for (int i = 0; i < ioBufferSize; i++)
-            *inputf32Temp++ = (static_cast<Rpp32f>(*inputTemp++)) * conversionFactor;
-
-        if(dualInputCase)
+        else if (BitDepthTestMode == F16_TO_F16)
         {
-            inputSecondTemp = inputu8Second + srcDescPtr->offsetInBytes;
-            inputf32SecondTemp = reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(input_second) + srcDescPtr->offsetInBytes);
-            for (int i = 0; i < ioBufferSize; i++)
-                *inputf32SecondTemp++ = (static_cast<Rpp32f>(*inputSecondTemp++)) * conversionFactor;
+            Rpp8u *inputTemp = inputu8 + offsetBytes;
+            Rpp16f *inputf16Temp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(input) + offsetBytes);
+            
+            for (Rpp64u i = 0; i < imageSize; i++)
+            {
+                *inputf16Temp = static_cast<Rpp16f>(static_cast<float>(*inputTemp) * conversionFactor);
+                inputf16Temp++;
+                inputTemp++;
+            }
+
+            if(dualInputCase)
+            {
+                Rpp8u *inputSecondTemp = inputu8Second + offsetBytes;
+                Rpp16f *inputf16SecondTemp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(input_second) + offsetBytes);
+                
+                for (Rpp64u i = 0; i < imageSize; i++)
+                {
+                    *inputf16SecondTemp = static_cast<Rpp16f>(static_cast<float>(*inputSecondTemp) * conversionFactor);
+                    inputf16SecondTemp++;
+                    inputSecondTemp++;
+                }
+            }
         }
-    }
-    else if (BitDepthTestMode == I8_TO_I8)
-    {
-        Rpp8u *inputTemp, *inputSecondTemp;
-        Rpp8s *inputi8Temp, *inputi8SecondTemp;
-
-        inputTemp = inputu8 + srcDescPtr->offsetInBytes;
-        inputi8Temp = static_cast<Rpp8s *>(input) + srcDescPtr->offsetInBytes;
-        for (int i = 0; i < ioBufferSize; i++)
-            *inputi8Temp++ = static_cast<Rpp8s>((static_cast<Rpp32s>(*inputTemp++)) - 128);
-
-        if(dualInputCase)
+        else if (BitDepthTestMode == F32_TO_F32)
         {
-            inputSecondTemp = inputu8Second + srcDescPtr->offsetInBytes;
-            inputi8SecondTemp = static_cast<Rpp8s *>(input_second) + srcDescPtr->offsetInBytes;
-            for (int i = 0; i < ioBufferSize; i++)
-                *inputi8SecondTemp++ = static_cast<Rpp8s>((static_cast<Rpp32s>(*inputSecondTemp++)) - 128);
+            Rpp8u *inputTemp = inputu8 + offsetBytes;
+            Rpp32f *inputf32Temp = reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(input) + offsetBytes);
+            
+            for (Rpp64u i = 0; i < imageSize; i++)
+            {
+                *inputf32Temp = static_cast<Rpp32f>(*inputTemp) * conversionFactor;
+                inputf32Temp++;
+                inputTemp++;
+            }
+
+            if(dualInputCase)
+            {
+                Rpp8u *inputSecondTemp = inputu8Second + offsetBytes;
+                Rpp32f *inputf32SecondTemp = reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(input_second) + offsetBytes);
+                
+                for (Rpp64u i = 0; i < imageSize; i++)
+                {
+                    *inputf32SecondTemp = static_cast<Rpp32f>(*inputSecondTemp) * conversionFactor;
+                    inputf32SecondTemp++;
+                    inputSecondTemp++;
+                }
+            }
+        }
+        else if (BitDepthTestMode == I8_TO_I8)
+        {
+            Rpp8u *inputTemp = inputu8 + offsetBytes;
+            Rpp8s *inputi8Temp = reinterpret_cast<Rpp8s *>(static_cast<Rpp8u *>(input) + offsetBytes);
+            
+            for (Rpp64u i = 0; i < imageSize; i++)
+            {
+                *inputi8Temp = static_cast<Rpp8s>(static_cast<Rpp32s>(*inputTemp) - 128);
+                inputi8Temp++;
+                inputTemp++;
+            }
+
+            if(dualInputCase)
+            {
+                Rpp8u *inputSecondTemp = inputu8Second + offsetBytes;
+                Rpp8s *inputi8SecondTemp = reinterpret_cast<Rpp8s *>(static_cast<Rpp8u *>(input_second) + offsetBytes);
+                
+                for (Rpp64u i = 0; i < imageSize; i++)
+                {
+                    *inputi8SecondTemp = static_cast<Rpp8s>(static_cast<Rpp32s>(*inputSecondTemp) - 128);
+                    inputi8SecondTemp++;
+                    inputSecondTemp++;
+                }
+            }
         }
     }
 }
 
-// Reconvert other bit depths to 8u for output display purposes
-inline void convert_output_bitdepth_to_u8(void *output, Rpp8u *outputu8, int BitDepthTestMode, Rpp64u oBufferSize, Rpp64u outputBufferSize, RpptDescPtr dstDescPtr, Rpp32f invConversionFactor)
+// Reconvert other bit depths to 8u for output display purposes (per-image version)
+inline void convert_output_bitdepth_to_u8(void *output, Rpp8u *outputu8, int BitDepthTestMode, RpptDescPtr *dstDescPtr, int batchSize, Rpp32f invConversionFactor)
 {
-    if (BitDepthTestMode == U8_TO_U8)
+    for (int imgIdx = 0; imgIdx < batchSize; imgIdx++)
     {
-        memcpy(outputu8, output, outputBufferSize);
-    }
-    else if ((BitDepthTestMode == F16_TO_F16) || (BitDepthTestMode == U8_TO_F16))
-    {
-        Rpp8u *outputTemp = outputu8 + dstDescPtr->offsetInBytes;
-        Rpp16f *outputf16Temp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(output) + dstDescPtr->offsetInBytes);
-        for (int i = 0; i < oBufferSize; i++)
+        Rpp64u imageSize = (Rpp64u)dstDescPtr[imgIdx]->w * 
+                           (Rpp64u)dstDescPtr[imgIdx]->h * 
+                           (Rpp64u)dstDescPtr[imgIdx]->c;
+        
+        Rpp64u offsetBytes = dstDescPtr[imgIdx]->offsetInBytes;
+        
+        if (BitDepthTestMode == U8_TO_U8)
         {
-            *outputTemp = static_cast<Rpp8u>(validate_pixel_range(static_cast<float>(*outputf16Temp) * invConversionFactor));
-            outputf16Temp++;
-            outputTemp++;
+            Rpp8u *outputSrc = static_cast<Rpp8u *>(output) + offsetBytes;
+            Rpp8u *outputDst = outputu8 + offsetBytes;
+            memcpy(outputDst, outputSrc, imageSize * sizeof(Rpp8u));
         }
-    }
-    else if ((BitDepthTestMode == F32_TO_F32) || (BitDepthTestMode == U8_TO_F32))
-    {
-        Rpp8u *outputTemp = outputu8 + dstDescPtr->offsetInBytes;
-        Rpp32f *outputf32Temp = reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(output) + dstDescPtr->offsetInBytes);
-        for (int i = 0; i < oBufferSize; i++)
+        else if ((BitDepthTestMode == F16_TO_F16) || (BitDepthTestMode == U8_TO_F16))
         {
-            *outputTemp = static_cast<Rpp8u>(validate_pixel_range(*outputf32Temp * invConversionFactor));
-            outputf32Temp++;
-            outputTemp++;
+            Rpp8u *outputTemp = outputu8 + offsetBytes;
+            Rpp16f *outputf16Temp = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(output) + offsetBytes);
+            
+            for (Rpp64u i = 0; i < imageSize; i++)
+            {
+                *outputTemp = static_cast<Rpp8u>(validate_pixel_range(static_cast<float>(*outputf16Temp) * invConversionFactor));
+                outputf16Temp++;
+                outputTemp++;
+            }
         }
-    }
-    else if ((BitDepthTestMode == I8_TO_I8) || (BitDepthTestMode == U8_TO_I8))
-    {
-        Rpp8u *outputTemp = outputu8 + dstDescPtr->offsetInBytes;
-        Rpp8s *outputi8Temp = static_cast<Rpp8s *>(output) + dstDescPtr->offsetInBytes;
-        for (int i = 0; i < oBufferSize; i++)
+        else if ((BitDepthTestMode == F32_TO_F32) || (BitDepthTestMode == U8_TO_F32))
         {
-            *outputTemp = static_cast<Rpp8u>(validate_pixel_range((static_cast<Rpp32s>(*outputi8Temp) + 128)));
-            outputi8Temp++;
-            outputTemp++;
+            Rpp8u *outputTemp = outputu8 + offsetBytes;
+            Rpp32f *outputf32Temp = reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(output) + offsetBytes);
+            
+            for (Rpp64u i = 0; i < imageSize; i++)
+            {
+                *outputTemp = static_cast<Rpp8u>(validate_pixel_range(*outputf32Temp * invConversionFactor));
+                outputf32Temp++;
+                outputTemp++;
+            }
+        }
+        else if ((BitDepthTestMode == I8_TO_I8) || (BitDepthTestMode == U8_TO_I8))
+        {
+            Rpp8u *outputTemp = outputu8 + offsetBytes;
+            Rpp8s *outputi8Temp = reinterpret_cast<Rpp8s *>(static_cast<Rpp8u *>(output) + offsetBytes);
+            
+            for (Rpp64u i = 0; i < imageSize; i++)
+            {
+                *outputTemp = static_cast<Rpp8u>(validate_pixel_range(static_cast<Rpp32s>(*outputi8Temp) + 128));
+                outputi8Temp++;
+                outputTemp++;
+            }
         }
     }
 }
@@ -770,28 +881,28 @@ inline void update_dst_sizes_with_roi(RpptROI *roiTensorPtrSrc, RpptImagePatchPt
 }
 
 // converts image data from PLN3 to PKD3
-inline void convert_pln3_to_pkd3(Rpp8u *output, RpptDescPtr descPtr)
+inline void convert_pln3_to_pkd3(Rpp8u *output, RpptDescPtr *descPtr, long int oBufferSize)
 {
-    unsigned long long bufferSize = ((unsigned long long)descPtr->h * (unsigned long long)descPtr->w * (unsigned long long)descPtr->c * (unsigned long long)descPtr->n) + descPtr->offsetInBytes;
+    unsigned long long bufferSize = oBufferSize;
     Rpp8u *outputCopy = (Rpp8u *)calloc(bufferSize, sizeof(Rpp8u));
     memcpy(outputCopy, output, bufferSize * sizeof(Rpp8u));
 
     Rpp8u *outputCopyTemp;
-    outputCopyTemp = outputCopy + descPtr->offsetInBytes;
+    outputCopyTemp = outputCopy + descPtr[0]->offsetInBytes;
 
     omp_set_dynamic(0);
-#pragma omp parallel for num_threads(descPtr->n)
-    for (int count = 0; count < descPtr->n; count++)
+#pragma omp parallel for num_threads(descPtr[0]->n)
+    for (int count = 0; count < descPtr[0]->n; count++)
     {
         Rpp8u *outputCopyTempR, *outputCopyTempG, *outputCopyTempB;
-        outputCopyTempR = outputCopyTemp + count * descPtr->strides.nStride;
-        outputCopyTempG = outputCopyTempR + descPtr->strides.cStride;
-        outputCopyTempB = outputCopyTempG + descPtr->strides.cStride;
-        Rpp8u *outputTemp = output + descPtr->offsetInBytes + count * descPtr->strides.nStride;
+        outputCopyTempR = outputCopyTemp + count * descPtr[count]->strides.nStride;
+        outputCopyTempG = outputCopyTempR + descPtr[count]->strides.cStride;
+        outputCopyTempB = outputCopyTempG + descPtr[count]->strides.cStride;
+        Rpp8u *outputTemp = output + descPtr[count]->offsetInBytes + count * descPtr[count]->strides.nStride;
 
-        for (int i = 0; i < descPtr->h; i++)
+        for (int i = 0; i < descPtr[count]->h; i++)
         {
-            for (int j = 0; j < descPtr->w; j++)
+            for (int j = 0; j < descPtr[count]->w; j++)
             {
                 *outputTemp = *outputCopyTempR;
                 outputTemp++;
@@ -810,132 +921,147 @@ inline void convert_pln3_to_pkd3(Rpp8u *output, RpptDescPtr descPtr)
 }
 
 // converts image data from PKD3 to PLN3
-inline void convert_pkd3_to_pln3(Rpp8u *input, RpptDescPtr descPtr)
+inline void convert_pkd3_to_pln3(Rpp8u *input, RpptDescPtr *descPtr, int batchSize)
 {
-    unsigned long long bufferSize = ((unsigned long long)descPtr->h * (unsigned long long)descPtr->w * (unsigned long long)descPtr->c * (unsigned long long)descPtr->n) + descPtr->offsetInBytes;
-    Rpp8u *inputCopy = (Rpp8u *)calloc(bufferSize, sizeof(Rpp8u));
-    memcpy(inputCopy, input, bufferSize * sizeof(Rpp8u));
-
-    Rpp8u *inputTemp, *inputCopyTemp;
-    inputTemp = input + descPtr->offsetInBytes;
-
     omp_set_dynamic(0);
-#pragma omp parallel for num_threads(descPtr->n)
-    for (int count = 0; count < descPtr->n; count++)
+#pragma omp parallel for num_threads(batchSize)
+    for (int count = 0; count < batchSize; count++)
     {
-        Rpp8u *inputTempR, *inputTempG, *inputTempB;
-        inputTempR = inputTemp + count * descPtr->strides.nStride;
-        inputTempG = inputTempR + descPtr->strides.cStride;
-        inputTempB = inputTempG + descPtr->strides.cStride;
-        Rpp8u *inputCopyTemp = inputCopy + descPtr->offsetInBytes + count * descPtr->strides.nStride;
-
-        for (int i = 0; i < descPtr->h; i++)
+        Rpp64u offsetBytes = descPtr[count]->offsetInBytes;
+        int width = descPtr[count]->w;
+        int height = descPtr[count]->h;
+        int channels = descPtr[count]->c;
+        
+        if (channels != 3)
+            continue;
+        
+        Rpp64u imageSize = (Rpp64u)width * height * channels;
+        
+        // Allocate temporary buffer for this image only
+        Rpp8u *tempImage = (Rpp8u *)malloc(imageSize * sizeof(Rpp8u));
+        if (!tempImage)
         {
-            for (int j = 0; j < descPtr->w; j++)
+            std::cerr << "\nMemory allocation failed for image " << count;
+            continue;
+        }
+        
+        // Copy PKD3 data
+        Rpp8u *srcBase = input + offsetBytes;
+        memcpy(tempImage, srcBase, imageSize * sizeof(Rpp8u));
+        
+        // Convert to PLN3
+        Rpp8u *tempPtr = tempImage;
+        Rpp8u *dstR = srcBase;
+        Rpp8u *dstG = dstR + (width * height);
+        Rpp8u *dstB = dstG + (width * height);
+        
+        for (int i = 0; i < height; i++)
+        {
+            for (int j = 0; j < width; j++)
             {
-                *inputTempR = *inputCopyTemp;
-                inputCopyTemp++;
-                inputTempR++;
-                *inputTempG = *inputCopyTemp;
-                inputCopyTemp++;
-                inputTempG++;
-                *inputTempB = *inputCopyTemp;
-                inputCopyTemp++;
-                inputTempB++;
+                *dstR++ = *tempPtr++;
+                *dstG++ = *tempPtr++;
+                *dstB++ = *tempPtr++;
             }
         }
+        
+        free(tempImage);
     }
-
-    free(inputCopy);
 }
 
 // Read a batch of images using the OpenCV library
-inline void read_image_batch_opencv(Rpp8u *input, RpptDescPtr descPtr, vector<string>::const_iterator imagesNamesStart)
+inline void read_image_batch_opencv(Rpp8u *input, RpptDescPtr *descPtr, vector<string>::const_iterator imagesNamesStart, int batchSize)
 {
-    for(int i = 0; i < descPtr->n; i++)
+    for(int i = 0; i < batchSize; i++)
     {
-        Rpp8u *inputTemp = input + (i * descPtr->strides.nStride);
+        Rpp8u *inputTemp = input + (i * descPtr[i]->strides.nStride);
         string inputImagePath = *(imagesNamesStart + i);
         Mat image, imageBgr;
-        if (descPtr->c == 3)
+        if (descPtr[i]->c == 3)
         {
             imageBgr = imread(inputImagePath, 1);
             cvtColor(imageBgr, image, COLOR_BGR2RGB);
         }
-        else if (descPtr->c == 1)
+        else if (descPtr[i]->c == 1)
             image = imread(inputImagePath, 0);
 
         int width = image.cols;
         int height = image.rows;
-        Rpp32u elementsInRow = width * descPtr->c;
+        Rpp32u elementsInRow = width * descPtr[i]->c;
         Rpp8u *inputImage = image.data;
         for (int j = 0; j < height; j++)
         {
             memcpy(inputTemp, inputImage, elementsInRow * sizeof(Rpp8u));
             inputImage += elementsInRow;
-            inputTemp += descPtr->w * descPtr->c;;
+            inputTemp += descPtr[i]->w * descPtr[i]->c;;
         }
     }
 }
 
-// Read a batch of images using the turboJpeg decoder
-inline void read_image_batch_turbojpeg(Rpp8u *input, RpptDescPtr descPtr, vector<string>::const_iterator imagesNamesStart)
+inline void read_image_batch_turbojpeg(Rpp8u *input, RpptDescPtr *descPtr, vector<string>::const_iterator imagesNamesStart, int batchSize)
 {
     tjhandle m_jpegDecompressor = tjInitDecompress();
 
-    // Loop through the input images
-    for (int i = 0; i < descPtr->n; i++)
+    for (int i = 0; i < batchSize; i++)
     {
-        // Read the JPEG compressed data from a file
         std::string inputImagePath = *(imagesNamesStart + i);
         FILE* fp = fopen(inputImagePath.c_str(), "rb");
-        if(!fp)
-            std::cerr << "\n unable to open file : "<<inputImagePath;
+        if (!fp) {
+            std::cerr << "\n Unable to open file: " << inputImagePath;
+            continue; // Skip this image instead of crashing
+        }
+
         fseek(fp, 0, SEEK_END);
         long jpegSize = ftell(fp);
         rewind(fp);
-        unsigned char* jpegBuf = (unsigned char*)calloc(jpegSize, sizeof(Rpp8u));
-        fread(jpegBuf, 1, jpegSize, fp);
+
+        unsigned char* jpegBuf = (unsigned char*)malloc(jpegSize);
+        if (fread(jpegBuf, 1, jpegSize, fp) != (size_t)jpegSize) {
+            fclose(fp);
+            free(jpegBuf);
+            continue;
+        }
         fclose(fp);
 
-        // Decompress the JPEG data into an RGB image buffer
         int width, height, subsamp, color_space;
-        if(tjDecompressHeader2(m_jpegDecompressor, jpegBuf, jpegSize, &width, &height, &color_space) != 0)
-            std::cerr << "\n Jpeg image decode failed in tjDecompressHeader2";
-        Rpp8u* rgbBuf;
-        int elementsInRow;
-        if(descPtr->c == 3)
-        {
-            elementsInRow = width * descPtr->c;
-            rgbBuf= (Rpp8u*)calloc(width * height * 3, sizeof(Rpp8u));
-            if(tjDecompress2(m_jpegDecompressor, jpegBuf, jpegSize, rgbBuf, width, width * 3, height, TJPF_RGB, TJFLAG_ACCURATEDCT) != 0)
-                std::cerr << "\n Jpeg image decode failed ";
+        if(tjDecompressHeader3(m_jpegDecompressor, jpegBuf, jpegSize, &width, &height, &subsamp, &color_space) != 0) {
+            std::cerr << "\n Jpeg header decode failed: " << tjGetErrorStr();
+            free(jpegBuf);
+            continue;
         }
-        else
-        {
-            elementsInRow = width;
-            rgbBuf= (Rpp8u*)calloc(width * height, sizeof(Rpp8u));
-            if(tjDecompress2(m_jpegDecompressor, jpegBuf, jpegSize, rgbBuf, width, width, height, TJPF_GRAY, 0) != 0)
-                std::cerr << "\n Jpeg image decode failed ";
+
+        // Determine format based on descriptor
+        int channels = descPtr[i]->c; // Assuming global descriptor or use descPtr[i]
+        TJPF pixelFormat = (channels == 3) ? TJPF_RGB : TJPF_GRAY;
+        int elementsInRow = width * channels;
+
+        Rpp8u* rgbBuf = (Rpp8u*)malloc(width * height * channels);
+        if(tjDecompress2(m_jpegDecompressor, jpegBuf, jpegSize, rgbBuf, width, elementsInRow, height, pixelFormat, TJFLAG_ACCURATEDCT) != 0) {
+            std::cerr << "\n Jpeg decode failed: " << tjGetErrorStr();
+            free(jpegBuf);
+            free(rgbBuf);
+            continue;
         }
-        // Copy the decompressed image buffer to the RPP input buffer
-        Rpp8u *inputTemp = input + descPtr->offsetInBytes + (i * descPtr->strides.nStride);
+
+        // Calculate destination start: 
+        // Use either offsetInBytes OR nStride, usually not both unless offset is a sub-buffer
+        Rpp8u *inputTemp = input + (i * descPtr[i]->strides.nStride);
+
+        // Copy row by row (handles cases where RPP buffer width != JPEG width)
         for (int j = 0; j < height; j++)
         {
             memcpy(inputTemp, rgbBuf + j * elementsInRow, elementsInRow * sizeof(Rpp8u));
-            inputTemp += descPtr->w * descPtr->c;
+            inputTemp += descPtr[i]->w * descPtr[i]->c;
         }
-        // Clean up
+
         free(jpegBuf);
         free(rgbBuf);
     }
-
-    // Clean up
     tjDestroy(m_jpegDecompressor);
 }
 
 // Write a batch of images using the OpenCV library
-inline void write_image_batch_opencv(string outputFolder, Rpp8u *output, RpptDescPtr dstDescPtr, vector<string>::const_iterator imagesNamesStart, RpptImagePatch *dstImgSizes, int maxImageDump)
+inline void write_image_batch_opencv(string outputFolder, Rpp8u *output, RpptDescPtr *dstDescPtr, vector<string>::const_iterator imagesNamesStart, RpptImagePatch *dstImgSizes, int maxImageDump)
 {
     // create output folder
     mkdir(outputFolder.c_str(), 0700);
@@ -943,17 +1069,17 @@ inline void write_image_batch_opencv(string outputFolder, Rpp8u *output, RpptDes
     static int cnt = 1;
     static int imageCnt = 0;
 
-    Rpp32u elementsInRowMax = dstDescPtr->w * dstDescPtr->c;
-    Rpp8u *offsettedOutput = output + dstDescPtr->offsetInBytes;
-    for (int j = 0; (j < dstDescPtr->n) && (imageCnt < maxImageDump) ; j++, imageCnt++)
+    Rpp8u *offsettedOutput = output + dstDescPtr[0]->offsetInBytes;
+    for (int j = 0; (j < dstDescPtr[0]->n) && (imageCnt < maxImageDump) ; j++, imageCnt++)
     {
+        Rpp32u elementsInRowMax = dstDescPtr[j]->w * dstDescPtr[j]->c;
         Rpp32u height = dstImgSizes[j].height;
         Rpp32u width = dstImgSizes[j].width;
-        Rpp32u elementsInRow = width * dstDescPtr->c;
-        Rpp32u outputSize = height * width * dstDescPtr->c;
+        Rpp32u elementsInRow = width * dstDescPtr[j]->c;
+        Rpp32u outputSize = height * width * dstDescPtr[j]->c;
         Rpp8u *tempOutput = (Rpp8u *)calloc(outputSize, sizeof(Rpp8u));
         Rpp8u *tempOutputRow = tempOutput;
-        Rpp8u *outputRow = offsettedOutput + j * dstDescPtr->strides.nStride;
+        Rpp8u *outputRow = offsettedOutput + j * dstDescPtr[j]->strides.nStride;
         for (int k = 0; k < height; k++)
         {
             memcpy(tempOutputRow, outputRow, elementsInRow * sizeof(Rpp8u));
@@ -962,11 +1088,11 @@ inline void write_image_batch_opencv(string outputFolder, Rpp8u *output, RpptDes
         }
         string outputImagePath = outputFolder + *(imagesNamesStart + j);
         Mat matOutputImage, matOutputImageRgb;
-        if (dstDescPtr->c == 1)
+        if (dstDescPtr[j]->c == 1)
             matOutputImage = Mat(height, width, CV_8UC1, tempOutput);
-        else if (dstDescPtr->c == 2)
+        else if (dstDescPtr[j]->c == 2)
             matOutputImage = Mat(height, width, CV_8UC2, tempOutput);
-        else if (dstDescPtr->c == 3)
+        else if (dstDescPtr[j]->c == 3)
         {
             matOutputImageRgb = Mat(height, width, CV_8UC3, tempOutput);
             cvtColor(matOutputImageRgb, matOutputImage, COLOR_RGB2BGR);
@@ -986,21 +1112,21 @@ inline void write_image_batch_opencv(string outputFolder, Rpp8u *output, RpptDes
 }
 
 // compares the output of PKD3-PKD3 and PLN1-PLN1 variants
-void compare_outputs_pkd_and_pln1(Rpp8u* output, Rpp8u* refOutput, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int refOutputHeight, int refOutputWidth, int refOutputSize, int &fileMatch)
+void compare_outputs_pkd_and_pln1(Rpp8u* output, Rpp8u* refOutput, RpptDescPtr *dstDescPtr, RpptImagePatch *dstImgSizes, int refOutputHeight, int refOutputWidth, int refOutputSize, int &fileMatch)
 {
     Rpp8u *rowTemp, *rowTempRef, *outVal, *outRefVal, *outputTemp, *outputTempRef;
-    for(int imageCnt = 0; imageCnt < dstDescPtr->n; imageCnt++)
+    for(int imageCnt = 0; imageCnt < dstDescPtr[0]->n; imageCnt++)
     {
-        outputTemp = output + imageCnt * dstDescPtr->strides.nStride;
+        outputTemp = output + imageCnt * dstDescPtr[imageCnt]->strides.nStride;
         outputTempRef = refOutput + imageCnt * refOutputSize;
         int height = dstImgSizes[imageCnt].height;
-        int width = dstImgSizes[imageCnt].width * dstDescPtr->c;
+        int width = dstImgSizes[imageCnt].width * dstDescPtr[imageCnt]->c;
         int matchedIdx = 0;
-        int refOutputHstride = refOutputWidth * dstDescPtr->c;
+        int refOutputHstride = refOutputWidth * dstDescPtr[imageCnt]->c;
 
         for(int i = 0; i < height; i++)
         {
-            rowTemp = outputTemp + i * dstDescPtr->strides.hStride;
+            rowTemp = outputTemp + i * dstDescPtr[imageCnt]->strides.hStride;
             rowTempRef = outputTempRef + i * refOutputHstride;
             for(int j = 0; j < width; j++)
             {
@@ -1017,20 +1143,20 @@ void compare_outputs_pkd_and_pln1(Rpp8u* output, Rpp8u* refOutput, RpptDescPtr d
 }
 
 // compares the output of PKD3-PKD3 and PLN1-PLN1 variants
-void compare_outputs_pkd_and_pln1(Rpp32f* output, Rpp32f* refOutput, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int refOutputHeight, int refOutputWidth, int refOutputSize, int &fileMatch)
+void compare_outputs_pkd_and_pln1(Rpp32f* output, Rpp32f* refOutput, RpptDescPtr *dstDescPtr, RpptImagePatch *dstImgSizes, int refOutputHeight, int refOutputWidth, int refOutputSize, int &fileMatch)
 {
     Rpp32f *rowTemp, *rowTempRef, *outVal, *outRefVal, *outputTemp, *outputTempRef;
-    for(int imageCnt = 0; imageCnt < dstDescPtr->n; imageCnt++)
+    for(int imageCnt = 0; imageCnt < dstDescPtr[0]->n; imageCnt++)
     {
-        outputTemp = output + imageCnt * dstDescPtr->strides.nStride;
+        outputTemp = output + imageCnt * dstDescPtr[imageCnt]->strides.nStride;
         outputTempRef = refOutput + imageCnt * refOutputSize;
         int height = dstImgSizes[imageCnt].height;
-        int width = dstImgSizes[imageCnt].width * dstDescPtr->c;
+        int width = dstImgSizes[imageCnt].width * dstDescPtr[imageCnt]->c;
         int matchedIdx = 0;
-        int refOutputHstride = refOutputWidth * dstDescPtr->c;
+        int refOutputHstride = refOutputWidth * dstDescPtr[imageCnt]->c;
         for(int i = 0; i < height; i++)
         {
-            rowTemp = outputTemp + i * dstDescPtr->strides.hStride;
+            rowTemp = outputTemp + i * dstDescPtr[imageCnt]->strides.hStride;
             rowTempRef = outputTempRef + i * refOutputHstride;
             for(int j = 0; j < width; j++)
             {
@@ -1047,25 +1173,25 @@ void compare_outputs_pkd_and_pln1(Rpp32f* output, Rpp32f* refOutput, RpptDescPtr
 }
 
 // compares the output of PLN3-PLN3 variants.This function compares the output buffer of pln3 format with its reference output in pkd3 format.
-void compare_outputs_pln3(Rpp8u* output, Rpp8u* refOutput, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int refOutputHeight, int refOutputWidth, int refOutputSize, int &fileMatch)
+void compare_outputs_pln3(Rpp8u* output, Rpp8u* refOutput, RpptDescPtr *dstDescPtr, RpptImagePatch *dstImgSizes, int refOutputHeight, int refOutputWidth, int refOutputSize, int &fileMatch)
 {
     Rpp8u *rowTemp, *rowTempRef, *outVal, *outRefVal, *outputTemp, *outputTempRef, *outputTempChn, *outputTempRefChn;
-    for(int imageCnt = 0; imageCnt < dstDescPtr->n; imageCnt++)
+    for(int imageCnt = 0; imageCnt < dstDescPtr[0]->n; imageCnt++)
     {
-        outputTemp = output + imageCnt * dstDescPtr->strides.nStride;
+        outputTemp = output + imageCnt * dstDescPtr[0]->strides.nStride;
         outputTempRef = refOutput + imageCnt * refOutputSize;
         int height = dstImgSizes[imageCnt].height;
         int width = dstImgSizes[imageCnt].width;
         int matchedIdx = 0;
-        int refOutputHstride = refOutputWidth * dstDescPtr->c;
+        int refOutputHstride = refOutputWidth * dstDescPtr[0]->c;
 
-        for(int c = 0; c < dstDescPtr->c; c++)
+        for(int c = 0; c < dstDescPtr[0]->c; c++)
         {
-            outputTempChn = outputTemp + c * dstDescPtr->strides.cStride;
+            outputTempChn = outputTemp + c * dstDescPtr[0]->strides.cStride;
             outputTempRefChn = outputTempRef + c;
             for(int i = 0; i < height; i++)
             {
-                rowTemp = outputTempChn + i * dstDescPtr->strides.hStride;
+                rowTemp = outputTempChn + i * dstDescPtr[0]->strides.hStride;
                 rowTempRef = outputTempRefChn + i * refOutputHstride;
                 for(int j = 0; j < width; j++)
                 {
@@ -1077,31 +1203,31 @@ void compare_outputs_pln3(Rpp8u* output, Rpp8u* refOutput, RpptDescPtr dstDescPt
                 }
             }
         }
-        if(matchedIdx == (height * width * dstDescPtr->c) && matchedIdx !=0)
+        if(matchedIdx == (height * width * dstDescPtr[0]->c) && matchedIdx !=0)
             fileMatch++;
     }
 }
 
 // compares the output of PLN3-PLN3 variants.This function compares the output buffer of pln3 format with its reference output in pkd3 format.
-void compare_outputs_pln3(Rpp32f* output, Rpp32f* refOutput, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int refOutputHeight, int refOutputWidth, int refOutputSize, int &fileMatch)
+void compare_outputs_pln3(Rpp32f* output, Rpp32f* refOutput, RpptDescPtr *dstDescPtr, RpptImagePatch *dstImgSizes, int refOutputHeight, int refOutputWidth, int refOutputSize, int &fileMatch)
 {
     Rpp32f *rowTemp, *rowTempRef, *outVal, *outRefVal, *outputTemp, *outputTempRef, *outputTempChn, *outputTempRefChn;
-    for(int imageCnt = 0; imageCnt < dstDescPtr->n; imageCnt++)
+    for(int imageCnt = 0; imageCnt < dstDescPtr[0]->n; imageCnt++)
     {
-        outputTemp = output + imageCnt * dstDescPtr->strides.nStride;
+        outputTemp = output + imageCnt * dstDescPtr[0]->strides.nStride;
         outputTempRef = refOutput + imageCnt * refOutputSize;
         int height = dstImgSizes[imageCnt].height;
         int width = dstImgSizes[imageCnt].width;
         int matchedIdx = 0;
-        int refOutputHstride = refOutputWidth * dstDescPtr->c;
+        int refOutputHstride = refOutputWidth * dstDescPtr[0]->c;
 
-        for(int c = 0; c < dstDescPtr->c; c++)
+        for(int c = 0; c < dstDescPtr[0]->c; c++)
         {
-            outputTempChn = outputTemp + c * dstDescPtr->strides.cStride;
+            outputTempChn = outputTemp + c * dstDescPtr[0]->strides.cStride;
             outputTempRefChn = outputTempRef + c;
             for(int i = 0; i < height; i++)
             {
-                rowTemp = outputTempChn + i * dstDescPtr->strides.hStride;
+                rowTemp = outputTempChn + i * dstDescPtr[0]->strides.hStride;
                 rowTempRef = outputTempRefChn + i * refOutputHstride;
                 for(int j = 0; j < width; j++)
                 {
@@ -1113,12 +1239,12 @@ void compare_outputs_pln3(Rpp32f* output, Rpp32f* refOutput, RpptDescPtr dstDesc
                 }
             }
         }
-        if(matchedIdx == (height * width * dstDescPtr->c) && matchedIdx !=0)
+        if(matchedIdx == (height * width * dstDescPtr[0]->c) && matchedIdx !=0)
             fileMatch++;
     }
 }
 
-inline void compare_output(void* output, string funcName, RpptDescPtr srcDescPtr, RpptDescPtr dstDescPtr, RpptImagePatch *dstImgSizes, int noOfImages, string interpolationTypeName, string noiseTypeName, int additionalParam, int testCase, string dst, string scriptPath)
+inline void compare_output(void* output, string funcName, RpptDescPtr *srcDescPtr, RpptDescPtr *dstDescPtr, RpptImagePatch *dstImgSizes, int noOfImages, string interpolationTypeName, string noiseTypeName, int additionalParam, int testCase, string dst, string scriptPath)
 {
     string func = funcName;
     string refFile = "";
@@ -1133,36 +1259,36 @@ inline void compare_output(void* output, string funcName, RpptDescPtr srcDescPtr
         refOutputWidth = ((GOLDEN_OUTPUT_MAX_WIDTH / 8) * 8) + 8;    // obtain next multiple of 8 after GOLDEN_OUTPUT_MAX_WIDTH
         refOutputHeight = GOLDEN_OUTPUT_MAX_HEIGHT;
     }
-    int refOutputSize = refOutputHeight * refOutputWidth * dstDescPtr->c;
-    Rpp64u binOutputSize = refOutputHeight * refOutputWidth * dstDescPtr->n * 4;
-    int pln1RefStride = refOutputHeight * refOutputWidth * dstDescPtr->n * 3;
+    int refOutputSize = refOutputHeight * refOutputWidth * dstDescPtr[0]->c;
+    Rpp64u binOutputSize = refOutputHeight * refOutputWidth * dstDescPtr[0]->n * 4;
+    int pln1RefStride = refOutputHeight * refOutputWidth * dstDescPtr[0]->n * 3;
 
     string dataType[4] = {"_u8_", "_f32_", "_f16_", "_i8_"};
 
-    if(srcDescPtr->dataType == dstDescPtr->dataType)
-        func += dataType[srcDescPtr->dataType];
+    if(srcDescPtr[0]->dataType == dstDescPtr[0]->dataType)
+        func += dataType[srcDescPtr[0]->dataType];
     else
     {
-        func = func + dataType[srcDescPtr->dataType];
+        func = func + dataType[srcDescPtr[0]->dataType];
         func.resize(func.size() - 1);
-        func += dataType[dstDescPtr->dataType];
+        func += dataType[dstDescPtr[0]->dataType];
     }
 
     std::string binFile = func + "Tensor";
-    if(srcDescPtr->layout == RpptLayout::NHWC)
+    if(srcDescPtr[0]->layout == RpptLayout::NHWC)
         func += "Tensor_PKD3";
     else
     {
-        if (srcDescPtr->c == 3)
+        if (srcDescPtr[0]->c == 3)
             func += "Tensor_PLN3";
         else
             func += "Tensor_PLN1";
     }
-    if(dstDescPtr->layout == RpptLayout::NHWC)
+    if(dstDescPtr[0]->layout == RpptLayout::NHWC)
         func += "_to_PKD3";
     else
     {
-        if (dstDescPtr->c == 3)
+        if (dstDescPtr[0]->c == 3)
             func += "_to_PLN3";
         else
         {
@@ -1194,14 +1320,14 @@ inline void compare_output(void* output, string funcName, RpptDescPtr srcDescPtr
     }
     refFile = scriptPath + "/../REFERENCE_OUTPUT/" + funcName + "/"+ binFile + ".bin";
     int fileMatch = 0;
-    if(dstDescPtr->dataType == RpptDataType::U8)
+    if(dstDescPtr[0]->dataType == RpptDataType::U8)
     {
         Rpp8u* binaryContent = (Rpp8u *)malloc(binOutputSize * sizeof(Rpp8u));
         read_bin_file(refFile, binaryContent);
 
-        if(dstDescPtr->layout == RpptLayout::NHWC)
+        if(dstDescPtr[0]->layout == RpptLayout::NHWC)
             compare_outputs_pkd_and_pln1((Rpp8u*)output, binaryContent, dstDescPtr, dstImgSizes, refOutputHeight, refOutputWidth, refOutputSize, fileMatch);
-        else if(dstDescPtr->layout == RpptLayout::NCHW && dstDescPtr->c == 3)
+        else if(dstDescPtr[0]->layout == RpptLayout::NCHW && dstDescPtr[0]->c == 3)
             compare_outputs_pln3((Rpp8u*)output, binaryContent, dstDescPtr, dstImgSizes, refOutputHeight, refOutputWidth, refOutputSize, fileMatch);
         else
             compare_outputs_pkd_and_pln1((Rpp8u*)output, binaryContent + pln1RefStride, dstDescPtr, dstImgSizes, refOutputHeight, refOutputWidth, refOutputSize, fileMatch);
@@ -1212,9 +1338,9 @@ inline void compare_output(void* output, string funcName, RpptDescPtr srcDescPtr
         Rpp32f* binaryContent = (Rpp32f *)malloc(binOutputSize * sizeof(Rpp32f));
         read_bin_file(refFile, binaryContent);
 
-        if(dstDescPtr->layout == RpptLayout::NHWC)
+        if(dstDescPtr[0]->layout == RpptLayout::NHWC)
             compare_outputs_pkd_and_pln1((Rpp32f*)output, binaryContent, dstDescPtr, dstImgSizes, refOutputHeight, refOutputWidth, refOutputSize, fileMatch);
-        else if(dstDescPtr->layout == RpptLayout::NCHW && dstDescPtr->c == 3)
+        else if(dstDescPtr[0]->layout == RpptLayout::NCHW && dstDescPtr[0]->c == 3)
             compare_outputs_pln3((Rpp32f*)output, binaryContent, dstDescPtr, dstImgSizes, refOutputHeight, refOutputWidth, refOutputSize, fileMatch);
         else
             compare_outputs_pkd_and_pln1((Rpp32f*)output, binaryContent + pln1RefStride, dstDescPtr, dstImgSizes, refOutputHeight, refOutputWidth, refOutputSize, fileMatch);
@@ -1223,14 +1349,14 @@ inline void compare_output(void* output, string funcName, RpptDescPtr srcDescPtr
 
     std::cout << std::endl << "\nResults for " << func << " :" << std::endl;
     std::string status = func + ": ";
-    if(fileMatch == dstDescPtr->n)
+    if(fileMatch == dstDescPtr[0]->n)
     {
         std::cout << "PASSED!";
         status += "PASSED";
     }
     else
     {
-        std::cout << "FAILED! " << fileMatch << "/" << dstDescPtr->n << " outputs are matching with reference outputs";
+        std::cout << "FAILED! " << fileMatch << "/" << dstDescPtr[0]->n << " outputs are matching with reference outputs";
         status += "FAILED";
     }
 
@@ -1246,18 +1372,18 @@ inline void compare_output(void* output, string funcName, RpptDescPtr srcDescPtr
 
 // compares reduction type functions outputs
 template <typename T>
-inline void compare_reduction_output(T* output, string funcName, RpptDescPtr srcDescPtr, int testCase, string dst, string scriptPath)
+inline void compare_reduction_output(T* output, string funcName, RpptDescPtr *srcDescPtr, int testCase, string dst, string scriptPath)
 {
     string func = funcName;
     string dataType[4] = {"_u8_", "_f16_", "_f32_", "_i8_"};
 
-    func += dataType[srcDescPtr->dataType];
+    func += dataType[srcDescPtr[0]->dataType];
 
-    if(srcDescPtr->layout == RpptLayout::NHWC)
+    if(srcDescPtr[0]->layout == RpptLayout::NHWC)
         func += "Tensor_PKD3";
     else
     {
-        if (srcDescPtr->c == 3)
+        if (srcDescPtr[0]->c == 3)
             func += "Tensor_PLN3";
         else
             func += "Tensor_PLN1";
@@ -1267,8 +1393,8 @@ inline void compare_reduction_output(T* output, string funcName, RpptDescPtr src
     int matched_values = 0;
 
     T *refOutput;
-    int numChannels = (srcDescPtr->c == 1) ? 1 : 3;
-    int numOutputs = (srcDescPtr->c == 1) ? srcDescPtr->n : srcDescPtr->n * 4;
+    int numChannels = (srcDescPtr[0]->c == 1) ? 1 : 3;
+    int numOutputs = (srcDescPtr[0]->c == 1) ? srcDescPtr[0]->n : srcDescPtr[0]->n * 4;
     if(testCase == TENSOR_MIN)
         refOutput = reinterpret_cast<T*>(TensorMinReferenceOutputs[numChannels].data());
     else if(testCase == TENSOR_MAX)
@@ -1280,9 +1406,9 @@ inline void compare_reduction_output(T* output, string funcName, RpptDescPtr src
     else if(testCase == TENSOR_STDDEV)
         refOutput = reinterpret_cast<T*>(TensorStddevReferenceOutputs[numChannels].data());
 
-    if(srcDescPtr->c == 1)
+    if(srcDescPtr[0]->c == 1)
     {
-        for(int i = 0; i < srcDescPtr->n; i++)
+        for(int i = 0; i < srcDescPtr[0]->n; i++)
         {
             int diff = abs(static_cast<int>(output[i] - refOutput[i]));
             if(diff <= CUTOFF)
@@ -1291,7 +1417,7 @@ inline void compare_reduction_output(T* output, string funcName, RpptDescPtr src
     }
     else
     {
-        for(int i = 0; i < srcDescPtr->n; i++)
+        for(int i = 0; i < srcDescPtr[0]->n; i++)
         {
             matched_values = 0;
             for(int j = 0; j < 4; j++)
@@ -1307,14 +1433,14 @@ inline void compare_reduction_output(T* output, string funcName, RpptDescPtr src
 
     std::cout << std::endl << "Results for " << func << " :" << std::endl;
     std::string status = func + ": ";
-    if(fileMatch == srcDescPtr->n)
+    if(fileMatch == srcDescPtr[0]->n)
     {
         std::cout << "PASSED!" << std::endl;
         status += "PASSED";
     }
     else
     {
-        std::cout << "FAILED! " << fileMatch << "/" << srcDescPtr->n << " outputs are matching with reference outputs" << std::endl;
+        std::cout << "FAILED! " << fileMatch << "/" << srcDescPtr[0]->n << " outputs are matching with reference outputs" << std::endl;
         status += "FAILED";
     }
 
