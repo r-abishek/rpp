@@ -108,16 +108,13 @@ RppStatus brightness_u8_u8_host_tensor(Rpp8u *srcPtr,
                                        RpptDescPtr srcDescPtr,
                                        Rpp8u *dstPtr,
                                        RpptDescPtr dstDescPtr,
-                                       Rpp32f alphaTensor,
-                                       Rpp32f betaTensor,
+                                       Rpp32f alpha,
+                                       Rpp32f beta,
                                        RpptROIPtr roiTensorPtrSrc,
                                        RpptRoiType roiType,
                                        RppLayoutParams layoutParams,
                                        rpp::Handle& handle)
 {
-    Rpp32f alpha = alphaTensor;
-    Rpp32f beta = betaTensor;
-
     Rpp32u bufferLength = roiTensorPtrSrc->xywhROI.roiWidth * layoutParams.bufferMultiplier;
     Rpp32u alignedLength = (bufferLength / 48) * 48;
     Rpp32u vectorIncrement = 48;
@@ -301,15 +298,14 @@ RppStatus brightness_f32_f32_host_tensor(Rpp32f *srcPtr,
                                          RpptDescPtr srcDescPtr,
                                          Rpp32f *dstPtr,
                                          RpptDescPtr dstDescPtr,
-                                         Rpp32f alphaTensor,
-                                         Rpp32f betaTensor,
+                                         Rpp32f alpha,
+                                         Rpp32f beta,
                                          RpptROIPtr roiTensorPtrSrc,
                                          RpptRoiType roiType,
                                          RppLayoutParams layoutParams,
                                          rpp::Handle& handle)
 {
-    Rpp32f alpha = alphaTensor;
-    Rpp32f beta = betaTensor * ONE_OVER_255;
+    beta = beta * ONE_OVER_255;
 
     Rpp32u bufferLength = roiTensorPtrSrc->xywhROI.roiWidth * layoutParams.bufferMultiplier;
 
@@ -505,15 +501,14 @@ RppStatus brightness_f16_f16_host_tensor(Rpp16f *srcPtr,
                                          RpptDescPtr srcDescPtr,
                                          Rpp16f *dstPtr,
                                          RpptDescPtr dstDescPtr,
-                                         Rpp32f alphaTensor,
-                                         Rpp32f betaTensor,
+                                         Rpp32f alpha,
+                                         Rpp32f beta,
                                          RpptROIPtr roiTensorPtrSrc,
                                          RpptRoiType roiType,
                                          RppLayoutParams layoutParams,
                                          rpp::Handle& handle)
 {
-    Rpp32f alpha = alphaTensor;
-    Rpp32f beta = betaTensor * ONE_OVER_255;
+    beta = beta * ONE_OVER_255;
 
     Rpp32u bufferLength = roiTensorPtrSrc->xywhROI.roiWidth * layoutParams.bufferMultiplier;
 
@@ -744,16 +739,13 @@ RppStatus brightness_i8_i8_host_tensor(Rpp8s *srcPtr,
                                        RpptDescPtr srcDescPtr,
                                        Rpp8s *dstPtr,
                                        RpptDescPtr dstDescPtr,
-                                       Rpp32f alphaTensor,
-                                       Rpp32f betaTensor,
+                                       Rpp32f alpha,
+                                       Rpp32f beta,
                                        RpptROIPtr roiTensorPtrSrc,
                                        RpptRoiType roiType,
                                        RppLayoutParams layoutParams,
                                        rpp::Handle& handle)
 {
-    Rpp32f alpha = alphaTensor;
-    Rpp32f beta = betaTensor;
-
     Rpp32u bufferLength = roiTensorPtrSrc->xywhROI.roiWidth * layoutParams.bufferMultiplier;
     Rpp32u alignedLength = (bufferLength / 48) * 48;
     Rpp32u vectorIncrement = 48;

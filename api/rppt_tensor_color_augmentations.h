@@ -52,8 +52,8 @@ extern "C" {
  * \param [in] srcDescPtr source tensor descriptor (Restrictions - numDims = 4, offsetInBytes >= 0, dataType = U8/F16/F32/I8, layout = NCHW/NHWC, c = 1/3)
  * \param [out] dstPtr destination tensor in HOST memory
  * \param [in] dstDescPtr destination tensor descriptor (Restrictions - numDims = 4, offsetInBytes >= 0, dataType = U8/F16/F32/I8, layout = NCHW/NHWC, c = same as that of srcDescPtr)
- * \param [in] alphaTensor alpha values for brightness calculation (1D tensor in HOST memory, of size batchSize, with 0 <= alpha <= 20 for each image in batch)
- * \param [in] betaTensor beta values for brightness calculation (1D tensor in HOST memory, of size batchSize, with 0 <= beta <= 255 for each image in batch)
+ * \param [in] alpha alpha values for brightness calculation (1D tensor in HOST memory, of size Rpp32f, with 0 <= alpha <= 20 for each image in batch)
+ * \param [in] beta beta values for brightness calculation (1D tensor in HOST memory, of size Rpp32f, with 0 <= beta <= 255 for each image in batch)
  * \param [in] roiTensorPtrSrc ROI data in HOST memory, for each image in source tensor (2D tensor of size batchSize * 4, in either format - XYWH(xy.x, xy.y, roiWidth, roiHeight) or LTRB(lt.x, lt.y, rb.x, rb.y))
  * \param [in] roiType ROI type used (RpptRoiType::XYWH or RpptRoiType::LTRB)
  * \param [in] rppHandle RPP HOST handle created with <tt>\ref rppCreate()</tt>
@@ -61,7 +61,7 @@ extern "C" {
  * \retval RPP_SUCCESS Successful completion.
  * \retval RPP_ERROR* Unsuccessful completion.
  */
-RppStatus rppt_brightness_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f alphaTensor, Rpp32f betaTensor, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
+RppStatus rppt_brightness_host(RppPtr_t srcPtr, RpptDescPtr srcDescPtr, RppPtr_t dstPtr, RpptDescPtr dstDescPtr, Rpp32f alpha, Rpp32f beta, RpptROIPtr roiTensorPtrSrc, RpptRoiType roiType, rppHandle_t rppHandle);
 
 #ifdef GPU_SUPPORT
 /*! \brief Brightness augmentation on HIP backend for a NCHW/NHWC layout tensor
