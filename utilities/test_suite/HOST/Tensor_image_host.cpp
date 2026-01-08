@@ -301,6 +301,8 @@ int main(int argc, char **argv)
                     testCaseName = "brightness";
                     Rpp32f alpha = 1.75f;
                     Rpp32f beta = 50.0f;
+                    Rpp32f alpha = 1.75f;
+                    Rpp32f beta = 50.0f;
 
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
