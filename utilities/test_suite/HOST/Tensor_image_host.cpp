@@ -41,7 +41,6 @@ SOFTWARE.
 using namespace cv;
 using namespace std;
 
-
 // Loads all valid images from a directory into a vector.
 vector<Mat> loadBatchImages(const string& directory, int& batchSize, bool isColor) {
     vector<Mat> images;
@@ -251,6 +250,7 @@ int main(int argc, char **argv)
         dst += "/";
         dst += func;
     }
+
     int noOfImages = 0, missingFuncFlag = 0;
     bool isColor = (layoutType == 2) ? false : true;
     vector<Mat> inputVec = loadBatchImages(src, noOfImages, isColor);
@@ -263,12 +263,6 @@ int main(int argc, char **argv)
             inputVec.push_back(inputVec[noOfImages - 1]);
         noOfImages = batchSize; // Update count to match requested batch size
     }
-    // If directory had MORE images than batchSize, resize down
-    else if (noOfImages > batchSize)
-    {
-        inputVec.resize(batchSize);
-        noOfImages = batchSize;
-    }
 
     vector<Mat> outputVec(noOfImages);
     for (int i = 0; i < noOfImages; ++i)
@@ -278,7 +272,7 @@ int main(int argc, char **argv)
     RpptImageBorderType borderType = RpptImageBorderType::REPLICATE;
     // Set the number of threads to be used by OpenMP pragma for RPP batch processing on host.
     // If numThreads value passed is 0, number of OpenMP threads used by RPP will be set to batch size
-    Rpp32u numThreads = 0;
+    Rpp32u numThreads = 1;
     rppHandle_t handle;
     RppBackend backend = RppBackend::RPP_HOST_BACKEND;
     rppCreate(&handle, 1, numThreads, nullptr, backend);
@@ -299,8 +293,6 @@ int main(int argc, char **argv)
                 case BRIGHTNESS:
                 {
                     testCaseName = "brightness";
-                    Rpp32f alpha = 1.75f;
-                    Rpp32f beta = 50.0f;
                     Rpp32f alpha = 1.75f;
                     Rpp32f beta = 50.0f;
 
@@ -393,7 +385,7 @@ int main(int argc, char **argv)
         minWallTime *= 1000;
         avgWallTime *= 1000;
         avgWallTime /= (numRuns * noOfImages);
-        cout << fixed << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
+        cout << fixed << "\n func : "<< func << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
     }
 
     cout << endl;
