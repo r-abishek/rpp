@@ -252,17 +252,15 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
                                       T *dstPtr,
                                       RpptDescPtr dstDescPtr,
                                       Rpp32u kernelSize,
-                                      RpptROIPtr roiTensorPtrSrc,
+                                      RpptROIPtr roiPtrSrc,
                                       RpptRoiType roiType,
                                       RppLayoutParams layoutParams,
                                       rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
-    Rpp32u numThreads = handle.GetNumThreads();
     static_assert((std::is_same<T, Rpp8u>::value || std::is_same<T, Rpp8s>::value), "T must be Rpp8u or Rpp8s");
 
     if ((kernelSize != 3) && (kernelSize != 5) && (kernelSize != 7) && (kernelSize != 9))
-        return box_filter_generic_host_tensor(srcPtr, srcDescPtr, dstPtr, dstDescPtr, kernelSize, roiTensorPtrSrc, roiType, layoutParams, handle);
+        return box_filter_generic_host_tensor(srcPtr, srcDescPtr, dstPtr, dstDescPtr, kernelSize, roiPtrSrc, roiType, layoutParams, handle);
 
     // set the required masks array needed for shuffle operations
 #if __AVX2__
@@ -270,17 +268,11 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
     __m128i pxMaskPkd[7] = {xmm_pxMaskRotate0To5, xmm_pxMaskRotate0To11, xmm_pxMaskRotate0To1, xmm_pxMaskRotate0To7, xmm_pxMaskRotate0To13, xmm_pxMaskRotate0To3, xmm_pxMaskRotate0To9};
 #endif
 
-    omp_set_dynamic(0);
-#pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
-        RpptROI roi;
-        RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
-        compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
-
+        RpptROI roi = *roiPtrSrc;
         T *srcPtrImage, *dstPtrImage;
-        srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
-        dstPtrImage = dstPtr + batchCount * dstDescPtr->strides.nStride;
+        srcPtrImage = srcPtr;
+        dstPtrImage = dstPtr;
 
         Rpp32u padLength = kernelSize / 2;
         Rpp32u bufferLength = roi.xywhROI.roiWidth * layoutParams.bufferMultiplier;
@@ -1725,7 +1717,6 @@ RppStatus box_filter_char_host_tensor(T *srcPtr,
             }
         }
     }
-
     return RPP_SUCCESS;
 }
 
@@ -1736,17 +1727,15 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                                        T *dstPtr,
                                        RpptDescPtr dstDescPtr,
                                        Rpp32u kernelSize,
-                                       RpptROIPtr roiTensorPtrSrc,
+                                       RpptROIPtr roiPtrSrc,
                                        RpptRoiType roiType,
                                        RppLayoutParams layoutParams,
                                        rpp::Handle& handle)
 {
-    RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
-    Rpp32u numThreads = handle.GetNumThreads();
     static_assert((std::is_same<T, Rpp32f>::value || std::is_same<T, Rpp16f>::value), "T must be Rpp32f or Rpp16f");
 
     if ((kernelSize != 3) && (kernelSize != 5) && (kernelSize != 7) && (kernelSize != 9))
-        return box_filter_generic_host_tensor(srcPtr, srcDescPtr, dstPtr, dstDescPtr, kernelSize, roiTensorPtrSrc, roiType, layoutParams, handle);
+        return box_filter_generic_host_tensor(srcPtr, srcDescPtr, dstPtr, dstDescPtr, kernelSize, roiPtrSrc, roiType, layoutParams, handle);
 
     // set the required masks array needed for permute operations
 #if __AVX2__
@@ -1754,17 +1743,11 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
     __m256i pxMaskPkd[7] = {avx_pxMaskRotate0To3, avx_pxMaskRotate0To6, avx_pxMaskRotate0To1, avx_pxMaskRotate0To4, avx_pxMaskRotate0To7, avx_pxMaskRotate0To2, avx_pxMaskRotate0To5};
 #endif
 
-    omp_set_dynamic(0);
-#pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
-        RpptROI roi;
-        RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
-        compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
-
+        RpptROI roi = *roiPtrSrc;
         T *srcPtrImage, *dstPtrImage;
-        srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
-        dstPtrImage = dstPtr + batchCount * dstDescPtr->strides.nStride;
+        srcPtrImage = srcPtr;
+        dstPtrImage = dstPtr;
 
         Rpp32u padLength = kernelSize / 2;
         Rpp32u bufferLength = roi.xywhROI.roiWidth * layoutParams.bufferMultiplier;
@@ -2909,7 +2892,6 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
             }
         }
     }
-
     return RPP_SUCCESS;
 }
 
@@ -2919,25 +2901,21 @@ RppStatus box_filter_generic_host_tensor(T *srcPtr,
                                          T *dstPtr,
                                          RpptDescPtr dstDescPtr,
                                          Rpp32u kernelSize,
-                                         RpptROIPtr roiTensorPtrSrc,
+                                         RpptROIPtr roiPtrSrc,
                                          RpptRoiType roiType,
                                          RppLayoutParams layoutParams,
                                          rpp::Handle& handle)
 {
     RpptROI roiDefault = {0, 0, (Rpp32s)srcDescPtr->w, (Rpp32s)srcDescPtr->h};
-    Rpp32u numThreads = handle.GetNumThreads();
 
-    omp_set_dynamic(0);
-#pragma omp parallel for num_threads(numThreads)
-    for(int batchCount = 0; batchCount < dstDescPtr->n; batchCount++)
     {
         RpptROI roi;
-        RpptROIPtr roiPtrInput = &roiTensorPtrSrc[batchCount];
+        RpptROIPtr roiPtrInput = roiPtrSrc;
         compute_roi_validation_host(roiPtrInput, &roi, &roiDefault, roiType);
 
         T *srcPtrImage, *dstPtrImage;
-        srcPtrImage = srcPtr + batchCount * srcDescPtr->strides.nStride;
-        dstPtrImage = dstPtr + batchCount * dstDescPtr->strides.nStride;
+        srcPtrImage = srcPtr;
+        dstPtrImage = dstPtr;
 
         Rpp32u padLength = kernelSize / 2;
         Rpp32u bufferLength = roi.xywhROI.roiWidth * layoutParams.bufferMultiplier;
