@@ -42,7 +42,7 @@ using namespace cv;
 using namespace std;
 
 // Loads all valid images from a directory into a vector.
-vector<Mat> loadBatchImages(const string& directory, int& batchSize, bool isColor) {
+vector<Mat> loadBatchImages(const string& directory, int& noOfImages, bool isColor) {
     vector<Mat> images;
     DIR* dir;
     struct dirent* entry;
@@ -73,7 +73,7 @@ vector<Mat> loadBatchImages(const string& directory, int& batchSize, bool isColo
     }
 
     closedir(dir);                  // Close directory stream
-    batchSize = images.size();      // Set output batch size
+    noOfImages = images.size();      // Set output batch size
     return images;                  // Return the list of loaded images
 }
 
@@ -272,10 +272,10 @@ int main(int argc, char **argv)
     RpptImageBorderType borderType = RpptImageBorderType::REPLICATE;
     // Set the number of threads to be used by OpenMP pragma for RPP batch processing on host.
     // If numThreads value passed is 0, number of OpenMP threads used by RPP will be set to batch size
-    Rpp32u numThreads = 1;
+    Rpp32u numThreads = batchSize;
     rppHandle_t handle;
     RppBackend backend = RppBackend::RPP_HOST_BACKEND;
-    rppCreate(&handle, 1, numThreads, nullptr, backend);
+    rppCreate(&handle, noOfImages, numThreads, nullptr, backend);
     double maxWallTime = 0, minWallTime = 500, avgWallTime = 0;
     double cpuTime, wallTime;
     string testCaseName;
@@ -283,67 +283,76 @@ int main(int argc, char **argv)
 
     for (int perfRunCount = 0; perfRunCount < numRuns; perfRunCount++)
     {
-        for(int i = 0; i < noOfImages; i++)
+        RppStatus errorCodeCapture = RPP_SUCCESS;
+        double startWallTime, endWallTime;
+        switch (testCase)
         {
-            RppStatus errorCodeCapture = RPP_SUCCESS;
-            clock_t startCpuTime, endCpuTime;
-            double startWallTime, endWallTime;
-            switch (testCase)
+            case BRIGHTNESS:
             {
-                case BRIGHTNESS:
-                {
-                    testCaseName = "brightness";
-                    Rpp32f alpha = 1.75f;
-                    Rpp32f beta = 50.0f;
+                testCaseName = "brightness";
+                Rpp32f alpha = 1.75f;
+                Rpp32f beta = 50.0f;
 
-                    startWallTime = omp_get_wtime();
-                    startCpuTime = clock();
-                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                startWallTime = omp_get_wtime();
+                startCpuTime = clock();
+                if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                {
+                    omp_set_dynamic(0);
+                    #pragma omp parallel for num_threads(numThreads)
+                    for (int i = 0; i < batchSize; ++i) {
                         errorCodeCapture = rppt_brightness_host(inputVec[i].data, &srcDescPtr[i], outputVec[i].data, &dstDescPtr[i], alpha, beta, &roi[i], RpptRoiType::XYWH, handle);
-                    else
-                        missingFuncFlag = 1;
-
-                    break;
-                }
-                case BOX_FILTER:
-                {
-                    testCaseName = "box_filter";
-                    Rpp32u kernelSize = additionalParam;
-
-                    if (borderType != RpptImageBorderType::REPLICATE)
-                    {
-                        missingFuncFlag = 1;
-                        break;
                     }
-
-                    startWallTime = omp_get_wtime();
-                    startCpuTime = clock();
-                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        errorCodeCapture = rppt_box_filter_host(inputVec[i].data, &srcDescPtr[i], outputVec[i].data, &dstDescPtr[i], kernelSize, borderType, &roi[i], RpptRoiType::XYWH, handle);
-                    else
-                        missingFuncFlag = 1;
-
-                    break;
                 }
-                default:
+                else
+                    missingFuncFlag = 1;
+
+                break;
+            }
+            case BOX_FILTER:
+            {
+                testCaseName = "box_filter";
+                Rpp32u kernelSize = additionalParam;
+
+                if (borderType != RpptImageBorderType::REPLICATE)
                 {
                     missingFuncFlag = 1;
                     break;
                 }
-            }
-            endCpuTime = clock();
-            endWallTime = omp_get_wtime();
-            cpuTime = ((double)(endCpuTime - startCpuTime)) / CLOCKS_PER_SEC;
-            wallTime = endWallTime - startWallTime;
 
-            if (missingFuncFlag == 1)
-            {
-                cout << "\nThe functionality " << " doesn't yet exist in RPP\n";
-                return RPP_ERROR_NOT_IMPLEMENTED;
+                startWallTime = omp_get_wtime();
+                startCpuTime = clock();
+                if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                {
+                    omp_set_dynamic(0);
+                    #pragma omp parallel for num_threads(numThreads)
+                    for (int i = 0; i < batchSize; ++i) {
+                        errorCodeCapture = rppt_box_filter_host(inputVec[i].data, &srcDescPtr[i], outputVec[i].data, &dstDescPtr[i], kernelSize, borderType, &roi[i], RpptRoiType::XYWH, handle);
+                    }
+                }
+                else
+                    missingFuncFlag = 1;
+
+                break;
             }
-            maxWallTime = std::max(maxWallTime, wallTime);
-            minWallTime = std::min(minWallTime, wallTime);
-            avgWallTime += wallTime;
+            default:
+            {
+                missingFuncFlag = 1;
+                break;
+            }
+        }
+        endCpuTime = clock();
+        endWallTime = omp_get_wtime();
+        cpuTime = ((double)(endCpuTime - startCpuTime)) / CLOCKS_PER_SEC;
+        wallTime = endWallTime - startWallTime;
+
+        if (missingFuncFlag == 1)
+        {
+            cout << "\nThe functionality " << " doesn't yet exist in RPP\n";
+                // return RPP_ERROR_NOT_IMPLEMENTED;
+        }
+        maxWallTime = std::max(maxWallTime, wallTime);
+        minWallTime = std::min(minWallTime, wallTime);
+        avgWallTime += wallTime;
         }
     }
 
