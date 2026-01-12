@@ -277,7 +277,7 @@ int main(int argc, char **argv)
     RppBackend backend = RppBackend::RPP_HOST_BACKEND;
     rppCreate(&handle, noOfImages, numThreads, nullptr, backend);
     double maxWallTime = 0, minWallTime = 500, avgWallTime = 0;
-    double cpuTime, wallTime;
+    double wallTime;
     string testCaseName;
     initializeDescriptorsAndRoi(inputVec, srcDescPtr, dstDescPtr, roi);
 
@@ -340,29 +340,24 @@ int main(int argc, char **argv)
                 break;
             }
         }
-        endCpuTime = clock();
         endWallTime = omp_get_wtime();
-        cpuTime = ((double)(endCpuTime - startCpuTime)) / CLOCKS_PER_SEC;
         wallTime = endWallTime - startWallTime;
 
         if (missingFuncFlag == 1)
         {
             cout << "\nThe functionality " << " doesn't yet exist in RPP\n";
-                // return RPP_ERROR_NOT_IMPLEMENTED;
+            return RPP_ERROR_NOT_IMPLEMENTED;
         }
         maxWallTime = std::max(maxWallTime, wallTime);
         minWallTime = std::min(minWallTime, wallTime);
         avgWallTime += wallTime;
-        }
     }
 
-    cpuTime *= 1000;
     wallTime *= 1000;
 
     if (testType == UNIT_TEST) 
     {
         cout <<"\n\n";
-        cout <<"CPU Backend Clock Time: "<< cpuTime <<" ms/batch"<< endl;
         cout <<"CPU Backend Wall Time: "<< wallTime <<" ms/batch";
         
         // Ensure destination folder exists
@@ -393,7 +388,7 @@ int main(int argc, char **argv)
         maxWallTime *= 1000;
         minWallTime *= 1000;
         avgWallTime *= 1000;
-        avgWallTime /= (numRuns * noOfImages);
+        avgWallTime /= (numRuns);
         cout << fixed << "\n func : "<< func << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
     }
 
