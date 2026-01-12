@@ -277,7 +277,7 @@ int main(int argc, char **argv)
     RppBackend backend = RppBackend::RPP_HOST_BACKEND;
     rppCreate(&handle, noOfImages, numThreads, nullptr, backend);
     double maxWallTime = 0, minWallTime = 500, avgWallTime = 0;
-    double wallTime;
+    double startCpuTime, wallTime;
     string testCaseName;
     initializeDescriptorsAndRoi(inputVec, srcDescPtr, dstDescPtr, roi);
 
