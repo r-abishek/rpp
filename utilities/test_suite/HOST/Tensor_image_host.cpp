@@ -121,6 +121,25 @@ void initializeDescriptorsAndRoi(const vector<Mat>& imgs, vector<RpptDesc>& srcD
     }
 }
 
+// sets descriptor data types of src/dst
+inline void set_descriptor_data_type_name(int BitDepthTestMode, string &funcName)
+{
+    if (BitDepthTestMode == U8_TO_U8)
+        funcName += "_u8_";
+    else if (BitDepthTestMode == F16_TO_F16)
+        funcName += "_f16_";
+    else if (BitDepthTestMode == F32_TO_F32)
+        funcName += "_f32_";
+    else if (BitDepthTestMode == U8_TO_F16)
+        funcName += "_u8_f16_";
+    else if (BitDepthTestMode == U8_TO_F32)
+        funcName += "_u8_f32_";
+    else if (BitDepthTestMode == I8_TO_I8)
+        funcName += "_i8_";
+    else if (BitDepthTestMode == U8_TO_I8)
+        funcName += "_u8_i8_";
+}
+
 int main(int argc, char **argv)
 {
     // Handle inputs
@@ -238,7 +257,9 @@ int main(int argc, char **argv)
 
     string inputPath = src;
     inputPath += "/";
+    // Set src/dst data types in tensor descriptors
     string func = funcName;
+    set_descriptor_data_type_name(BitDepthTestMode, func);
     func += funcType;
     if (kernelSizeCase)
     {
@@ -389,7 +410,7 @@ int main(int argc, char **argv)
         minWallTime *= 1000;
         avgWallTime *= 1000;
         avgWallTime /= (numRuns);
-        cout << fixed << "\n func : "<< func << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
+        cout << fixed << "\n Running : "<< func << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
     }
 
     cout << endl;
