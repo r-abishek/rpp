@@ -53,24 +53,23 @@ __global__ void brightness_pkd_hip_tensor(T *srcPtr,
                                           uint2 srcStridesNH,
                                           T *dstPtr,
                                           uint2 dstStridesNH,
-                                          float *alpha,
-                                          float *beta,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                          float alpha,
+                                          float beta,
+                                          RpptROI roi)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
-    if ((id_y >= roiTensorPtrSrc[id_z].xywhROI.roiHeight) || (id_x >= roiTensorPtrSrc[id_z].xywhROI.roiWidth * 3))
+    if ((id_y >= roi.xywhROI.roiHeight) || (id_x >= roi.xywhROI.roiWidth * 3))
     {
         return;
     }
 
-    uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x * 3);
-    uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x;
+    uint srcIdx = ((id_y + roi.xywhROI.xy.y) * srcStridesNH.y) + (id_x + roi.xywhROI.xy.x * 3);
+    uint dstIdx = (id_y * dstStridesNH.y) + id_x;
 
-    float4 alpha_f4 = MAKE_FLOAT4(alpha[id_z]);
-    float4 beta_f4 = MAKE_FLOAT4(beta[id_z]);
+    float4 alpha_f4 = MAKE_FLOAT4(alpha);
+    float4 beta_f4 = MAKE_FLOAT4(beta);
 
     d_float8 src_f8, dst_f8;
 
@@ -85,24 +84,23 @@ __global__ void brightness_pln_hip_tensor(T *srcPtr,
                                           T *dstPtr,
                                           uint3 dstStridesNCH,
                                           int channelsDst,
-                                          float *alpha,
-                                          float *beta,
-                                          RpptROIPtr roiTensorPtrSrc)
+                                          float alpha,
+                                          float beta,
+                                          RpptROI roi)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
-    if ((id_y >= roiTensorPtrSrc[id_z].xywhROI.roiHeight) || (id_x >= roiTensorPtrSrc[id_z].xywhROI.roiWidth))
+    if ((id_y >= roi.xywhROI.roiHeight) || (id_x >= roi.xywhROI.roiWidth))
     {
         return;
     }
 
-    uint srcIdx = (id_z * srcStridesNCH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
+    uint srcIdx = ((id_y + roi.xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roi.xywhROI.xy.x);
+    uint dstIdx = (id_y * dstStridesNCH.z) + id_x;
 
-    float4 alpha_f4 = MAKE_FLOAT4(alpha[id_z]);
-    float4 beta_f4 = MAKE_FLOAT4(beta[id_z]);
+    float4 alpha_f4 = MAKE_FLOAT4(alpha);
+    float4 beta_f4 = MAKE_FLOAT4(beta);
 
     d_float8 src_f8, dst_f8;
 
@@ -133,24 +131,23 @@ __global__ void brightness_pkd3_pln3_hip_tensor(T *srcPtr,
                                                 uint2 srcStridesNH,
                                                 T *dstPtr,
                                                 uint3 dstStridesNCH,
-                                                float *alpha,
-                                                float *beta,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                float alpha,
+                                                float beta,
+                                                RpptROI roi)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
-    if ((id_y >= roiTensorPtrSrc[id_z].xywhROI.roiHeight) || (id_x >= roiTensorPtrSrc[id_z].xywhROI.roiWidth))
+    if ((id_y >= roi.xywhROI.roiHeight) || (id_x >= roi.xywhROI.roiWidth))
     {
         return;
     }
 
-    uint srcIdx = (id_z * srcStridesNH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x) * 3);
-    uint dstIdx = (id_z * dstStridesNCH.x) + (id_y * dstStridesNCH.z) + id_x;
+    uint srcIdx = ((id_y + roi.xywhROI.xy.y) * srcStridesNH.y) + ((id_x + roi.xywhROI.xy.x) * 3);
+    uint dstIdx = (id_y * dstStridesNCH.z) + id_x;
 
-    float4 alpha_f4 = MAKE_FLOAT4(alpha[id_z]);
-    float4 beta_f4 = MAKE_FLOAT4(beta[id_z]);
+    float4 alpha_f4 = MAKE_FLOAT4(alpha);
+    float4 beta_f4 = MAKE_FLOAT4(beta);
 
     d_float24 src_f24, dst_f24;
 
@@ -166,24 +163,23 @@ __global__ void brightness_pln3_pkd3_hip_tensor(T *srcPtr,
                                                 uint3 srcStridesNCH,
                                                 T *dstPtr,
                                                 uint2 dstStridesNH,
-                                                float *alpha,
-                                                float *beta,
-                                                RpptROIPtr roiTensorPtrSrc)
+                                                float alpha,
+                                                float beta,
+                                                RpptROI roi)
 {
     int id_x = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 8;
     int id_y = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
-    if ((id_y >= roiTensorPtrSrc[id_z].xywhROI.roiHeight) || (id_x >= roiTensorPtrSrc[id_z].xywhROI.roiWidth))
+    if ((id_y >= roi.xywhROI.roiHeight) || (id_x >= roi.xywhROI.roiWidth))
     {
         return;
     }
 
-    uint srcIdx = (id_z * srcStridesNCH.x) + ((id_y + roiTensorPtrSrc[id_z].xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roiTensorPtrSrc[id_z].xywhROI.xy.x);
-    uint dstIdx = (id_z * dstStridesNH.x) + (id_y * dstStridesNH.y) + id_x * 3;
+    uint srcIdx = ((id_y + roi.xywhROI.xy.y) * srcStridesNCH.z) + (id_x + roi.xywhROI.xy.x);
+    uint dstIdx = (id_y * dstStridesNH.y) + id_x * 3;
 
-    float4 alpha_f4 = MAKE_FLOAT4(alpha[id_z]);
-    float4 beta_f4 = MAKE_FLOAT4(beta[id_z]);
+    float4 alpha_f4 = MAKE_FLOAT4(alpha);
+    float4 beta_f4 = MAKE_FLOAT4(beta);
 
     d_float24 src_f24, dst_f24;
 
@@ -210,7 +206,7 @@ RppStatus hip_exec_brightness_tensor(T *srcPtr,
 
     int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
-    int globalThreads_z = handle.GetBatchSize();
+    int globalThreads_z = 1;
 
     if ((srcDescPtr->layout == RpptLayout::NHWC) && (dstDescPtr->layout == RpptLayout::NHWC))
     {
@@ -223,9 +219,9 @@ RppStatus hip_exec_brightness_tensor(T *srcPtr,
                            make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
                            dstPtr,
                            make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                           alphaTensor,
-                           betaTensor,
-                           roiTensorPtrSrc);
+                           *alphaTensor,
+                           *betaTensor,
+                           *roiTensorPtrSrc);
     }
     else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
     {
@@ -239,9 +235,9 @@ RppStatus hip_exec_brightness_tensor(T *srcPtr,
                            dstPtr,
                            make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                            dstDescPtr->c,
-                           alphaTensor,
-                           betaTensor,
-                           roiTensorPtrSrc);
+                           *alphaTensor,
+                           *betaTensor,
+                           *roiTensorPtrSrc);
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
     {
@@ -256,9 +252,9 @@ RppStatus hip_exec_brightness_tensor(T *srcPtr,
                                make_uint2(srcDescPtr->strides.nStride, srcDescPtr->strides.hStride),
                                dstPtr,
                                make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
-                               alphaTensor,
-                               betaTensor,
-                               roiTensorPtrSrc);
+                               *alphaTensor,
+                               *betaTensor,
+                               *roiTensorPtrSrc);
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
         {
@@ -272,9 +268,9 @@ RppStatus hip_exec_brightness_tensor(T *srcPtr,
                                make_uint3(srcDescPtr->strides.nStride, srcDescPtr->strides.cStride, srcDescPtr->strides.hStride),
                                dstPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
-                               alphaTensor,
-                               betaTensor,
-                               roiTensorPtrSrc);
+                               *alphaTensor,
+                               *betaTensor,
+                               *roiTensorPtrSrc);
         }
     }
 

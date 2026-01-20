@@ -302,6 +302,8 @@ int main(int argc, char **argv)
     string testCaseName;
     initializeDescriptorsAndRoi(inputVec, srcDescPtr, dstDescPtr, roi);
 
+    // case-wise RPP API and measure time script for Unit and Performance test
+    cout << "\nRunning " << func << " " << numRuns << " times (each time with a batch size of " << batchSize << " images) and computing mean statistics...";
     for (int perfRunCount = 0; perfRunCount < numRuns; perfRunCount++)
     {
         RppStatus errorCodeCapture = RPP_SUCCESS;

@@ -92,27 +92,26 @@ __global__ void box_filter_3x3_pkd_hip_tensor(T *srcPtr,
                                               uint2 dstStridesNH,
                                               uint padLength,
                                               uint2 tileSize,
-                                              RpptROIPtr roiTensorPtrSrc)
+                                              RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNH.x) + ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
-    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    int srcIdx = ((id_y_i + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
+    int dstIdx = (id_y_o * dstStridesNH.y) + id_x_o * 3;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -138,7 +137,7 @@ __global__ void box_filter_3x3_pkd_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+            int clampedIdx = (clampedY * srcStridesNH.y) + (clampedX * 3);
 
             src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];         // R
             src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx + 1]; // G
@@ -176,27 +175,26 @@ __global__ void box_filter_5x5_pkd_hip_tensor(T *srcPtr,
                                               uint2 dstStridesNH,
                                               uint padLength,
                                               uint2 tileSize,
-                                              RpptROIPtr roiTensorPtrSrc)
+                                              RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNH.x) + ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
-    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    int srcIdx = ((clampedY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
+    int dstIdx = ((id_y_o + roiBeginY) * dstStridesNH.y) + (id_x_o + roiBeginX) * 3;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -222,7 +220,7 @@ __global__ void box_filter_5x5_pkd_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+            int clampedIdx = (clampedY * srcStridesNH.y) + (clampedX * 3);
 
             src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];         // R
             src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx + 1]; // G
@@ -266,27 +264,26 @@ __global__ void box_filter_7x7_pkd_hip_tensor(T *srcPtr,
                                               uint2 dstStridesNH,
                                               uint padLength,
                                               uint2 tileSize,
-                                              RpptROIPtr roiTensorPtrSrc)
+                                              RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNH.x) + ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
-    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
+    int dstIdx = (id_y_o * dstStridesNH.y) + id_x_o * 3;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -312,7 +309,7 @@ __global__ void box_filter_7x7_pkd_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+            int clampedIdx = (clampedY * srcStridesNH.y) + (clampedX * 3);
 
             src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];         // R
             src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx + 1]; // G
@@ -362,27 +359,26 @@ __global__ void box_filter_9x9_pkd_hip_tensor(T *srcPtr,
                                               uint2 dstStridesNH,
                                               uint padLength,
                                               uint2 tileSize,
-                                              RpptROIPtr roiTensorPtrSrc)
+                                              RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNH.x) + ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
-    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
+    int dstIdx = (id_y_o * dstStridesNH.y) + id_x_o * 3;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -408,7 +404,7 @@ __global__ void box_filter_9x9_pkd_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+            int clampedIdx = (clampedY * srcStridesNH.y) + (clampedX * 3);
 
             src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];         // R
             src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx + 1]; // G
@@ -467,27 +463,26 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
                                               int channelsDst,
                                               uint padLength,
                                               uint2 tileSize,
-                                              RpptROIPtr roiTensorPtrSrc)
+                                              RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float8 sum_f8;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNCH.x) + ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
-    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
+    int dstIdx = (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = FLOAT4_ZERO;
     sum_f8.f4[1] = FLOAT4_ZERO;
     if ((id_x_i > roiBeginX) && ((id_x_i + 7 + padLength) < roiWidth) && (id_y_i > roiBeginY) && (id_y_i < roiHeight))
@@ -498,7 +493,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx = (clampedY * srcStridesNCH.z) + clampedX;
             src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
     }
@@ -533,7 +528,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
             for (int i = 0; i < 8; i++)
             {
                 int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-                int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
+                int clampedIdx = srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
                 src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
         }
@@ -566,7 +561,7 @@ __global__ void box_filter_3x3_pln_hip_tensor(T *srcPtr,
             for (int i = 0; i < 8; i++)
             {
                 int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                int clampedIdx = (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
         }
@@ -597,27 +592,27 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
                                               int channelsDst,
                                               uint padLength,
                                               uint2 tileSize,
-                                              RpptROIPtr roiTensorPtrSrc)
+                                              RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+    
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float8 sum_f8;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNCH.x) + ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
-    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
+    int dstIdx = (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = FLOAT4_ZERO;
     sum_f8.f4[1] = FLOAT4_ZERO;
     if ((id_x_i > roiBeginX) && ((id_x_i + 7 + padLength) < roiWidth) && (id_y_i > roiBeginY) && (id_y_i < roiHeight))
@@ -628,7 +623,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx = (clampedY * srcStridesNCH.z) + clampedX;
             src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
     }
@@ -665,7 +660,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
             for (int i = 0; i < 8; i++)
             {
                 int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-                int clampedIdx = (id_z * srcStridesNCH.x) + srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
+                int clampedIdx = srcStridesNCH.y + (clampedY * srcStridesNCH.z) + clampedX;
                 src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
         }
@@ -700,7 +695,7 @@ __global__ void box_filter_5x5_pln_hip_tensor(T *srcPtr,
             for (int i = 0; i < 8; i++)
             {
                 int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                int clampedIdx = (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
         }
@@ -734,27 +729,27 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
                                               int channelsDst,
                                               uint padLength,
                                               uint2 tileSize,
-                                              RpptROIPtr roiTensorPtrSrc)
+                                              RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+    
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float8 sum_f8;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNCH.x) + ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
-    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
+    int dstIdx = (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = FLOAT4_ZERO;
     sum_f8.f4[1] = FLOAT4_ZERO;
     if ((id_x_i > roiBeginX) && ((id_x_i + 7 + padLength) < roiWidth) && (id_y_i > roiBeginY) && (id_y_i < roiHeight))
@@ -765,7 +760,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx = (clampedY * srcStridesNCH.z) + clampedX;
             src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
     }
@@ -804,7 +799,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
             for (int i = 0; i < 8; i++)
             {
                 int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-                int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                int clampedIdx = (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
         }
@@ -841,7 +836,7 @@ __global__ void box_filter_7x7_pln_hip_tensor(T *srcPtr,
             for (int i = 0; i < 8; i++)
             {
                 int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                int clampedIdx = (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
         }
@@ -876,27 +871,26 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
                                               int channelsDst,
                                               uint padLength,
                                               uint2 tileSize,
-                                              RpptROIPtr roiTensorPtrSrc)
+                                              RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float8 sum_f8;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_1C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNCH.x) + ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
-    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
+    int dstIdx = (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f8.f4[0] = FLOAT4_ZERO;
     sum_f8.f4[1] = FLOAT4_ZERO;
     if ((id_x_i > roiBeginX) && ((id_x_i + 7 + padLength) < roiWidth) && (id_y_i > roiBeginY) && (id_y_i < roiHeight))
@@ -907,7 +901,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx = (clampedY * srcStridesNCH.z) + clampedX;
             src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
         }
     }
@@ -948,7 +942,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
             for (int i = 0; i < 8; i++)
             {
                 int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-                int clampedIdx = (id_z * srcStridesNCH.x) + (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                int clampedIdx = (srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
         }
@@ -987,7 +981,7 @@ __global__ void box_filter_9x9_pln_hip_tensor(T *srcPtr,
             for (int i = 0; i < 8; i++)
             {
                 int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-                int clampedIdx = (id_z * srcStridesNCH.x) + (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
+                int clampedIdx = (2 * srcStridesNCH.y) + (clampedY * srcStridesNCH.z) + clampedX;
                 src_smem[hipThreadIdx_y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];  // Load nearest pixel
             }
         }
@@ -1025,27 +1019,26 @@ __global__ void box_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
                                                     uint3 dstStridesNCH,
                                                     uint padLength,
                                                     uint2 tileSize,
-                                                    RpptROIPtr roiTensorPtrSrc)
+                                                    RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNH.x) + ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
-    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
+    int dstIdx = (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -1073,7 +1066,7 @@ __global__ void box_filter_3x3_pkd3_pln3_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+            int clampedIdx = (clampedY * srcStridesNH.y) + (clampedX * 3);
 
             src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];         // R
             src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx + 1]; // G
@@ -1110,27 +1103,27 @@ __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
                                                     uint3 dstStridesNCH,
                                                     uint padLength,
                                                     uint2 tileSize,
-                                                    RpptROIPtr roiTensorPtrSrc)
+                                                    RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+    
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNH.x) + ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
-    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
+    int dstIdx = (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -1158,7 +1151,7 @@ __global__ void box_filter_5x5_pkd3_pln3_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+            int clampedIdx = (clampedY * srcStridesNH.y) + (clampedX * 3);
 
             src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8 + i] = srcPtr[clampedIdx]; // R
             src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx + 1]; // G
@@ -1201,27 +1194,26 @@ __global__ void box_filter_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
                                                     uint3 dstStridesNCH,
                                                     uint padLength,
                                                     uint2 tileSize,
-                                                    RpptROIPtr roiTensorPtrSrc)
+                                                    RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNH.x) + ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
-    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
+    int dstIdx = (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -1249,7 +1241,7 @@ __global__ void box_filter_7x7_pkd3_pln3_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+            int clampedIdx = (clampedY * srcStridesNH.y) + (clampedX * 3);
 
             src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];         // R
             src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx + 1]; // G
@@ -1298,27 +1290,27 @@ __global__ void box_filter_9x9_pkd3_pln3_hip_tensor(T *srcPtr,
                                                     uint3 dstStridesNCH,
                                                     uint padLength,
                                                     uint2 tileSize,
-                                                    RpptROIPtr roiTensorPtrSrc)
+                                                    RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+    
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
     using SharedType = typename FilterDispatch<T>::SharedType;
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
-    int srcIdx = (id_z * srcStridesNH.x) + ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
-    int dstIdx = (id_z * dstStridesNCH.x) + (id_y_o * dstStridesNCH.z) + id_x_o;
+    int srcIdx = ((clampedY + roiBeginY) * srcStridesNH.y) + ((id_x_i + roiBeginX) * 3);
+    int dstIdx = (id_y_o * dstStridesNCH.z) + id_x_o;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -1346,7 +1338,7 @@ __global__ void box_filter_9x9_pkd3_pln3_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, (roiBeginX + roiWidth - 1)));
-            int clampedIdx = (id_z * srcStridesNH.x) + (clampedY * srcStridesNH.y) + (clampedX * 3);
+            int clampedIdx = (clampedY * srcStridesNH.y) + (clampedX * 3);
 
             src_smem[hipThreadIdx_y_channel.x][hipThreadIdx_x8 + i] = srcPtr[clampedIdx];         // R
             src_smem[hipThreadIdx_y_channel.y][hipThreadIdx_x8 + i] = srcPtr[clampedIdx + 1]; // G
@@ -1404,19 +1396,19 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
                                                     uint2 dstStridesNH,
                                                     uint padLength,
                                                     uint2 tileSize,
-                                                    RpptROIPtr roiTensorPtrSrc)
+                                                    RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+    
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
@@ -1424,10 +1416,10 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
-    srcIdx.x = (id_z * srcStridesNCH.x) + ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
+    srcIdx.x = ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
     srcIdx.y = srcIdx.x + srcStridesNCH.y;
     srcIdx.z = srcIdx.y + srcStridesNCH.y;
-    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    int dstIdx = (id_y_o * dstStridesNH.y) + id_x_o * 3;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -1452,7 +1444,7 @@ __global__ void box_filter_3x3_pln3_pkd3_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, roiBeginX + roiWidth - 1));
-            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx0 = (clampedY * srcStridesNCH.z) + clampedX;
             int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
             int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
 
@@ -1492,19 +1484,19 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
                                                     uint2 dstStridesNH,
                                                     uint padLength,
                                                     uint2 tileSize,
-                                                    RpptROIPtr roiTensorPtrSrc)
+                                                    RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+    
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
@@ -1512,10 +1504,10 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
-    srcIdx.x = (id_z * srcStridesNCH.x) + ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
+    srcIdx.x = ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
     srcIdx.y = srcIdx.x + srcStridesNCH.y;
     srcIdx.z = srcIdx.y + srcStridesNCH.y;
-    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    int dstIdx = (id_y_o * dstStridesNH.y) + id_x_o * 3;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -1540,7 +1532,7 @@ __global__ void box_filter_5x5_pln3_pkd3_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, roiBeginX + roiWidth - 1));
-            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx0 = (clampedY * srcStridesNCH.z) + clampedX;
             int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
             int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
 
@@ -1586,19 +1578,19 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
                                                     uint2 dstStridesNH,
                                                     uint padLength,
                                                     uint2 tileSize,
-                                                    RpptROIPtr roiTensorPtrSrc)
+                                                    RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
+    
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
@@ -1606,10 +1598,10 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
-    srcIdx.x = (id_z * srcStridesNCH.x) + ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
+    srcIdx.x = ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
     srcIdx.y = srcIdx.x + srcStridesNCH.y;
     srcIdx.z = srcIdx.y + srcStridesNCH.y;
-    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    int dstIdx = (id_y_o * dstStridesNH.y) + id_x_o * 3;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -1634,7 +1626,7 @@ __global__ void box_filter_7x7_pln3_pkd3_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, roiBeginX + roiWidth - 1));
-            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx0 = (clampedY * srcStridesNCH.z) + clampedX;
             int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
             int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
 
@@ -1686,19 +1678,18 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
                                                     uint2 dstStridesNH,
                                                     uint padLength,
                                                     uint2 tileSize,
-                                                    RpptROIPtr roiTensorPtrSrc)
+                                                    RpptROI roi)
 {
     int hipThreadIdx_x8 = hipThreadIdx_x << 3;
     int id_x_o = (hipBlockIdx_x * tileSize.x * 8) + hipThreadIdx_x8;
     int id_y_o = hipBlockIdx_y * tileSize.y + hipThreadIdx_y;
-    int id_z = hipBlockIdx_z * hipBlockDim_z + hipThreadIdx_z;
 
     int id_x_i = id_x_o - padLength;
     int id_y_i = id_y_o - padLength;
-    int roiBeginX = roiTensorPtrSrc[id_z].xywhROI.xy.x;
-    int roiBeginY = roiTensorPtrSrc[id_z].xywhROI.xy.y;
-    int roiWidth = roiTensorPtrSrc[id_z].xywhROI.roiWidth;
-    int roiHeight = roiTensorPtrSrc[id_z].xywhROI.roiHeight;
+    int roiBeginX = roi.xywhROI.xy.x;
+    int roiBeginY = roi.xywhROI.xy.y;
+    int roiWidth = roi.xywhROI.roiWidth;
+    int roiHeight = roi.xywhROI.roiHeight;
     int clampedY = max(roiBeginY, min(id_y_i, (roiBeginY + roiHeight - 1)));
 
     d_float24 sum_f24;
@@ -1706,10 +1697,10 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
     __shared__ SharedType src_smem[SMEM_LENGTH_Y_3C][SMEM_LENGTH_X];
 
     int3 srcIdx;
-    srcIdx.x = (id_z * srcStridesNCH.x) + ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
+    srcIdx.x = ((clampedY + roiBeginY) * srcStridesNCH.z) + (id_x_i + roiBeginX);
     srcIdx.y = srcIdx.x + srcStridesNCH.y;
     srcIdx.z = srcIdx.y + srcStridesNCH.y;
-    int dstIdx = (id_z * dstStridesNH.x) + (id_y_o * dstStridesNH.y) + id_x_o * 3;
+    int dstIdx = (id_y_o * dstStridesNH.y) + id_x_o * 3;
     sum_f24.f4[0] = FLOAT4_ZERO;
     sum_f24.f4[1] = FLOAT4_ZERO;
     sum_f24.f4[2] = FLOAT4_ZERO;
@@ -1734,7 +1725,7 @@ __global__ void box_filter_9x9_pln3_pkd3_hip_tensor(T *srcPtr,
         for (int i = 0; i < 8; i++)
         {
             int clampedX = max(roiBeginX, min(id_x_i + i, roiBeginX + roiWidth - 1));
-            int clampedIdx0 = (id_z * srcStridesNCH.x) + (clampedY * srcStridesNCH.z) + clampedX;
+            int clampedIdx0 = (clampedY * srcStridesNCH.z) + clampedX;
             int clampedIdx1 = clampedIdx0 + srcStridesNCH.y;
             int clampedIdx2 = clampedIdx1 + srcStridesNCH.y;
 
@@ -1801,7 +1792,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
 
     int globalThreads_x = (dstDescPtr->strides.hStride + 7) >> 3;
     int globalThreads_y = dstDescPtr->h;
-    int globalThreads_z = handle.GetBatchSize();
+    int globalThreads_z = 1;
 
     uint padLength = kernelSize / 2;
     uint padLengthTwice = padLength * 2;
@@ -1826,7 +1817,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                padLength,
                                tileSize,
-                               roiTensorPtrSrc);
+                               *roiTensorPtrSrc);
         }
         else if (kernelSize == 5)
         {
@@ -1841,7 +1832,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                padLength,
                                tileSize,
-                               roiTensorPtrSrc);
+                               *roiTensorPtrSrc);
         }
         else if (kernelSize == 7)
         {
@@ -1856,7 +1847,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                padLength,
                                tileSize,
-                               roiTensorPtrSrc);
+                               *roiTensorPtrSrc);
         }
         else if (kernelSize == 9)
         {
@@ -1871,7 +1862,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                padLength,
                                tileSize,
-                               roiTensorPtrSrc);
+                               *roiTensorPtrSrc);
         }
     }
     else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NCHW))
@@ -1890,7 +1881,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                dstDescPtr->c,
                                padLength,
                                tileSize,
-                               roiTensorPtrSrc);
+                               *roiTensorPtrSrc);
         }
         else if (kernelSize == 5)
         {
@@ -1906,7 +1897,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                dstDescPtr->c,
                                padLength,
                                tileSize,
-                               roiTensorPtrSrc);
+                               *roiTensorPtrSrc);
         }
         else if (kernelSize == 7)
         {
@@ -1922,7 +1913,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                dstDescPtr->c,
                                padLength,
                                tileSize,
-                               roiTensorPtrSrc);
+                               *roiTensorPtrSrc);
         }
         else if (kernelSize == 9)
         {
@@ -1938,7 +1929,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                dstDescPtr->c,
                                padLength,
                                tileSize,
-                               roiTensorPtrSrc);
+                               *roiTensorPtrSrc);
         }
     }
     else if ((srcDescPtr->c == 3) && (dstDescPtr->c == 3))
@@ -1958,7 +1949,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                    make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                                    padLength,
                                    tileSize,
-                                   roiTensorPtrSrc);
+                                   *roiTensorPtrSrc);
             }
             else if (kernelSize == 5)
             {
@@ -1973,7 +1964,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                    make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                                    padLength,
                                    tileSize,
-                                   roiTensorPtrSrc);
+                                   *roiTensorPtrSrc);
             }
             else if (kernelSize == 7)
             {
@@ -1988,7 +1979,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                    make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                                    padLength,
                                    tileSize,
-                                   roiTensorPtrSrc);
+                                   *roiTensorPtrSrc);
             }
             else if (kernelSize == 9)
             {
@@ -2003,7 +1994,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                    make_uint3(dstDescPtr->strides.nStride, dstDescPtr->strides.cStride, dstDescPtr->strides.hStride),
                                    padLength,
                                    tileSize,
-                                   roiTensorPtrSrc);
+                                   *roiTensorPtrSrc);
             }
         }
         else if ((srcDescPtr->layout == RpptLayout::NCHW) && (dstDescPtr->layout == RpptLayout::NHWC))
@@ -2023,7 +2014,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                    padLength,
                                    tileSize,
-                                   roiTensorPtrSrc);
+                                   *roiTensorPtrSrc);
             }
             else if (kernelSize == 5)
             {
@@ -2038,7 +2029,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                    padLength,
                                    tileSize,
-                                   roiTensorPtrSrc);
+                                   *roiTensorPtrSrc);
             }
             else if (kernelSize == 7)
             {
@@ -2053,7 +2044,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                    padLength,
                                    tileSize,
-                                   roiTensorPtrSrc);
+                                   *roiTensorPtrSrc);
             }
             else if (kernelSize == 9)
             {
@@ -2068,7 +2059,7 @@ RppStatus hip_exec_box_filter_tensor(T *srcPtr,
                                    make_uint2(dstDescPtr->strides.nStride, dstDescPtr->strides.hStride),
                                    padLength,
                                    tileSize,
-                                   roiTensorPtrSrc);
+                                   *roiTensorPtrSrc);
             }
         }
     }

@@ -270,8 +270,8 @@ RppStatus rppt_box_filter_gpu(RppPtr_t srcPtr,
     if ((kernelSize != 3) && (kernelSize != 5) && (kernelSize != 7) && (kernelSize != 9))
         return RPP_ERROR_INVALID_ARGUMENTS;
     if (borderType != RpptImageBorderType::REPLICATE) return RPP_ERROR_NOT_IMPLEMENTED;
-    if (srcDescPtr->offsetInBytes < 12 * (kernelSize / 2))
-        return RPP_ERROR_LOW_OFFSET;
+    // if (srcDescPtr->offsetInBytes < 12 * (kernelSize / 2))
+    //     return RPP_ERROR_LOW_OFFSET;
 
     if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
     {
