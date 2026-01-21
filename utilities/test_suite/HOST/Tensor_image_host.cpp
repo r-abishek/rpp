@@ -77,7 +77,6 @@ vector<Mat> loadBatchImages(const string& directory, int& noOfImages, bool isCol
     return images;                  // Return the list of loaded images
 }
 
-
 // Helper function to initialize descriptors and ROI
 void initializeDescriptorsAndRoi(const vector<Mat>& imgs, vector<RpptDesc>& srcDescs, vector<RpptDesc>& dstDescs, vector<RpptROI>& rois)
 {
@@ -293,7 +292,7 @@ int main(int argc, char **argv)
     RpptImageBorderType borderType = RpptImageBorderType::REPLICATE;
     // Set the number of threads to be used by OpenMP pragma for RPP batch processing on host.
     // If numThreads value passed is 0, number of OpenMP threads used by RPP will be set to batch size
-    Rpp32u numThreads = batchSize;
+    Rpp32u numThreads = noOfImages;
     rppHandle_t handle;
     RppBackend backend = RppBackend::RPP_HOST_BACKEND;
     rppCreate(&handle, noOfImages, numThreads, nullptr, backend);
@@ -322,7 +321,7 @@ int main(int argc, char **argv)
                 {
                     omp_set_dynamic(0);
                     #pragma omp parallel for num_threads(numThreads)
-                    for (int i = 0; i < batchSize; ++i) {
+                    for (int i = 0; i < noOfImages; ++i) {
                         errorCodeCapture = rppt_brightness_host(inputVec[i].data, &srcDescPtr[i], outputVec[i].data, &dstDescPtr[i], alpha, beta, &roi[i], RpptRoiType::XYWH, handle);
                     }
                 }
@@ -348,7 +347,7 @@ int main(int argc, char **argv)
                 {
                     omp_set_dynamic(0);
                     #pragma omp parallel for num_threads(numThreads)
-                    for (int i = 0; i < batchSize; ++i) {
+                    for (int i = 0; i < noOfImages; ++i) {
                         errorCodeCapture = rppt_box_filter_host(inputVec[i].data, &srcDescPtr[i], outputVec[i].data, &dstDescPtr[i], kernelSize, borderType, &roi[i], RpptRoiType::XYWH, handle);
                     }
                 }
