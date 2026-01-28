@@ -3160,7 +3160,7 @@ RppStatus box_filter_char_host_single_image(T *srcPtr,
     static_assert((std::is_same<T, Rpp8u>::value || std::is_same<T, Rpp8s>::value), "T must be Rpp8u or Rpp8s");
 
     if ((kernelSize != 3) && (kernelSize != 5) && (kernelSize != 7) && (kernelSize != 9))
-        return box_filter_generic_host_tensor(srcPtr, srcDescPtr, dstPtr, dstDescPtr, kernelSize, roiPtrSrc, roiType, layoutParams, handle);
+        return box_filter_generic_host_single_image(srcPtr, srcDescPtr, dstPtr, dstDescPtr, kernelSize, roiPtrSrc, roiType, layoutParams, handle);
 
     // set the required masks array needed for shuffle operations
 #if __AVX2__
