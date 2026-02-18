@@ -24,8 +24,9 @@ SOFTWARE.
 cmake_minimum_required(VERSION 3.10)
 include( utils.cmake )
 set( CORE_TARGET "rpp" )
-set( BUILD_ENABLE_LINTIAN_OVERRIDES ON CACHE BOOL "Enable/Disable Lintian Overrides" )
-set( BUILD_DEBIAN_PKGING_FLAG ON CACHE BOOL "Internal Status Flag to indicate Debian Packaging Build" )
+set( BUILD_ENABLE_LINTIAN_OVERRIDES OFF CACHE BOOL "Enable/Disable Lintian Overrides" )
+set( BUILD_DEBIAN_PKGING_FLAG OFF CACHE BOOL "Internal Status Flag to indicate Debian Packaging Build" )
+option(DISABLE_LINTIAN "Disable Lintian" ON)
 
 # ROCM Path
 if(DEFINED ENV{ROCM_PATH})
@@ -34,6 +35,19 @@ elseif(ROCM_PATH)
     message("-- rpp: INFO - ROCM_PATH Set -- ${ROCM_PATH}")
 else()
     set(ROCM_PATH /opt/rocm CACHE PATH "Default ROCm installation path")
+endif()
+
+# Check if lib/rocm_sysdeps/lib exists in the ROCm path which indicates ROCm installation via TheRock
+set(USING_THE_ROCK OFF)
+if(EXISTS "${ROCM_PATH}/lib/rocm_sysdeps/lib")
+  set(USING_THE_ROCK ON)
+endif()
+
+if(USING_THE_ROCK)
+  if(NOT DEFINED ENV{HIP_DEVICE_LIB_PATH})
+    set(ENV{HIP_DEVICE_LIB_PATH} ${ROCM_PATH}/lib/llvm/amdgcn/bitcode)
+    set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "HIP_DEVICE_LIB_PATH=${ROCM_PATH}/lib/llvm/amdgcn/bitcode")
+  endif()
 endif()
 
 # Set AMD Clang as default compiler
@@ -50,10 +64,12 @@ endif()
 
 # RPP Version
 # NOTE: package version and rpp_version.h is generated with this version
-set(VERSION "2.2.1")
+set(VERSION "3.1.0")
 
 # Set Project Version and Language
 project(rpp VERSION ${VERSION} LANGUAGES CXX)
+# Set RPP source directory
+set(RPP_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE STRING "Library install directory")
 include(GNUInstallDirs)
@@ -224,7 +240,7 @@ if("${BACKEND}" STREQUAL "HIP")
 
     # Set supported GPU Targets
     if(NOT GPU_TARGETS AND NOT AMDGPU_TARGETS)
-        set(DEFAULT_GPU_TARGETS "gfx908;gfx90a;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1102;gfx950;gfx1200;gfx1201")
+        set(DEFAULT_GPU_TARGETS "gfx908;gfx90a;gfx942;gfx1030;gfx1031;gfx1032;gfx1100;gfx1101;gfx1151;gfx1102;gfx950;gfx1200;gfx1201")
     endif()
 
     # Set AMD GPU_TARGETS
@@ -246,6 +262,7 @@ if("${BACKEND}" STREQUAL "HIP")
     endif()
     message("-- ${White}${PROJECT_NAME} -- AMD GPU_TARGETS: ${GPU_TARGETS}${ColourReset}")
 
+    set (HIP_PLATFORM amd CACHE STRING "HIP platform")
     find_package(HIP QUIET)
     if(HIP_FOUND)
         message("-- ${White}${PROJECT_NAME} -- Using HIP - Path:" ${HIP_PATH} "\tVersion:" ${HIP_VERSION} "\tCompiler:" ${HIP_COMPILER}${ColourReset})
@@ -305,6 +322,11 @@ message("-- ${White}${PROJECT_NAME} -- Link Libraries: ${LINK_LIBRARY_LIST}${Col
 target_link_libraries(${PROJECT_NAME} ${LINK_LIBRARY_LIST})
 set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+if(USING_THE_ROCK)
+    set_target_properties(${PROJECT_NAME} PROPERTIES INSTALL_RPATH "$ORIGIN;$ORIGIN/rocm_sysdeps/lib" BUILD_WITH_INSTALL_RPATH TRUE)
+endif()
+
 if(RPP_AUDIO_SUPPORT)
     target_link_libraries(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/third_party/ffts/lib/libffts.a)
     message("-- ${Green}${PROJECT_NAME} set to build with RPP_AUDIO_SUPPORT${ColourReset}")
@@ -556,7 +578,9 @@ else()
     endif()
 endif()
 
-configure__pkg( ${CORE_TARGET} ${COMP_TYPE} ${CPACK_PACKAGE_VERSION} ${PKG_MAINTAINER_NM} ${PKG_MAINTAINER_EMAIL} )
+if(NOT DISABLE_LINTIAN)
+    configure__pkg( ${CORE_TARGET} ${COMP_TYPE} ${CPACK_PACKAGE_VERSION} ${PKG_MAINTAINER_NM} ${PKG_MAINTAINER_EMAIL} )
+endif()
 
 include(CPack)
 

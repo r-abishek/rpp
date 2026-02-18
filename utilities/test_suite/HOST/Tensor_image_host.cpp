@@ -569,6 +569,28 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case SNOW:
+                {
+                    testCaseName = "snow";
+                    Rpp32f brightnessCoefficient[batchSize];
+                    Rpp32f snowThreshold[batchSize];
+                    Rpp32s darkMode[batchSize];
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        brightnessCoefficient[i] = 2.5f;
+                        snowThreshold[i] = 1.0f;
+                        darkMode[i] = 0;
+                    }
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                        errorCodeCapture = rppt_snow(input, srcDescPtr, output, dstDescPtr, brightnessCoefficient, snowThreshold, darkMode, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HOST_BACKEND);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 case NOISE:
                 {
                     testCaseName = "noise";
@@ -824,6 +846,19 @@ int main(int argc, char **argv)
                     startCpuTime = clock();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                         errorCodeCapture = rppt_warp_affine(input, srcDescPtr, output, dstDescPtr, affineTensor, interpolationType, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HOST_BACKEND);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case FISHEYE:
+                {
+                    testCaseName = "fisheye";
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                        errorCodeCapture = rppt_fisheye(input, srcDescPtr, output, dstDescPtr, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HOST_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1217,8 +1252,36 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
-                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == U8_TO_F16 || BitDepthTestMode == U8_TO_F16 || BitDepthTestMode == I8_TO_I8)
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == U8_TO_F16 || BitDepthTestMode == U8_TO_F32 || BitDepthTestMode == I8_TO_I8)
                         errorCodeCapture = rppt_resize_crop_mirror(input, srcDescPtr, output, dstDescPtr, dstImgSizes, interpolationType, mirror, roiTensorPtrDst, roiTypeSrc, handle, RPP_HOST_BACKEND);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case ERODE:
+                {
+                    testCaseName = "erode";
+                    Rpp32u kernelSize = additionalParam;
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                        errorCodeCapture = rppt_erode_host(input, srcDescPtr, output, dstDescPtr, kernelSize, roiTensorPtrSrc, roiTypeSrc, handle);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case DILATE:
+                {
+                    testCaseName = "dilate";
+                    Rpp32u kernelSize = additionalParam;
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (BitDepthTestMode == 0 || BitDepthTestMode == 1 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                        rppt_dilate_host(input, srcDescPtr, output, dstDescPtr, kernelSize, roiTensorPtrSrc, roiTypeSrc, handle);
                     else
                         missingFuncFlag = 1;
 
@@ -1251,7 +1314,7 @@ int main(int argc, char **argv)
 
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
-                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == U8_TO_F16 || BitDepthTestMode == U8_TO_F16 || BitDepthTestMode == I8_TO_I8)
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                         errorCodeCapture = rppt_vignette(input, srcDescPtr, output, dstDescPtr, intensity, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HOST_BACKEND);
                     else
                         missingFuncFlag = 1;
@@ -1306,10 +1369,16 @@ int main(int argc, char **argv)
                     for (i = 0; i < batchSize; i++)
                         stdDevTensor[i] = 5.0f;
 
+                    if (borderType != RpptImageBorderType::REPLICATE)
+                    {
+                        missingFuncFlag = 1;
+                        break;
+                    }
+
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        errorCodeCapture = rppt_gaussian_filter(input, srcDescPtr, output, dstDescPtr, stdDevTensor, kernelSize, roiTensorPtrSrc, roiTypeSrc, handle, RppBackend::RPP_HOST_BACKEND);
+                        errorCodeCapture = rppt_gaussian_filter(input, srcDescPtr, output, dstDescPtr, stdDevTensor, kernelSize, borderType, roiTensorPtrSrc, roiTypeSrc, handle, RppBackend::RPP_HOST_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1668,7 +1737,11 @@ int main(int argc, char **argv)
 
                     if(srcDescPtr->c == 1)
                         reductionFuncResultArrLength = srcDescPtr->n;
-                    Rpp32f *mean = TensorMeanReferenceOutputs[inputChannels].data();
+                    Rpp32f *mean;
+                    if(BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == F16_TO_F16)
+                        mean = TensorMeanReferenceOutputs_F32[inputChannels].data();
+                    else
+                        mean = TensorMeanReferenceOutputs_U8[inputChannels].data();
 
                     startWallTime = omp_get_wtime();
                     startCpuTime = clock();
@@ -1755,6 +1828,26 @@ int main(int argc, char **argv)
 
                     break;
                 }
+                case CHANNEL_DROPOUT:
+                {
+                    testCaseName = "channel_dropout";
+
+                    Rpp32f dropoutProbability[batchSize];
+                    Rpp32f seed = qaFlag ? DROPOUT_FIXED_SEED : std::random_device{}();
+                    for (i = 0; i < batchSize; i++)
+                        dropoutProbability[i] = 0.4f;
+                    Rpp8u dropoutTensor[batchSize * srcDescPtr->c];
+                    generate_channel_dropout_mask(dropoutTensor, dropoutProbability, batchSize, srcDescPtr->c, seed);
+
+                    startWallTime = omp_get_wtime();
+                    startCpuTime = clock();
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                        errorCodeCapture = rppt_channel_dropout(input, srcDescPtr, output, dstDescPtr, dropoutTensor, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HOST_BACKEND);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
                 default:
                 {
                     missingFuncFlag = 1;
@@ -1833,14 +1926,24 @@ int main(int argc, char **argv)
                 1.QA Flag is set
                 2.input bit depth 0 (U8)
                 3.source and destination layout are the same*/
-                if(qaFlag && BitDepthTestMode == U8_TO_U8 && (srcDescPtr->layout == dstDescPtr->layout) && !(randomOutputCase) && !(nonQACase))
+                if(qaFlag && (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F32_TO_F32) && (srcDescPtr->layout == dstDescPtr->layout) && !(randomOutputCase) && !(nonQACase))
                 {
                     if (testCase == TENSOR_SUM)
-                        compare_reduction_output(static_cast<uint64_t *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                    {
+                        if (BitDepthTestMode == U8_TO_U8)
+                            compare_reduction_output(static_cast<uint64_t *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                        else if (BitDepthTestMode == F32_TO_F32)
+                            compare_reduction_output(static_cast<Rpp32f *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                    }
                     else if (testCase == TENSOR_MEAN || testCase == TENSOR_STDDEV)
                         compare_reduction_output(static_cast<Rpp32f *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
                     else
-                        compare_reduction_output(static_cast<Rpp8u *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                    {
+                        if (BitDepthTestMode == U8_TO_U8)
+                            compare_reduction_output(static_cast<Rpp8u *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                        else if (BitDepthTestMode == F32_TO_F32)
+                            compare_reduction_output(static_cast<Rpp32f *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                    }
                 }
             }
             else

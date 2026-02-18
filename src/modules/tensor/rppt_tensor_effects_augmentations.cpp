@@ -24,7 +24,7 @@ SOFTWARE.
 
 #include <random>
 #include "rppdefs.h"
-#include "rppi_validate.hpp"
+#include "rppt_validate.hpp"
 #include "rpp_cpu_random.hpp"
 #include "api_helpers.hpp"
 #include "fog_mask.hpp"
@@ -2994,6 +2994,295 @@ RppStatus rppt_solarize(RppPtr_t srcPtr,
                                      roiTensorPtrSrc,
                                      roiType,
                                      handle);
+        }
+        else
+            return RPP_ERROR_NOT_IMPLEMENTED;
+
+        return RPP_SUCCESS;
+    }
+#endif
+
+    return RPP_ERROR_INCOMPATIBLE_BACKEND;
+}
+
+/******************** snow ********************/
+
+RppStatus rppt_snow(RppPtr_t srcPtr,
+                    RpptDescPtr srcDescPtr,
+                    RppPtr_t dstPtr,
+                    RpptDescPtr dstDescPtr,
+                    Rpp32f *brightnessCoefficient,
+                    Rpp32f *snowThreshold,
+                    Rpp32s *darkMode,
+                    RpptROIPtr roiTensorPtrSrc,
+                    RpptRoiType roiType,
+                    rppHandle_t rppHandle,
+                    RppBackend executionBackend)
+{
+    if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
+    if ((dstDescPtr->layout != RpptLayout::NCHW) && (dstDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
+    for(int i = 0; i < srcDescPtr->n; i++)
+    {
+        if (brightnessCoefficient[i] <= 1.0f || brightnessCoefficient[i] > 4.0f)
+            return RPP_ERROR_INVALID_ARGUMENTS;
+        if (snowThreshold[i] <= 0.0f || snowThreshold[i] > 1.0f)
+            return RPP_ERROR_INVALID_ARGUMENTS;
+        if (darkMode[i] != 0 && darkMode[i] != 1)
+            return RPP_ERROR_INVALID_ARGUMENTS;
+    }
+
+    rpp::Handle &handle = rpp::deref(rppHandle);
+    RppBackend handleBackend = handle.GetBackend();
+
+    if (executionBackend == RppBackend::RPP_HOST_BACKEND)
+    {
+        RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
+        if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+        {
+            snow_u8_u8_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                srcDescPtr,
+                                static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                dstDescPtr,
+                                brightnessCoefficient,
+                                snowThreshold,
+                                darkMode,
+                                roiTensorPtrSrc,
+                                roiType,
+                                layoutParams,
+                                rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+        {
+            snow_f16_f16_host_tensor(reinterpret_cast<Rpp16f*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                    srcDescPtr,
+                                    reinterpret_cast<Rpp16f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                    dstDescPtr,
+                                    brightnessCoefficient,
+                                    snowThreshold,
+                                    darkMode,
+                                    roiTensorPtrSrc,
+                                    roiType,
+                                    layoutParams,
+                                    rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+        {
+            snow_f32_f32_host_tensor(reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                    srcDescPtr,
+                                    reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                    dstDescPtr,
+                                    brightnessCoefficient,
+                                    snowThreshold,
+                                    darkMode,
+                                    roiTensorPtrSrc,
+                                    roiType,
+                                    layoutParams,
+                                    rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+        {
+            snow_i8_i8_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                srcDescPtr,
+                                static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                dstDescPtr,
+                                brightnessCoefficient,
+                                snowThreshold,
+                                darkMode,
+                                roiTensorPtrSrc,
+                                roiType,
+                                layoutParams,
+                                rpp::deref(rppHandle));
+        }
+        else
+            return RPP_ERROR_NOT_IMPLEMENTED;
+
+        return RPP_SUCCESS;
+    }
+#ifdef GPU_SUPPORT
+    else if ((handleBackend == RppBackend::RPP_HIP_BACKEND) && (executionBackend == RppBackend::RPP_HIP_BACKEND))
+    {
+        if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+        {
+            hip_exec_snow_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                srcDescPtr,
+                                static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                dstDescPtr,
+                                brightnessCoefficient,
+                                snowThreshold,
+                                darkMode,
+                                roiTensorPtrSrc,
+                                roiType,
+                                rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+        {
+            hip_exec_snow_tensor(reinterpret_cast<half*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                srcDescPtr,
+                                reinterpret_cast<half*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                dstDescPtr,
+                                brightnessCoefficient,
+                                snowThreshold,
+                                darkMode,
+                                roiTensorPtrSrc,
+                                roiType,
+                                rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+        {
+            hip_exec_snow_tensor(reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                srcDescPtr,
+                                reinterpret_cast<Rpp32f*>(static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                dstDescPtr,
+                                brightnessCoefficient,
+                                snowThreshold,
+                                darkMode,
+                                roiTensorPtrSrc,
+                                roiType,
+                                rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+        {
+            hip_exec_snow_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                srcDescPtr,
+                                static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                dstDescPtr,
+                                brightnessCoefficient,
+                                snowThreshold,
+                                darkMode,
+                                roiTensorPtrSrc,
+                                roiType,
+                                rpp::deref(rppHandle));
+        }
+        else
+            return RPP_ERROR_NOT_IMPLEMENTED;
+
+        return RPP_SUCCESS;
+    }
+#endif
+
+    return RPP_ERROR_INCOMPATIBLE_BACKEND;
+}
+
+/******************** channel_dropout ********************/
+
+RppStatus rppt_channel_dropout(RppPtr_t srcPtr,
+                               RpptDescPtr srcDescPtr,
+                               RppPtr_t dstPtr,
+                               RpptDescPtr dstDescPtr,
+                               Rpp8u *dropoutTensor,
+                               RpptROIPtr roiTensorPtrSrc,
+                               RpptRoiType roiType,
+                               rppHandle_t rppHandle,
+                               RppBackend executionBackend)
+{
+    if ((srcDescPtr->layout != RpptLayout::NCHW) && (srcDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_SRC_LAYOUT;
+    if ((dstDescPtr->layout != RpptLayout::NCHW) && (dstDescPtr->layout != RpptLayout::NHWC)) return RPP_ERROR_INVALID_DST_LAYOUT;
+
+    rpp::Handle &handle = rpp::deref(rppHandle);
+    RppBackend handleBackend = handle.GetBackend();
+
+    if (executionBackend == RppBackend::RPP_HOST_BACKEND)
+    {
+        RppLayoutParams layoutParams = get_layout_params(srcDescPtr->layout, srcDescPtr->c);
+        if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+        {
+            channel_dropout_host_tensor(static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                        srcDescPtr,
+                                        static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                        dstDescPtr,
+                                        dropoutTensor,
+                                        roiTensorPtrSrc,
+                                        roiType,
+                                        layoutParams,
+                                        rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+        {
+            channel_dropout_host_tensor((Rpp16f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                        srcDescPtr,
+                                        (Rpp16f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                        dstDescPtr,
+                                        dropoutTensor,
+                                        roiTensorPtrSrc,
+                                        roiType,
+                                        layoutParams,
+                                        rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+        {
+            channel_dropout_host_tensor((Rpp32f*) (static_cast<Rpp8u*>(srcPtr) + srcDescPtr->offsetInBytes),
+                                        srcDescPtr,
+                                        (Rpp32f*) (static_cast<Rpp8u*>(dstPtr) + dstDescPtr->offsetInBytes),
+                                        dstDescPtr,
+                                        dropoutTensor,
+                                        roiTensorPtrSrc,
+                                        roiType,
+                                        layoutParams,
+                                        rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+        {
+            channel_dropout_host_tensor(static_cast<Rpp8s*>(srcPtr) + srcDescPtr->offsetInBytes,
+                                        srcDescPtr,
+                                        static_cast<Rpp8s*>(dstPtr) + dstDescPtr->offsetInBytes,
+                                        dstDescPtr,
+                                        dropoutTensor,
+                                        roiTensorPtrSrc,
+                                        roiType,
+                                        layoutParams,
+                                        rpp::deref(rppHandle));
+        }
+        else
+            return RPP_ERROR_NOT_IMPLEMENTED;
+
+        return RPP_SUCCESS;
+    }
+#ifdef GPU_SUPPORT
+    else if ((handleBackend == RppBackend::RPP_HIP_BACKEND) && (executionBackend == RppBackend::RPP_HIP_BACKEND))
+    {    
+        if ((srcDescPtr->dataType == RpptDataType::U8) && (dstDescPtr->dataType == RpptDataType::U8))
+        {
+            hip_exec_channel_dropout_tensor(static_cast<Rpp8u *>(srcPtr) + srcDescPtr->offsetInBytes,
+                                            srcDescPtr,
+                                            static_cast<Rpp8u *>(dstPtr) + dstDescPtr->offsetInBytes,
+                                            dstDescPtr,
+                                            dropoutTensor,
+                                            roiTensorPtrSrc,
+                                            roiType,
+                                            rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::F16) && (dstDescPtr->dataType == RpptDataType::F16))
+        {
+            hip_exec_channel_dropout_tensor(reinterpret_cast<half *>(static_cast<Rpp8u *>(srcPtr) + srcDescPtr->offsetInBytes),
+                                            srcDescPtr,
+                                            reinterpret_cast<half *>(static_cast<Rpp8u *>(dstPtr) + dstDescPtr->offsetInBytes),
+                                            dstDescPtr,
+                                            dropoutTensor,
+                                            roiTensorPtrSrc,
+                                            roiType,
+                                            rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::F32) && (dstDescPtr->dataType == RpptDataType::F32))
+        {
+            hip_exec_channel_dropout_tensor(reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(srcPtr) + srcDescPtr->offsetInBytes),
+                                            srcDescPtr,
+                                            reinterpret_cast<Rpp32f *>(static_cast<Rpp8u *>(dstPtr) + dstDescPtr->offsetInBytes),
+                                            dstDescPtr,
+                                            dropoutTensor,
+                                            roiTensorPtrSrc,
+                                            roiType,
+                                            rpp::deref(rppHandle));
+        }
+        else if ((srcDescPtr->dataType == RpptDataType::I8) && (dstDescPtr->dataType == RpptDataType::I8))
+        {
+            hip_exec_channel_dropout_tensor(static_cast<Rpp8s *>(srcPtr) + srcDescPtr->offsetInBytes,
+                                            srcDescPtr,
+                                            static_cast<Rpp8s *>(dstPtr) + dstDescPtr->offsetInBytes,
+                                            dstDescPtr,
+                                            dropoutTensor,
+                                            roiTensorPtrSrc,
+                                            roiType,
+                                            rpp::deref(rppHandle));
         }
         else
             return RPP_ERROR_NOT_IMPLEMENTED;

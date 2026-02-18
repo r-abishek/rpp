@@ -427,6 +427,16 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&greyFactor, batchSize * sizeof(Rpp32f)));
     }
 
+    Rpp32f *brightnessCoefficient = nullptr;
+    Rpp32f *snowThreshold = nullptr;
+    Rpp32s *darkMode = nullptr;
+    if(testCase == SNOW)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&brightnessCoefficient, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&snowThreshold, batchSize * sizeof(Rpp32f)));
+        CHECK_RETURN_STATUS(hipHostMalloc(&darkMode, batchSize * sizeof(Rpp32s)));
+    }
+
     Rpp32u *kernelSizeTensor;
     if(testCase == JITTER)
         CHECK_RETURN_STATUS(hipHostMalloc(&kernelSizeTensor, batchSize * sizeof(Rpp32u)));
@@ -600,6 +610,20 @@ int main(int argc, char **argv)
     if(testCase == ROTATE)
         CHECK_RETURN_STATUS(hipHostMalloc(&angle, batchSize * sizeof(Rpp32f)));
 
+    Rpp32s *qualityTensor = nullptr;
+    if(testCase == JPEG_COMPRESSION_DISTORTION)
+        CHECK_RETURN_STATUS(hipHostMalloc(&qualityTensor, batchSize * sizeof(Rpp32s)));
+
+    Rpp32u *permutationTensor = nullptr;
+    if(testCase == CHANNEL_PERMUTE)
+        CHECK_RETURN_STATUS(hipHostMalloc(&permutationTensor, 3 * batchSize * sizeof(Rpp32u)));
+    if(testCase == RICAP)
+        CHECK_RETURN_STATUS(hipHostMalloc(&permutationTensor, 4 * batchSize * sizeof(Rpp32u)));
+
+    Rpp8u *dropoutTensor = nullptr;
+    if(testCase == CHANNEL_DROPOUT)
+        CHECK_RETURN_STATUS(hipHostMalloc(&dropoutTensor, batchSize * srcDescPtr->c * sizeof(Rpp8u)));
+
     // case-wise RPP API and measure time script for Unit and Performance test
     cout << "\nRunning " << func << " " << numRuns << " times (each time with a batch size of " << batchSize << " images) and computing mean statistics...";
     for(int iterCount = 0; iterCount < noOfIterations; iterCount++)
@@ -771,6 +795,25 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                         errorCodeCapture = rppt_jitter(d_input, srcDescPtr, d_output, dstDescPtr, kernelSizeTensor, seed, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case SNOW:
+                {
+                    testCaseName = "snow";
+
+                    for (i = 0; i < batchSize; i++)
+                    {
+                        brightnessCoefficient[i] = 2.5f;
+                        snowThreshold[i] = 1.0f;
+                        darkMode[i] = 0;
+                    }
+
+                    startWallTime = omp_get_wtime();
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                        errorCodeCapture = rppt_snow(d_input, srcDescPtr, d_output, dstDescPtr, brightnessCoefficient, snowThreshold, darkMode, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1000,6 +1043,18 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                         errorCodeCapture = rppt_warp_affine(d_input, srcDescPtr, d_output, dstDescPtr, affineTensorPtr, interpolationType, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case FISHEYE:
+                {
+                    testCaseName = "fisheye";
+
+                    startWallTime = omp_get_wtime();
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                        errorCodeCapture = rppt_fisheye(d_input, srcDescPtr, d_output, dstDescPtr, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1460,9 +1515,15 @@ int main(int argc, char **argv)
                         stdDevTensor[i] = 5.0f;
                     }
 
+                    if (borderType != RpptImageBorderType::REPLICATE)
+                    {
+                        missingFuncFlag = 1;
+                        break;
+                    }
+
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
-                        errorCodeCapture = rppt_gaussian_filter(d_input, srcDescPtr, d_output, dstDescPtr, stdDevTensor, kernelSize, roiTensorPtrSrc, roiTypeSrc, handle, RppBackend::RPP_HIP_BACKEND);
+                        errorCodeCapture = rppt_gaussian_filter(d_input, srcDescPtr, d_output, dstDescPtr, stdDevTensor, kernelSize, borderType, roiTensorPtrSrc, roiTypeSrc, handle, RppBackend::RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1612,7 +1673,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "ricap";
 
-                    Rpp32u permutationTensor[batchSize * 4];
                     if(qaFlag)
                         init_ricap_qa(maxWidth, maxHeight, batchSize, permutationTensor, roiPtrInputCropRegion);
                     else
@@ -1624,6 +1684,7 @@ int main(int argc, char **argv)
                     else
                         missingFuncFlag = 1;
                     break;
+
                 }
                 case GRIDMASK:
                 {
@@ -1675,8 +1736,6 @@ int main(int argc, char **argv)
                 {
                     testCaseName = "channel_permute";
 
-                    Rpp32u *permutationTensor = nullptr;
-                    CHECK_RETURN_STATUS(hipHostMalloc(&permutationTensor, 3 * batchSize * sizeof(Rpp32u)));
                     for(int i = 0; i < batchSize; i++)
                         fill_perm_values(&permutationTensor[i * 3], qaFlag, additionalParam);
 
@@ -1685,8 +1744,6 @@ int main(int argc, char **argv)
                         errorCodeCapture = rppt_channel_permute(d_input, srcDescPtr, d_output, dstDescPtr, permutationTensor, handle, RppBackend::RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
-
-                    CHECK_RETURN_STATUS(hipHostFree(permutationTensor));
 
                     break;
                 }
@@ -1764,7 +1821,10 @@ int main(int argc, char **argv)
 
                     if(srcDescPtr->c == 1)
                         reductionFuncResultArrLength = srcDescPtr->n;
-                    memcpy(mean, TensorMeanReferenceOutputs[inputChannels].data(), sizeof(Rpp32f) * reductionFuncResultArrLength);
+                    if(BitDepthTestMode == F32_TO_F32 ||BitDepthTestMode == F16_TO_F16)
+                        memcpy(mean, TensorMeanReferenceOutputs_F32[inputChannels].data(), sizeof(Rpp32f) * reductionFuncResultArrLength);
+                    else
+                        memcpy(mean, TensorMeanReferenceOutputs_U8[inputChannels].data(), sizeof(Rpp32f) * reductionFuncResultArrLength);
 
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
@@ -1799,6 +1859,8 @@ int main(int argc, char **argv)
                 case JPEG_COMPRESSION_DISTORTION:
                 {
                     testCaseName = "jpeg_compression_distortion";
+                    for (i = 0; i < batchSize; i++)
+                        qualityTensor[i] = 50;
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                         errorCodeCapture = rppt_jpeg_compression_distortion(d_input, srcDescPtr, d_output, dstDescPtr, qualityTensor, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
@@ -1832,6 +1894,24 @@ int main(int argc, char **argv)
                     startWallTime = omp_get_wtime();
                     if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
                         errorCodeCapture = rppt_solarize(d_input, srcDescPtr, d_output, dstDescPtr, thresholdTensor, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
+                    else
+                        missingFuncFlag = 1;
+
+                    break;
+                }
+                case CHANNEL_DROPOUT:
+                {
+                    testCaseName = "channel_dropout";
+
+                    Rpp32f dropoutProbability[batchSize];
+                    Rpp32f seed = qaFlag ? DROPOUT_FIXED_SEED : std::random_device{}();
+                    for (i = 0; i < batchSize; i++)
+                        dropoutProbability[i] = 0.4f;
+                    generate_channel_dropout_mask(dropoutTensor, dropoutProbability, batchSize, srcDescPtr->c, seed);
+
+                    startWallTime = omp_get_wtime();
+                    if (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8)
+                        errorCodeCapture = rppt_channel_dropout(d_input, srcDescPtr, d_output, dstDescPtr, dropoutTensor, roiTensorPtrSrc, roiTypeSrc, handle, RPP_HIP_BACKEND);
                     else
                         missingFuncFlag = 1;
 
@@ -1912,14 +1992,24 @@ int main(int argc, char **argv)
                 1.QA Flag is set
                 2.input bit depth 0 (U8)
                 3.source and destination layout are the same*/
-                if(qaFlag && BitDepthTestMode == U8_TO_U8 && (srcDescPtr->layout == dstDescPtr->layout) && !(randomOutputCase) && !(nonQACase))
+                if(qaFlag && (BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F32_TO_F32) && (srcDescPtr->layout == dstDescPtr->layout) && !(randomOutputCase) && !(nonQACase))
                 {
-                    if (testCase == TENSOR_SUM)
-                        compare_reduction_output(static_cast<uint64_t *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                     if (testCase == TENSOR_SUM)
+                    {
+                        if (BitDepthTestMode == U8_TO_U8)
+                            compare_reduction_output(static_cast<uint64_t *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                        else if (BitDepthTestMode == F32_TO_F32)
+                            compare_reduction_output(static_cast<Rpp32f *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                    }
                     else if (testCase == TENSOR_MEAN || testCase == TENSOR_STDDEV)
                         compare_reduction_output(static_cast<Rpp32f *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
                     else
-                        compare_reduction_output(static_cast<Rpp8u *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                    {
+                        if (BitDepthTestMode == U8_TO_U8)
+                            compare_reduction_output(static_cast<Rpp8u *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                        else if (BitDepthTestMode == F32_TO_F32)
+                            compare_reduction_output(static_cast<Rpp32f *>(reductionFuncResultArr), testCaseName, srcDescPtr, testCase, dst, scriptPath);
+                    }
                 }
             }
             else
@@ -2073,6 +2163,12 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(intensityFactor));
     if(greyFactor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(greyFactor));
+    if(brightnessCoefficient != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(brightnessCoefficient));
+    if(snowThreshold != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(snowThreshold));
+    if(darkMode != NULL)
+        CHECK_RETURN_STATUS(hipHostFree(darkMode));
     if(roiTensor != NULL)
         CHECK_RETURN_STATUS(hipHostFree(roiTensor));
     if(testCase == JITTER)
@@ -2162,5 +2258,11 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostFree(maxTensor));
     if (posterizeLevelBits != nullptr)
         CHECK_RETURN_STATUS(hipHostFree(posterizeLevelBits));
+    if(dropoutTensor != nullptr)
+        CHECK_RETURN_STATUS(hipHostFree(dropoutTensor));
+    if (permutationTensor != nullptr)
+        CHECK_RETURN_STATUS(hipHostFree(permutationTensor));
+    if (qualityTensor != nullptr)
+        CHECK_RETURN_STATUS(hipHostFree(qualityTensor));
     return 0;
 }
