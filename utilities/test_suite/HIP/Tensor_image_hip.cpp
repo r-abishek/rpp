@@ -376,8 +376,6 @@ int main(int argc, char **argv)
     if(testCase == RICAP)
         CHECK_RETURN_STATUS(hipHostMalloc(&roiPtrInputCropRegion, 4 * sizeof(RpptROI)));
 
-    Rpp32s* qualityTensor = NULL;
-
     void *d_rowRemapTable, *d_colRemapTable;
     if(testCase == LENS_CORRECTION || testCase == REMAP)
     {
@@ -459,9 +457,6 @@ int main(int argc, char **argv)
 
     Rpp32f *alpha = nullptr;
     if(testCase == RAIN)
-        CHECK_RETURN_STATUS(hipHostMalloc(&alpha, batchSize * sizeof(Rpp32f)));
-
-    if(testCase == BLEND)
         CHECK_RETURN_STATUS(hipHostMalloc(&alpha, batchSize * sizeof(Rpp32f)));
 
     if(testCase == BLEND)
