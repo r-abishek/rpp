@@ -253,6 +253,26 @@ RppStatus to_decibels_host_tensor(Rpp32f *srcPtr,
                                   Rpp32f referenceMagnitude,
                                   rpp::Handle& handle);
 
+// -------------------- audio_tensor_add_tensor --------------------
+
+RppStatus audio_tensor_add_tensor_host(Rpp32f *srcPtr1,
+                                       Rpp32f *srcPtr2,
+                                       RpptDescPtr srcDescPtr,
+                                       Rpp32f *dstPtr,
+                                       RpptDescPtr dstDescPtr,
+                                       Rpp32s *srcLengthTensor,
+                                       rpp::Handle& handle);
+
+// -------------------- audio_tensor_mul_scalar --------------------
+
+RppStatus audio_tensor_mul_scalar_host(Rpp32f *srcPtr,
+                                       Rpp32f scalarValue,
+                                       RpptDescPtr srcDescPtr,
+                                       Rpp32f *dstPtr,
+                                       RpptDescPtr dstDescPtr,
+                                       Rpp32s *srcLengthTensor,
+                                       rpp::Handle& handle);
+
 #endif // AUDIO_SUPPORT
 
 /**************************************** BITWISE OPERATIONS ****************************************/
@@ -303,6 +323,21 @@ RppStatus bitwise_xor_u8_u8_host_tensor(Rpp8u *srcPtr1,
                                         RpptRoiType roiType,
                                         RppLayoutParams layoutParams,
                                         rpp::Handle& Handle);
+
+// -------------------- tensor_bitwise_operations --------------------
+
+template <typename T>
+RppStatus tensor_binary_bitwise_op_dispatch_host_tensor(T *srcPtr1,
+                                                        T *srcPtr2,
+                                                        RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                        RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                        T *dstPtr,
+                                                        RpptGenericDescPtr dstGenericDescPtr,
+                                                        RpptBitwiseOp tensorOp,
+                                                        RpptBroadcastMode broadcastMode,
+                                                        Rpp32u *srcPtr1roiTensor,
+                                                        Rpp32u *srcPtr2roiTensor,
+                                                        rpp::Handle& handle);
 
 /**************************************** COLOR AUGMENTATIONS ****************************************/
 
@@ -884,6 +919,16 @@ RppStatus solarize_i8_i8_host_tensor(Rpp8s *srcPtr,
                                      RppLayoutParams layoutParams,
                                      rpp::Handle& handle);
 
+// -------------------- histogram_equalize --------------------
+
+RppStatus histogram_equalize_u8_u8_host_tensor(Rpp8u *srcPtr,
+                                               RpptDescPtr srcDescPtr,
+                                               Rpp8u *dstPtr,
+                                               RpptDescPtr dstDescPtr,
+                                               RpptROIPtr roiTensorPtrSrc,
+                                               RpptRoiType roiType,
+                                               RppLayoutParams layoutParams,
+                                               rpp::Handle& handle);
 
 /**************************************** DATA EXCHANGE OPERATIONS ****************************************/
 
@@ -1764,6 +1809,51 @@ RppStatus channel_dropout_host_tensor(T *srcPtr,
                                       RppLayoutParams layoutParams,
                                       rpp::Handle& handle);
 
+// -------------------- coarse_dropout --------------------
+
+template <typename T>
+RppStatus coarse_dropout_host_tensor(T *srcPtr,
+                                     RpptDescPtr srcDescPtr,
+                                     T *dstPtr,
+                                     RpptDescPtr dstDescPtr,
+                                     RpptRoiLtrb *anchorBoxInfoTensor,
+                                     Rpp32u *numBoxesTensor,
+                                     Rpp32u maxBoxesPerImage,       
+                                     RpptROIPtr roiTensorPtrSrc,
+                                     RpptRoiType roiType,
+                                     RppLayoutParams layoutParams,
+                                     rpp::Handle& handle);
+
+// -------------------- grid_dropout --------------------
+
+template<typename T>
+RppStatus grid_dropout_host_tensor(T *srcPtr,
+                                   RpptDescPtr srcDescPtr,
+                                   T *dstPtr,
+                                   RpptDescPtr dstDescPtr,
+                                   RpptRoiLtrb *anchorBoxInfoTensor,
+                                   Rpp32u boxesInEachImage,
+                                   Rpp32u maxHoleW,
+                                   Rpp32u maxHoleH,
+                                   RpptROIPtr roiTensorPtrSrc,
+                                   RpptRoiType roiType,
+                                   RppLayoutParams layoutParams,
+                                   rpp::Handle& handle);
+
+// -------------------- random_erase --------------------
+
+template <typename T>
+RppStatus random_erase_host_tensor(T *srcPtr,
+                                   RpptDescPtr srcDescPtr,
+                                   T *dstPtr,
+                                   RpptDescPtr dstDescPtr,
+                                   RpptRoiLtrb *anchorBoxInfoTensor,
+                                   T *noiseBuffer,
+                                   RpptROIPtr roiTensorPtrSrc,
+                                   RpptRoiType roiType,
+                                   RppLayoutParams layoutParams,
+                                   rpp::Handle& handle);
+
 /**************************************** FILTER AUGMENTATIONS ****************************************/
 
 // -------------------- gaussian_filter --------------------
@@ -1817,6 +1907,18 @@ RppStatus box_filter_float_host_tensor(T *srcPtr,
                                        RppLayoutParams layoutParams,
                                        rpp::Handle& handle);
 
+// -------------------- sobel_filter --------------------
+template<typename T>
+RppStatus sobel_filter_host_tensor(T *srcPtr,
+                                   RpptDescPtr srcDescPtr,
+                                   T *dstPtr,
+                                   RpptDescPtr dstDescPtr,
+                                   Rpp32u sobelType,
+                                   Rpp32u kernelSize,
+                                   RpptROIPtr roiTensorPtrSrc,
+                                   RpptRoiType roiType,
+                                   rpp::Handle& handle);
+
 // -------------------- median_filter --------------------
 
 template<typename T>
@@ -1829,6 +1931,32 @@ RppStatus median_filter_generic_host_tensor(T *srcPtr,
                                             RpptRoiType roiType,
                                             RppLayoutParams layoutParams,
                                             rpp::Handle& handle);
+
+// -------------------- emboss --------------------
+
+template<typename T>
+RppStatus emboss_host_tensor(T *srcPtr,
+                             RpptDescPtr srcDescPtr,
+                             T *dstPtr,
+                             RpptDescPtr dstDescPtr,
+                             Rpp32f *strength,
+                             Rpp32u kernelSize,
+                             RpptROIPtr roiTensorPtrSrc,
+                             RpptRoiType roiType,
+                             RppLayoutParams layoutParams,
+                             rpp::Handle& handle);
+
+template<typename T>
+RppStatus emboss_generic_host_tensor(T *srcPtr,
+                                     RpptDescPtr srcDescPtr,
+                                     T *dstPtr,
+                                     RpptDescPtr dstDescPtr,
+                                     Rpp32f *strength,
+                                     Rpp32u kernelSize,
+                                     RpptROIPtr roiTensorPtrSrc,
+                                     RpptRoiType roiType,
+                                     RppLayoutParams layoutParams,
+                                     rpp::Handle& handle);
 
 /**************************************** GEOMETRIC AUGMENTATIONS ****************************************/
 
@@ -3071,5 +3199,32 @@ RppStatus jpeg_compression_distortion_i8_i8_host_tensor(Rpp8s *srcPtr,
                                                         RpptRoiType roiType,
                                                         RppLayoutParams layoutParams,
                                                         rpp::Handle& handle);
+
+// -------------------- tensor_binary_operation --------------------
+
+RppStatus tensor_binary_op_dispatch_f32_f32_host_tensor(Rpp32f *srcPtr1,
+                                                        Rpp32f *srcPtr2,
+                                                        RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                        RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                        Rpp32f *dstPtr,
+                                                        RpptGenericDescPtr dstGenericDescPtr,
+                                                        RpptOp tensorOp,
+                                                        RpptBroadcastMode broadcastMode,
+                                                        Rpp32u *srcPtr1roiTensor,
+                                                        Rpp32u *srcPtr2roiTensor,
+                                                        rpp::Handle& handle);
+
+template <typename T1, typename T2>
+RppStatus tensor_binary_bitwise_op_dispatch_int_host_tensor(T1 *srcPtr1,
+                                                            T1 *srcPtr2,
+                                                            RpptGenericDescPtr srcPtr1GenericDescPtr,
+                                                            RpptGenericDescPtr srcPtr2GenericDescPtr,
+                                                            T2 *dstPtr,
+                                                            RpptGenericDescPtr dstGenericDescPtr,
+                                                            RpptOp tensorOp,
+                                                            RpptBroadcastMode broadcastMode,
+                                                            Rpp32u *srcPtr1roiTensor,
+                                                            Rpp32u *srcPtr2roiTensor,
+                                                            rpp::Handle& handle);
 
 #endif // HOST_TENSOR_EXECUTORS_HPP

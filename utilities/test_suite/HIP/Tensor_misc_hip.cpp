@@ -49,8 +49,9 @@ int main(int argc, char **argv)
     qaMode = (testType == UNIT_TEST);
     bool axisMaskCase = (testCase == NORMALIZE || testCase == CONCAT);
     bool permOrderCase = (testCase == TRANSPOSE);
-    int additionalParam = (axisMaskCase || permOrderCase) ? atoi(argv[8]) : 1;
-    int axisMask = additionalParam, permOrder = additionalParam;
+    bool broadCastCase = (testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR);
+    int additionalParam = (axisMaskCase || permOrderCase || broadCastCase) ? atoi(argv[8]) : 1;
+    int axisMask = additionalParam, permOrder = additionalParam, broadCastFlag = additionalParam;
 
     if(qaMode && batchSize != 3)
     {
@@ -75,8 +76,15 @@ int main(int argc, char **argv)
         case U8_TO_F32: bitdepthStr = "u8_f32"; break;
         case I8_TO_I8: bitdepthStr = "i8"; break;
         case U8_TO_I8: bitdepthStr = "u8_i8"; break;
+        case I16_TO_I16: bitdepthStr = "i16"; break;
+        case U16_TO_U16: bitdepthStr = "u16"; break;
+        case I32_TO_I32: bitdepthStr = "i32"; break;
+        case U32_TO_U32: bitdepthStr = "u32"; break;
         case I8_TO_F32: bitdepthStr = "i8_f32"; break;
         case I16_TO_F32: bitdepthStr = "i16_f32"; break;
+        case U16_TO_F32: bitdepthStr = "u16_f32"; break;
+        case U32_TO_F32: bitdepthStr = "u32_f32"; break;
+        case I32_TO_F32: bitdepthStr = "i32_f32"; break;
         default: bitdepthStr = "unknown"; break;
     }
 
@@ -85,6 +93,10 @@ int main(int argc, char **argv)
         func += "_axisMask" + std::to_string(axisMask);
     if (permOrderCase)
         func += "_permOrder" + std::to_string(permOrder);
+    if((broadCastFlag == 1) && (broadCastCase))
+        func += "_broadcast_input2";
+    else if((broadCastFlag == 2) && (broadCastCase))
+        func += "_broadcast_input1";
 
     // fill roi based on mode and number of dimensions
     Rpp32u *roiTensor, *dstRoiTensor, *roiTensorSecond = nullptr;
@@ -97,6 +109,11 @@ int main(int argc, char **argv)
         CHECK_RETURN_STATUS(hipHostMalloc(&roiTensorSecond, nDim * 2 * batchSize * sizeof(Rpp32u)));
         fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode);
         dstRoiTensor[nDim + axisMask] = roiTensor[nDim + axisMask] + roiTensorSecond[nDim + axisMask];
+    }
+    if(broadCastCase)
+    {
+        CHECK_RETURN_STATUS(hipHostMalloc(&roiTensorSecond, nDim * 2 * batchSize * sizeof(Rpp32u)));
+        fill_roi_values(nDim, batchSize, roiTensorSecond, qaMode, broadCastFlag);
     }
 
     // set src/dst generic tensor descriptors
@@ -113,7 +130,7 @@ int main(int argc, char **argv)
     set_generic_descriptor_layout(srcDescriptorPtrND, dstDescriptorPtrND, nDim, toggle, qaMode);
 
     srcDescriptorPtrNDSecond = nullptr;
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || broadCastCase)
     {
         CHECK_RETURN_STATUS(hipHostMalloc(&srcDescriptorPtrNDSecond, sizeof(RpptGenericDesc)));
         set_generic_descriptor(srcDescriptorPtrNDSecond, nDim, offSetInBytes, BitDepthTestMode, batchSize, roiTensorSecond, false);
@@ -130,7 +147,7 @@ int main(int argc, char **argv)
     {
         iBufferSize *= srcDescriptorPtrND->dims[i];
         oBufferSize *= dstDescriptorPtrND->dims[i];
-        if (testCase == CONCAT)
+        if(testCase == CONCAT || broadCastCase)
             iBufferSizeSecond *= srcDescriptorPtrNDSecond->dims[i];
     }
 
@@ -156,16 +173,18 @@ int main(int argc, char **argv)
     CHECK_RETURN_STATUS(hipMalloc(&d_input, iBufferSizeInBytes));
     CHECK_RETURN_STATUS(hipMalloc(&d_output, oBufferSizeInBytes));
 
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || broadCastCase)
     {
         iBufferSizeSecondInBytes = iBufferSizeSecond * get_size_of_data_type(srcDescriptorPtrNDSecond->dataType);
-        inputSecond = calloc(iBufferSizeSecondInBytes, 1);
+        inputSecond = calloc(iBufferSizeSecond, get_size_of_data_type(srcDescriptorPtrNDSecond->dataType));
         CHECK_RETURN_STATUS(hipMalloc(&d_inputSecond, iBufferSizeSecondInBytes));
     }
     // read input data
     if(qaMode)
     {
-        if(BitDepthTestMode == I16_TO_F32) // log1p
+        if(broadCastCase)
+            read_data(input, nDim, 0, scriptPath, funcName, BitDepthTestMode, broadCastFlag);
+        else if(BitDepthTestMode == I16_TO_F32) // log1p
             read_data(input, nDim, 0, scriptPath, funcName, 2);
         else if(BitDepthTestMode == U8_TO_F32) // log
             read_data(input, nDim, 0, scriptPath, funcName, 0);
@@ -173,25 +192,53 @@ int main(int argc, char **argv)
             read_data(input, nDim, 0, scriptPath, funcName, BitDepthTestMode);
         if(testCase == CONCAT)
             read_data(inputSecond, nDim, 0, scriptPath, funcName, BitDepthTestMode);
+        if(broadCastCase)
+        {
+            if(BitDepthTestMode == F32_TO_F32) {
+                Rpp32f *inputSecondTemp = static_cast<Rpp32f *>(inputSecond);
+                Rpp32f *inputU8 = static_cast<Rpp32f *>(input);
+                for (int i = 0; i < iBufferSizeSecond; i++)
+                    inputSecondTemp[i] = inputU8[(i+1) % iBufferSize];
+            }
+            else if((BitDepthTestMode == U8_TO_U8) || (BitDepthTestMode == U8_TO_F32)) {
+                Rpp8u *inputSecondTemp = static_cast<Rpp8u *>(inputSecond);
+                Rpp8u *inputU8 = static_cast<Rpp8u *>(input);
+                for (int i = 0; i < iBufferSizeSecond; i++)
+                    inputSecondTemp[i] = inputU8[(i+1) % iBufferSize];
+            }
+            else{
+            Rpp8u *inputSecondTemp = static_cast<Rpp8u *>(inputSecond);
+            Rpp8u *inputU8 = static_cast<Rpp8u *>(input);
+            for(int i = 0; i < iBufferSizeSecond; i++)
+                inputSecondTemp[i] = inputU8[i+1];
+            }
+        }
     }
     else
     {
-        // Generic random data filling based on bitDepth
+        // Generic random data filling based on BitDepthTestMode
         Rpp32f *inputF32 = NULL, *inputF32Second = NULL, *outputF32 = NULL;
         Rpp16s *inputI16 = NULL;
         inputF32 = static_cast<Rpp32f *>(calloc(iBufferSize, sizeof(Rpp32f)));
         outputF32 = static_cast<Rpp32f *>(calloc(oBufferSize, sizeof(Rpp32f)));
-
-        if(testCase == CONCAT)
+        if((testCase == CONCAT) || (broadCastCase))
             inputF32Second = static_cast<Rpp32f *>(calloc(iBufferSizeSecond, sizeof(Rpp32f)));
+
+        // Generate sample values in range based on number of bits for representation
+        // Note : I32/U32 can represent higher range of values - Limit set just for testing purposes
+        Rpp32u valLimit = 255;
+        if((BitDepthTestMode == I16_TO_I16) || (BitDepthTestMode == U16_TO_U16))
+            valLimit = 65535;
+        if((BitDepthTestMode == I32_TO_I32) || (BitDepthTestMode == U32_TO_U32))
+            valLimit = 262143;
 
         std::srand(0);
         for(int i = 0; i < iBufferSize; i++)
-            inputF32[i] = static_cast<float>(std::rand() % 255);
-        if(testCase == CONCAT)
+            inputF32[i] = static_cast<float>((std::rand() % valLimit));
+        if((testCase == CONCAT) || (broadCastCase))
         {
             for(int i = 0; i < iBufferSizeSecond; i++)
-                inputF32Second[i] = static_cast<float>(std::rand() % 255);
+                inputF32Second[i] = static_cast<float>((std::rand() % valLimit));
         }
 
         convert_input_bitdepth(inputF32, inputF32Second, input, inputSecond, BitDepthTestMode, iBufferSize, iBufferSizeSecond, iBufferSizeInBytes, iBufferSizeSecondInBytes, srcDescriptorPtrND, srcDescriptorPtrNDSecond, testCase);
@@ -211,7 +258,7 @@ int main(int argc, char **argv)
 
     // Copy data from Host to Device
     CHECK_RETURN_STATUS(hipMemcpy(d_input, input, iBufferSizeInBytes, hipMemcpyHostToDevice));
-    if(testCase == CONCAT)
+    if(testCase == CONCAT || broadCastCase)
         CHECK_RETURN_STATUS(hipMemcpy(d_inputSecond, inputSecond, iBufferSizeSecondInBytes, hipMemcpyHostToDevice));
     if(testCase == LOG1P)
     {
@@ -342,6 +389,139 @@ int main(int argc, char **argv)
                     errorCodeCapture = rppt_log1p(d_inputI16, srcDescriptorPtrND, d_output, dstDescriptorPtrND, roiTensor, handle, RPP_HIP_BACKEND);
                 else
                     missingFuncFlag = 1;
+                    
+                break;
+            }
+            case TENSOR_AND_TENSOR:
+            {
+                testCaseName  = "tensor_and_tensor";
+
+                startWallTime = omp_get_wtime();
+                if(BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == I8_TO_I8 || BitDepthTestMode == I16_TO_I16 || BitDepthTestMode == U16_TO_U16 || BitDepthTestMode == I32_TO_I32 || BitDepthTestMode == U32_TO_U32)
+                {
+                    if(broadCastFlag == 1)
+                        errorCodeCapture = rppt_tensor_and_tensor(d_inputSecond, d_input, srcDescriptorPtrNDSecond, srcDescriptorPtrND, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensorSecond, roiTensor, handle, RppBackend::RPP_HIP_BACKEND);
+                    else if(broadCastFlag == 2)
+                        errorCodeCapture = rppt_tensor_and_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensor, roiTensorSecond, handle, RppBackend::RPP_HIP_BACKEND);
+                    else
+                        errorCodeCapture = rppt_tensor_and_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_DISABLE, roiTensor, roiTensorSecond, handle, RppBackend::RPP_HIP_BACKEND);
+                }
+                else
+                    missingFuncFlag = 1;
+
+                break;
+            }
+            case TENSOR_OR_TENSOR:
+            {
+                testCaseName  = "tensor_or_tensor";
+
+                startWallTime = omp_get_wtime();
+                if(BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == I8_TO_I8 || BitDepthTestMode == I16_TO_I16 || BitDepthTestMode == U16_TO_U16 || BitDepthTestMode == I32_TO_I32 || BitDepthTestMode == U32_TO_U32)
+                {
+                    if(broadCastFlag == 1)
+                        errorCodeCapture = rppt_tensor_or_tensor(d_inputSecond, d_input, srcDescriptorPtrNDSecond, srcDescriptorPtrND, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensorSecond, roiTensor, handle, RppBackend::RPP_HIP_BACKEND);
+                    else if(broadCastFlag == 2)
+                        errorCodeCapture = rppt_tensor_or_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensor, roiTensorSecond, handle, RppBackend::RPP_HIP_BACKEND);
+                    else
+                        errorCodeCapture = rppt_tensor_or_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_DISABLE, roiTensor, roiTensorSecond, handle, RppBackend::RPP_HIP_BACKEND);
+                }
+                else
+                    missingFuncFlag = 1;
+
+                break;
+            }
+            case TENSOR_XOR_TENSOR:
+            {
+                testCaseName  = "tensor_xor_tensor";
+
+                startWallTime = omp_get_wtime();
+                if(BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == I8_TO_I8 || BitDepthTestMode == I16_TO_I16 || BitDepthTestMode == U16_TO_U16 || BitDepthTestMode == I32_TO_I32 || BitDepthTestMode == U32_TO_U32)
+                {
+                    if(broadCastFlag == 1)
+                        errorCodeCapture = rppt_tensor_xor_tensor(d_inputSecond, d_input, srcDescriptorPtrNDSecond, srcDescriptorPtrND, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensorSecond, roiTensor, handle, RppBackend::RPP_HIP_BACKEND);
+                    else if(broadCastFlag == 2)
+                        errorCodeCapture = rppt_tensor_xor_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensor, roiTensorSecond, handle, RppBackend::RPP_HIP_BACKEND);
+                    else
+                        errorCodeCapture = rppt_tensor_xor_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_DISABLE, roiTensor, roiTensorSecond, handle, RppBackend::RPP_HIP_BACKEND);
+                }
+                else
+                    missingFuncFlag = 1;
+
+                break;
+            }
+            case TENSOR_ADD_TENSOR:
+            {
+                testCaseName  = "tensor_add_tensor";
+
+                startWallTime = omp_get_wtime();
+                if(BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8 || BitDepthTestMode == I16_TO_I16 || BitDepthTestMode == U16_TO_U16 || BitDepthTestMode == I32_TO_I32 || BitDepthTestMode == U32_TO_U32)
+                {
+                    if(broadCastFlag == 1)
+                        rppt_tensor_add_tensor(d_inputSecond, d_input, srcDescriptorPtrNDSecond, srcDescriptorPtrND, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensorSecond, roiTensor, handle, RPP_HIP_BACKEND);
+                    else if(broadCastFlag == 2)
+                        rppt_tensor_add_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensor, roiTensorSecond, handle, RPP_HIP_BACKEND);
+                    else
+                        rppt_tensor_add_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_DISABLE, roiTensor, roiTensorSecond, handle, RPP_HIP_BACKEND);
+                }
+                else
+                    missingFuncFlag = 1;
+
+                break;
+            }
+            case TENSOR_SUBTRACT_TENSOR:
+            {
+                testCaseName  = "tensor_subtract_tensor";
+
+                startWallTime = omp_get_wtime();
+                if(BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8 || BitDepthTestMode == I16_TO_I16 || BitDepthTestMode == U16_TO_U16 || BitDepthTestMode == I32_TO_I32 || BitDepthTestMode == U32_TO_U32)
+                {
+                    if(broadCastFlag == 1)
+                        rppt_tensor_subtract_tensor(d_inputSecond, d_input, srcDescriptorPtrNDSecond, srcDescriptorPtrND, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensorSecond, roiTensor, handle, RPP_HIP_BACKEND);
+                    else if(broadCastFlag == 2)
+                        rppt_tensor_subtract_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensor, roiTensorSecond, handle, RPP_HIP_BACKEND);
+                    else
+                        rppt_tensor_subtract_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_DISABLE, roiTensor, roiTensorSecond, handle, RPP_HIP_BACKEND);
+                }
+                else
+                    missingFuncFlag = 1;
+
+                break;
+            }
+            case TENSOR_MULTIPLY_TENSOR:
+            {
+                testCaseName  = "tensor_multiply_tensor";
+
+                startWallTime = omp_get_wtime();
+                if(BitDepthTestMode == U8_TO_U8 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I8_TO_I8 || BitDepthTestMode == I16_TO_I16 || BitDepthTestMode == U16_TO_U16 || BitDepthTestMode == I32_TO_I32 || BitDepthTestMode == U32_TO_U32)
+                {
+                    if(broadCastFlag == 1)
+                        rppt_tensor_multiply_tensor(d_inputSecond, d_input, srcDescriptorPtrNDSecond, srcDescriptorPtrND, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensorSecond, roiTensor, handle, RPP_HIP_BACKEND);
+                    else if(broadCastFlag == 2)
+                        rppt_tensor_multiply_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensor, roiTensorSecond, handle, RPP_HIP_BACKEND);
+                    else
+                        rppt_tensor_multiply_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_DISABLE, roiTensor, roiTensorSecond, handle, RPP_HIP_BACKEND);
+                }
+                else
+                    missingFuncFlag = 1;
+
+                break;
+            }
+            case TENSOR_DIVIDE_TENSOR:
+            {
+                testCaseName  = "tensor_divide_tensor";
+
+                startWallTime = omp_get_wtime();
+                if(BitDepthTestMode == U8_TO_F32 || BitDepthTestMode == F16_TO_F16 || BitDepthTestMode == U16_TO_F32 || BitDepthTestMode == U32_TO_F32 || BitDepthTestMode == I8_TO_F32 || BitDepthTestMode == I16_TO_F32 || BitDepthTestMode == I32_TO_F32 || BitDepthTestMode == F32_TO_F32)
+                {
+                    if(broadCastFlag == 1)
+                        rppt_tensor_divide_tensor(d_inputSecond, d_input, srcDescriptorPtrNDSecond, srcDescriptorPtrND, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensorSecond, roiTensor, handle, RPP_HIP_BACKEND);
+                    else if(broadCastFlag == 2)
+                        rppt_tensor_divide_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_ENABLE, roiTensor, roiTensorSecond, handle, RPP_HIP_BACKEND);
+                    else
+                        rppt_tensor_divide_tensor(d_input, d_inputSecond, srcDescriptorPtrND, srcDescriptorPtrNDSecond, d_output, dstDescriptorPtrND, RPP_BROADCAST_DISABLE, roiTensor, roiTensorSecond, handle, RPP_HIP_BACKEND);
+                }
+                else
+                    missingFuncFlag = 1;
 
                 break;
             }
@@ -375,7 +555,7 @@ int main(int argc, char **argv)
     if(qaMode)
     {
         CHECK_RETURN_STATUS(hipMemcpy(output, d_output, oBufferSizeInBytes, hipMemcpyDeviceToHost));
-        compare_output(output, nDim, batchSize, BitDepthTestMode, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, externalMeanStd);
+        compare_output(output, nDim, batchSize, BitDepthTestMode, oBufferSize, dst, func, testCaseName, additionalParam, scriptPath, broadCastCase ? broadCastFlag : 0, "HIP", externalMeanStd);
     }
     else
     {
@@ -385,6 +565,7 @@ int main(int argc, char **argv)
         avgWallTime /= numRuns;
         cout << fixed << "\nmax,min,avg wall times in ms/batch = " << maxWallTime << "," << minWallTime << "," << avgWallTime;
     }
+
     rppDestroy(handle,backend);
 
     // Free device memory

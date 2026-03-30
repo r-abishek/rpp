@@ -30,13 +30,35 @@ SOFTWARE.
 #include <map>
 #include <array>
 
+// Cutoff values for misc kernels listed for HOST backend followed by HIP
+// Each entry: {testCaseName, {HOST_cutoff, HIP_cutoff}}
+static const std::map<string, std::vector<double>> miscCutOff =
+{
+    {"transpose", {1e-6, 1e-6}},
+    {"normalize", {1e-4, 1e-4}},
+    {"log", {1e-6, 1e-6}},
+    {"concat", {1e-6, 1e-6}},
+    {"log1p", {1e-6, 1e-6}},
+    {"tensor_add_tensor", {1e-6, 1e-6}},
+    {"tensor_subtract_tensor", {1e-6, 1e-6}},
+    {"tensor_multiply_tensor", {1e-6, 1e-6}},
+    {"tensor_divide_tensor", {1e-6, 1e-6}}
+};
+
 std::map<int, string> augmentationMiscMap =
 {
     {0, "transpose"},
     {1, "normalize"},
     {2, "log"},
     {3, "concat"},
-    {4, "log1p"}
+    {4, "log1p"},
+    {5, "tensor_and_tensor"},
+    {6, "tensor_or_tensor"},
+    {7, "tensor_xor_tensor"},
+    {8, "tensor_add_tensor"},
+    {9, "tensor_subtract_tensor"},
+    {10, "tensor_multiply_tensor"},
+    {11, "tensor_divide_tensor"}
 };
 
 enum Augmentation {
@@ -44,7 +66,14 @@ enum Augmentation {
     NORMALIZE = 1,
     LOG = 2,
     CONCAT = 3,
-    LOG1P = 4
+    LOG1P = 4,
+    TENSOR_AND_TENSOR = 5,
+    TENSOR_OR_TENSOR = 6,
+    TENSOR_XOR_TENSOR = 7,
+    TENSOR_ADD_TENSOR = 8,
+    TENSOR_SUBTRACT_TENSOR = 9,
+    TENSOR_MULTIPLY_TENSOR = 10,
+    TENSOR_DIVIDE_TENSOR = 11
 };
 
 // Compute strides given Generic Tensor
@@ -63,7 +92,7 @@ void compute_strides(RpptGenericDescPtr descriptorPtr)
 }
 
 // Retrieve path for bin file
-string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode, bool isMeanStd = false)
+string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode, int broadCastFlag, bool isMeanStd = false)
 {
     string folderPath, suffix, bitDepthStr;
     if (BitDepthTestMode == U8_TO_U8)
@@ -72,7 +101,9 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
         bitDepthStr = "f32";
     else if (BitDepthTestMode == U8_TO_F32)
         bitDepthStr = "u8";
-    else if (BitDepthTestMode == I16_TO_F32)
+    else if (BitDepthTestMode == I8_TO_F32)
+        bitDepthStr = "f32";
+    else if (BitDepthTestMode == I8_TO_F32)
         bitDepthStr = "f32";
 
     if (readType == 0) // Input
@@ -98,19 +129,19 @@ string get_path(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase
 
 // Read data from Bin file
 template <typename T>
-void read_data(T *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode, bool isMeanStd = false)
+void read_data(T *data, Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode, int broadCastFlag = 0, bool isMeanStd = false)
 {
     if (nDim < 2 || nDim > 4)
     {
-        std::cout<<"\nGolden Inputs / Outputs are generated only for 2D/3D/4D data"<<std::endl;
+        std::cout << "\nGolden Inputs / Outputs are generated only for 2D/3D/4D data" << std::endl;
         exit(0);
     }
-    std::string dataPath = get_path(nDim, readType, scriptPath, testCase, BitDepthTestMode, isMeanStd);
+    std::string dataPath = get_path(nDim, readType, scriptPath, testCase, BitDepthTestMode, broadCastFlag, isMeanStd);
     read_bin_file(dataPath, data);
 }
 
 // Fill the starting indices and length of ROI values
-void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMode)
+void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMode, Rpp32u broadCastFlag = 0)
 {
     if(qaMode)
     {
@@ -119,6 +150,8 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             case 2:
             {
                 std::array<Rpp32u, 4> roi = {0, 0, 100, 100};
+                if((broadCastFlag == 1) || (broadCastFlag == 2))
+                    roi = {0, 0, 100, 1};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 4)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -126,6 +159,8 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             case 3:
             {
                 std::array<Rpp32u, 6> roi = {0, 0, 0, 25, 25, 32};
+                if((broadCastFlag == 1) || (broadCastFlag == 2))
+                    roi = {0, 0, 0, 25, 25, 1};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 6)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -133,6 +168,8 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             case 4:
             {
                 std::array<Rpp32u, 8> roi = {0, 0, 0, 0, 4, 10, 25, 40};
+                if((broadCastFlag == 1) || (broadCastFlag == 2))
+                    roi = {0, 0, 0, 0, 4, 10, 25, 1};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 8)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -146,13 +183,17 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             case 2:
             {
                 std::array<Rpp32u, 4> roi = {0, 0, 1920, 1080};
+                if((broadCastFlag == 1) || (broadCastFlag == 2))
+                    roi = {0, 0, 1920, 1};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 4)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
             }
             case 3:
             {
-                std::array<Rpp32u, 6> roi = {0, 0, 0, 1920, 1080, 3};
+                std::array<Rpp32u, 6> roi = {0, 0, 0, 3, 1920, 1080};
+                if((broadCastFlag == 1) || (broadCastFlag == 2))
+                    roi = {0, 0, 0, 3, 1920, 1};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 6)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -160,6 +201,8 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
             case 4:
             {
                 std::array<Rpp32u, 8> roi = {0, 0, 0, 0, 1, 128, 128, 128};
+                if((broadCastFlag == 1) || (broadCastFlag == 2))
+                    roi = {0, 0, 0, 0, 1, 128, 128, 1};
                 for(int i = 0, j = 0; i < batchSize ; i++, j += 8)
                     std::copy(roi.begin(), roi.end(), &roiTensor[j]);
                 break;
@@ -176,6 +219,8 @@ void fill_roi_values(Rpp32u nDim, Rpp32u batchSize, Rpp32u *roiTensor, bool qaMo
                         roiTensor[startIndex + j] = 0;
                         roiTensor[lengthIndex + j] = std::rand() % 10;  // limiting max value in a dimension to 10 for testing purposes
                     }
+                    if((broadCastFlag == 1) || (broadCastFlag == 2))
+                        roiTensor[lengthIndex + nDim - 1] = 1;
                 }
                 break;
             }
@@ -235,7 +280,6 @@ inline void set_generic_descriptor(RpptGenericDescPtr descriptorPtr3D, int nDim,
 {
     descriptorPtr3D->numDims = nDim + 1;
     descriptorPtr3D->offsetInBytes = offsetInBytes;
-
     switch (BitDepthTestMode)
     {
         case U8_TO_U8:
@@ -253,11 +297,38 @@ inline void set_generic_descriptor(RpptGenericDescPtr descriptorPtr3D, int nDim,
         case U8_TO_F32:
             descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::U8;
             break;
+        case U8_TO_F16:
+            descriptorPtr3D->dataType = isDestination ? RpptDataType::F16 : RpptDataType::U8;
+            break;
+        case U8_TO_I8:
+            descriptorPtr3D->dataType = RpptDataType::I8;
+            break;
+        case I16_TO_I16:
+            descriptorPtr3D->dataType = RpptDataType::I16;
+            break;
+        case U16_TO_U16:
+            descriptorPtr3D->dataType = RpptDataType::U16;
+            break;
+        case I32_TO_I32:
+            descriptorPtr3D->dataType = RpptDataType::I32;
+            break;
+        case U32_TO_U32:
+            descriptorPtr3D->dataType = RpptDataType::U32;
+            break;
         case I8_TO_F32:
             descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I8;
             break;
         case I16_TO_F32:
             descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I16;
+            break;
+        case U16_TO_F32:
+            descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::U16;
+            break;
+        case U32_TO_F32:
+            descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::U32;
+            break;
+        case I32_TO_F32:
+            descriptorPtr3D->dataType = isDestination ? RpptDataType::F32 : RpptDataType::I32;
             break;
         default:
             descriptorPtr3D->dataType = RpptDataType::U8;
@@ -354,7 +425,7 @@ void fill_mean_stddev_values(Rpp32u nDim, Rpp32u size, Rpp32f *meanTensor,
         }
         std::vector<Rpp32f> paramBuf(numValues * 2);
         Rpp32f *data = paramBuf.data();
-        read_data(data, nDim, 0, scriptPath, "normalize", BitDepthTestMode, true);
+        read_data(data, nDim, 0, scriptPath, "normalize", BitDepthTestMode, 0, true);
         memcpy(meanTensor, data + paramStride, size * sizeof(Rpp32f));
         memcpy(stdDevTensor, data + numValues + paramStride, size * sizeof(Rpp32f));
     }
@@ -451,9 +522,9 @@ void fill_perm_values(Rpp32u nDim, Rpp32u *permTensor, bool qaMode, int permOrde
     }
 }
 
-Rpp32u get_bin_size(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode)
+Rpp32u get_bin_size(Rpp32u nDim, Rpp32u readType, string scriptPath, string testCase, Rpp32u BitDepthTestMode, int broadCastFlag = 0)
 {
-    string refFile = get_path(nDim, readType, scriptPath, testCase, BitDepthTestMode);
+    string refFile = get_path(nDim, readType, scriptPath, testCase, BitDepthTestMode, broadCastFlag);
     std::ifstream filestream(refFile, ios_base::in | ios_base::binary);
     filestream.seekg(0, ios_base::end);
     Rpp32u filesize = filestream.tellg();
@@ -472,6 +543,12 @@ inline size_t get_size_of_data_type(RpptDataType dataType)
         return sizeof(Rpp32f);
     else if(dataType == RpptDataType::I16)
         return sizeof(Rpp16s);
+    else if(dataType == RpptDataType::U16)
+        return sizeof(Rpp16u);
+    else if(dataType == RpptDataType::I32)
+        return sizeof(Rpp32s);
+    else if(dataType == RpptDataType::U32)
+        return sizeof(Rpp32u);
     else
         return 0;
 }
@@ -487,7 +564,7 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
         for(Rpp32s i = 0; i < ioBufferSize; i++)
             outputU8[i] = static_cast<Rpp8u>(std::clamp(std::round(inputF32[i]), 0.0f, 255.0f));
 
-        if(testCase == CONCAT)
+        if(testCase == CONCAT || testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
         {
             Rpp8u *outputU8Second = static_cast<Rpp8u *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes;
             for (Rpp32s i = 0; i < ioBufferSizeSecond; i++)
@@ -497,33 +574,85 @@ inline void convert_input_bitdepth(Rpp32f *inputF32, Rpp32f *inputF32Second, voi
     else if(BitDepthTestMode == F16_TO_F16) // F16 case
     {
         Rpp16f *outputF16 = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(output) + srcGenericDescPtr->offsetInBytes);
-        for (Rpp32s i = 0; i < ioBufferSize; i++)
+        for(Rpp32s i = 0; i < ioBufferSize; i++)
             outputF16[i] = static_cast<Rpp16f>(std::clamp(inputF32[i], -65504.0f, 65504.0f)); // F16 range
 
-        if(testCase == CONCAT)
+        if(testCase == CONCAT || testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
         {
             Rpp16f *outputF16Second = reinterpret_cast<Rpp16f *>(static_cast<Rpp8u *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes);
-            for (Rpp32s i = 0; i < ioBufferSizeSecond; i++)
+            for(Rpp32s i = 0; i < ioBufferSizeSecond; i++)
                 outputF16Second[i] = static_cast<Rpp16f>(std::clamp(inputF32Second[i], -65504.0f, 65504.0f));
         }
     }
     else if(BitDepthTestMode == F32_TO_F32) // F32 case (No conversion needed)
     {
         memcpy(output, inputF32, outputBufferSize);
-        if(testCase == CONCAT)
+        if(testCase == CONCAT || testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
             memcpy(outputSecond, inputF32Second, outputBufferSizeSecond);
     }
-    else if(BitDepthTestMode == I8_TO_I8) // I8 case
+    else if(BitDepthTestMode == I8_TO_I8 || BitDepthTestMode == I8_TO_F32) // I8 case
     {
         Rpp8s *outputI8 = static_cast<Rpp8s *>(output) + srcGenericDescPtr->offsetInBytes;
         for(int i = 0; i < ioBufferSize; i++)
             outputI8[i] = static_cast<Rpp8s>(std::clamp(std::round(inputF32[i]) - 128, -128.0f, 127.0f));
 
-        if(testCase == CONCAT)
+        if(testCase == CONCAT || testCase == TENSOR_AND_TENSOR || testCase == TENSOR_OR_TENSOR || testCase == TENSOR_XOR_TENSOR || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
         {
             Rpp8s *outputI8Second = static_cast<Rpp8s *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes;
-            for (int i = 0; i < ioBufferSizeSecond; i++)
+            for(int i = 0; i < ioBufferSizeSecond; i++)
                 outputI8Second[i] = static_cast<Rpp8s>(std::clamp(std::round(inputF32Second[i]) - 128, -128.0f, 127.0f));
+        }
+    }
+    else if(BitDepthTestMode == I16_TO_I16 || BitDepthTestMode == I16_TO_F32) // I16 case
+    {
+        Rpp16s *outputI16 = reinterpret_cast<Rpp16s *>(static_cast<Rpp8u *>(output) + srcGenericDescPtr->offsetInBytes);
+        for(int i = 0; i < ioBufferSize; i++)
+            outputI16[i] = static_cast<Rpp16s>(std::clamp(std::round(inputF32[i]), -32768.0f, 32767.0f));
+
+        if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
+        {
+            Rpp16s *outputI16Second = reinterpret_cast<Rpp16s *>(static_cast<Rpp8u *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes);
+            for (int i = 0; i < ioBufferSizeSecond; i++)
+                outputI16Second[i] = static_cast<Rpp16s>(std::clamp(std::round(inputF32Second[i]), -32768.0f, 32767.0f));
+        }
+    }
+    else if(BitDepthTestMode == U16_TO_U16 || BitDepthTestMode == U16_TO_F32) // U16 case
+    {
+        Rpp16u *outputU16 = reinterpret_cast<Rpp16u *>(static_cast<Rpp8u *>(output) + srcGenericDescPtr->offsetInBytes);
+        for(int i = 0; i < ioBufferSize; i++)
+            outputU16[i] = static_cast<Rpp16u>(std::clamp(std::round(inputF32[i]), 0.0f, 65535.0f));
+
+        if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
+        {
+            Rpp16u *outputU16Second = reinterpret_cast<Rpp16u *>(static_cast<Rpp8u *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes);
+            for (int i = 0; i < ioBufferSizeSecond; i++)
+                outputU16Second[i] = static_cast<Rpp16u>(std::clamp(std::round(inputF32Second[i]), 0.0f, 65535.0f));
+        }
+    }
+    else if(BitDepthTestMode == I32_TO_I32 || BitDepthTestMode == I32_TO_F32) // I32 case
+    {
+        Rpp32s *outputI32 = reinterpret_cast<Rpp32s *>(static_cast<Rpp8u *>(output) + srcGenericDescPtr->offsetInBytes);
+        for(int i = 0; i < ioBufferSize; i++)
+            outputI32[i] = static_cast<Rpp32s>(std::clamp(std::round(inputF32[i]), -2147483648.0f, 2147483647.0f));
+
+        if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
+        {
+            Rpp32s *outputI32Second = reinterpret_cast<Rpp32s *>(static_cast<Rpp8u *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes);
+            for (int i = 0; i < ioBufferSizeSecond; i++)
+                outputI32Second[i] = static_cast<Rpp32s>(std::clamp(std::round(inputF32Second[i]), -2147483648.0f, 2147483647.0f));
+        }
+    }
+    else if(BitDepthTestMode == U32_TO_U32 || BitDepthTestMode == U32_TO_F32) // U32 case
+    {
+        Rpp32u *outputU32 = reinterpret_cast<Rpp32u *>(static_cast<Rpp8u *>(output) + srcGenericDescPtr->offsetInBytes);
+        for(int i = 0; i < ioBufferSize; i++)
+            outputU32[i] = static_cast<Rpp32u>(std::clamp(std::round(inputF32[i]), 0.0f, 4294967295.0f));
+
+        if(testCase == CONCAT || testCase == TENSOR_ADD_TENSOR || testCase == TENSOR_SUBTRACT_TENSOR || testCase == TENSOR_MULTIPLY_TENSOR || testCase == TENSOR_DIVIDE_TENSOR)
+        {
+            Rpp32u *outputU32Second = reinterpret_cast<Rpp32u *>(static_cast<Rpp8u *>(outputSecond) + srcDescriptorPtrNDSecond->offsetInBytes);
+            for (int i = 0; i < ioBufferSizeSecond; i++)
+                outputU32Second[i] = static_cast<Rpp32u>(std::clamp(std::round(inputF32Second[i]), 0.0f, 4294967295.0f));
         }
     }
 }
@@ -572,9 +701,9 @@ inline void convert_output_bitdepth_to_f32(void *output, Rpp32f *outputf32, int 
 
 // Compares output with reference outputs and validates QA
 void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u BitDepthTestMode, Rpp32u bufferLength, std::string dst,
-                    std::string funcName, std::string testCase, int additionalParam, std::string scriptPath, bool isMeanStd = false)
+                    std::string funcName, std::string testCase, int additionalParam, std::string scriptPath, int broadCastFlag, std::string backend, bool isMeanStd = false)
 {
-    // Allocate and read reference data based on bitDepth
+    // Allocate and read reference data based on BitDepthTestMode
     RpptDataType dataType;
     switch(BitDepthTestMode)
     {
@@ -588,12 +717,23 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u BitDepth
         default: std::cerr << "ERROR: Invalid bitDepth specified!" << std::endl; return;
     }
     Rpp32u goldenOutputLength;
+    int refBroadCastFlag = broadCastFlag;
+    // For broadcast arithmetic ops (tensor_add/subtract/multiply/divide) in 2D/3D/4D,
+    // always read from a single combined reference bin (broadCastFlag = 3)
+    if(((testCase == "tensor_add_tensor") ||
+        (testCase == "tensor_subtract_tensor") ||
+        (testCase == "tensor_multiply_tensor") ||
+        (testCase == "tensor_divide_tensor")) &&
+       (nDim >= 2) && (nDim <= 4))
+        refBroadCastFlag = 3;
     if(testCase == "log")
         goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, F32_TO_F32);
+    else if(testCase == "tensor_and_tensor" || testCase == "tensor_or_tensor" || testCase == "tensor_xor_tensor")
+        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, BitDepthTestMode, broadCastFlag);
     else
-        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, BitDepthTestMode);
+        goldenOutputLength = get_bin_size(nDim, 1, scriptPath, testCase, BitDepthTestMode, refBroadCastFlag);
     void *refOutput = calloc(goldenOutputLength, get_size_of_data_type(dataType));
-    read_data(refOutput, nDim, 1, scriptPath, testCase, BitDepthTestMode);
+    read_data(refOutput, nDim, 1, scriptPath, testCase, BitDepthTestMode, refBroadCastFlag);
     int subVariantStride = 0;
     if(testCase == "normalize")
     {
@@ -611,6 +751,27 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u BitDepth
     {
         subVariantStride = additionalParam * bufferLength;
     }
+    else if(((testCase == "tensor_add_tensor") ||
+             (testCase == "tensor_subtract_tensor") ||
+             (testCase == "tensor_multiply_tensor") ||
+             (testCase == "tensor_and_tensor") || 
+             (testCase == "tensor_or_tensor") || 
+             (testCase == "tensor_xor_tensor") ||
+             (testCase == "tensor_divide_tensor")) &&
+            (nDim >= 2) && (nDim <= 4))
+    {
+        // 3 broadcast sub-variants are packed sequentially: no-broadcast, broadcast_input2, broadcast_input1
+        subVariantStride = broadCastFlag * bufferLength;
+    }
+
+    // Get cutoff value from miscCutOff map based on testCase and backend
+    double cutoff;
+    auto mapIterator = miscCutOff.find(testCase);
+    if (mapIterator != miscCutOff.end())
+    {
+        const auto& cutoffVector = mapIterator->second;
+        cutoff = (backend == "HOST") ? cutoffVector[0] : cutoffVector[1];
+    }
 
     int sampleLength = bufferLength / batchSize;
     int fileMatch = 0;
@@ -621,26 +782,34 @@ void compare_output(void *output, Rpp32u nDim, Rpp32u batchSize, Rpp32u BitDepth
 
         if(testCase == "log" && BitDepthTestMode == U8_TO_F32)
         {
-            Rpp32f cutoff = 1e-6;
-
             Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
             for(int j = 0; j < sampleLength; j++)
             {
-                if ((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < cutoff))
+                if((out[j] < 0 && ref[j] < 0) || (std::abs(out[j] - ref[j]) < cutoff))
                     cnt++;
+            }
+        }
+        else if(testCase == "tensor_divide_tensor" && BitDepthTestMode == U8_TO_F32)
+        {
+            Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
+            Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
+            for(int j = 0; j < sampleLength; j++)
+            {
+                if((std::abs(out[j] - ref[j]) < cutoff) || (std::isinf(ref[j])) || (std::isnan(ref[j])))
+                    cnt++;
+
             }
         }
         else if(BitDepthTestMode == F32_TO_F32 || BitDepthTestMode == I16_TO_F32 || BitDepthTestMode == U8_TO_F32)  // F32 || I16_F32 || U8_F32
         {
-            Rpp32f cutoff = (testCase == "normalize") ? 1e-5 : 1e-6;
-
             Rpp32f *ref = static_cast<Rpp32f *>(refOutput) + sampleOffset;
             Rpp32f *out = static_cast<Rpp32f *>(output) + i * sampleLength;
             for(int j = 0; j < sampleLength; j++)
             {
                 if(std::abs(out[j] - ref[j]) < cutoff)
                     cnt++;
+
             }
         }
         else if(BitDepthTestMode == U8_TO_U8)  // U8

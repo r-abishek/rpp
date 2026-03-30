@@ -59,6 +59,8 @@ typedef halfhpp Rpp16f;
 #define RPP_MAX_8U      ( 255 )
 /*! \brief RPP maximum dimensions in tensor \ingroup group_rppdefs \page subpage_rppt */
 #define RPPT_MAX_DIMS   ( 5 )
+/*! \brief RPP maximum dimensions in tensor for a sample (except batch size) \ingroup group_rppdefs \page subpage_rppt */
+#define RPPT_MAX_DIMS_SAMPLE   ( 4 )
 /*! \brief RPP maximum channels in audio tensor \ingroup group_rppdefs \page subpage_rppt */
 #define RPPT_MAX_AUDIO_CHANNELS   ( 16 )
 
@@ -73,6 +75,16 @@ typedef halfhpp Rpp16f;
 #ifdef RPP_BACKEND_HIP
 #include <hip/hip_runtime.h>
 #define RPP_HOST_DEVICE __host__ __device__
+/*! \brief Check last HIP error after kernel launch; return RPP_ERROR_HIP_LAUNCH on failure. Use after hipLaunchKernelGGL. \ingroup group_rppdefs */
+#define HIP_CHECK_LAUNCH_RETURN()                                              \
+  do {                                                                         \
+    hipError_t status = hipGetLastError();                                     \
+    if (status != hipSuccess) {                                                \
+      std::cerr << "AMD RPP: HIP Error Reported -- "                           \
+                << hipGetErrorString(status) << std::endl;                     \
+      return RPP_ERROR_HIP_LAUNCH;                                             \
+    }                                                                          \
+  } while (0)
 #else
 #define RPP_HOST_DEVICE
 #endif
@@ -84,6 +96,7 @@ const float ONE_OVER_255                    = 1.0f / 255;
 const uint MMS_MAX_SCRATCH_MEMORY           = 115293120; // maximum scratch memory size (in number of floats) needed for MMS buffer in RNNT training
 const uint SPECTROGRAM_MAX_SCRATCH_MEMORY   = 372877312; // maximum scratch memory size (in number of floats) needed for spectrogram HIP kernel in RNNT training
 #define DROPOUT_FIXED_SEED                  42           // Constant fixed seed for reproducing the dropout output
+#define RANDOM_ERASE_NOISE_BUFFER_SIDE      255          // Random erase spatial noise buffer height and width. Changing this constant will result in QA test failures for tiled noise mapping
 
 /******************** RPP typedefs ********************/
 
@@ -172,7 +185,9 @@ typedef enum
     /*! \brief The specified axis is invalid or out of range. (Needs to adhere to function specification.) \ingroup group_rppdefs */
     RPP_ERROR_INVALID_AXIS              = -26,
     /*! \brief The user specified backend is not compatible with the initialized handle \ingroup group_rppdefs */
-    RPP_ERROR_INCOMPATIBLE_BACKEND      = -27
+    RPP_ERROR_INCOMPATIBLE_BACKEND      = -27,
+    /*! \brief HIP/GPU runtime or kernel launch error \ingroup group_rppdefs */
+    RPP_ERROR_HIP_LAUNCH                = -28
 } RppStatus;
 
 /*! \brief RPP RppBackend type enums
@@ -199,6 +214,40 @@ typedef enum
     rppStatusNotImplemented = -7,
     rppStatusUnsupportedOp  = -8,
 } rppStatus_t;
+
+/*! \brief RPP Tensor Operations type enum
+ * \ingroup group_rppdefs
+*/
+typedef enum
+{
+    RPP_TENSOR_OP_ADD,
+    RPP_TENSOR_OP_SUBTRACT,
+    RPP_TENSOR_OP_MULTIPLY,
+    RPP_TENSOR_OP_DIVIDE
+} RpptOp;
+
+/*! \brief RPPT Broadcast Mode type enum
+ * \ingroup group_rppdefs
+*/
+typedef enum
+{
+    RPP_TENSOR_OP_AND,
+    RPP_TENSOR_OP_OR,
+    RPP_TENSOR_OP_XOR
+} RpptBitwiseOp;
+
+/*!
+ * \brief Broadcast support mode for RPP Tensor operations.
+ * \ingroup group_defs
+ *
+ * This enum specifies whether broadcasting is enabled or disabled
+ * when applying tensor operations.
+ */
+typedef enum
+{
+    RPP_BROADCAST_ENABLE,
+    RPP_BROADCAST_DISABLE    // Broadcasting is disabled; Requires input tensors to be of the same shape
+} RpptBroadcastMode;
 
 /*! \brief RPP layout params
  * \ingroup group_rppdefs
@@ -252,7 +301,10 @@ typedef enum
     F32,
     F16,
     I8,
-    I16
+    I16,
+    U16,
+    I32,
+    U32
 } RpptDataType;
 
 /*! \brief RPPT Tensor layout type enum
@@ -268,6 +320,33 @@ typedef enum
     NFT,    // BatchSize-Frequency-Time -> Frequency Major used for Spectrogram / MelfilterBank
     NTF     // BatchSize-Time-Frequency -> Time Major used for Spectrogram / MelfilterBank
 } RpptLayout;
+
+/*! \brief Color space standard for NV12 to RGB (YUV/YCbCr to RGB matrix).
+ * \details Selects which industry **color space standard** defines the luma coefficients (\e wr, \e wb). 
+ * \ingroup group_rppdefs
+ */
+typedef enum
+{
+    RpptColorStandard_BT709    = 0,  /*!< ITU-R BT.709 (default wr=0.2126, wb=0.0722) */
+    RpptColorStandard_FCC      = 4,  /*!< FCC */
+    RpptColorStandard_BT470BG  = 5,  /*!< ITU-R BT.470 System B, G */
+    RpptColorStandard_BT601    = 6,  /*!< ITU-R BT.601 / SMPTE 170M */
+    RpptColorStandard_SMPTE240M = 7, /*!< SMPTE 240M */
+    RpptColorStandard_BT2020_NCL = 9, /*!< ITU-R BT.2020 non-constant luminance */
+    RpptColorStandard_BT2020_CL  = 10 /*!< ITU-R BT.2020 constant luminance */
+} RpptColorStandard;
+
+/*! \brief Color range (luma/chroma legal levels) for NV12 to RGB.
+ * \details **Color range** specifies how 8-bit Y (and scaling of the matrix) is interpreted: **limited** (studio / TV / MPEG) vs **full** (JPEG / PC). 
+ * \ref RpptColorRange_STUDIO: luma nominally 16–235, chroma centered with Y bias 16. 
+ * \ref RpptColorRange_FULL: luma 0–255, Y bias 0.
+ * \ingroup group_rppdefs
+ */
+typedef enum
+{
+    RpptColorRange_STUDIO = 0, /*!< Limited / MPEG / TV range */
+    RpptColorRange_FULL  = 2  /*!< Full / JPEG / PC range */
+} RpptColorRange;
 
 /*! \brief RPPT Tensor 2D ROI type enum
  * \ingroup group_rppdefs

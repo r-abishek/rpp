@@ -43,6 +43,8 @@ typedef struct { schar  data[24]; } d_schar24sc1s_s;
 typedef struct { uchar  data[ 8]; } d_uchar8_s;
 typedef struct { uint   data[24]; } d_uint24_s;
 typedef struct { int    data[24]; } d_int24_s;
+typedef struct { ushort data[ 8]; } d_ushort8_s;
+typedef struct { short  data[ 8]; } d_short8_s;
 typedef struct { uint   data[ 8]; } d_uint8_s;
 typedef struct { int    data[ 8]; } d_int8_s;
 
@@ -72,6 +74,10 @@ typedef struct { half2 h2[3];                                                   
 typedef union { half h1[8];     half2 h2[4];                                                    }   d_half8;
 typedef union { half h1[12];    half2 h2[6];    d_half3_s h3[4];                                }   d_half12;
 typedef union { half h1[24];    half2 h2[12];   d_half3_s h3[8];  d_half8 h8[3];                }   d_half24;
+
+// ushort
+typedef union { ushort us1[8];    ushort4 us4[2];                                                   }   d_ushort8;
+typedef union { short s1[8];      short4 s4[2];                                                     }   d_short8;
 
 // uchar
 typedef union { uchar uc1[8];   uchar4 uc4[2];                                                  }   d_uchar8;
@@ -1398,11 +1404,40 @@ __device__ __forceinline__ void rpp_hip_load8_to_uchar8(uchar *srcPtr, uchar *sr
     *(uint2 *)srcPtr_uc8 = *(uint2 *)srcPtr;
 }
 
+// U16 loads without toggle (8 U16 pixels)
+
+__device__ __forceinline__ void rpp_hip_load8_to_ushort8(ushort *srcPtr, ushort *srcPtr_ui8)
+{
+    *(d_ushort8 *)srcPtr_ui8 = *(d_ushort8 *)srcPtr;
+}
+
+// I16 loads without toggle (8 I16 pixels)
+
+__device__ __forceinline__ void rpp_hip_load8_to_short8(short *srcPtr, short *srcPtr_ui8)
+{
+    *(d_short8 *)srcPtr_ui8 = *(d_short8 *)srcPtr;
+}
+
+
+// U32 loads without toggle (8 U32 pixels)
+
+__device__ __forceinline__ void rpp_hip_load8_to_uint8(uint *srcPtr, uint *srcPtr_ui8)
+{
+    *(d_uint8 *)srcPtr_ui8 = *(d_uint8 *)srcPtr;
+}
+
+// I32 loads without toggle (8 I32 pixels)
+
+__device__ __forceinline__ void rpp_hip_load8_to_int8(int *srcPtr, int *srcPtr_ui8)
+{
+    *(d_int8 *)srcPtr_ui8 = *(d_int8 *)srcPtr;
+}
+
 // F32 loads without layout toggle (8 F32 pixels)
 
 __device__ __forceinline__ void rpp_hip_load8_to_uchar8(float *srcPtr, uchar *srcPtr_uc8)
 {
-    d_float8 src_f8 = {0};
+    d_float8 src_f8 = {{0}};
     *(d_float8_s *)&src_f8 = *(d_float8_s *)srcPtr;
 
     uint2 *srcPtr_ui2;
@@ -1458,7 +1493,7 @@ __device__ __forceinline__ void rpp_hip_load24_pkd3_to_uchar8_pln3(uchar *srcPtr
 
 __device__ __forceinline__ void rpp_hip_load24_pkd3_to_uchar8_pln3(float *srcPtr, uchar **srcPtrs_uc8)
 {
-    d_float24 src_f24 = {0};
+    d_float24 src_f24 = {{0}};
     *(d_float24_s *)&src_f24 = *(d_float24_s *)srcPtr;
 
     d_uint6 src_ui6;
@@ -1755,6 +1790,32 @@ __device__ __forceinline__ void rpp_hip_layouttoggle24_pln3_to_pkd3(T *pixpln3Pt
 __device__ __forceinline__ void rpp_hip_pack_uchar8_and_store8(uchar *dstPtr, d_uchar8 *dstPtr_f8)
 {
     *(d_uchar8_s *)dstPtr = *(d_uchar8_s *)dstPtr_f8;
+}
+
+__device__ __forceinline__ void rpp_hip_pack_schar8_and_store8(schar *dstPtr, d_schar8 *dstPtr_f8)
+{
+    *(d_schar8_s *)dstPtr = *(d_schar8_s *)dstPtr_f8;
+}
+
+
+__device__ __forceinline__ void rpp_hip_pack_ushort8_and_store8(ushort *dstPtr, d_ushort8 *dstPtr_f8)
+{
+    *(d_ushort8_s *)dstPtr = *(d_ushort8_s *)dstPtr_f8;
+}
+
+__device__ __forceinline__ void rpp_hip_pack_short8_and_store8(short *dstPtr, d_short8 *dstPtr_f8)
+{
+    *(d_short8_s *)dstPtr = *(d_short8_s *)dstPtr_f8;
+}
+
+__device__ __forceinline__ void rpp_hip_pack_uint8_and_store8(uint *dstPtr, d_uint8 *dstPtr_f8)
+{
+    *(d_uint8_s *)dstPtr = *(d_uint8_s *)dstPtr_f8;
+}
+
+__device__ __forceinline__ void rpp_hip_pack_int8_and_store8(int *dstPtr, d_int8 *dstPtr_f8)
+{
+    *(d_int8_s *)dstPtr = *(d_int8_s *)dstPtr_f8;
 }
 
 __device__ __forceinline__ void rpp_hip_pack_uchar24_pkd3_and_store24_pkd3(uchar *dstPtr, d_uchar24 *dstPtr_f24)
